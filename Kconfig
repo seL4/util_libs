@@ -1,0 +1,207 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+# This options are imported into the top-level project of all projects.
+menu "Toolchain Options"
+    config CROSS_COMPILER_PREFIX
+        string "Cross compiler prefix"
+    default "arm-none-eabi-" if ARCH_ARM
+    default "i686-pc-linux-gnu-" if ARCH_I386
+    default ""
+        help
+            Set the cross compiler prefix, like arm-linux-gnueabi-
+            Ensure the compiler is in your PATH or include the full
+            path of the compiler in the prefix, such as
+            /opt/toolchains/gcc4/arm-linux-gnueabi-
+
+    config KERNEL_COMPILER
+        string "Path to a different compiler to use for the kernel"
+    default ""
+        help
+            If you set this option to a non-empty string, this compiler will be
+            used for compiling the kernel. The compiler specified by your
+            cross-compiler prefix will still be used for user-space. Note that
+            this option does not affect the pre-processor, assembler or linker
+            used on the kernel.
+
+    config KERNEL_CFLAGS
+        string "Compiler flags to use for compiling the kernel"
+    default ""
+        help
+            Setting this option to a non-empty string overrides the default
+            flags (and those you have selected elsewhere in the build
+            configuration) that are passed to the compiler when compiling the
+            kernel. This does not affect the compiler flags passed when
+            compiling user-space.
+
+            Use this option with care as it will prevent several sane default
+            options that are normally passed. Note that this does not prevent
+            DEFINES being passed to the compiler. This causes the pre-processor
+            invocations in the kernel to assume they are targetting a non-GNU
+            compiler. It does not affect the assembling or linking of the
+            kernel.
+
+    config KERNEL_EXTRA_CPPFLAGS
+        string "Extra CPP flags to use for compiling the kernel"
+        default ""
+        help
+            These flags will be appended to the C pre-processor flags used when
+            compiling the kernel. Note these will not be applied during
+            user-space pre-processing.
+
+    config USER_DEBUG_INFO
+        bool "Emit debugging information"
+        default n
+        help
+            Emit debugging information when compiling applications and
+            libraries. This does not affect the compiler flags applied to the
+            kernel.
+
+    config USER_EXTRA_CFLAGS
+        string "Extra userspace CFLAGS"
+        default ""
+        depends on USER_CFLAGS = ""
+        help
+            Extra flags to append when compiling applications and libraries.
+            This does not affect the flags applied when compiling the kernel.
+
+    config USER_CFLAGS
+        string "Override userspace CFLAGS"
+        default ""
+        help
+            A set of flags to be used as the ONLY options when compiling
+            applications and libraries. This does not affect the flags applied
+            when compiling the kernel. This option takes precedence over "Extra
+            userspace CFLAGS" and should be used with care.
+
+    config BUILDSYS_USE_CCACHE
+        bool "Use ccache to improve build performance"
+        default y
+        help
+            ccache will cache object files based on compiler name, compile flags
+            and source file name. On the next attempt to compile this file with
+            the same compiler and flags, the object file will be copied from the
+            cache rather than compiling from source.
+
+    config BUILDSYS_USE_GOANNA
+        bool "Use Goanna for static analysis"
+        default y
+        help
+            Goanna is a static analysis tool developed internally. Select this
+            option to enable it during compilation if you have it installed.
+
+    config BUILDSYS_GOANNA_PROFILE
+        string "Goanna profile"
+        default ""
+        depends on BUILDSYS_USE_GOANNA
+        help
+            Goanna needs a profile file describing the behaviour of your
+            compiler. Set this value to the profile file that describes your
+            cross-compiler.
+
+    choice
+        prompt "User compiler optimisation flag"
+        depends on USER_CFLAGS = ""
+        default USER_OPTIMISATION_O2
+        help
+            Select the compiler optimisation level for building user space
+
+        config USER_OPTIMISATION_Os
+            bool "-Os"
+            help
+                Compiler optimisations tuned for size
+
+        config USER_OPTIMISATION_O0
+            bool "-O0"
+            help
+                No optimisation
+
+        config USER_OPTIMISATION_O1
+            bool "-O1"
+            help
+                Basic compiler optimisations
+
+        config USER_OPTIMISATION_O2
+            bool "-O2"
+            help
+                Aggressive compiler optimisations
+
+        config USER_OPTIMISATION_O3
+            bool "-O3"
+            help
+                Enable all optimisations (may increase code size)
+    endchoice
+
+    config LINK_TIME_OPTIMISATIONS
+        bool "Enable link time optimisations"
+        default n
+        depends on USER_CFLAGS = ""
+        help
+            Link time optimisations allow optimisations to be performed at link time
+            enabling cross file optimisations to happen. Support for this may not exist
+            in your compiler, and even if there is your build may explode.
+            Consider this feature experimental!
+
+    config WHOLE_PROGRAM_OPTIMISATIONS_USER
+        bool "Link user assuming whole program"
+        default n
+        help
+            Enable -fwhole-program when performing link step. This may be buggy if your build
+            involves linking at times when -fwhole-program would not be correct to give. This
+            will cause -fwhole-program to be passed when linking user elf images
+            Consider this feature experimental!
+
+    config WHOLE_PROGRAM_OPTIMISATIONS_KERNEL
+        bool "Link kernel assuming whole program"
+        default n
+        help
+            Enable -fwhole-program when linking kernel. This should work modulo gcc bugs, which
+            are not uncommon with -fwhole-program
+            Consider this feature experimental!
+
+    config USER_DEBUG_BUILD
+        bool "build user level with assertions, -g and debugging messages"
+        default y if DEBUG_BUILD
+        help
+            Build user level as a debugging environment. If this option is off,
+            NDEBUG is passed to Musl C which will turn off assertions. This will
+            enable -g for user level.
+
+    config BUILDSYS_CPP_SEPARATE
+        bool "Separately invoke CPP"
+        default n
+        help
+            Invoke the pre-processor in a separate step and produce an
+            intermediate .c_pp file. This is relevant if you are wanting to
+            verify C code or debug the pre-processor output.
+
+    config BUILDSYS_CPP_RETAIN_COMMENTS
+        bool "CPP: retain comments"
+        default y
+        depends on BUILDSYS_CPP_SEPARATE
+        help
+            Retain comments after pre-processing C code. This can be useful
+            when the comments contain directives to the verification C parser.
+
+    config BUILDSYS_CPP_LINE_DIRECTIVES
+        bool "CPP: Emit line directives"
+        default y
+        depends on BUILDSYS_CPP_SEPARATE
+        help
+            Emit line directives in pre-processed C code. This allows your
+            compiler to give you error messages indicating the source
+            locations in original files. You might wish to switch this off if
+            your pre-processed C file is then being used as an input to another
+            process for which original source locations are no longer
+            meaningful, or when your final compiler does not understand line
+            directives.
+
+endmenu
+
