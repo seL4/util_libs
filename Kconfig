@@ -1,0 +1,19 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+config LIB_PLATSUPPORT
+    bool "Build platform support library which is OS independant"
+    default y
+    depends on LIB_UTILS
+    help
+        Build an OS independant platform support library. The only 
+        prerequisite is that a function to map physical device memory 
+        be provided.
+
