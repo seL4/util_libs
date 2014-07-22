@@ -1,0 +1,7 @@
+# @LICENSE(KBUILD_GPL)
+
+This is NOT the official version of dialog.  This version has been
+significantly modified from the original.  It was used by the Linux
+kernel configuration script, and subsequently adapted for busybox.
+seL4 then adopted the system as part of KBuild.
+Please do not bother Savio Lam with questions about this program.

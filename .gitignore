@@ -1,0 +1,12 @@
+# Generated files
+*.cmd
+*.o
+basic/docproc
+basic/fixdep
+basic/split-include
+kconfig/conf
+kconfig/mconf
+
+# Developer files
+cscope.*
+**/*.swp
