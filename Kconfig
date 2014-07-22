@@ -1,0 +1,22 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the GNU General Public License version 2. Note that NO WARRANTY is provided.
+# See "LICENSE_GPLv2.txt" for details.
+#
+# @TAG(NICTA_GPL)
+#
+
+menuconfig LIB_ELFLOADER
+    bool "Build elfloader"
+    default y
+    depends on ARCH_ARM
+    select LIB_CPIO
+
+config ARM_ERRATA_764369
+    bool "Workaround for ARM errata 764369"
+    depends on LIB_ELFLOADER
+    default y
+    help
+        Work around for a Cortex-A9 errata. Derived from Linux kernel.
