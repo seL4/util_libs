@@ -1,0 +1,38 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the GNU General Public License version 2. Note that NO WARRANTY is provided.
+# See "LICENSE_GPLv2.txt" for details.
+#
+# @TAG(NICTA_GPL)
+#
+
+menuconfig LIB_ETHIF
+    bool "Build ethernet interface library"
+    depends on HAVE_LIBC && LIB_LWIP && LIB_UTILS && LIB_PLATSUPPORT
+    default y
+
+config LIB_ETHDRIVER_ZERO_COPY_RX
+    bool "Attempt zero copy RX"
+    depends on LIB_ETHIF
+    default y
+    help
+        Uses LWiP custom pbufs to attempt to pass packets in DMA buffers
+        directly to LWiP without having to do a copy
+
+config LIB_ETHDRIVER_RX_DESC_COUNT
+    int "Number of RX descriptors"
+    depends on LIB_ETHIF
+    default 32
+    help
+        The number of RX descriptors in the descriptor ring for the 
+        driver.
+
+config LIB_ETHDRIVER_TX_DESC_COUNT
+    int "Number of TX descriptors"
+    depends on LIB_ETHIF
+    default 32
+    help
+        The number of TX descriptors in the descriptor ring for the
+        driver.
