@@ -16,8 +16,8 @@ if [ 0${V} -ge 3 ]; then
 fi
 
 # Check usage.
-if [ $# -lt 3 ]; then
-    echo "Usage: $0 <output file> <symbol name> <input files> [...]"
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <output file> <symbol name> [input files]"
     echo
     echo "Generate an '.o' file that contains the symbol 'symbol name'"
     echo "that contains binary data of a CPIO file containing the input"
