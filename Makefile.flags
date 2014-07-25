@@ -120,13 +120,13 @@ ifeq ($(CONFIG_ARM1136JF_S),y)
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A8),y)
-	cflags-y += $(call cc-option, -mtune=cortex-a8,-march=armv7-a)
+	cflags-y += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
+	ASFLAGS += $(call cc-option, -mcpu=cortex-a8,-march-armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A8
 	export ARMV=armv7-a
-	NK_CFLAGS += $(call cc-option,-march=armv7-a)
 	export CPU=cortex-a8
-	NK_CFLAGS += $(call cc-option, -mtune=cortex-a8,-march=armv7-a)
+	NK_CFLAGS += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A9),y)
@@ -140,13 +140,13 @@ endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 	cflags-y += $(call cc-option, -mtune=cortex-a15,)
-	cflags-y += -marm  $(call cc-option,-march=armv7e,-mcpu=cortex-a15)
+	cflags-y += -marm  $(call cc-option,-march=armv7e,-march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A15
 	export ARMV=armv7-a
 	export CPU=cortex-a15
 	NK_CFLAGS += $(call cc-option, -mtune=cortex-a15,)
-	NK_CFLAGS += $(call cc-option,-march=armv7e,-mcpu=cortex-a15)
+	NK_CFLAGS += $(call cc-option,-march=armv7e,-march=armv7-a)
 	NK_CFLAGS += -marm 
 endif
 
