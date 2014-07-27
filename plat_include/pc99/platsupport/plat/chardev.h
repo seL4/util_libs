@@ -12,7 +12,9 @@
 #define __PLATSUPPORT_PC99_CHARDEV_H
 
 enum chardev_id {
-    NONE_IMPLEMENTED
+    NONE_IMPLEMENTED,
+    /* defaults */
+    PS_SERIAL_DEFAULT = NONE_IMPLEMENTED
 };
 
 

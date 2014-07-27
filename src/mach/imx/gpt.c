@@ -19,6 +19,10 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
+/* The GPT status register is w1c (write 1 to clear), and there are 6 status bits in the iMX
+   status register, so writing the value 0b111111 = 0x3F will clear it. */
+#define GPT_STATUS_REGISTER_CLEAR 0x3F
+
 /* GPT CONTROL REGISTER BITS */
 typedef enum {
     /*
@@ -193,10 +197,10 @@ gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED) {
     /* Potentially could be getting interrupts for more reasons
      * driver can't do it though
     */
-    if (gpt->gpt_map->gptsr == BIT(ROV)) {
+    if (gpt->gpt_map->gptsr & BIT(ROV)) {
         gpt->compare_events++;
-        gpt->gpt_map->gptsr = BIT(ROV);
     }
+    gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 }
 
 static uint64_t 
@@ -260,12 +264,13 @@ gpt_get_timer(gpt_config_t *config)
 
     /* Disable GPT. */
     gpt->gpt_map->gptcr = 0;
+    gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 
     /* Configure GPT. */
     gpt->gpt_map->gptcr |= BIT(ENMOD); /* Reset to 0 on disable */
     gpt->gpt_map->gptcr = 0 | BIT(SWR); /* Reset the GPT */
-    gpt->gpt_map->gptcr = BIT(FRR) | BIT(CLKSRC); /* GPT can do more but for this just set it as free running
-    so we can tell the time */
+    gpt->gpt_map->gptcr = BIT(FRR) | BIT(CLKSRC) | BIT(ENMOD); /* GPT can do more but for this just
+            set it as free running  so we can tell the time */
     gpt->gpt_map->gptir = BIT(ROV); /* Interrupt when the timer overflows */
     gpt->gpt_map->gptpr = config->prescaler; /* Set the prescaler */
 

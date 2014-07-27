@@ -72,8 +72,11 @@ struct ps_chardevice* uart_init(const struct dev_defn* defn,
     dev->ioops      = *ops;
     dev->clk = NULL;
 
-    /* Turn on receiver interrupt. */
-    *REG_PTR(dev->vaddr, UCR1) |= (1 << 9);
+    /* Initialise the receiver interrupt. */
+    *REG_PTR(dev->vaddr, UCR1) &= ~(1 << UART_CR1_RRDYEN);  /* Disable recv interrupt. */
+    *REG_PTR(dev->vaddr, UFCR) &= ~UART_FCR_RXTL_MASK; /* Clear the rx trigger level value. */
+    *REG_PTR(dev->vaddr, UFCR) |= 0x1; /* Set the rx tigger level to 1. */
+    *REG_PTR(dev->vaddr, UCR1) |= (1 << UART_CR1_RRDYEN); /* Enable recv interrupt. */
 
     return dev;
 }

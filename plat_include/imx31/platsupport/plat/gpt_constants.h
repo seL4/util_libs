@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_IMX31_H
-#define __PLAT_SUPPORT_IMX31_H
+#ifndef __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H
+#define __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H
 
 /**
  * Address at which the GPT should be in the initial
@@ -22,5 +22,5 @@
 
 #define IPG_FREQ 532 /* x10^5 */
 
-#endif /* __PLAT_SUPPORT_IMX31_H */
+#endif /* __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H */
 
