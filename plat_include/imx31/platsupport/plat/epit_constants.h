@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_IMX31_H
-#define __PLAT_SUPPORT_IMX31_H
+#ifndef __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H
+#define __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H
 
 /**
  * Address at which the EPIT2 should be in the initial
@@ -24,5 +24,5 @@
 #define EPIT2_INTERRUPT 27
 #define IPG_FREQ 532 /*x10^5 */
 
-#endif /* __PLAT_SUPPORT_IMX31_H */
+#endif /* __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H */
 

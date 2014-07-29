@@ -15,6 +15,8 @@
 #define UART_REG(vaddr, x) ((volatile uint32_t*)(vaddr + (x)))
 #define UART_SR1_TRDY  13
 #define UART_SR1_RRDY  9
+#define UART_CR1_RRDYEN 9
+#define UART_FCR_RXTL_MASK 0x1F
   
 #define URXD  0x00 /* UART Receiver Register */
 #define UTXD  0x40 /* UART Transmitter Register */
