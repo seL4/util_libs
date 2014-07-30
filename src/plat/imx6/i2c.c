@@ -72,6 +72,14 @@ struct imx6_i2c_regs {
 
 struct i2c_bus {
     volatile struct imx6_i2c_regs* regs;
+    char* rx_buf;
+    int rx_count;
+    int rx_len;
+    const char* tx_buf;
+    int tx_count;
+    int tx_len;
+    int mode_tx;
+
     enum mux_feature mux;
     enum clock_gate clk_gate;
     struct clock clock;
@@ -227,8 +235,13 @@ clear_pending(i2c_bus_t* dev){
     dev->regs->status &= ~(I2CSTAT_IRQ_PEND);
 }
 
+static inline int
+acked(i2c_bus_t* dev){
+    return !(dev->regs->status & I2CSTAT_NAK);
+}
+
 static inline void
-_master_stop(i2c_bus_t* dev){
+master_stop(i2c_bus_t* dev){
     /* Send stop signal */
     dev->regs->control &= ~I2CCON_MASTER;
     /* Wait for idle bus */
@@ -239,48 +252,44 @@ _master_stop(i2c_bus_t* dev){
 }
 
 
-static int
-_do_write(i2c_bus_t* dev, const void* vdata, int len){
-    int count;
-    const char* data = (const char*)vdata;
-    for(count = 0; count < len; count++){
-        dev->regs->data = *data++;
-        while(!irq_pending(dev));
-        clear_pending(dev);
-        /* Check ACK */
-        if(dev->regs->status & I2CSTAT_NAK){
-            return count;
-        }
-    }
-    return count;
-}
-
-int
-i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
-{
-    int count;
-    char addr;
-    dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
-
+static void
+master_start(i2c_bus_t* dev, char addr){
     /* Enable the bus */
     dev->regs->control |= I2CCON_ENABLE | I2CCON_IRQ_ENABLE;
     while(busy(dev));
     /* Enter master TX mode */
     dev->regs->control |= I2CCON_MASTER | I2CCON_TXEN;
     while(!busy(dev));
+    clear_pending(dev);
     /* Write slave address */
-    addr = I2CDATA_WRITE(slave);
-    count = _do_write(dev, &addr, 1);
-    if(count == 1){
-        /* Pump out data */
-        count = _do_write(dev, vdata, len);
-    }else{
-        dprintf("NACK from slave@0x%02x\n", slave);
-        count = -1;
+    dev->regs->data = addr;
+}
+
+static inline void
+master_txstart(i2c_bus_t* dev, int slave){
+    master_start(dev, I2CDATA_WRITE(slave));
+}
+
+static inline void
+master_rxstart(i2c_bus_t* dev, int slave){
+    master_start(dev, I2CDATA_READ(slave));
+}
+
+int
+i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
+{
+    dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
+    master_txstart(dev, slave);
+
+    dev->tx_count = 0;
+    dev->tx_buf = (const char*)vdata;
+    dev->tx_len = len;
+    dev->mode_tx = 1;
+
+    while(busy(dev)){
+        i2c_handle_irq(dev);
     }
-    /* Send stop signal */
-    _master_stop(dev);
-    return count;
+    return dev->tx_count;
 }
 
 
@@ -288,53 +297,67 @@ i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
 int
 i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
 {
-    int count;
-    char addr;
-    uint32_t c;
-    char* data = (char*)vdata;
-    int ret;
-
     dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
-    /* Enable the bus */
-    dev->regs->control |= I2CCON_ENABLE | I2CCON_IRQ_ENABLE;
-    while(busy(dev));
-    /* For master RX mode, we enable TX for writing the address, then disable */
-    dev->regs->control |= I2CCON_MASTER | I2CCON_TXEN;
-    while(!busy(dev));
-    clear_pending(dev);
-    /* Write slave address */
-    addr = I2CDATA_READ(slave);
-    ret = _do_write(dev, &addr, 1);
-    if(ret == 1){
-        count = 0;
-        /* Leave TX mode */
-        dev->regs->control &= ~(I2CCON_TXEN);
-        /* Read bytes */
-        /* This dummy read bootstraps RX transfer */
-        clear_pending(dev);
-        c = dev->regs->data;
-        while(!irq_pending(dev));
-        clear_pending(dev);
+    master_rxstart(dev, slave);
 
-        while(count < len){
-            /* Disable ACK before reading last byte to stop transfer */
-            if(count == len - 1){
-                dev->regs->control |= I2CCON_ACK_EN;
-            }
-            /* read the byte */
-            c = dev->regs->data;
-            while(!irq_pending(dev));
-            clear_pending(dev);
-            *data++ = c;
-            count++;
-        }
-    }else{
-        count = -1;
+    dev->rx_count = -1;
+    dev->rx_buf = (char*)vdata;
+    dev->rx_len = len;
+    dev->mode_tx = 0;
+
+    while(busy(dev)){
+        i2c_handle_irq(dev);
     }
-    /* Stop signal */
-    _master_stop(dev);
-    return count;
+    return dev->rx_count;
 }
+
+
+void
+i2c_handle_irq(i2c_bus_t* dev){
+    if(irq_pending(dev)){
+        /* Clear IF */
+        clear_pending(dev);
+        /* Master Mode? */
+        if(dev->regs->control & I2CCON_MASTER){
+            if(dev->regs->control & I2CCON_TXEN){
+                /** Master TX **/
+                if(dev->mode_tx && dev->tx_count == dev->tx_len){
+                    /* Last byte transmitted */
+                    master_stop(dev);
+                }else if(!acked(dev)){
+                    /* RXAK != 0 */
+                    dprintf("NACK from slave\n");
+                    master_stop(dev);
+                }else if(!dev->mode_tx){
+                    /* End of address cycle for master RX */
+                    dev->regs->control &= ~I2CCON_TXEN;
+                    (void)dev->regs->data;
+                    dev->rx_count = 0;
+                }else{
+                    /* Write next byte */
+                    dev->regs->data = *dev->tx_buf++;
+                    dev->tx_count++;
+                }
+            }else{
+                /** Master RX **/
+                if(dev->rx_count < dev->rx_len){
+                    if(dev->rx_count + 1 == dev->rx_len){
+                        /* Second last byte to be read */
+                        dev->regs->control |= I2CCON_ACK_EN;
+                    }
+                    *dev->rx_buf++ = dev->regs->data;
+                    dev->rx_count++;
+                }else{
+                    /* Last byte to be read */
+                    master_stop(dev);
+                }
+            }
+        }else{
+            /* Slave mode */
+        }
+    }
+}
+
 
 int
 i2c_set_address(i2c_bus_t* i2c_bus, int addr){
@@ -385,3 +408,4 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c)
     *i2c = dev;
     return 0;
 }
+
