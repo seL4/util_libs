@@ -12,7 +12,7 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-#define I2C_DEBUG
+//#define I2C_DEBUG
 #ifdef I2C_DEBUG
 #define dprintf(...) printf("I2C: " __VA_ARGS__)
 #else
@@ -294,10 +294,6 @@ i2c_write(i2c_bus_t* dev, const void* vdata, int len){
 int
 i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
 {
-    char* data = (char*)vdata;
-    int count = 0;
-    uint32_t c;
-
     dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Rx mode **/
@@ -323,9 +319,6 @@ i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
 int
 i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
 {
-    const char* data = (const char*)vdata;
-    /* The address byte should not be included in our count */
-    int count = -1;
     dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Tx mode **/
@@ -335,29 +328,15 @@ i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
     /* Write 0xF0 (M/T Start) to I2CSTAT */
     clear_pending(dev);
     dev->regs->status |= I2CSTAT_BUSY;
-    while(count < len){
-        /* After ACK period, IRQ is pending */
-        while(!irq_pending(dev));
-        /* Stop ? */
-        if(busy(dev)){
-            /* Write new data from I2CDS */
-            if(count < len){
-                dev->regs->data = *data++;
-                count++;
-            }
-            if(count < len){
-                /* Clear pending bit to resume */
-                clear_pending(dev);
-            }
-        }else{
-            break;
-        }
+
+    dev->tx_count = -1;
+    dev->tx_len = len;
+    dev->tx_buf = (const char*)vdata;
+
+    while(busy(dev)){
+        i2c_handle_irq(dev);
     }
-    /* Write 0xD0 (M/T Stop) to I2CSTAT */
-    dev->regs->status &= ~(I2CSTAT_BUSY);
-    clear_pending(dev);
-    while(busy(dev));
-    return count;
+    return dev->tx_count;
 }
 
 
@@ -390,6 +369,20 @@ i2c_handle_irq(i2c_bus_t* dev){
             }
             break;
         case I2CSTAT_MODE_MTX:
+            if(acked(dev)){
+                /* Start pumping out data */
+                v = *dev->tx_buf++;
+                dev->regs->data = v;
+                dev->tx_count++;
+                if(dev->tx_count == dev->tx_len){
+                    /* Write 0xD0 (M/T Stop) to I2CSTAT */
+                    dev->regs->status &= ~(I2CSTAT_BUSY);
+                }
+            }else{
+                /* No response: Abort */
+                dev->regs->status &= ~(I2CSTAT_BUSY);
+            }
+            break;
         case I2CSTAT_MODE_STX:
         case I2CSTAT_MODE_SRX:
         default:
