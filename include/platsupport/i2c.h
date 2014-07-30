@@ -31,6 +31,11 @@ typedef struct i2c_bus i2c_bus_t;
  */ 
 int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c_bus);
 
+/**
+ * Signal an IRQ even to an I2C bus.
+ * @param[in] dev The I2C bus that triggered the IRQ
+ */
+void i2c_handle_irq(i2c_bus_t* dev);
 
 /**
  * Scan a bus for devices

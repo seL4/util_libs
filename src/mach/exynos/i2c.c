@@ -12,7 +12,7 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-//#define I2C_DEBUG
+#define I2C_DEBUG
 #ifdef I2C_DEBUG
 #define dprintf(...) printf("I2C: " __VA_ARGS__)
 #else
@@ -149,6 +149,12 @@ struct exynos_i2c_regs {
 
 struct i2c_bus {
     volatile struct exynos_i2c_regs* regs;
+    const char* tx_buf;
+    int tx_len;
+    int tx_count;
+    char* rx_buf;
+    int rx_len;
+    int rx_count;
     enum mux_feature mux;
 };
 
@@ -193,6 +199,10 @@ static inline int busy(i2c_bus_t* dev){
 
 static inline int acked(i2c_bus_t* dev){
     return !(dev->regs->status & I2CSTAT_ACK);
+}
+
+static inline int enabled(i2c_bus_t* dev){
+    return !!(dev->regs->status & I2CSTAT_ENABLE);
 }
 
 void debug(i2c_bus_t* dev){
@@ -297,33 +307,16 @@ i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
     /* Write 0xB0 (M/R Start) to I2CSTAT */
     dev->regs->status |= I2CSTAT_BUSY;
 
-    /* The first byte will read as the value we just wrote */
-    while(!irq_pending(dev));
-    c = dev->regs->data;
-    if(acked(dev)){
-        /* Read bytes */
-        while(count < len){
-            /* After ACK period, IRQ is pending */
-            clear_pending(dev);
-            while(!irq_pending(dev));
-            c = dev->regs->data;
-            *data++ = c;
-            count++;
-        }
-    }else{
-        count = -1;
-    }
-    /* Stop acking chars */
-    dev->regs->control &= ~(I2CCON_ACK_EN);
-    /* Dummy read */
-    clear_pending(dev);
-    while(!irq_pending(dev));
-    /* Send stop condition */
-    dev->regs->status &= ~(I2CSTAT_BUSY);
-    clear_pending(dev);
-    while(busy(dev));
+    /* Setup the RX descriptor */
+    dev->rx_buf = (char*)vdata;
+    dev->rx_len = len;
+    dev->rx_count = -1;
 
-    return count;
+    /* Wait for completion */
+    while(busy(dev)){
+        i2c_handle_irq(dev);
+    }
+    return dev->rx_count;
 }
 
 /* Exynos4 manual Figure 14-6 p14-8 */
@@ -368,6 +361,43 @@ i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
 }
 
 
+void
+i2c_handle_irq(i2c_bus_t* dev){
+    uint32_t v;
+    if(enabled(dev) && irq_pending(dev)){
+        switch(dev->regs->status & I2CSTAT_MODE_MASK){
+        case I2CSTAT_MODE_MRX:
+            if(dev->rx_count < 0){
+                if(acked(dev)){
+                    /* slave responded to the address */
+                    dev->rx_count = 0;
+                }else{
+                    /* No response: Abort */
+                    dev->regs->status &= ~(I2CSTAT_BUSY);
+                }
+            }else if(dev->regs->control & I2CCON_ACK_EN){
+                /* Read from slave */
+                v = dev->regs->data;
+                *dev->rx_buf++ = v;
+                dev->rx_count++;
+                /* Don't ACK the last byte */
+                if(dev->rx_count == dev->rx_len){
+                    dev->regs->control &= ~(I2CCON_ACK_EN);
+                }
+            }else{
+                /* Finally, send stop */
+                dev->regs->status &= ~(I2CSTAT_BUSY);
+            }
+            break;
+        case I2CSTAT_MODE_MTX:
+        case I2CSTAT_MODE_STX:
+        case I2CSTAT_MODE_SRX:
+        default:
+            assert(!"Unknown I2C mode");
+        }
+        clear_pending(dev);
+    }
+}
 
 int
 i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c)
