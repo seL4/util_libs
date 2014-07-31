@@ -157,9 +157,8 @@ enable_interrupts(struct regs *regs)
 {
     volatile uint32_t temp_ims = *regs->ims;
 
-    temp_ims |= IMS_RXDMT0;
     temp_ims |= IMS_RXQ0;
-    temp_ims |= IMS_RXQ1;
+    temp_ims |= IMS_RXO;
 
     *regs->ims = temp_ims;
     return;
@@ -198,7 +197,9 @@ moderate_interrupts(struct regs *regs)
 {
     volatile uint32_t temp_itr = 0;
     // set it to 651 first as minimum interval
-    temp_itr = ITR_INTERVAL_BITS(0x0);
+//    temp_itr = ITR_INTERVAL_BITS(0x0);
+    /* Disable interrupt intervals as seL4 already does masking */
+    temp_itr = 0;
     *regs->itr = temp_itr;
 }
 
@@ -527,8 +528,15 @@ e82574L_raw_handleIRQ(struct netif* netif, int irq)
         //printf("IRQ: Receive Queue 0 Interrupt\n");
         while(ethif_input(netif));
     }
+    if (*(data->regs->icr) & (ICR_RXQO)) {
+        LOG_ERROR("Receive descriptor overrun");
+    }
     // Clear interrupts
+    /* Synchronize before achknowledging */
+    __sync_synchronize();
     *(data->regs->icr) = 0xFFFFFFFF;
+    /* Synchronize what we just did */
+    __sync_synchronize();
 }
 
 dma_addr_t
@@ -572,6 +580,9 @@ e82574L_reset_tx_descs(struct eth_driver *driver)
     *(regs->tdh) = 0; 
     *(regs->tdt) = 0; 
 
+    /* Sync what we just did */
+    __sync_synchronize();
+
     size_t desc_bytes = desc->tx.count * sizeof(struct tx_ldesc);
     assert(desc_bytes % 128 == 0); // tdlen must be 128 byte aligned
     *(regs->tdlen) = desc_bytes;
@@ -610,6 +621,9 @@ e82574L_reset_rx_descs(struct eth_driver *driver)
     *(regs->rdh0) = 0; 
     *(regs->rdt0) = desc->rx.count - 1; // Should this be -1 or nothing? 
 
+    /* Sync what we just did */
+    __sync_synchronize();
+
     size_t desc_bytes = desc->rx.count * sizeof(struct rx_ldesc);
     assert(desc_bytes % 128 == 0); // tdlen must be 128 byte aligned
     *(regs->rdlen0) = desc_bytes;
@@ -621,14 +635,14 @@ e82574L_reset_rx_descs(struct eth_driver *driver)
 int
 e82574L_is_tx_desc_ready(int buf_num, struct desc *desc)
 {
-    struct tx_ldesc *ring = desc->tx.ring.virt;
+    volatile struct tx_ldesc *ring = desc->tx.ring.virt;
     return !(ring[buf_num].STA & TX_DD);
 }
 
 int
 e82574L_is_rx_desc_empty(int buf_num, struct desc *desc)
 {
-    struct rx_ldesc *ring = desc->rx.ring.virt;
+    volatile struct rx_ldesc *ring = desc->rx.ring.virt;
     return !(ring[buf_num].status & RX_DD);
 }
 
@@ -666,9 +680,10 @@ void
 e82574L_ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver)
 {
     // Move the tail reg. Assumes this is called for every desc
-    e82574L_eth_data_t *eth_data = (e82574L_eth_data_t*)driver->eth_data;
+    volatile e82574L_eth_data_t *eth_data = (e82574L_eth_data_t*)driver->eth_data;
     *(eth_data->regs->rdt0) = (*(eth_data->regs->rdt0) + 1) % driver->desc->rx.count;
     //assert(*(eth_data->regs->rdt0) - 1 == buf_num); 
+    __sync_synchronize();
 } 
 
 void
@@ -688,13 +703,13 @@ e82574L_set_rx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc)
 int
 e82574L_get_rx_buf_len(int buf_num, struct desc *desc)
 {
-    struct rx_ldesc *ring = desc->rx.ring.virt;
+    volatile struct rx_ldesc *ring = desc->rx.ring.virt;
     return ring[buf_num].length;
 }
 
 int
 e82574L_get_rx_desc_error(int buf_num, struct desc *desc)
 {
-    struct rx_ldesc *ring = desc->rx.ring.virt;
+    volatile struct rx_ldesc *ring = desc->rx.ring.virt;
     return ring[buf_num].error & ~RX_E_RSV; // Ignore the reserved error bit
 }

@@ -189,6 +189,7 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
     assert(desc);
     assert(desc_txhasspace(desc, buf->count));
 
+    int start = desc->tx.tail;
     for (j = 0; j < buf->count; j++) {
         i = desc->tx.tail;
         assert(desc->tx.unused > 0);
@@ -215,7 +216,7 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
         d_fn->set_tx_desc_buf(i, buf->bufs[j].buf, buf->bufs[j].len, tx_desc_wrap, tx_last_section, desc);
     }
     /* Ready all the descriptors */
-    d_fn->ready_tx_desc(i, buf->count, driver);
+    d_fn->ready_tx_desc(start, buf->count, driver);
     return 0;
 }
 
@@ -285,6 +286,7 @@ desc_rxget(struct eth_driver *driver, dma_addr_t *buf, int *len)
     desc_rxrefill(driver);
         
     if (error) {
+        LOG_ERROR("Received error %d in receiver", error);
         return -1;
     } else {
         return 1;
@@ -306,6 +308,7 @@ desc_txcomplete(struct desc *desc, struct raw_desc_funcs *d_fn)
     for (i = desc->tx.head
          ; desc->tx.unused < desc->tx.count && !(d_fn->is_tx_desc_ready(i, desc))
          ; i = (i + 1) % desc->tx.count) {
+        /* TODO check for errors */
         if (desc->tx.buf_cookies[i]) {
             desc->tx.complete_funcs[i](desc->tx.buf_cookies[i]);
         } else {
