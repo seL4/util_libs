@@ -16,8 +16,6 @@
 #define FALSE 0
 #define TRUE 1
 
-#define dmb()   asm volatile("dmb" ::: "memory")
-
 static int create_ring(struct desc_ring *r, ps_dma_man_t *dma_man, dma_addr_t descs,
                        int count) {
     /* create the buffer list */
@@ -159,8 +157,6 @@ desc_txput(struct eth_driver *driver, dma_addr_t buf, int len)
     /* Clean the buffer out to RAM */
     ps_dma_cache_clean(&desc->dma_man, buf.virt, len);
 
-    d_fn->set_tx_desc_buf(i, buf, len, desc);
-    __sync_synchronize(); //dmb();
 
      /* Adjust for next index */
     desc->tx.tail++;
@@ -170,11 +166,9 @@ desc_txput(struct eth_driver *driver, dma_addr_t buf, int len)
         desc->tx.tail = 0;
         tx_desc_wrap = TRUE;
     }
- 
-    d_fn->ready_tx_desc(i, tx_desc_wrap, TRUE, driver);
+    d_fn->set_tx_desc_buf(i, buf, len, tx_desc_wrap, TRUE, desc);
+    d_fn->ready_tx_desc(i, 1, driver);
     desc->tx.buf_cookies[i] = NULL;
-    /* Must ensure changes are observable before signalling the MAC */
-    __sync_synchronize(); // dmb();
     return 0;
 }
 
@@ -201,10 +195,6 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
         assert(!(d_fn->is_tx_desc_ready(i, desc)));
         /* Clean the buffer out to RAM */
         ps_dma_cache_clean(&desc->dma_man, buf->bufs[j].buf.virt, buf->bufs[j].len);
-        /* Set the descriptor */
-        d_fn->set_tx_desc_buf(i, buf->bufs[j].buf, buf->bufs[j].len, desc);
-        /* Must ensure changes are observable before setting ready bit */
-        __sync_synchronize(); // dmb();
         /* Adjust for next index */
         desc->tx.tail++;
         desc->tx.unused--;
@@ -221,10 +211,11 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
         } else {
             desc->tx.buf_cookies[i] = NULL;
         }
-        d_fn->ready_tx_desc(i, tx_desc_wrap, tx_last_section, driver);
-        /* Must ensure changes are observable before signalling the MAC */
-        __sync_synchronize(); // dmb();
+        /* Set the descriptor */
+        d_fn->set_tx_desc_buf(i, buf->bufs[j].buf, buf->bufs[j].len, tx_desc_wrap, tx_last_section, desc);
     }
+    /* Ready all the descriptors */
+    d_fn->ready_tx_desc(i, buf->count, driver);
     return 0;
 }
 

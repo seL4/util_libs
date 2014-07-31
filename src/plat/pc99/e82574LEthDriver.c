@@ -117,8 +117,8 @@ void e82574L_reset_tx_descs(struct eth_driver *driver);
 void e82574L_reset_rx_descs(struct eth_driver *driver);
 int e82574L_is_tx_desc_ready(int buf_num, struct desc *desc);
 int e82574L_is_rx_desc_empty(int buf_num, struct desc *desc);
-void e82574L_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc);
-void e82574L_ready_tx_desc(int buf_num, int tx_desc_wrap, int tx_last_section, struct eth_driver *driver);
+void e82574L_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc);
+void e82574L_ready_tx_desc(int buf_num, num, struct eth_driver *driver);
 void e82574L_ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver);
 void e82574L_set_rx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc);
 int e82574L_get_rx_buf_len(int buf_num, struct desc *desc);
@@ -633,37 +633,34 @@ e82574L_is_rx_desc_empty(int buf_num, struct desc *desc)
 }
 
 void
-e82574L_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc)
+e82574L_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc)
 {
     struct tx_ldesc *d = desc->tx.ring.virt;
     d[buf_num].bufferAddress = buf.phys; // Check how to assign 64 bits properly
     d[buf_num].bufferAddressHigh = 0;
     d[buf_num].length = len;
     d[buf_num].CSO = 0;
-    d[buf_num].CMD = 0b1011;
-    d[buf_num].STA = 0;
-    d[buf_num].ExtCMD = 0;
-    d[buf_num].CSS = 0;
-    d[buf_num].VLAN = 0;
-    __sync_synchronize();
-}
-
-void
-e82574L_ready_tx_desc(int buf_num, int tx_desc_wrap, int tx_last_section, struct eth_driver *driver)
-{
-    struct tx_ldesc *d = driver->desc->tx.ring.virt;
-    d[buf_num].CSO = 0;
-    // Report status, insert CRC and optionaally set End of Packet
     d[buf_num].CMD = 0b1010 | (tx_last_section ? TX_EOP : 0);
     d[buf_num].STA = 0;
     d[buf_num].ExtCMD = 0;
     d[buf_num].CSS = 0;
     d[buf_num].VLAN = 0;
+}
 
-    // Move the tail reg. Assumes this is called for every desc
+void
+e82574L_ready_tx_desc(int buf_num, int num, struct eth_driver *driver)
+{
+    struct tx_ldesc *d = driver->desc->tx.ring.virt;
+    /* Synchronize any previous updates before moving the tail register */
+    __sync_synchronize();
+    /* Move the tail reg. */
     e82574L_eth_data_t *eth_data = (e82574L_eth_data_t*)driver->eth_data;
-    *(eth_data->regs->tdt) = (*(eth_data->regs->tdt) + 1) % driver->desc->tx.count;
-} 
+    /* Tail should have previously been at the first buf we are enabling */
+    assert(*(eth_data->regs->tdt) == buf_num);
+    *(eth_data->regs->tdt) = (buf_num + num) % driver->desc->tx.count;
+    /* Make sure these updates get seen */
+    __sync_synchronize();
+}
 
 void
 e82574L_ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver)

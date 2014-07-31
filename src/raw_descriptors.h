@@ -58,15 +58,12 @@ typedef int (*is_tx_desc_ready_t)(int buf_num, struct desc *desc);
 typedef int (*is_rx_desc_empty_t)(int buf_num, struct desc *desc);
 
 /**
- * Marks the specified desciptor as ready for the hardware to use.
- * @param[in] buf_num           Which number desciptor to use.
- * @param[in] tx_desc_wrap      Flag to mark this desciptor as the wrap point for the ring 
- *                              TODO:this flag could & probably should be done by hardware
- * @param[in] tx_last_section   Flag to mark if this is the last descriptor in a packet
+ * Marks the specified desciptors as ready for the hardware to use.
+ * @param[in] buf_num           Which number desciptor to start from.
+ * @param[in] num               How many descriptors to mark
  * @driver ethernet driver this relates to.
  */
-typedef void (*ready_tx_desc_t)(int buf_num, int tx_desc_wrap, int tx_last_section, 
-              struct eth_driver *driver);
+typedef void (*ready_tx_desc_t)(int buf_num, int num, struct eth_driver *driver);
 
 /**
  * Marks the specified desciptor as ready for the hardware to use.
@@ -82,9 +79,13 @@ typedef void (*ready_rx_desc_t)(int buf_num, int rx_desc_wrap, struct eth_driver
  * @param[in] buf_num   Which number descriptor to use.
  * @param[in[ buf       The buffer to be assigned to the desciptor.
  * @param[in] len       The length of the buffer.
+ * @param[in] tx_desc_wrap      Flag to mark this desciptor as the wrap point for the ring 
+ *                              TODO:this flag could & probably should be done by hardware
+ * @param[in] tx_last_section   Flag to mark if this is the last descriptor in a packet
  * @param[in] desc      The structure to find the tx ring in.
  */
-typedef void (*set_tx_desc_buf_t)(int buf_num, dma_addr_t buf, int len, struct desc *desc);
+typedef void (*set_tx_desc_buf_t)(int buf_num, dma_addr_t buf, int len,
+                                  int tx_desc_wrap, int tx_last_section, struct desc *desc);
 
 /**
  * Assign a buffer to a rx descriptor.

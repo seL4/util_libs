@@ -107,8 +107,8 @@ void imx6_reset_tx_descs(struct eth_driver *driver);
 void imx6_reset_rx_descs(struct eth_driver *driver);
 int imx6_is_tx_desc_ready(int buf_num, struct desc *desc);
 int imx6_is_rx_desc_empty(int buf_num, struct desc *desc);
-void imx6_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc);
-void imx6_ready_tx_desc(int buf_num, int tx_desc_wrap, int tx_last_section, struct eth_driver *driver);
+void imx6_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc);
+void imx6_ready_tx_desc(int buf_num, int num, struct eth_driver *driver);
 void imx6_set_rx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc);
 void imx6_ready_rx_desc(int buf_num, int rx_desc_wrap, struct eth_driver *driver);
 int imx6_get_rx_buf_len(int buf_num, struct desc *desc);
@@ -410,22 +410,32 @@ imx6_is_rx_desc_empty(int buf_num, struct desc *desc)
 }
 
 void
-imx6_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc)
+imx6_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc)
 {
     struct descriptor *d = desc->tx.ring.virt;
+    int stat = 0;
     d[buf_num].len = len;
     d[buf_num].phys = (uint32_t)buf.phys;
+    if (tx_desc_wrap) stat = stat | TXD_WRAP;
+    if (tx_last_section) stat = stat | TXD_ADDCRC | TXD_LAST;
+    d[buf_num].stat = stat;
 }
 
 // Might need to abstract higher for scatter buffers
 void
-imx6_ready_tx_desc(int buf_num, int tx_desc_wrap, int tx_last_section, struct eth_driver *driver)
+imx6_ready_tx_desc(int buf_num, int num, struct eth_driver *driver)
 {
     struct descriptor *d = driver->desc->tx.ring.virt;
-    int stat = TXD_READY;
-    if (tx_desc_wrap) stat = stat | TXD_WRAP;
-    if (tx_last_section) stat = stat | TXD_ADDCRC | TXD_LAST;
-    d[buf_num].stat = stat;
+    int i;
+    /* Synchronize updates to buffers before signaling ready */
+    __sync_synchronize();
+    /* Set buffers in reverse order */
+    for (i = 0; i < num; i++) {
+        int j = (buf_num + (num - 1 - i)) % driver->desc->tx.count;
+        d[j].stat |= TXD_RDY;
+    }
+    /* Make sure updates are observable */
+    __sync_synchronize();
 }
 
 void
