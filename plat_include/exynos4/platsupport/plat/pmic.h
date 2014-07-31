@@ -14,34 +14,81 @@
 #include <platsupport/i2c.h>
 
 #define MAX77686_BUSADDR  0x12
-#define MAX77686_CHIPID   0x02
-/* This is the one in the server room... ? */
-#define MAXXXXXX_CHIPID   0x91
 
-#define VOLTAGE_MASK      0x3F
-
-#define REG_CHIPID        0x00 /* 4 bytes */
-#define REG_RESET_DELAY   0x0A
-#define REG_VOUT_MMC2     0x43
-
+#define LDO_VDDIO         3
+#define LDO_MMC2          4
+#define LDO_MMC13         5
+#define LDO_EMMC          20
+#define LDO_TFLASH        21
+#define LDO_VDDQLCD       25
 
 typedef struct pmic {
     i2c_slave_t i2c_slave;
 } pmic_t;
 
+enum ldo_mode {
+    LDO_OFF,
+    LDO_STANDBY,
+    LDO_LOWPWR,
+    LDO_ON
+};
+
+/**
+ * Initialise the PMIC
+ * @param[in]  i2c  A handle to the I2C bus that the PMIC is attached to
+ * @param[out] pmic A pmic structure to initialise
+ * @return          0 on success
+ */
 int pmic_init(i2c_bus_t* i2c, pmic_t* pmic);
 
-int pmic_reg_read(pmic_t* pmic, uint8_t reg, void* data, int len);
+/**
+ * Returns the number of LDOs that the PMIC controls including the reserved LDO0
+ * @param[in] pmic      A handle to the PMIC
+ * @return              The number of LDOs that the PMIC controls,
+ *                      or -1 on failure.
+ */
+int pmic_nldo(pmic_t* pmic);
 
-int pmic_reg_write(pmic_t* pmic, uint8_t reg, const void* data, int len);
+/**
+ * Configure a low dropout regulator
+ * @param[in] pmic      A handle to the PMIC
+ * @param[in] ldo       The LDO index. 0 is reserved to maintain a logical map.
+ * @param[in] ldo_mode  The modes at which the LDO should be switched on
+ * @param[in] mili_volt The number of millivolts that the LDO should drive at
+ * @return              On success, returns the actual output millivolts of the
+ *                      regulator. Otherwise, returns -1.
+ */
+int pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt);
 
-int pmic_get_reboot_delay(pmic_t* pmic);
-int pmic_set_reboot_delay(pmic_t* pmic, int val);
-int pmic_get_VDDQLCD(pmic_t* pmic);
-int pmic_set_VDDQLCD(pmic_t* pmic, int val);
-int pmic_get_VDDQLCD2(pmic_t* pmic);
-int pmic_set_VDDQLCD2(pmic_t* pmic, int val);
+/**
+ * Configure a low dropout regulator
+ * @param[in] pmic      A handle to the PMIC
+ * @param[in] ldo       The LDO index. 0 is reserved to maintain a logical map.
+ * @param[out] ldo_mode If ldo_mode is not NULL and the request is successful, 
+ *                      ldo_mode will contain the current operating mode
+ *                      configuration of the LDO.
+ * @return              On success, returns the actual output millivolts of the
+ *                      regulator. Otherwise, returns -1.
+ */
+int pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode);
 
-int pmic_get_VDDIO(pmic_t* pmic);
-int pmic_set_VDDIO(pmic_t* pmic, int val);
+/**
+ * Configures the reset delay of the reset button.
+ * @param[in] pmic A handle to the PMIC
+ * @param[in] ms   The number of milli seconds that the delay should be
+ *                 configured to.
+ * @return         On success, returns the actual number of milli seconds
+ *                 that the delay was programmed to be. Otherwise, returns -1.
+ */
+int pmic_set_reset_delay(pmic_t* pmic, int ms);
+
+/**
+ * Retrieve the configured reset delay
+ * @param[in] pmic A handle to the PMIC
+ * @return         On success, returns the reset delay in milli seconds.
+ *                 Otherwise, returns -1.
+ */
+int pmic_get_reset_delay(pmic_t* pmic);
+
 #endif /* __PLATSUPPORT_PLAT_PMIC__ */
+
