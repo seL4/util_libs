@@ -524,11 +524,11 @@ e82574L_raw_handleIRQ(struct netif* netif, int irq)
     assert(netif != NULL);
     struct eth_driver *driver = (struct eth_driver*)netif->state;
     e82574L_eth_data_t *data = (e82574L_eth_data_t *)driver->eth_data;
-    while (*(data->regs->icr) & (ICR_RXQ0)) {
+    if (*(data->regs->icr) & (ICR_RXQ0)) {
         //printf("IRQ: Receive Queue 0 Interrupt\n");
         while(ethif_input(netif));
     }
-    if (*(data->regs->icr) & (ICR_RXQ0)) {
+    if (*(data->regs->icr) & (ICR_RXO)) {
         LOG_ERROR("Receive descriptor overrun");
     }
     // Clear interrupts
