@@ -258,6 +258,29 @@ i2c_read(i2c_bus_t* dev, void* vdata, int len){
     }
 }
 
+static void
+master_txstart(i2c_bus_t* dev, int slave){
+    dev->regs->control |= I2CCON_ACK_EN;
+    /** Configure Master Tx mode **/
+    dev->regs->status = I2CSTAT_MODE_MTX | I2CSTAT_ENABLE; 
+    /* Write slave address */
+    dev->regs->data = I2CDATA_WRITE(slave);
+    /* Write 0xF0 (M/T Start) to I2CSTAT */
+    clear_pending(dev);
+    dev->regs->status |= I2CSTAT_BUSY;
+}
+
+static void
+master_rxstart(i2c_bus_t* dev, int slave){
+    dev->regs->control |= I2CCON_ACK_EN;
+    /** Configure Master Rx mode **/
+    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_MRX;
+    /* Write slave address */
+    dev->regs->data = I2CDATA_READ(slave);
+    /* Write 0xB0 (M/R Start) to I2CSTAT */
+    dev->regs->status |= I2CSTAT_BUSY;
+}
+
 int
 i2c_write(i2c_bus_t* dev, const void* vdata, int len){
     const char* data = (const char*)vdata;
@@ -295,13 +318,7 @@ int
 i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
 {
     dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
-    dev->regs->control |= I2CCON_ACK_EN;
-    /** Configure Master Rx mode **/
-    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_MRX;
-    /* Write slave address */
-    dev->regs->data = I2CDATA_READ(slave);
-    /* Write 0xB0 (M/R Start) to I2CSTAT */
-    dev->regs->status |= I2CSTAT_BUSY;
+    master_rxstart(dev, slave);
 
     /* Setup the RX descriptor */
     dev->rx_buf = (char*)vdata;
@@ -320,14 +337,7 @@ int
 i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
 {
     dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
-    dev->regs->control |= I2CCON_ACK_EN;
-    /** Configure Master Tx mode **/
-    dev->regs->status = I2CSTAT_MODE_MTX | I2CSTAT_ENABLE; 
-    /* Write slave address */
-    dev->regs->data = I2CDATA_WRITE(slave);
-    /* Write 0xF0 (M/T Start) to I2CSTAT */
-    clear_pending(dev);
-    dev->regs->status |= I2CSTAT_BUSY;
+    master_txstart(dev, slave);
 
     dev->tx_count = -1;
     dev->tx_len = len;
