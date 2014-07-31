@@ -118,7 +118,7 @@ void e82574L_reset_rx_descs(struct eth_driver *driver);
 int e82574L_is_tx_desc_ready(int buf_num, struct desc *desc);
 int e82574L_is_rx_desc_empty(int buf_num, struct desc *desc);
 void e82574L_set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc);
-void e82574L_ready_tx_desc(int buf_num, num, struct eth_driver *driver);
+void e82574L_ready_tx_desc(int buf_num, int num, struct eth_driver *driver);
 void e82574L_ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver);
 void e82574L_set_rx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *desc);
 int e82574L_get_rx_buf_len(int buf_num, struct desc *desc);
