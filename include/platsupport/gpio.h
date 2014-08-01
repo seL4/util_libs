@@ -16,11 +16,14 @@ typedef struct gpio_sys gpio_sys_t;
 
 #include <platsupport/plat/gpio.h>
 
+#define GPIOID(port, pin)             ((port) * 32 + (pin))
+#define GPIOID_PORT(gpio)             ((gpio) / 32)
+#define GPIOID_PIN(gpio)              ((gpio) % 32)
+
+
 typedef struct gpio {
 /// GPIO port identifier
-    int port;
-/// GPIO pin identifier
-    int pin;
+    int id;
 /// GPIO subsystem handle
     gpio_sys_t* gpio_sys;
 /// Chain GPIO's to enable bulk reads/writes
@@ -37,7 +40,7 @@ enum gpio_dir {
 
 struct gpio_sys{
 /// Initialise a GPIO pin
-    int (*init)(gpio_sys_t* gpio_sys, int port, int pin, enum gpio_dir dir, gpio_t* gpio);
+    int (*init)(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
 /// Configure a GPIO pin
     int (*config)(gpio_t* gpio, int param_list);
 /// Write to a GPIO
@@ -59,13 +62,13 @@ int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
 /**
  * Acquire a handle to a GPIO pin
  * @param[in]  gpio_sys  a handle to an initialised GPIO subsystem\
- * @param[in]  port      The port identifier
- * @param[in]  pin       The pin number
+ * @param[in]  id        A pin identifier obtained from the macro
+ *                       GPIOID(port, pin)
  * @param[in]  dir       The direction of the pin
  * @param[out] gpio      a GPIO handle to initialise 
  * @return               0 on success
  */
-int gpio_new(gpio_sys_t* gpio_sys, int port, int pin, enum gpio_dir dir, gpio_t* gpio);
+int gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
 
 /**
  * Set a GPIO pin

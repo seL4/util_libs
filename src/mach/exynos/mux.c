@@ -217,19 +217,18 @@ get_gpio_cfg(gpio_t* gpio){
     mux_sys_t* mux;
     assert(gpio);
     mux = gpio_get_mux(gpio);
-    return get_mux_cfg(mux, gpio->port);
+    return get_mux_cfg(mux, GPIOID_PORT(gpio->id));
 }
 
 static int
-exynos_gpio_init(gpio_sys_t* gpio_sys, int port, int pin, enum gpio_dir dir, gpio_t* gpio){
+exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     struct mux_cfg* cfg;
     int pud, con;
     assert(gpio);
 
     DGPIO("Configuring GPIO on port %d pin %d\n", port, pin);
 
-    gpio->port = port;
-    gpio->pin = pin;
+    gpio->id = id;
     gpio->gpio_sys = gpio_sys;
     gpio->next = NULL;
     cfg = get_gpio_cfg(gpio);
@@ -239,7 +238,7 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int port, int pin, enum gpio_dir dir, gpi
 
     con = (dir == GPIO_DIR_OUT)? 1 : 0;
     pud = (dir == GPIO_DIR_IN)? PUD_PULLUP : PUD_NONE;
-    exynos_mux_configure(cfg, pin, con, pud, 1);
+    exynos_mux_configure(cfg, GPIOID_PIN(id), con, pud, 1);
     return 0; 
 }
 
@@ -257,7 +256,7 @@ exynos_gpio_write(gpio_t* gpio, const char* data, int len){
     for(count = 0; count < len && gpio; count++){
         struct mux_cfg* cfg;
         cfg = get_gpio_cfg(gpio);
-        exynos_mux_set_dat(cfg, gpio->pin, *data++);
+        exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), *data++);
         gpio = gpio->next;
     }
     return count;
@@ -269,7 +268,7 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
     for(count = 0; count < len && gpio; count++){
         struct mux_cfg* cfg;
         cfg = get_gpio_cfg(gpio);
-        if(exynos_mux_get_dat(cfg, gpio->pin)){
+        if(exynos_mux_get_dat(cfg, GPIOID_PIN(gpio->id))){
             *data++ = 0xff;
         }else{
             *data++ = 0x00;
@@ -313,9 +312,9 @@ gpio_set(gpio_t* gpio){
 }
 
 int
-gpio_new(gpio_sys_t* gpio_sys, int port, int pin, enum gpio_dir dir, gpio_t* gpio) {
+gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio) {
     assert(gpio);
-    return gpio_sys->init(gpio_sys, port, pin, dir, gpio);
+    return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
 
 int
