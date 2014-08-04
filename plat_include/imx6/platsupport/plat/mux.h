@@ -21,21 +21,12 @@ enum mux_feature {
 
 /**
  * Initialise the mux subsystem with pre-mapped regions.
- * @param[in]  bankX  A virtual mapping for bank X of the MUX subsystem.
  * @param[in]  iomuxc A virtual mapping for IOMUXC of the MUX subsystem.
  * @param[out] mux    On success, this will be filled with the appropriate
  *                    subsystem data.
  * @return            0 on success
  */
-int imx6_mux_init(void* bank1,
-                  void* bank2,
-                  void* bank3,
-                  void* bank4,
-                  void* bank5,
-                  void* bank6,
-                  void* bank7,
-                  void* iomuxc,
-                  mux_sys_t* mux);
+int imx6_mux_init(void* iomuxc, mux_sys_t* mux);
 
 
 

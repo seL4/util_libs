@@ -278,44 +278,6 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
     return count;
 }
 
-int
-gpio_clr(gpio_t* gpio){
-    char data;
-    assert(gpio);
-    assert(gpio->gpio_sys);
-    data = 0;
-    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
-}
-
-
-int
-gpio_get(gpio_t* gpio){
-    char data;
-    int ret;
-    assert(gpio);
-    assert(gpio->gpio_sys);
-    ret = gpio->gpio_sys->read(gpio, &data, 1);
-    if(ret == 1){
-        return data;
-    }else{
-        return -1;
-    }
-}
-
-int
-gpio_set(gpio_t* gpio){
-    char data;
-    assert(gpio);
-    assert(gpio->gpio_sys);
-    data = 0xff;
-    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
-}
-
-int
-gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio) {
-    assert(gpio);
-    return gpio_sys->init(gpio_sys, id, dir, gpio);
-}
 
 int
 exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){

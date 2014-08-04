@@ -60,6 +60,52 @@ struct gpio_sys{
 int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
 
 /**
+ * Clear a GPIO pin
+ * @param[in] a handle to a GPIO
+ * @return    0 on success
+ */
+static inline int gpio_clr(gpio_t* gpio){
+    char data;
+    assert(gpio);
+    assert(gpio->gpio_sys);
+    data = 0;
+    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
+}
+
+
+/**
+ * Return the state of a GPIO pin
+ * @param[in] a handle to a GPIO
+ * @return    the value of the pin, -1 on failure
+ */
+static inline int gpio_get(gpio_t* gpio){
+    char data;
+    int ret;
+    assert(gpio);
+    assert(gpio->gpio_sys);
+    ret = gpio->gpio_sys->read(gpio, &data, 1);
+    if(ret == 1){
+        return data;
+    }else{
+        return -1;
+    }
+}
+
+
+/**
+ * Set a GPIO pin
+ * @param[in] a handle to a GPIO
+ * @return    0 on success
+ */
+static inline int gpio_set(gpio_t* gpio){
+    char data;
+    assert(gpio);
+    assert(gpio->gpio_sys);
+    data = 0xff;
+    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
+}
+
+/**
  * Acquire a handle to a GPIO pin
  * @param[in]  gpio_sys  a handle to an initialised GPIO subsystem\
  * @param[in]  id        A pin identifier obtained from the macro
@@ -68,28 +114,10 @@ int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
  * @param[out] gpio      a GPIO handle to initialise 
  * @return               0 on success
  */
-int gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
 
-/**
- * Set a GPIO pin
- * @param[in] a handle to a GPIO
- * @return    0 on success
- */
-int gpio_set(gpio_t* gpio);
-
-/**
- * Clear a GPIO pin
- * @param[in] a handle to a GPIO
- * @return    0 on success
- */
-int gpio_clr(gpio_t* gpio);
-
-/**
- * Return the state of a GPIO pin
- * @param[in] a handle to a GPIO
- * @return    the value of the pin, -1 on failure
- */
-int gpio_get(gpio_t* gpio);
-
+static inline int gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio) {
+    assert(gpio);
+    return gpio_sys->init(gpio_sys, id, dir, gpio);
+}
 #endif /* _PLATSUPPORT_GPIO_H_ */
 
