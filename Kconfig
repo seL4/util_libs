@@ -21,6 +21,14 @@ config LIB_ETHDRIVER_ZERO_COPY_RX
         Uses LWiP custom pbufs to attempt to pass packets in DMA buffers
         directly to LWiP without having to do a copy
 
+config LIB_ETHDRIVER_ZERO_COPY_TX
+    bool "Attempt zero copy TX"
+    depends on LIB_ETHIF
+    default y
+    help
+        Attempt to place memory directly into network descriptor rings
+        without copying to a seperate buffer first
+
 config LIB_ETHDRIVER_RX_DESC_COUNT
     int "Number of RX descriptors"
     depends on LIB_ETHIF

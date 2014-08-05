@@ -244,6 +244,7 @@ ethif_link_output(struct netif *netif, struct pbuf *p)
 #endif
     int count = 0;
 
+#ifdef CONFIG_LIB_ETHDRIVER_ZERO_COPY_TX
     /* first try and send all the parts of the packet user zero copy */
     for (q = p, count = 0; q != NULL; q = q->next) {
         count++;
@@ -293,6 +294,7 @@ zero_fail:
     }
     free(scatter_buf);
     free(cookie);
+#endif
 
     /* send the packet the regular way */
     len = desc_txget(driver->desc, &buf, driver->d_fn);
