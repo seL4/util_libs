@@ -542,13 +542,13 @@ e82574L_raw_handleIRQ(struct netif* netif, int irq)
 dma_addr_t
 e82574L_create_tx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct tx_ldesc) * count, 0);
+    return dma_alloc_pin(dma_man, sizeof(struct tx_ldesc) * count, 1);
 }
 
 dma_addr_t
 e82574L_create_rx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct rx_ldesc) * count, 0);
+    return dma_alloc_pin(dma_man, sizeof(struct rx_ldesc) * count, 1);
 }
 
 void
