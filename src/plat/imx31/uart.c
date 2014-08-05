@@ -78,5 +78,9 @@ uart_init(const struct dev_defn* defn,
     /* TODO */
     dev->clk        = NULL;
 
+    /*
+     * Enable interrrupts for receiver
+     */
+    *REG_PTR(dev->vaddr, IMXUART_UCR1) |= IMXUART_LSR_RXFIFIOE;
     return dev;
 }

@@ -12,10 +12,11 @@
 #define _PLATSUPPORT_IMX_UART_H
 
 #define IMXUART_DLL             0x000
-#define IMXUART_RHR             0x000
-#define IMXUART_THR             0x040
+#define IMXUART_RHR             0x000 /* UXRD */
+#define IMXUART_THR             0x040 /* UTXD */
+#define IMXUART_UCR1            0x080 /* Control reg */
 
-#define IMXUART_LSR             0x094
+#define IMXUART_LSR             0x094 /* USR1 -- status reg */
 #define IMXUART_LSR_RXFIFIOE    (1<<9)
 #define IMXUART_LSR_RXOE        (1<<1)
 #define IMXUART_LSR_RXPE        (1<<2)
