@@ -27,6 +27,10 @@ dma_alloc_pin(ps_dma_man_t *dma_man, size_t size, int cached)
         ps_dma_free(dma_man, virt, size);
         return (dma_addr_t) {0, 0};
     }
+    if (!cached) {
+        /* Prevent any cache bombs */
+        ps_dma_cache_clean_invalidate(dma_man, virt, size);
+    }
     return (dma_addr_t) {.virt = virt, .phys = phys};
 }
 
