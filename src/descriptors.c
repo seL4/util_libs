@@ -176,7 +176,7 @@ int
 desc_txhasspace(struct desc *desc, int count)
 {
     assert(desc);
-    return desc->tx.unused >= count;
+    return desc->tx.unused >= count + 1;
 }
 
 int
