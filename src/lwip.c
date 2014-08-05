@@ -131,17 +131,18 @@ recieve_packet(struct netif *netif)
 #endif
         LINK_STATS_INC(link.recv);
 
+#ifndef CONFIG_LIB_ETHDRIVER_ZERO_COPY_RX
+        desc_rxfree(ethdriver, buf); 
+#endif
     } else {
         //PKT_DEBUG(printf("Packet error"));
         LINK_STATS_INC(link.memerr);
         LINK_STATS_INC(link.drop);
+        if (res != 0) {
+            desc_rxfree(ethdriver, buf); 
+        }
     }
 
-#ifndef CONFIG_LIB_ETHDRIVER_ZERO_COPY_RX
-    if (res) {
-        desc_rxfree(ethdriver, buf); 
-    }
-#endif
     ethdriver->r_fn->start_rx_logic(netif);
     return p;
 }
