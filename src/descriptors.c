@@ -207,12 +207,12 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
             tx_desc_wrap = TRUE;
             desc->tx.tail = 0;
         }
+        desc->tx.buf_cookies[i] = cookie;
         if (j + 1 == buf->count) {
             tx_last_section = TRUE;
-            desc->tx.buf_cookies[i] = cookie;
             desc->tx.complete_funcs[i] = func;
         } else {
-            desc->tx.buf_cookies[i] = NULL;
+            desc->tx.complete_funcs[i] = NULL;
         }
         /* Set the descriptor */
         d_fn->set_tx_desc_buf(i, buf->bufs[j].buf, buf->bufs[j].len, tx_desc_wrap, tx_last_section, desc);
@@ -313,7 +313,10 @@ desc_txcomplete(struct desc *desc, struct raw_desc_funcs *d_fn)
          ; i = (i + 1) % desc->tx.count) {
         /* TODO check for errors */
         if (desc->tx.buf_cookies[i]) {
-            desc->tx.complete_funcs[i](desc->tx.buf_cookies[i]);
+            /* For fragmented packets only 1 fragment will have a complete func */
+            if (desc->tx.complete_funcs[i]) {
+                desc->tx.complete_funcs[i](desc->tx.buf_cookies[i]);
+            }
         } else {
             free_dma_buf(desc, desc->tx.buf[i]);
         }
