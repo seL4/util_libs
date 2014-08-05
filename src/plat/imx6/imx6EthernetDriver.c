@@ -432,7 +432,7 @@ imx6_ready_tx_desc(int buf_num, int num, struct eth_driver *driver)
     /* Set buffers in reverse order */
     for (i = 0; i < num; i++) {
         int j = (buf_num + (num - 1 - i)) % driver->desc->tx.count;
-        d[j].stat |= TXD_RDY;
+        d[j].stat |= TXD_READY;
     }
     /* Make sure updates are observable */
     __sync_synchronize();
