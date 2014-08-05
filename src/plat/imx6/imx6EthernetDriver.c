@@ -374,6 +374,7 @@ imx6_reset_tx_descs(struct eth_driver *driver)
         d[i].len = 0;
     }
     d[desc->tx.count - 1].stat |= TXD_WRAP;
+    __sync_synchronize();
     ps_dma_cache_clean(&desc->dma_man, desc->tx.ring.virt, sizeof(*d) * desc->tx.count);
 }
 
@@ -392,6 +393,7 @@ imx6_reset_rx_descs(struct eth_driver *driver)
         d[i].len = 0;
     }
     d[desc->rx.count - 1].stat |= RXD_WRAP;
+    __sync_synchronize();
     ps_dma_cache_clean(&desc->dma_man, desc->rx.ring.virt, sizeof(*d) * desc->rx.count);
 }
 
@@ -451,8 +453,10 @@ imx6_ready_rx_desc(int buf_num, int rx_desc_wrap, struct eth_driver *driver)
 {
     struct descriptor *d = driver->desc->rx.ring.virt;
     int stat = RXD_EMPTY;
+    __sync_synchronize();
     if (rx_desc_wrap) stat = stat | RXD_WRAP;
     d[buf_num].stat = stat;
+    __sync_synchronize();
 }
 
 int

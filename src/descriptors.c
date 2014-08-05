@@ -155,7 +155,8 @@ desc_txput(struct eth_driver *driver, dma_addr_t buf, int len)
     assert(desc->tx.buf[i].virt == buf.virt);
 
     /* Clean the buffer out to RAM */
-    ps_dma_cache_clean(&desc->dma_man, buf.virt, len);
+    assert(buf.virt % 16 == 0);
+    ps_dma_cache_clean(&desc->dma_man, buf.virt, ROUND_UP(len, 32));
 
 
      /* Adjust for next index */
@@ -195,7 +196,8 @@ desc_txputmany(struct eth_driver *driver, ethif_scatter_buf_t *buf, tx_complete_
         assert(desc->tx.unused > 0);
         assert(!(d_fn->is_tx_desc_ready(i, desc)));
         /* Clean the buffer out to RAM */
-        ps_dma_cache_clean(&desc->dma_man, buf->bufs[j].buf.virt, buf->bufs[j].len);
+        assert(buf->bufs[j].buf.virt % 16 == 0);
+        ps_dma_cache_clean(&desc->dma_man, buf->bufs[j].buf.virt, ROUND_UP(buf->bufs[j].len, 32));
         /* Adjust for next index */
         desc->tx.tail++;
         desc->tx.unused--;
@@ -237,7 +239,8 @@ desc_rxrefill(struct eth_driver *driver) {
         /* Update descriptor */
         d_fn->set_rx_desc_buf(i, dma_buf, desc->buf_size, desc);
         /* Invalidate the buffer */
-        ps_dma_cache_invalidate(&desc->dma_man, dma_buf.virt, desc->buf_size);
+        assert(dma_buf.virt % 16 == 0);
+        ps_dma_cache_invalidate(&desc->dma_man, dma_buf.virt, ROUND_UP(desc->buf_size, 32));
         /* Ensure descriptor changes are observable before giving it to DMA */
         //dmb();
         __sync_synchronize();
