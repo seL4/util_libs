@@ -172,15 +172,13 @@ ethif_imx6_init(int dev_id, ps_io_ops_t interface)
     /* initialise the eFuse controller so we can get a MAC address */
     ocotp = ocotp_init(&interface.io_mapper);
     if (!ocotp) {
-        LOG_ERROR("Failed to initialize ocotp");
-        goto error;
+        LOG_INFO("Failed to initialize ocotp");
     }
     /* Initialise ethernet pins */
     //gpio_init();
     err = setup_iomux_enet(&interface);
     if (err) {
-        LOG_ERROR("Failed to setup iomux enet");
-        goto error;
+        LOG_INFO("Failed to setup iomux enet");
     }
     /* Initialise the phy library */
     miiphy_init();
