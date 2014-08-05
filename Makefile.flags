@@ -61,6 +61,7 @@ endif
 ifeq ($(CONFIG_ARCH_ARM),y)
 	cflags-y += $(call cc-option,-marm)
 	NK_CFLAGS += $(call cc-option,-marm)
+	NK_LDFLAGS += $(call cc-ldoption, -Wl$(comma)--build-id=none)
 	DEFINES += ARCH_ARM
 	export ARCH = arm
 endif
