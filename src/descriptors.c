@@ -289,7 +289,7 @@ desc_rxget(struct eth_driver *driver, dma_addr_t *buf, int *len)
     desc_rxrefill(driver);
         
     if (error) {
-        LOG_ERROR("Received error %d in receiver", error);
+//        LOG_ERROR("Received error %d in receiver", error);
         return -1;
     } else {
         return 1;
