@@ -151,11 +151,6 @@ ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 	NK_CFLAGS += -marm 
 endif
 
-ifeq ($(CONFIG_PLAT_INTEGRATORCP),y)
-	DEFINES += INTEGRATORCP
-	export PLAT = integratorcp
-endif
-
 ifeq ($(CONFIG_PLAT_KZM),y)
 	DEFINES += KZM
 	DEFINES += PLAT_IMX31

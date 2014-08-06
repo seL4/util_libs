@@ -37,7 +37,7 @@ shift 2
 
 # Determine ".o" file to generate.
 case "$PLAT" in
-    "integratorcp"|"imx31"|"imx6"|"omap3"|"am335x"|"omap4"|\
+    "imx31"|"imx6"|"omap3"|"am335x"|"omap4"|\
     "exynos4"|"exynos5"| "realview")
         FORMAT=elf32-littlearm
         ;;
