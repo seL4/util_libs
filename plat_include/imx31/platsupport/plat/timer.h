@@ -13,4 +13,6 @@
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 
+#define IPG_FREQ (532/16) /*x10^5 */
+
 #endif /* _PLATSUPPORT_PLAT_TIMER_H */

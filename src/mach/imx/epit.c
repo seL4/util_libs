@@ -108,7 +108,6 @@ typedef struct epit {
     volatile struct epit_map *epit_map;
     uint64_t counter_start;
     int mode;
-    int compare_events;
     uint32_t irq;
     uint32_t prescaler;
 } epit_t;
@@ -134,16 +133,19 @@ epit_timer_stop(const pstimer_t *timer) {
     return 0;
 }
 
-static void 
+static int
 configure_epit(const pstimer_t *timer, uint64_t ns) {
     epit_t *epit = (epit_t*) timer->data;
 
      /* Set counter modulus - this effectively sets the timeouts to us but doesn't 
       * overflow as fast. */
-    uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns/1000llu);
+    uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
+    if (counterValue >= (1ULL << 32)) {
+        /* Counter too large to be stored in 32 bits. */
+        return EINVAL;
+    }
 
     epit->counter_start = ns;
-    epit->compare_events = 0;
 
     /* hardware has a race condition where the epitlr won't be set properly
      * - keep trying until it works
@@ -155,7 +157,7 @@ configure_epit(const pstimer_t *timer, uint64_t ns) {
 
      /* turn it on (just in case it was off) */
      epit->epit_map->epitcr |= BIT(EN);
-
+     return 0;
 }
 
 static int
@@ -171,9 +173,7 @@ epit_periodic(const pstimer_t *timer, uint64_t ns) {
     epit_t *epit = (epit_t*) timer->data;
 
     epit->mode = PERIODIC;
-    configure_epit(timer, ns);
-
-    return 0;
+    return configure_epit(timer, ns);
 }
 
 static int 
@@ -181,9 +181,7 @@ epit_oneshot_relative(const pstimer_t *timer, uint64_t ns) {
     epit_t *epit = (epit_t*) timer->data;
 
     epit->mode = ONESHOT;
-    configure_epit(timer,ns);
-
-    return 0;
+    return configure_epit(timer,ns);
 }
 
 static void 
@@ -193,7 +191,6 @@ epit_handle_irq(const pstimer_t *timer, uint32_t irq) {
     assert(irq == epit->irq);
 
     if (epit->epit_map->epitsr) {
-        epit->compare_events++;
         epit->epit_map->epitsr = 1;
 
         if(epit->mode != PERIODIC) {
@@ -210,23 +207,12 @@ static uint64_t
 epit_get_time(const pstimer_t *timer) {
     epit_t *epit = (epit_t*) timer->data;
     uint64_t value;
-    int extra_event;
-    /* read the epit once */
-    
+
+    /* read the epit */
     value = epit->epit_map->epitcnt;
-    
-    /* check to see if an interrupt happened */
-    extra_event = !!epit->epit_map->epitsr;
-    
-    /* if an interrupt has happened, read the counter again in case we
-     * read the value before the interrupt  */
-    if (extra_event) {
-        value = epit->epit_map->epitcnt;
-    }
     uint64_t ns = (value / (uint64_t)IPG_FREQ) * 1000llu;
-    uint64_t diff = epit->counter_start - ns;
-    uint64_t total = diff + (uint64_t)(extra_event + epit->compare_events) * epit->counter_start;
-    return total;
+
+    return epit->counter_start - ns;
 }
 
 static uint32_t

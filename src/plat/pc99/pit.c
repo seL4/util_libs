@@ -45,6 +45,7 @@
 #define PITCR_MODE_SWSTROBE  0x4
 
 #define TICKS_PER_SECOND 1193182
+#define PIT_PERIODIC_MAX 54925000
 
 typedef struct {
     ps_io_port_ops_t *ops;
@@ -141,16 +142,19 @@ pit_get_time(const pstimer_t* device)
 
     uint32_t low, high;
 
+    /* Read the low 8 bits of the current timer value. */
     error = ps_io_port_in(ops, PIT_IOPORT_CHANNEL(0), 1, &low);
     if (error) {
         return 0;
     }
 
+    /* Read the high 8 bits of the current timer value. */
     error = ps_io_port_in(ops, PIT_IOPORT_CHANNEL(0), 1, &high);
     if (error) {
         return 0;
     }
 
+    /* Assemble the high and low 8 bits using (high << 8) + low, and then convert to nanoseconds. */
     return ((high << 8) + low) * NS_IN_S / TICKS_PER_SECOND;
 }
 

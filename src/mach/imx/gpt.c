@@ -143,9 +143,7 @@ typedef enum {
 
 typedef struct gpt {
     volatile struct gpt_map *gpt_map;
-    uint64_t counter_start;
     int mode;
-    int compare_events;
     uint32_t irq;
     uint32_t prescaler;
 } gpt_t;
@@ -194,12 +192,7 @@ static void
 gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED) {
     gpt_t *gpt = (gpt_t*) timer->data;
 
-    /* Potentially could be getting interrupts for more reasons
-     * driver can't do it though
-    */
-    if (gpt->gpt_map->gptsr & BIT(ROV)) {
-        gpt->compare_events++;
-    }
+    /* clear the interrupt status register, regardless of interrupt reason. */
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 }
 
@@ -207,21 +200,9 @@ static uint64_t
 gpt_get_time(const pstimer_t *timer) {
     gpt_t *gpt = (gpt_t*) timer->data;
     uint64_t value;
-    int extra_event;
-    /* read the gpt once */
 
     value = gpt->gpt_map->gptcnt;
-
-    /* check to see if an interrupt happened */
-    extra_event = !!gpt->gpt_map->gptsr;
-
-    /* if an interrupt has happened, read the counter again in case we
-     * read the value before the interrupt  */
-    if (extra_event) {
-        value = gpt->gpt_map->gptcnt;
-    }
-    uint64_t total = (uint64_t) ((((uint64_t)(extra_event + gpt->compare_events)) << 32) + value);
-    uint64_t ns = (total / (uint64_t)IPG_FREQ) * 1000llu;
+    uint64_t ns = (value / (uint64_t)IPG_FREQ) * 1000llu;
     return ns;
 }
 
@@ -260,7 +241,6 @@ gpt_get_timer(gpt_config_t *config)
 
     gpt->gpt_map = (volatile struct gpt_map*)config->vaddr;
     gpt->prescaler = config->prescaler;
-    gpt->compare_events = 0;
 
     /* Disable GPT. */
     gpt->gpt_map->gptcr = 0;

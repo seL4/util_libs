@@ -20,7 +20,5 @@
 #define GPT1_DEVICE_PADDR 0x53f90000
 #define GPT1_INTERRUPT 29
 
-#define IPG_FREQ 532 /* x10^5 */
-
 #endif /* __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H */
 
