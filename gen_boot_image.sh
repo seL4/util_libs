@@ -25,10 +25,6 @@ USER_IMAGE=$2
 OUTPUT_FILE=$3
 
 case "$PLAT" in
-    "pxa255") 
-        ENTRY_ADDR=0xa2000000
-        FORMAT=elf32-littlearm
-        ;;
     "realview")
         ENTRY_ADDR=0x72000000
         FORMAT=elf32-littlearm
@@ -49,7 +45,7 @@ case "$PLAT" in
         ENTRY_ADDR=0x80208000;
         FORMAT=elf32-littlearm
         ;;
-    "integratorcp"|"imx31"|"omap3"|"am335x"|"omap4")
+    "imx31"|"omap3"|"am335x"|"omap4")
         ENTRY_ADDR=0x82000000
         FORMAT=elf32-littlearm
         ;;
