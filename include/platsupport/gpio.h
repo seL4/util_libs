@@ -14,6 +14,7 @@
 struct gpio_sys;
 typedef struct gpio_sys gpio_sys_t;
 
+#include <platsupport/io.h>
 #include <platsupport/plat/gpio.h>
 
 #define GPIOID(port, pin)             ((port) * 32 + (pin))
