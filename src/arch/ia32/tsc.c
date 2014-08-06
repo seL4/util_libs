@@ -26,7 +26,7 @@ tsc_calculate_frequency(pstimer_t *timer)
      */
     uint64_t wait_ns = WAIT_NS;
     uint64_t total_observed = 0;
-    uint64_t last_time;
+    uint64_t last_time, time_offset;
     uint64_t last_absolute = 0;
     int direction = timer->properties.upcounter;
     uint64_t start_time = 0;
@@ -57,15 +57,16 @@ tsc_calculate_frequency(pstimer_t *timer)
      * processed, take no chances.
      * If we do overflow though, we assume that we overflowed after the
      * programmed number of nanoseconds */
-    last_time = timer_get_time(timer);
+    time_offset = last_time = timer_get_time(timer);
     while(total_observed + last_absolute < WAIT_NS) {
         uint64_t current_time = timer_get_time(timer);
         if (direction) {
             /* if we are counting up and time went down, then we overflowed */
             if (current_time < last_time) {
                 total_observed += wait_ns;
+                time_offset = current_time;
             }
-            last_absolute = current_time;
+            last_absolute = current_time - time_offset;
         } else {
             if (current_time > last_time) {
                 total_observed += wait_ns;
@@ -73,8 +74,9 @@ tsc_calculate_frequency(pstimer_t *timer)
             /* might have counted too far */
             if (current_time > wait_ns) {
                 last_absolute = wait_ns;
+                time_offset = current_time;
             } else {
-                last_absolute = wait_ns - current_time;
+                last_absolute = wait_ns - current_time + time_offset;
             }
         }
         last_time = current_time;
