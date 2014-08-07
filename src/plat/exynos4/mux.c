@@ -24,7 +24,7 @@ static struct mux_feature_data i2c1_data[] = {
 
 static struct mux_feature_data i2c2_data[] = {
     { .port = GPA0, .pin = 6, MUXVALUE_CPD(3, PUD_PULLUP, DRV1X)},
-    { .port = GPA1, .pin = 7, MUXVALUE_CPD(3, PUD_PULLUP, DRV1X)},
+    { .port = GPA0, .pin = 7, MUXVALUE_CPD(3, PUD_PULLUP, DRV1X)},
     { .port = GPIOPORT_NONE }
 };
 
