@@ -226,7 +226,7 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     int pud, con;
     assert(gpio);
 
-    DGPIO("Configuring GPIO on port %d pin %d\n", port, pin);
+    DGPIO("Configuring GPIO on port %d pin %d\n", GPIOID_PORT(id), GPIOID_PIN(id));
 
     gpio->id = id;
     gpio->gpio_sys = gpio_sys;
