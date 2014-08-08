@@ -42,7 +42,7 @@ case "$PLAT" in
         FORMAT=elf32-littlearm
         ;;
     "apq8064")
-        ENTRY_ADDR=0x80208000;
+        ENTRY_ADDR=0x82008000;
         FORMAT=elf32-littlearm
         ;;
     "imx31"|"omap3"|"am335x"|"omap4")
