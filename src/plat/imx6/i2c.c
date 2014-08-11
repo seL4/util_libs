@@ -23,7 +23,7 @@
 #define dprintf(...) do{}while(0)
 #endif
 
-#define IMX6_I2C_DEFAULT_FREQ (20 * KHZ)
+#define IMX6_I2C_DEFAULT_FREQ (400 * KHZ)
 
 #define IMX6_I2C1_PADDR 0x021A0000
 #define IMX6_I2C2_PADDR 0x021A4000
@@ -361,8 +361,16 @@ i2c_handle_irq(i2c_bus_t* dev){
 
 int
 i2c_set_address(i2c_bus_t* i2c_bus, int addr){
+    assert(i2c_bus);
+    assert(i2c_bus->regs);
     i2c_bus->regs->address = addr & 0xfe;
     return 0;
+}
+
+long
+i2c_set_speed(i2c_bus_t* i2c_bus, long bps){
+    assert(i2c_bus);
+    return clk_set_freq(&i2c_bus->clock, bps);
 }
 
 int

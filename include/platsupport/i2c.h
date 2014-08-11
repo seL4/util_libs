@@ -32,6 +32,14 @@ typedef struct i2c_bus i2c_bus_t;
 int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c_bus);
 
 /**
+ * Set the speed of the I2C bus
+ * @param[in] i2c_bus  A handle to an I2C bus
+ * @param[in] bps      The speed to set in bits per second.
+ * @return             The actual speed set
+ */
+long i2c_set_speed(i2c_bus_t* i2c_bus, long bps);
+
+/**
  * Signal an IRQ even to an I2C bus.
  * @param[in] dev The I2C bus that triggered the IRQ
  */
