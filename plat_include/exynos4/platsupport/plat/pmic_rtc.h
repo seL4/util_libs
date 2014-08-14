@@ -20,6 +20,7 @@ struct rtc_time {
     uint8_t sec;
     uint8_t min;
     uint8_t hour;
+/// Represented as a bitfield: (1 << #day)
     uint8_t weekday;
     uint8_t month;
     uint8_t year;
