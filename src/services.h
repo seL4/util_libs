@@ -29,3 +29,7 @@
 
 #define MAPCHECK(a, v) assert(((uintptr_t)(a) & 0xfff) == (v))
 
+void ps_msdelay(unsigned int);
+void ps_usdelay(unsigned int);
+void ps_nsdelay(unsigned int);
+
