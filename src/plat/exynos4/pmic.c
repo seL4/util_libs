@@ -177,8 +177,8 @@ pmic_set_reset_delay(pmic_t* pmic, int ms){
     /* Clip ms value */
     if(ms < 0){
         ms = 0;
-    }else if(ms > 0xff){
-        ms = 0xff;
+    }else if(ms > 10000){
+        ms = 10000;
     }
     /* Write the data */
     data = (ms / 1000) << 1;
