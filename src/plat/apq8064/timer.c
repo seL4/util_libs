@@ -184,7 +184,7 @@ get_slp_hz(void){
         timer->stop             = _##prefix##_timer_stop;       \
         timer->get_time         = _##prefix##_get_time;         \
         timer->oneshot_absolute = _oneshot_absolute;            \
-        timer->oneshot_relative = _oneshot_relative;            \
+        timer->oneshot_relative = _##prefix##_oneshot_relative; \
         timer->get_nth_irq      = _common_get_nth_irq;          \
     }while(0)
 
@@ -359,8 +359,16 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static void 
-_gpt_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static int
+_gpt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+{
+    assert(!"Not supported");
+    return ENOSYS;
+}
+
+static void
+_gpt_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     (void)timer;
     (void)irq;
     /* Nothing to do */
@@ -411,9 +419,16 @@ _dgt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
+static int
+_dgt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+{
+    assert(!"Not supported");
+    return ENOSYS;
+}
 
-static void 
-_dgt_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static void
+_dgt_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     (void)timer;
     (void)irq;
     /* Nothing to do */
@@ -479,9 +494,16 @@ _tmr_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
+static int
+_tmr_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+{
+    assert(!"Not supported");
+    return ENOSYS;
+}
 
-static void 
-_tmr_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static void
+_tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     (void)irq;
     /* Reset the IRQ */
@@ -535,8 +557,16 @@ _wdt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static void 
-_wdt_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static int
+_wdt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+{
+    assert(!"Not supported");
+    return ENOSYS;
+}
+
+static void
+_wdt_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     (void)timer;
     (void)irq;
     /* Nothing to do */
