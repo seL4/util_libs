@@ -62,8 +62,8 @@ exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func){
     v = cfg->con;
     v &= ~BITFIELD_MASK(pin, 4);
     v |= func << BITFIELD_SHIFT(pin, 4);
-    DMUX("con.%d @ 0%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
-    cfg->con = cfg->conpdn = v;
+    DMUX("con.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
+    cfg->con = v;
 }
 
 static void
@@ -75,7 +75,7 @@ exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val){
     if(val){
         v |= 1 << BITFIELD_SHIFT(pin, 1);
     }
-    DMUX("dat.%d @ 0%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
+    DMUX("dat.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
     cfg->dat = v;
 }
 
@@ -94,8 +94,8 @@ exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud){
     v = cfg->pud;
     v &= ~BITFIELD_MASK(pin, 2);
     v |= pud << BITFIELD_SHIFT(pin, 2);
-    DMUX("pud.%d @ 0%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->pud, cfg->pud, v);
-    cfg->pud = cfg->pudpdb = v;
+    DMUX("pud.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->pud, cfg->pud, v);
+    cfg->pud = v;
 }
 
 static void
@@ -120,7 +120,7 @@ exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv){
     v = cfg->drv;
     v &= BITFIELD_MASK(pin, 2);
     v |= drv << BITFIELD_SHIFT(pin, 2);
-    DMUX("drv @ 0%08x : 0x%08x->0x%08x\n", (uint32_t)&cfg->drv, cfg->drv, v);
+    DMUX("drv @ 0x%08x : 0x%08x->0x%08x\n", (uint32_t)&cfg->drv, cfg->drv, v);
     cfg->drv = v;
 }
 
@@ -163,6 +163,8 @@ exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
                                 MUXVALUE_CON(data->value),
                                 MUXVALUE_PUD(data->value),
                                 MUXVALUE_DRV(data->value));
+        DMUX("con.%d @ 0x%08x : 0x%08x (conpdn:0x%08x)\n", data->pin, (uint32_t)&cfg->con, cfg->con, cfg->conpdn);
+
     }
     return 0;
 }
