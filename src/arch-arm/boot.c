@@ -83,7 +83,9 @@ void main(void)
 #endif
 
     /* Print welcome message. */
-    printf("\nELF-loader started.\n");
+    printf("\nELF-loader started on ");
+    print_cpuid();
+
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
 
     /* Unpack ELF images into memory. */

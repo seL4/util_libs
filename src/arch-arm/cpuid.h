@@ -11,6 +11,8 @@
 #ifndef _CPUID_H_
 #define _CPUID_H_
 
+#include "stdint.h"
+
 #define CPSR_MODE_MASK 0x1f
 #define CPSR_MODE_SUPERVISOR 0x13
 #define CPSR_MODE_HYPERVISOR 0x1a
@@ -38,6 +40,11 @@ static inline uint32_t read_cpsr(void)
     asm volatile("mrs %0, cpsr" : "=r" (val) :: "cc");
     return val;
 }
+
+/**
+ * Pretty print CPUID information
+ */
+void print_cpuid(void);
 
 
 #endif /* _CPUID_H_ */
