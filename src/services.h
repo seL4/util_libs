@@ -29,7 +29,21 @@
 
 #define MAPCHECK(a, v) assert(((uintptr_t)(a) & 0xfff) == (v))
 
-void ps_msdelay(unsigned int);
-void ps_usdelay(unsigned int);
-void ps_nsdelay(unsigned int);
+/**
+ * Trivial millisecond delay loop based on estimated CPU frequency
+ * @param[in] ms The number of milliseconds of delay required
+ */
+void ps_msdelay(unsigned int ms);
+
+/**
+ * Trivial microsecond delay loop based on estimated CPU frequency
+ * @param[in] us The number of microseconds of delay required
+ */
+void ps_usdelay(unsigned int us);
+
+/**
+ * Trivial nanosecond delay loop based on estimated CPU frequency
+ * @param[in] ns The number of nanoseconds of delay required
+ */
+void ps_nsdelay(unsigned int ns);
 
