@@ -34,6 +34,8 @@ enum mux_feature {
     MUX_SPI0,
     MUX_SPI1,
     MUX_SPI2,
+    MUX_SPI0_ISP,
+    MUX_SPI1_ISP,
     NMUX_FEATURES,
     MUX_I2C_HDMI    = MUX_I2C8,
     MUX_I2C_0_ISP   = MUX_I2C9,

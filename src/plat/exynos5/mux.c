@@ -111,6 +111,21 @@ static struct mux_feature_data spi2_data[] = {
     { .port = GPB1, .pin = 4, .value = MUXVALUE_CPD(5, PUD_PULLUP, DRV3X)},
     { .port = GPIOPORT_NONE }
 };
+static struct mux_feature_data spi0_isp_data[] = {
+    { .port = GPF1, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data spi1_isp_data[] = {
+    { .port = GPF1, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPF1, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+
 
 struct mux_feature_data* feature_data[] = {
     [MUX_I2C0]       = i2c0_data,
@@ -131,6 +146,8 @@ struct mux_feature_data* feature_data[] = {
     [MUX_SPI0]       = spi0_data,
     [MUX_SPI1]       = spi1_data,
     [MUX_SPI2]       = spi2_data,
+    [MUX_SPI0_ISP]   = spi0_isp_data,
+    [MUX_SPI1_ISP]   = spi1_isp_data
 };
 
 
