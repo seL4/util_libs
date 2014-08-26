@@ -20,6 +20,9 @@ enum mux_feature {
     MUX_I2C5,
     MUX_I2C6,
     MUX_I2C7,
+    MUX_SPI0,
+    MUX_SPI1,
+    MUX_SPI2,
 #if 0
     MUX_UART0,
     MUX_UART1,

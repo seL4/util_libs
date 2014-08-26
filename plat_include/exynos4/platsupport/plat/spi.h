@@ -42,12 +42,7 @@ enum spi_id {
     SPI0,
     SPI1,
     SPI2,
-    SPI0_ISP,
-    SPI1_ISP,
-    NSPI,
-
-    SPI3 = SPI0_ISP,
-    SPI4 = SPI1_ISP
+    NSPI
 };
 
 int exynos_spi_init(enum spi_id id, void* base,
