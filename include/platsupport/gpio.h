@@ -53,12 +53,12 @@ enum gpio_dir {
 struct gpio_sys{
 /// Initialise a GPIO pin
     int (*init)(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
-/// Configure a GPIO pin
-    int (*config)(gpio_t* gpio, int param_list);
 /// Write to a GPIO
     int (*write)(gpio_t* gpio, const char* data, int len);
 /// Read from a GPIO
     int (*read)(gpio_t* gpio, char* data, int len);
+/// Manipulate the status of a pending IRQ
+    int (*pending_status)(gpio_t *gpio, int clear);
 /// platform specific private data
     void* priv;
 };
@@ -116,6 +116,32 @@ static inline int gpio_set(gpio_t* gpio){
     data = 0xff;
     return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
 }
+
+
+/**
+ * Check if an IRQ is pending for this GPIO
+ * @param[in] a handle to a GPIO
+ * @return    -1 if the GPIO does not support IRQs
+ *             0 if an IRQ is not pending
+ *             1 if an IRQ is pending
+ */
+static inline int gpio_is_pending(gpio_t* gpio){
+    assert(gpio);
+    assert(gpio->gpio_sys);
+    return gpio->gpio_sys->pending_status(gpio, 0);
+}
+
+/**
+ * Clear pending IRQs for this GPIO
+ * @param[in] a handle to a GPIO
+ */
+static inline void gpio_pending_clear(gpio_t* gpio){
+    assert(gpio);
+    assert(gpio->gpio_sys);
+    gpio->gpio_sys->pending_status(gpio, 1);
+}
+
+
 
 /**
  * Acquire a handle to a GPIO pin

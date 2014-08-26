@@ -300,6 +300,7 @@ gpio_dir_get_intcon(enum gpio_dir dir)
     }
 }
 
+
 static int 
 exynos_gpio_int_configure(gpio_t *gpio, int int_con){
     static struct mux_bank* bank;
@@ -376,13 +377,6 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     return 0;
 }
 
-static int
-exynos_gpio_config(gpio_t* gpio, int param_list){
-    assert(!"Not implemented");
-    (void)gpio;
-    (void)param_list;
-    return -1;
-}
 
 static int
 exynos_gpio_write(gpio_t* gpio, const char* data, int len){
@@ -412,6 +406,36 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
     return count;
 }
 
+static int
+exynos_pending_status(gpio_t* gpio, int clear){
+    static struct mux_bank* bank;
+    uint32_t pend;
+    int idx;
+    int pin;
+
+    bank = gpio_get_bank(gpio);
+    assert(bank);
+
+    pin = GPIOID_PIN(gpio->id);
+    idx = gpio_get_extint_idx(gpio);
+    if(idx < 0){
+        pend = -1;
+    }else if(idx < 22){
+        pend = (bank->ext_int_pend[idx] & ~bank->ext_int_mask[idx]) & BIT(pin);
+        if(clear){
+            bank->ext_int_pend[idx] = BIT(pin);
+        }
+    }else{
+        /* You HAD to be different GPX... */
+        idx = idx - 96;
+        pend = (bank->ext_xint_pend[idx] & ~bank->ext_xint_mask[idx]) & BIT(pin);
+        if(clear){
+            bank->ext_int_pend[idx] = BIT(pin);
+        }
+    }
+    return pend;
+}
+
 
 int
 exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){
@@ -422,9 +446,9 @@ exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){
     }else{
         /* GPIO is done through the MUX on exynos */
         gpio_sys->priv = mux_sys;
-        gpio_sys->config = &exynos_gpio_config;
         gpio_sys->read = &exynos_gpio_read;
         gpio_sys->write = &exynos_gpio_write;
+        gpio_sys->pending_status = &exynos_pending_status;
         gpio_sys->init = &exynos_gpio_init;
         return 0;
     }

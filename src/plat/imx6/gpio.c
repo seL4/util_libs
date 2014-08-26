@@ -122,14 +122,6 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
 }
 
 static int
-imx6_gpio_config(gpio_t* gpio, int param_list){
-    assert(!"Not implemented");
-    (void)gpio;
-    (void)param_list;
-    return -1;
-}
-
-static int
 imx6_gpio_write(gpio_t* gpio, const char* data, int len){
     int count;
     for(count = 0; count < len && gpio; count++){
@@ -192,7 +184,6 @@ int
 imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys){
     _gpio.mux = mux;
     gpio_sys->priv = (void*)&_gpio;
-    gpio_sys->config = &imx6_gpio_config;
     gpio_sys->read = &imx6_gpio_read;
     gpio_sys->write = &imx6_gpio_write;
     gpio_sys->init = &imx6_gpio_init;
