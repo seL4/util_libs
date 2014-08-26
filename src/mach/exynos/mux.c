@@ -46,6 +46,14 @@
 #define BITFIELD_MASK(x, bits)     (MASK(bits) << BITFIELD_SHIFT(x, bits))
 
 
+#define EINTCON_LOW  0x0
+#define EINTCON_HIGH 0x1
+#define EINTCON_FALL 0x2
+#define EINTCON_RISE 0x3
+#define EINTCON_EDGE 0x4
+#define EINTCON_MASK 0x7
+#define EINTCON_BITS 4
+
 static volatile struct mux_bank* _bank[GPIO_NBANKS];
 
 static struct mux_bank**
@@ -54,6 +62,16 @@ mux_priv_get_banks(mux_sys_t* mux){
     return (struct mux_bank**)mux->priv;
 }
 
+static struct mux_cfg*
+get_mux_cfg(mux_sys_t* mux, int port){
+    struct mux_bank** bank;
+    int b, p;
+    bank = mux_priv_get_banks(mux);
+    b = GPIOPORT_GET_BANK(port);
+    p = GPIOPORT_GET_PORT(port);
+    assert(b >= 0 && b < GPIO_NBANKS);
+    return &bank[b]->gp[p]; 
+}
 
 static void
 exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func){
@@ -64,6 +82,7 @@ exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func){
     v |= func << BITFIELD_SHIFT(pin, 4);
     DMUX("con.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
     cfg->con = v;
+    cfg->conpdn = 0x3;
 }
 
 static void
@@ -96,6 +115,7 @@ exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud){
     v |= pud << BITFIELD_SHIFT(pin, 2);
     DMUX("pud.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->pud, cfg->pud, v);
     cfg->pud = v;
+    cfg->pudpdn = v;
 }
 
 static void
@@ -122,17 +142,6 @@ exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv){
     v |= drv << BITFIELD_SHIFT(pin, 2);
     DMUX("drv @ 0x%08x : 0x%08x->0x%08x\n", (uint32_t)&cfg->drv, cfg->drv, v);
     cfg->drv = v;
-}
-
-static struct mux_cfg*
-get_mux_cfg(mux_sys_t* mux, int port){
-    struct mux_bank** bank;
-    int b, p;
-    bank = mux_priv_get_banks(mux);
-    b = GPIOPORT_GET_BANK(port);
-    p = GPIOPORT_GET_PORT(port);
-    assert(b >= 0 && b < GPIO_NBANKS);
-    return &bank[b]->gp[p]; 
 }
 
 static void
@@ -222,10 +231,123 @@ get_gpio_cfg(gpio_t* gpio){
     return get_mux_cfg(mux, GPIOID_PORT(gpio->id));
 }
 
+static struct mux_bank*
+gpio_get_bank(gpio_t* gpio){
+    struct mux_bank **banks;
+    mux_sys_t* mux;
+    int portid, bank;
+
+    portid = GPIOID_PORT(gpio->id);
+    bank = GPIOPORT_GET_BANK(portid);
+
+    assert(gpio);
+    mux = gpio_get_mux(gpio);
+    assert(mux);
+    banks = mux_priv_get_banks(mux);
+    assert(banks);
+
+    return banks[bank];
+}
+
+static int
+gpio_get_extint_idx(gpio_t *gpio){
+    int portid, port;
+    portid = GPIOID_PORT(gpio->id);
+    port = GPIOPORT_GET_PORT(portid);
+    /* LEFT */
+    if(portid >= GPA0 && portid <= GPD1){
+        return port;
+    }else if(portid == GPC4){
+        return 13;
+    }else if(portid >= GPX0 && portid <= GPX3){
+        /* GPX: we just return the port here... */
+        return port;
+    /* RIGHT */
+    }else if(portid >= GPE0 && portid <= GPH1){
+        return port;
+    /* C2C */
+    }else if(portid == GPV0 || portid == GPV1){
+        return port;
+    }else if(portid == GPV2 || portid == GPV3){
+        return port - 1;
+    }else if(portid == GPV4){
+        return port - 2;
+    /* AUDIO */
+    }else if(portid == GPZ){
+        return port;
+    /* INVALID */
+    }else{
+        return -1;
+    }
+}
+
+static int
+gpio_dir_get_intcon(enum gpio_dir dir)
+{
+    switch(dir){
+    case GPIO_DIR_IRQ_LOW:
+        return 0x0;
+    case GPIO_DIR_IRQ_HIGH:
+        return 0x1;
+    case CPIO_DIR_IRQ_FALL:
+        return 0x2;
+    case GPIO_DIR_IRQ_RISE:
+        return 0x3;
+    case GPIO_DIR_IRQ_EDGE:
+        return 0x4;
+    default:
+        return -1;
+    }
+}
+
+static int 
+exynos_gpio_int_configure(gpio_t *gpio, int int_con){
+    static struct mux_bank* bank;
+    int idx;
+    int pin;
+
+    /* Configure the int */
+    bank = gpio_get_bank(gpio);
+    assert(bank);
+
+    pin = GPIOID_PIN(gpio->id);
+    idx = gpio_get_extint_idx(gpio);
+    if(idx < 0){
+        return -1;
+    }else if(idx < 22){
+        uint32_t v;
+        v = bank->ext_int_con[idx];
+        v &= BITFIELD_MASK(pin, 4);
+        v |= int_con << BITFIELD_SHIFT(pin, 4);
+        bank->ext_int_con[idx] = v;
+        bank->ext_int_mask[idx] &= ~BIT(pin);
+        bank->ext_int_pend[idx] = BIT(pin); /* Set to clear */
+        /* These features are not supported yet */
+        bank->ext_int_fltcon[idx][idx & 0x1] = 0;
+        bank->ext_int_grppri_xa = 0;
+        bank->ext_int_priority_xa = 0;
+        bank->ext_int_service_xa = 0;
+        bank->ext_int_service_pend_xa = 0;
+        bank->ext_int_grpfixpri_xa = 0;
+        bank->ext_int_fixpri[idx] = 0;
+    }else{
+        /* You HAD to be different GPX... */
+        uint32_t v;
+        idx = idx - 96;
+        v = bank->ext_xint_con[idx];
+        v &= BITFIELD_MASK(pin, 4);
+        v |= int_con << BITFIELD_SHIFT(pin, 4);
+        bank->ext_xint_con[idx] = v;
+        bank->ext_xint_mask[idx] &= ~BIT(pin);
+        bank->ext_xint_pend[idx] = BIT(pin); /* Set to clear */
+        bank->ext_xint_fltcon[idx][idx & 0x1] = 0;
+    }
+    return 0;
+}
+
 static int
 exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     struct mux_cfg* cfg;
-    int pud, con;
     assert(gpio);
 
     DGPIO("Configuring GPIO on port %d pin %d\n", GPIOID_PORT(id), GPIOID_PIN(id));
@@ -238,10 +360,20 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
         return -1;
     }
 
-    con = (dir == GPIO_DIR_OUT)? 1 : 0;
-    pud = (dir == GPIO_DIR_IN)? PUD_PULLUP : PUD_NONE;
-    exynos_mux_configure(cfg, GPIOID_PIN(id), con, pud, 1);
-    return 0; 
+    if(dir == GPIO_DIR_IN){
+        exynos_mux_configure(cfg, GPIOID_PIN(id), 0x0, PUD_PULLUP, 1);
+    }else if(dir == GPIO_DIR_OUT){
+        exynos_mux_configure(cfg, GPIOID_PIN(id), 0x1, PUD_NONE, 1);
+    }else{
+        int con;
+        con = gpio_dir_get_intcon(dir);
+        if(con < 0){
+            return -1;
+        }
+        exynos_mux_configure(cfg, GPIOID_PIN(id), 0xf, PUD_PULLUP, 1);
+        return exynos_gpio_int_configure(gpio, con);
+    }
+    return 0;
 }
 
 static int

@@ -36,7 +36,18 @@ enum gpio_dir {
 /// Output direction
    GPIO_DIR_OUT,
 /// Input direction
-   GPIO_DIR_IN
+   GPIO_DIR_IN,
+
+/// Input direction with IRQ on low logic level
+   GPIO_DIR_IRQ_LOW,
+/// Input direction with IRQ on high logic level
+   GPIO_DIR_IRQ_HIGH,
+/// Input direction with IRQ on falling edge 
+   CPIO_DIR_IRQ_FALL,
+/// Input direction with IRQ on rising edge
+   GPIO_DIR_IRQ_RISE,
+/// Input direction with IRQ on both rising and falling edges
+   GPIO_DIR_IRQ_EDGE
 };
 
 struct gpio_sys{

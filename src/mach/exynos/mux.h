@@ -51,22 +51,38 @@ struct mux_cfg {
     uint32_t pud;
     uint32_t drv;
     uint32_t conpdn;
-    uint32_t pudpdb;
+    uint32_t pudpdn;
     uint32_t res[2];
 };
 /* 448 */
 struct mux_bank {
     struct mux_cfg gp[22];
-    uint32_t reserved0[272];        /* 0x2C0 */
-    uint32_t ext_int_con[22];       /* 0x700 */
-    uint32_t ext_int_fltcon[22][2]; /* 0x800 */
-    uint32_t ext_int_mask[22];      /* 0x900 */
-    uint32_t ext_int_pend[22];      /* 0xA00 */
-    uint32_t ext_int_service_xb;
-    uint32_t ext_int_service_pend_xb;
-    uint32_t ext_int_grpfixpri_xb;
-    uint32_t ext_int_fixpri[22];       /* 0x700 */
-    uint32_t pdnen; 
+    uint32_t res0[272];               /* 0x2C0 */
+    uint32_t ext_int_con[22];         /* 0x700 */
+    uint32_t res1[42];
+    uint32_t ext_int_fltcon[22][2];   /* 0x800 */
+    uint32_t res2[20];
+    uint32_t ext_int_mask[22];        /* 0x900 */
+    uint32_t res3[42];
+    uint32_t ext_int_pend[22];        /* 0xA00 */
+    uint32_t res4[42];
+    uint32_t ext_int_grppri_xa;       /* 0xB00 */
+    uint32_t ext_int_priority_xa;
+    uint32_t ext_int_service_xa;
+    uint32_t ext_int_service_pend_xa;
+    uint32_t ext_int_grpfixpri_xa;
+    uint32_t ext_int_fixpri[22];      /* 0xB14 */
+    uint32_t res5[37];
+    struct mux_cfg xgp[4];            /* 0xC00 */
+    uint32_t res6[96];
+    uint32_t ext_xint_con[4];        /* 0xE00 */
+    uint32_t res7[28];
+    uint32_t ext_xint_fltcon[4][2];  /* 0xE80 */
+    uint32_t res8[24];
+    uint32_t ext_xint_mask[4];       /* 0xF00 */
+    uint32_t res9[12];
+    uint32_t ext_xint_pend[4];       /* 0xF40 */
+    uint32_t res10[44];
 };
 
 
