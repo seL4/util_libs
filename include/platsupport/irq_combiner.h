@@ -127,7 +127,7 @@ static inline uint32_t irq_combiner_group_pending(irq_combiner_t* combiner, int 
 {
     assert(combiner);
     assert(combiner->is_pending);
-    return combiner->is_pending(combiner, group);
+    return combiner->grp_pending(combiner, group);
 }
 
 #endif /* _PLATSUPPORT_IRQ_COMBINER_H_ */

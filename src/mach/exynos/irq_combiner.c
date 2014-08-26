@@ -40,7 +40,7 @@ volatile struct irq_combiner_map *_combiner_regs = NULL;
 
 
 #define GROUP_INDEX(cirq) (COMBINER_IRQ_GET_GROUP(cirq) >> 2)
-#define GROUP_SHIFT(cirq) (COMBINER_IRQ_GET_GROUP(cirq) & 0x3)
+#define GROUP_SHIFT(cirq) ((COMBINER_IRQ_GET_GROUP(cirq) & 0x3) * 8)
 #define IRQ_SHIFT(cirq)   (COMBINER_IRQ_GET_INDEX(cirq))
 #define GROUP_INDEX_MASK  0xff
 
