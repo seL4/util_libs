@@ -20,6 +20,43 @@
 #define GPIOPORT(bank, port)        _GPIOPORT(GPIO_##bank##_BANK, port)
 #define GPIOPORT_NONE               _GPIOPORT(GPIO_NBANKS, 0)
 
+#define XEINT0   GPIOID(GPX0, 0)
+#define XEINT1   GPIOID(GPX0, 1)
+#define XEINT2   GPIOID(GPX0, 2)
+#define XEINT3   GPIOID(GPX0, 3)
+#define XEINT4   GPIOID(GPX0, 4)
+#define XEINT5   GPIOID(GPX0, 5)
+#define XEINT6   GPIOID(GPX0, 6)
+#define XEINT7   GPIOID(GPX0, 7)
+#define XEINT8   GPIOID(GPX1, 0)
+#define XEINT9   GPIOID(GPX1, 1)
+#define XEINT10  GPIOID(GPX1, 2)
+#define XEINT11  GPIOID(GPX1, 3)
+#define XEINT12  GPIOID(GPX1, 4)
+#define XEINT13  GPIOID(GPX1, 5)
+#define XEINT14  GPIOID(GPX1, 6)
+#define XEINT15  GPIOID(GPX1, 7)
+#define XEINT16  GPIOID(GPX2, 0)
+#define XEINT17  GPIOID(GPX2, 1)
+#define XEINT18  GPIOID(GPX2, 2)
+#define XEINT19  GPIOID(GPX2, 3)
+#define XEINT20  GPIOID(GPX2, 4)
+#define XEINT21  GPIOID(GPX2, 5)
+#define XEINT22  GPIOID(GPX2, 6)
+#define XEINT23  GPIOID(GPX2, 7)
+#define XEINT24  GPIOID(GPX3, 0)
+#define XEINT25  GPIOID(GPX3, 1)
+#define XEINT26  GPIOID(GPX3, 2)
+#define XEINT27  GPIOID(GPX3, 3)
+#define XEINT28  GPIOID(GPX3, 4)
+#define XEINT29  GPIOID(GPX3, 5)
+#define XEINT30  GPIOID(GPX3, 6)
+#define XEINT31  GPIOID(GPX3, 7)
+
+
+
+
+
 enum gpio_bank {
     GPIO_LEFT_BANK,
     GPIO_RIGHT_BANK,
