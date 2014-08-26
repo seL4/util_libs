@@ -126,9 +126,9 @@ enum spi_cs_state {
 struct spi_bus {
     volatile struct spi_regs* regs;
     enum mux_feature mux;
-    int mode:1;               //0 -- Master, 1 -- Slave
-    int high_speed:1;         //High speed operation in slave mode.
-    int cs_auto:1;            //Auto chip selection.
+    int mode: 1;              //0 -- Master, 1 -- Slave
+    int high_speed: 1;        //High speed operation in slave mode.
+    int cs_auto: 1;           //Auto chip selection.
 
     /* Transfer management */
     const char *txbuf;
@@ -143,30 +143,15 @@ static spi_bus_t _spi[NSPI] = {
     { .regs = NULL, .mux = MUX_SPI0  },
     { .regs = NULL, .mux = MUX_SPI1  },
     { .regs = NULL, .mux = MUX_SPI2  },
-    { .regs = NULL, .mux = MUX_SPI0_ISP },
-    { .regs = NULL, .mux = MUX_SPI0_ISP },
 #if defined(PLAT_EXYNOS4)
 #elif defined(PLAT_EXYNOS5)
+    { .regs = NULL, .mux = MUX_SPI0_ISP },
+    { .regs = NULL, .mux = MUX_SPI1_ISP },
 #else  /* EXYNOS? */
 #error Unknown Exynos regsd platform
 #endif /* EXYNOSX */
 };
 
-
-UNUSED static void
-print_reg(spi_bus_t* spi)
-{
-    printf("%x, %x, %x, %x, %x, %x, %x, %x, %x\n",
-        spi->regs->ch_cfg,
-        spi->regs->mode_cfg,
-        spi->regs->cs_reg,
-        spi->regs->int_en,
-        spi->regs->status,
-        spi->regs->packet_cnt,
-        spi->regs->pending_clr,
-        spi->regs->swap_cfg,
-        spi->regs->fb_clk_sel);
-}
 
 static void
 spi_reset(spi_bus_t *spi_bus)
@@ -201,11 +186,7 @@ spi_config(spi_bus_t *spi_bus)
     uint32_t v;
 
     /* Step1: SPI configuration */
-    v = spi_bus->regs->ch_cfg;
-
-    /* Set transfer type */
-    v &= ~(CH_CFG_CPOL | CH_CFG_CPHA);
-
+    v = 0;
     /* Master/Slave mode */
     if (spi_bus->mode == SLAVE_MODE) {
         v |= CH_CFG_SLAVE;
@@ -217,7 +198,6 @@ spi_config(spi_bus_t *spi_bus)
         }
     }
     spi_bus->regs->ch_cfg = v;
-    printf("ch_cfg: 0x%x\n", spi_bus->regs->ch_cfg);
 
     /*
      * Step2: Feedback clock
@@ -259,13 +239,14 @@ spi_config(spi_bus_t *spi_bus)
 }
 
 static void
-spi_cs(spi_bus_t* spi_bus, enum spi_cs_state state){
-    if(!spi_bus->cs_auto){
+spi_cs(spi_bus_t* spi_bus, enum spi_cs_state state)
+{
+    if (!spi_bus->cs_auto) {
         uint32_t v;
         v = spi_bus->regs->cs_reg;
-        if(state == SPI_CS_ASSERT){
+        if (state == SPI_CS_ASSERT) {
             v &= ~CS_REG_NSSOUT;
-        }else{
+        } else {
             v |= CS_REG_NSSOUT;
         }
         spi_bus->regs->cs_reg = v;
@@ -275,15 +256,15 @@ spi_cs(spi_bus_t* spi_bus, enum spi_cs_state state){
 static int
 spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
 {
-    if(mux_sys && mux_sys_valid(mux_sys)){
+    if (mux_sys && mux_sys_valid(mux_sys)) {
         mux_feature_enable(mux_sys, spi_bus->mux);
-    }else{
+    } else {
         LOG_INFO("SPI: Skipping MUX initialisation as no mux subsystem was provided\n");
     }
 
-    if(clock_sys && clock_sys_valid(clock_sys)){
+    if (clock_sys && clock_sys_valid(clock_sys)) {
         LOG_INFO("SPI: Assuming default clock frequent (Implement me)\n");
-    }else{
+    } else {
         LOG_INFO("SPI: Assuming default clock frequency as no clock subsystem was provided\n");
     }
 
@@ -293,97 +274,108 @@ spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
 
     spi_reset(spi_bus);
     spi_config(spi_bus);
-    return 0; 
+    return 0;
 }
 
-
-void
-spi_handle_irq(spi_bus_t* spi_bus)
+int
+transfer_data(spi_bus_t* spi_bus)
 {
     int rxfifo_cnt, txfifo_cnt, txfifo_space;
     uint32_t stat;
     stat = spi_bus->regs->status;
     rxfifo_cnt = (stat >> STATUS_RX_FIFO_LVL_SHF) & 0x1FF;
     txfifo_cnt = (stat >> STATUS_TX_FIFO_LVL_SHF) & 0x1FF;
-    txfifo_space = FIFO_SIZE - txfifo_cnt -1;
+    txfifo_space = FIFO_SIZE - txfifo_cnt - 1;
 
     /* Check for fatal events */
-    if(stat & STATUS_RX_OVERRUN){
+    if (stat & STATUS_RX_OVERRUN) {
         printf("SPI RX overrun\n");
     }
-    if(stat & STATUS_RX_UNDERRUN){
+    if (stat & STATUS_RX_UNDERRUN) {
         printf("SPI RX underrun\n");
     }
-    if(stat & STATUS_TX_OVERRUN){
+    if (stat & STATUS_TX_OVERRUN) {
         printf("SPI TX overrun\n");
     }
-    if(stat & STATUS_TX_UNDERRUN){
+    if (stat & STATUS_TX_UNDERRUN) {
         printf("SPI TX underrun\n");
     }
 
     /* Drain the RX FIFO */
-    while(rxfifo_cnt--){
+    while (rxfifo_cnt--) {
         uint32_t d;
         d = spi_bus->regs->rx_data;
-        if(spi_bus->rxcnt >= 0){
-            *spi_bus->rxbuf++ = d;
+        /* Store the data only if we are in RX phase */
+        if (spi_bus->rxcnt >= spi_bus->txsize) {
+            assert(spi_bus->rxcnt - spi_bus->txsize < spi_bus->rxsize);
         }
+        *spi_bus->rxbuf++ = d;
         spi_bus->rxcnt++;
     }
 
     /* Fill the TX FIFO */
-    if(txfifo_space > spi_bus->rxsize - spi_bus->rxcnt){
-        txfifo_space = spi_bus->rxsize - spi_bus->rxcnt;
+    if (txfifo_space > spi_bus->txsize + spi_bus->rxsize - spi_bus->rxcnt) {
+        txfifo_space = spi_bus->txsize + spi_bus->rxsize - spi_bus->txcnt;
     }
-    while(txfifo_space--){
+    while (txfifo_space--) {
         uint32_t d;
-        assert(txfifo_space >= 0);
-        if(spi_bus->txcnt < spi_bus->txsize){
+        if (spi_bus->txcnt < spi_bus->txsize) {
             d = *spi_bus->txbuf++;
-            spi_bus->txcnt++;
-        }else{
+        } else {
             d = 0xff;
         }
         spi_bus->regs->tx_data = d;
+        spi_bus->txcnt++;
     }
 
     /* Check for completion */
-    if(stat & STATUS_TX_DONE){
+    if ((stat & STATUS_TX_DONE) && spi_bus->rxcnt == spi_bus->rxsize + spi_bus->txsize) {
         spi_bus->regs->int_en = 0;
         spi_cs(spi_bus, SPI_CS_RELAX);
-        if(spi_bus->cb){
-            spi_bus->cb(spi_bus, spi_bus->rxcnt + spi_bus->txcnt, spi_bus->token);
+        if (spi_bus->cb) {
+            spi_bus->cb(spi_bus, spi_bus->txcnt, spi_bus->token);
         }
+
+        return 0;
     }
+
+    return 1;
+}
+
+void
+spi_handle_irq(spi_bus_t* spi_bus)
+{
+    transfer_data(spi_bus);
 }
 
 
 
 int
 spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
-         void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token){
-    uint32_t v;
+         void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token)
+{
     spi_bus->txbuf = (const char*)txdata;
     spi_bus->rxbuf = (char*)rxdata;
     spi_bus->rxsize = rxcnt;
     spi_bus->txsize = txcnt;
-    spi_bus->rxcnt = -txcnt;
+    spi_bus->rxcnt = 0;
     spi_bus->txcnt = 0;
 
+    DSPI("Starting transfer: TX: from 0x%x, %d bytes. RX to 0x%x, %d bytes\n",
+         (uint32_t)txdata, txcnt, (uint32_t)rxdata, rxcnt);
+
+    transfer_data(spi_bus);
     spi_cs(spi_bus, SPI_CS_ASSERT);
-    spi_handle_irq(spi_bus);
-    if(cb == NULL){
-        while(!(spi_bus->regs->status & STATUS_TX_DONE)){
-            spi_handle_irq(spi_bus);
-        }
-        spi_cs(spi_bus, SPI_CS_RELAX);
-    }else{
+    if (cb == NULL) {
+        while (transfer_data(spi_bus));
+    } else {
+        uint32_t v;
         spi_bus->cb = cb;
         spi_bus->token = token;
         v = INT_EN_RX_OVERRUN  | INT_EN_RX_UNDERRUN
-          | INT_EN_TX_OVERRUN  | INT_EN_TX_UNDERRUN
-          | INT_EN_RX_FIFO_RDY | INT_EN_TX_FIFO_RDY
-          | INT_EN_TRAILING;
+            | INT_EN_TX_OVERRUN  | INT_EN_TX_UNDERRUN
+            | INT_EN_RX_FIFO_RDY | INT_EN_TX_FIFO_RDY
+            | INT_EN_TRAILING;
         spi_bus->regs->pending_clr = 0xFFFFFFFF;
         spi_bus->regs->int_en = v;
     }
@@ -399,16 +391,16 @@ spi_set_speed(spi_bus_t* spi_bus, long bps)
 }
 
 int
-exynos_spi_init(enum spi_id id, void* base, 
+exynos_spi_init(enum spi_id id, void* base,
                 mux_sys_t* mux_sys, clock_sys_t* clock_sys,
                 spi_bus_t** ret_spi_bus)
 {
-    if(id >= 0 && id < NSPI){
+    if (id >= 0 && id < NSPI) {
         spi_bus_t* spi_bus = _spi + id;
         *ret_spi_bus = spi_bus;
         spi_bus->regs = base;
         return spi_init_common(spi_bus, mux_sys, clock_sys);
-    }else{
+    } else {
         return -1;
     }
 }
@@ -420,12 +412,22 @@ spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** ret_spi_bus)
     *ret_spi_bus = spi_bus;
     /* Map memory */
     DSPI("Mapping spi %d\n", id);
-    switch(id){
-    case SPI0:      MAP_IF_NULL(io_ops, EXYNOS_SPI0,      spi_bus->regs); break;
-    case SPI1:      MAP_IF_NULL(io_ops, EXYNOS_SPI1,      spi_bus->regs); break;
-    case SPI2:      MAP_IF_NULL(io_ops, EXYNOS_SPI2,      spi_bus->regs); break;
-    case SPI0_ISP:  MAP_IF_NULL(io_ops, EXYNOS_SPI0_ISP,  spi_bus->regs); break;
-    case SPI1_ISP:  MAP_IF_NULL(io_ops, EXYNOS_SPI1_ISP,  spi_bus->regs); break;
+    switch (id) {
+    case SPI0:
+        MAP_IF_NULL(io_ops, EXYNOS_SPI0,      spi_bus->regs);
+        break;
+    case SPI1:
+        MAP_IF_NULL(io_ops, EXYNOS_SPI1,      spi_bus->regs);
+        break;
+    case SPI2:
+        MAP_IF_NULL(io_ops, EXYNOS_SPI2,      spi_bus->regs);
+        break;
+    case SPI0_ISP:
+        MAP_IF_NULL(io_ops, EXYNOS_SPI0_ISP,  spi_bus->regs);
+        break;
+    case SPI1_ISP:
+        MAP_IF_NULL(io_ops, EXYNOS_SPI1_ISP,  spi_bus->regs);
+        break;
     default:
         return -1;
     }
