@@ -289,7 +289,7 @@ gpio_dir_get_intcon(enum gpio_dir dir)
         return 0x0;
     case GPIO_DIR_IRQ_HIGH:
         return 0x1;
-    case CPIO_DIR_IRQ_FALL:
+    case GPIO_DIR_IRQ_FALL:
         return 0x2;
     case GPIO_DIR_IRQ_RISE:
         return 0x3;

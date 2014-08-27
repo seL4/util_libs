@@ -43,7 +43,7 @@ enum gpio_dir {
 /// Input direction with IRQ on high logic level
    GPIO_DIR_IRQ_HIGH,
 /// Input direction with IRQ on falling edge 
-   CPIO_DIR_IRQ_FALL,
+   GPIO_DIR_IRQ_FALL,
 /// Input direction with IRQ on rising edge
    GPIO_DIR_IRQ_RISE,
 /// Input direction with IRQ on both rising and falling edges
