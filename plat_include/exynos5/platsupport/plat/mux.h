@@ -53,10 +53,10 @@ enum mux_feature {
  *                    subsystem data.
  * @return            0 on success
  */
-int exynos5_mux_init(void* gpioleft,
-                     void* gpioright,
-                     void* gpioc2c,
-                     void* gpioaudio,
-                     mux_sys_t* mux);
+int exynos_mux_init(void* gpioleft,
+                    void* gpioright,
+                    void* gpioc2c,
+                    void* gpioaudio,
+                    mux_sys_t* mux);
 
 #endif /* _PLATSUPPORT_PLAT_MUX_H */
