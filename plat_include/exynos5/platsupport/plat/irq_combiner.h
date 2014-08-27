@@ -75,11 +75,37 @@ enum irq_combiner_id {
 #define SYSMMU_GSCL01_CIRQ      COMBINER_IRQ( 2, 1)
 #define SYSMMU_GSCL00_CIRQ      COMBINER_IRQ( 2, 0)
 
+#define XEINT0_CIRQ             COMBINER_IRQ(23, 0)
+#define XEINT1_CIRQ             COMBINER_IRQ(24, 0)
+#define XEINT2_CIRQ             COMBINER_IRQ(25, 0)
+#define XEINT3_CIRQ             COMBINER_IRQ(25, 1)
+#define XEINT4_CIRQ             COMBINER_IRQ(26, 0)
+#define XEINT5_CIRQ             COMBINER_IRQ(26, 1)
+#define XEINT6_CIRQ             COMBINER_IRQ(27, 0)
+#define XEINT7_CIRQ             COMBINER_IRQ(27, 1)
+#define XEINT8_CIRQ             COMBINER_IRQ(28, 0)
+#define XEINT9_CIRQ             COMBINER_IRQ(28, 1)
+#define XEINT10_CIRQ            COMBINER_IRQ(29, 0)
+#define XEINT11_CIRQ            COMBINER_IRQ(29, 1)
+#define XEINT12_CIRQ            COMBINER_IRQ(30, 0)
+#define XEINT13_CIRQ            COMBINER_IRQ(30, 1)
+#define XEINT14_CIRQ            COMBINER_IRQ(31, 0)
+#define XEINT15_CIRQ            COMBINER_IRQ(31, 1)
+
+
 
 #define EXYNOS5_IRQ_COMBINER_PADDR 0x10440000
 #define EXYNOS5_IRQ_COMBINER_SIZE  0x1000
 
 #define EXYNOS_IRQ_COMBINER_PADDR EXYNOS5_IRQ_COMBINER_PADDR
 #define EXYNOS_IRQ_COMBINER_SIZE  EXYNOS5_IRQ_COMBINER_SIZE
+
+/**
+ * Initialise the IRQ combiner with a provided address for IO access
+ * @param[in]  base     The memory address of the combiner registers
+ * @param[out] combiner An IRQ combiner structure to populate
+ * @return              0 on success.
+ */
+int exynos_irq_combiner_init(void* base, irq_combiner_t* combiner);
 
 #endif /* _PLATSUPPORT_PLAT_IRQ_COMBINER_H_ */

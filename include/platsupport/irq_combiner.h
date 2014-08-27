@@ -12,13 +12,6 @@
 #define _PLATSUPPORT_IRQ_COMBINER_H_
 
 #include <platsupport/io.h>
-#include <platsupport/plat/irq_combiner.h>
-
-#define COMBINER_IRQ_FLAG         0x8000
-#define IS_COMBINER_IRQ(x)        !!((x) & COMBINER_IRQ_FLAG)
-#define COMBINER_IRQ(grp, idx)    (((grp) << 8) | (idx) | COMBINER_IRQ_FLAG)
-#define COMBINER_IRQ_GET_GROUP(x) (((x) & ~COMBINER_IRQ_FLAG) >> 8)
-#define COMBINER_IRQ_GET_INDEX(x) (((x) & ~COMBINER_IRQ_FLAG) & 0xff)
 
 typedef struct irq_combiner irq_combiner_t;
 typedef int combiner_irq_t;
@@ -31,7 +24,13 @@ struct irq_combiner {
     void* priv;
 };
 
+#include <platsupport/plat/irq_combiner.h>
 
+#define COMBINER_IRQ_FLAG         0x8000
+#define IS_COMBINER_IRQ(x)        !!((x) & COMBINER_IRQ_FLAG)
+#define COMBINER_IRQ(grp, idx)    (((grp) << 8) | (idx) | COMBINER_IRQ_FLAG)
+#define COMBINER_IRQ_GET_GROUP(x) (((x) & ~COMBINER_IRQ_FLAG) >> 8)
+#define COMBINER_IRQ_GET_INDEX(x) (((x) & ~COMBINER_IRQ_FLAG) & 0xff)
 
 /**
  * Initialise the IRQ combiner

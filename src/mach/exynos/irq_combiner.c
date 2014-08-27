@@ -104,6 +104,32 @@ exynos_irq_combiner_grp_pending(irq_combiner_t* combiner, int group)
     return (v >> shift) & GROUP_INDEX_MASK;
 }
 
+
+
+static int
+irq_combiner_init_common(irq_combiner_t* combiner){
+    if (_combiner_regs == NULL) {
+        return -1;
+    }else{
+        /* Initialise the structure */
+        combiner->priv = (void*)_combiner_regs;
+        combiner->is_pending  = &exynos_irq_combiner_is_pending;
+        combiner->is_enabled  = &exynos_irq_combiner_is_enabled;
+        combiner->set_enabled = &exynos_irq_combiner_set_enabled;
+        combiner->grp_pending = &exynos_irq_combiner_grp_pending;
+        return 0;
+    }
+}
+
+int
+exynos_irq_combiner_init(void* base, irq_combiner_t* combiner)
+{
+    if(base){
+        _combiner_regs = (volatile struct irq_combiner_map *)base;
+    }
+    return irq_combiner_init_common(combiner);
+}
+
 int
 irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* combiner)
 {
@@ -116,18 +142,8 @@ irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* 
     default:
         return -1;
     }
-    if (_combiner_regs == NULL) {
-        return -1;
-    }
 
-    /* Initialise structure */
-    combiner->priv = (void*)_combiner_regs;
-    combiner->is_pending  = &exynos_irq_combiner_is_pending;
-    combiner->is_enabled  = &exynos_irq_combiner_is_enabled;
-    combiner->set_enabled = &exynos_irq_combiner_set_enabled;
-    combiner->grp_pending = &exynos_irq_combiner_grp_pending;
-
-    return 0;
+    return irq_combiner_init_common(combiner);
 }
 
 int

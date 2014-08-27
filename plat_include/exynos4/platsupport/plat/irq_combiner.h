@@ -23,4 +23,12 @@ enum irq_combiner_id {
 #define EXYNOS_IRQ_COMBINER_PADDR EXYNOS4_IRQ_COMBINER_PADDR
 #define EXYNOS_IRQ_COMBINER_SIZE  EXYNOS4_IRQ_COMBINER_SIZE
 
+/**
+ * Initialise the IRQ combiner with a provided address for IO access
+ * @param[in]  base     The memory address of the combiner registers
+ * @param[out] combiner An IRQ combiner structure to populate
+ * @return              0 on success.
+ */
+int exynos_irq_combiner_init(void* base, irq_combiner_t* combiner);
+
 #endif /* _PLATSUPPORT_PLAT_IRQ_COMBINER_H_ */

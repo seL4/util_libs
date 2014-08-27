@@ -54,6 +54,8 @@
 #define EINTCON_MASK 0x7
 #define EINTCON_BITS 4
 
+#define GPX_IDX_OFFSET 96
+
 static volatile struct mux_bank* _bank[GPIO_NBANKS];
 
 static struct mux_bank**
@@ -334,7 +336,7 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
     }else{
         /* You HAD to be different GPX... */
         uint32_t v;
-        idx = idx - 96;
+        idx = idx - GPX_IDX_OFFSET;
         v = bank->ext_xint_con[idx];
         v &= BITFIELD_MASK(pin, 4);
         v |= int_con << BITFIELD_SHIFT(pin, 4);
@@ -408,7 +410,7 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
 
 static int
 exynos_pending_status(gpio_t* gpio, int clear){
-    static struct mux_bank* bank;
+    volatile struct mux_bank* bank;
     uint32_t pend;
     int idx;
     int pin;
@@ -427,10 +429,10 @@ exynos_pending_status(gpio_t* gpio, int clear){
         }
     }else{
         /* You HAD to be different GPX... */
-        idx = idx - 96;
+        idx = idx - GPX_IDX_OFFSET;
         pend = (bank->ext_xint_pend[idx] & ~bank->ext_xint_mask[idx]) & BIT(pin);
         if(clear){
-            bank->ext_int_pend[idx] = BIT(pin);
+            bank->ext_xint_pend[idx] = BIT(pin);
         }
     }
     return pend;
