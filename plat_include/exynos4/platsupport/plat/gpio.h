@@ -74,6 +74,7 @@ enum gpio_port {
     GPC1 = GPIOPORT(LEFT,   4), /* 0x080 */
     GPD0 = GPIOPORT(LEFT,   5), /* 0x0A0 */
     GPD1 = GPIOPORT(LEFT,   6), /* 0x0C0 */
+
     GPF0 = GPIOPORT(LEFT,  12), /* 0x180 */
     GPF1 = GPIOPORT(LEFT,  13), /* 0x1A0 */
     GPF2 = GPIOPORT(LEFT,  14), /* 0x1C0 */
@@ -103,10 +104,23 @@ enum gpio_port {
     GPM2 = GPIOPORT(RIGHT, 21), /* 0x2A0 */
     GPM3 = GPIOPORT(RIGHT, 22), /* 0x2C0 */
     GPM4 = GPIOPORT(RIGHT, 23), /* 0x2E0 */
+    /* GPX */
     GPX0 = GPIOPORT(RIGHT, 96), /* 0xC00 */
     GPX1 = GPIOPORT(RIGHT, 97), /* 0xC20 */
     GPX2 = GPIOPORT(RIGHT, 98), /* 0xC40 */
     GPX3 = GPIOPORT(RIGHT, 99), /* 0xC60 */
+
+    /* C2C */
+    GPZ  = GPIOPORT(C2C,    0), /* 0x000 */
+
+    /* AUDIO */
+    GPV0 = GPIOPORT(AUDIO,  0), /* 0x000 */
+    GPV1 = GPIOPORT(AUDIO,  1), /* 0x020 */
+    ETC7 = GPIOPORT(AUDIO,  2), /* 0x040 */
+    GPV2 = GPIOPORT(AUDIO,  3), /* 0x060 */
+    GPV3 = GPIOPORT(AUDIO,  4), /* 0x080 */
+    ETC8 = GPIOPORT(AUDIO,  5), /* 0x0A0 */
+    GPV4 = GPIOPORT(AUDIO,  6), /* 0x0C0 */
 };
 
 

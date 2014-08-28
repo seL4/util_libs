@@ -54,6 +54,7 @@
 #define EINTCON_MASK 0x7
 #define EINTCON_BITS 4
 
+#define PORTS_PER_BANK 56
 #define GPX_IDX_OFFSET 96
 
 static volatile struct mux_bank* _bank[GPIO_NBANKS];
@@ -252,32 +253,46 @@ gpio_get_bank(gpio_t* gpio){
 }
 
 static int
+gpio_is_gpx(gpio_t *gpio)
+{
+    int portid;
+    portid = GPIOID_PORT(gpio->id);
+    return (portid >= GPX0 && portid <= GPX3);
+}
+
+static int
+gpio_get_xextint_idx(gpio_t *gpio)
+{
+    if(!gpio_is_gpx(gpio)){
+        return -1;
+    }else{
+        int portid, port;
+        portid = GPIOID_PORT(gpio->id);
+        port = GPIOPORT_GET_PORT(portid);
+        return port - GPX_IDX_OFFSET;
+    }
+}
+
+static int
 gpio_get_extint_idx(gpio_t *gpio){
     int portid, port;
     portid = GPIOID_PORT(gpio->id);
     port = GPIOPORT_GET_PORT(portid);
-    /* LEFT */
-    if(portid >= GPA0 && portid <= GPD1){
-        return port;
-    }else if(portid == GPC4){
-        return 13;
-    }else if(portid >= GPX0 && portid <= GPX3){
-        /* GPX: we just return the port here... */
-        return port;
-    /* RIGHT */
-    }else if(portid >= GPE0 && portid <= GPH1){
-        return port;
-    /* C2C */
-    }else if(portid == GPV0 || portid == GPV1){
-        return port;
-    }else if(portid == GPV2 || portid == GPV3){
+
+    /* Special cases. */
+    if(portid == GPV2 || portid == GPV3){
         return port - 1;
     }else if(portid == GPV4){
         return port - 2;
-    /* AUDIO */
-    }else if(portid == GPZ){
+#ifdef PLAT_EXYNOS5
+    /* GPC4 on EXYNOS5 is very special indeed. */
+    }else if(portid == GPC4){
+        return 13;
+#endif
+    /* General case */
+    }else if(port >= 0 && port <= PORTS_PER_BANK){
         return port;
-    /* INVALID */
+    /* All other cases, including GPX range */
     }else{
         return -1;
     }
@@ -302,11 +317,44 @@ gpio_dir_get_intcon(enum gpio_dir dir)
     }
 }
 
+static int
+exynos_pending_status(gpio_t* gpio, int clear){
+    volatile struct mux_bank* bank;
+    uint32_t pend;
+    int pin;
 
-static int 
+    bank = gpio_get_bank(gpio);
+    assert(bank);
+
+    pin = GPIOID_PIN(gpio->id);
+    if(gpio_is_gpx(gpio)){
+        int idx;
+        /* You HAD to be different GPX... */
+        idx = gpio_get_xextint_idx(gpio);
+        if(idx < 0){
+            return -1;
+        }
+        pend = (bank->ext_xint_pend[idx] & ~bank->ext_xint_mask[idx]) & BIT(pin);
+        if(clear){
+            bank->ext_xint_pend[idx] = BIT(pin);
+        }
+    }else{
+        int idx;
+        idx = gpio_get_extint_idx(gpio);
+        if(idx < 0){
+            return -1;
+        }
+        pend = (bank->ext_int_pend[idx] & ~bank->ext_int_mask[idx]) & BIT(pin);
+        if(clear){
+            bank->ext_int_pend[idx] = BIT(pin);
+        }
+    }
+    return pend;
+}
+
+static int
 exynos_gpio_int_configure(gpio_t *gpio, int int_con){
-    static struct mux_bank* bank;
-    int idx;
+    volatile struct mux_bank* bank;
     int pin;
 
     /* Configure the int */
@@ -314,11 +362,28 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
     assert(bank);
 
     pin = GPIOID_PIN(gpio->id);
-    idx = gpio_get_extint_idx(gpio);
-    if(idx < 0){
-        return -1;
-    }else if(idx < 22){
+    if(gpio_is_gpx(gpio)){
+        /* You HAD to be different GPX... */
         uint32_t v;
+        int idx;
+        idx = gpio_get_xextint_idx(gpio);
+        if(idx < 0){
+            return -1;
+        }
+        v = bank->ext_xint_con[idx];
+        v &= BITFIELD_MASK(pin, 4);
+        v |= int_con << BITFIELD_SHIFT(pin, 4);
+        bank->ext_xint_con[idx] = v;
+        bank->ext_xint_mask[idx] &= ~BIT(pin);
+        bank->ext_xint_pend[idx] = BIT(pin); /* Set to clear */
+        bank->ext_xint_fltcon[idx][idx & 0x1] = 0;
+    }else{
+        uint32_t v;
+        int idx;
+        idx = gpio_get_extint_idx(gpio);
+        if(idx < 0){
+            return -1;
+        }
         v = bank->ext_int_con[idx];
         v &= BITFIELD_MASK(pin, 4);
         v |= int_con << BITFIELD_SHIFT(pin, 4);
@@ -333,17 +398,6 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
         bank->ext_int_service_pend_xa = 0;
         bank->ext_int_grpfixpri_xa = 0;
         bank->ext_int_fixpri[idx] = 0;
-    }else{
-        /* You HAD to be different GPX... */
-        uint32_t v;
-        idx = idx - GPX_IDX_OFFSET;
-        v = bank->ext_xint_con[idx];
-        v &= BITFIELD_MASK(pin, 4);
-        v |= int_con << BITFIELD_SHIFT(pin, 4);
-        bank->ext_xint_con[idx] = v;
-        bank->ext_xint_mask[idx] &= ~BIT(pin);
-        bank->ext_xint_pend[idx] = BIT(pin); /* Set to clear */
-        bank->ext_xint_fltcon[idx][idx & 0x1] = 0;
     }
     return 0;
 }
@@ -407,37 +461,6 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
     }
     return count;
 }
-
-static int
-exynos_pending_status(gpio_t* gpio, int clear){
-    volatile struct mux_bank* bank;
-    uint32_t pend;
-    int idx;
-    int pin;
-
-    bank = gpio_get_bank(gpio);
-    assert(bank);
-
-    pin = GPIOID_PIN(gpio->id);
-    idx = gpio_get_extint_idx(gpio);
-    if(idx < 0){
-        pend = -1;
-    }else if(idx < 22){
-        pend = (bank->ext_int_pend[idx] & ~bank->ext_int_mask[idx]) & BIT(pin);
-        if(clear){
-            bank->ext_int_pend[idx] = BIT(pin);
-        }
-    }else{
-        /* You HAD to be different GPX... */
-        idx = idx - GPX_IDX_OFFSET;
-        pend = (bank->ext_xint_pend[idx] & ~bank->ext_xint_mask[idx]) & BIT(pin);
-        if(clear){
-            bank->ext_xint_pend[idx] = BIT(pin);
-        }
-    }
-    return pend;
-}
-
 
 int
 exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){
