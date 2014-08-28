@@ -134,13 +134,27 @@ LDFLAGS += $(NK_LDFLAGS) \
 		   $(CFLAGS) \
 		   -static -nostdlib
 
-# Force _start to be linked in if need be - the user may already have it in a
+ENTRY_POINT ?= _start
+
+# Force start symbol to be linked in if need be - the user may already have it in a
 # .o file, otherwise this will pull it from a library such as
 # libsel4platsupport.
-LDFLAGS += -u _start
+LDFLAGS += -u ${ENTRY_POINT}
+
+# Set the entry point
+LDFLAGS += -e ${ENTRY_POINT}
 
 # Object files
 OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(OFILES)
+
+# Define standard crt files if are building against a C library that has them
+ifeq (${CONFIG_HAVE_CRT},y)
+	CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+	FINOBJFILES ?= $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
+else
+	CRTOBJFILES ?=
+	FINOBJFILES ?=
+endif
 
 # Copy a file.
 cp_file = \
@@ -237,10 +251,11 @@ endif
 %.bin: %.elf
 	$(call cp_file,$<,$@)
 
+%.elf: $(CRTOBJFILES) $(FINOBJFILES)
 %.elf: $(OBJFILES)
 	@echo " [LINK] $@"
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(CC) $^ $(LDFLAGS) -o $@
+	$(Q)$(CC) $(CRTOBJFILES) $^ $(FINOBJFILES) $(LDFLAGS) -o $@
 
 %.img: %.bin $(COBBLER) $(SEL4_KERNEL)
 	@echo " [IMG] $@"
