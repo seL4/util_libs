@@ -18,7 +18,32 @@
  *** BUS ***
  ***********/
 
+enum i2c_stat {
+/// Transfer completed successfully
+    I2CSTAT_COMPLETE,
+/// Transfer was truncated or cancelled by the remote
+    I2CSTAT_INCOMPLETE,
+/// A transfer error occurred
+    I2CSTAT_ERROR,
+/// The transfer was aborted by the user
+    I2CSTAT_CANCELLED
+};
+
 typedef struct i2c_bus i2c_bus_t;
+typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void* token);
+
+struct i2c_bus {
+    int (*start_read)(i2c_bus_t* bus, int slave, void* buf, size_t size, i2c_callback_fn cb, void* token);
+    int (*start_write)(i2c_bus_t* bus, int slave, const void* buf, size_t size, i2c_callback_fn cb, void* token);
+    int (*read)(i2c_bus_t* bus, void* buf, size_t size, i2c_callback_fn cb, void* token);
+    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, i2c_callback_fn cb, void* token);
+    long (*set_speed)(i2c_bus_t* bus, long bps);
+    int (*master_stop)(i2c_bus_t* bus);
+    int (*set_address)(i2c_bus_t* bus, int addr);
+    void (*handle_irq)(i2c_bus_t* bus);
+    void* priv;
+};
+
 /*** Master mode ***/
 
 /**
@@ -28,8 +53,8 @@ typedef struct i2c_bus i2c_bus_t;
  *                     may perform for intialisation.
  * @param[out] i2c_bus A handle to the i2c bus driver for future calls
  * @return             0 on success
- */ 
-int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c_bus);
+ */
+int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c_bus);
 
 /**
  * Set the speed of the I2C bus
@@ -37,30 +62,23 @@ int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c_bus);
  * @param[in] bps      The speed to set in bits per second.
  * @return             The actual speed set
  */
-long i2c_set_speed(i2c_bus_t* i2c_bus, long bps);
+static inline long i2c_set_speed(i2c_bus_t* i2c_bus, long bps)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->set_speed);
+    return i2c_bus->set_speed(i2c_bus, bps);
+}
 
 /**
  * Signal an IRQ even to an I2C bus.
- * @param[in] dev The I2C bus that triggered the IRQ
+ * @param[in] i2c_bus The I2C bus that triggered the IRQ
  */
-void i2c_handle_irq(i2c_bus_t* dev);
-
-/**
- * Scan a bus for devices
- * @param[in]  i2c_bus The I2C bus to scan
- * @param[in]  start   The address at which to begin the scan.
- *                     The RW bit of the address should be set to 0.
- * @param[out] addr    On success, and when the value passed is not NULL,
- *                     This 
- * @param[in]  naddr   The maximum number of addresses to return. This
- *                     should be equal to the number of elements in the addr
- *                     array.
- * @return             -1 on failure, otherwise, returns the number of addresses
- *                     that were entered into the addr array.
- *                     If the return value equals @ref(naddr), one should 
- *                     repeat the call with @ref(start) adjusted appropraitly.
- */
-int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
+static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->handle_irq);
+    i2c_bus->handle_irq(i2c_bus);
+}
 
 /**
  * Read from a remote I2C slave
@@ -73,8 +91,13 @@ int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
  * @param[in] data    A address to store the recieved data
  * @param[in] size    The number of bytes to read
  * @return            The number of bytes read
- */ 
-int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, int size);
+ */
+static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t size)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->start_read);
+    return i2c_bus->start_read(i2c_bus, addr, data, size, NULL, NULL);
+}
 
 /**
  * Write to a remote I2C slave
@@ -87,19 +110,29 @@ int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, int size);
  * @param[in] data    The address of the data to send
  * @param[in] size    The number of bytes to send
  * @return            The number of bytes sent
- */ 
-int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, int size);
+ */
+static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, size_t size)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->start_write);
+    return i2c_bus->start_write(i2c_bus, addr, data, size, NULL, NULL);
+}
 
 /*** Slave mode ***/
 
 /**
  * Set the chip address of the bus for slave mode
  * @param[in] i2c_bus  A handle to an i2c bus driver
- * @param[in] address  The address to assign to this bus. The RW bit of 
+ * @param[in] address  The address to assign to this bus. The RW bit of
  *                     the address should be set to 0.
  * @return             0 on success
  */
-int i2c_set_address(i2c_bus_t* i2c_bus, int address);
+static inline int i2c_set_address(i2c_bus_t* i2c_bus, int address)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->set_address);
+    return i2c_bus->set_address(i2c_bus, address);
+}
 
 /**
  * Read from a remote I2C master
@@ -107,8 +140,13 @@ int i2c_set_address(i2c_bus_t* i2c_bus, int address);
  * @param[in] data    A address to store the recieved data
  * @param[in] size    The number of bytes to read
  * @return            The number of bytes read
- */ 
-int i2c_read(i2c_bus_t* i2c_bus, void* data, int len);
+ */
+static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->read);
+    return i2c_bus->read(i2c_bus, data, size, NULL, NULL);
+}
 
 /**
  * Write to a remote I2C master
@@ -116,8 +154,31 @@ int i2c_read(i2c_bus_t* i2c_bus, void* data, int len);
  * @param[in] data    The address of the data to send
  * @param[in] size    The number of bytes to send
  * @return            The number of bytes sent
- */ 
-int i2c_write(i2c_bus_t* i2c_bus, const void* data, int size);
+ */
+static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->write);
+    return i2c_bus->write(i2c_bus, data, size, NULL, NULL);
+}
+
+/**
+ * Scan a bus for devices
+ * @param[in]  i2c_bus The I2C bus to scan
+ * @param[in]  start   The address at which to begin the scan.
+ *                     The RW bit of the address should be set to 0.
+ * @param[out] addr    On success, and when the value passed is not NULL,
+ *                     This
+ * @param[in]  naddr   The maximum number of addresses to return. This
+ *                     should be equal to the number of elements in the addr
+ *                     array.
+ * @return             -1 on failure, otherwise, returns the number of addresses
+ *                     that were entered into the addr array.
+ *                     If the return value equals @ref(naddr), one should
+ *                     repeat the call with @ref(start) adjusted appropraitly.
+ */
+int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
+
 
 
 /*********************
@@ -162,8 +223,8 @@ struct i2c_slave {
  * @param[out] dev     A slave device structure to initialise
  * @return             0 on success
  */
-int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address, 
-                     enum kvfmt asize, enum kvfmt dsize, 
+int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
+                     enum kvfmt asize, enum kvfmt dsize,
                      i2c_slave_t* i2c_slave);
 
 /**
@@ -201,7 +262,7 @@ int i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t start, const void* data, 
 
 /**
  * Initilaise a streaming I2C slave device
- * @param[in]  i2c_bus   A handle to the I2C bus that the device resides on 
+ * @param[in]  i2c_bus   A handle to the I2C bus that the device resides on
  * @param[in]  address   The chip address of the slave device. The RW bit of
  *                       the address should be set to 0.
  * @param[out] i2c_slave A handle to an i2c slave device structure to initialise

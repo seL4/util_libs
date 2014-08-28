@@ -147,7 +147,7 @@ struct exynos_i2c_regs {
 };
 
 
-struct i2c_bus {
+struct i2c_bus_priv {
     volatile struct exynos_i2c_regs* regs;
     const char* tx_buf;
     int tx_len;
@@ -155,10 +155,12 @@ struct i2c_bus {
     char* rx_buf;
     int rx_len;
     int rx_count;
+    i2c_callback_fn cb;
+    void* token;
     enum mux_feature mux;
 };
 
-static i2c_bus_t _i2c[NI2C] = {
+static struct i2c_bus_priv _i2c[NI2C] = {
     { .regs = NULL, .mux = MUX_I2C0  },
     { .regs = NULL, .mux = MUX_I2C1  },
     { .regs = NULL, .mux = MUX_I2C2  },
@@ -178,91 +180,56 @@ static i2c_bus_t _i2c[NI2C] = {
 #endif /* EXYNOSX */
 };
 
+static inline struct i2c_bus_priv*
+i2c_bus_get_priv(i2c_bus_t* i2c_bus)
+{
+    return (struct i2c_bus_priv*)i2c_bus->priv;
+}
 
-static inline int irq_pending(i2c_bus_t* dev){
+static inline int
+irq_pending(struct i2c_bus_priv* dev)
+{
     return !!(dev->regs->control & I2CCON_IRQ_PEND);
 }
 
-static inline void clear_pending(i2c_bus_t* dev){
+static inline void
+clear_pending(struct i2c_bus_priv* dev)
+{
     uint32_t v = dev->regs->control;
     v &= ~(I2CCON_IRQ_PEND);
     dev->regs->control = v;
 }
 
-static inline int addressed_as_slave(i2c_bus_t* dev){
+static inline int
+addressed_as_slave(struct i2c_bus_priv* dev)
+{
     return !!(dev->regs->status & I2CSTAT_ADDR_SLAVE);
 }
 
-static inline int busy(i2c_bus_t* dev){
+static inline int
+busy(struct i2c_bus_priv* dev)
+{
     return !!(dev->regs->status & I2CSTAT_BUSY);
 }
 
-static inline int acked(i2c_bus_t* dev){
+static inline int
+acked(struct i2c_bus_priv* dev)
+{
     return !(dev->regs->status & I2CSTAT_ACK);
 }
 
-static inline int enabled(i2c_bus_t* dev){
+static inline int
+enabled(struct i2c_bus_priv* dev)
+{
     return !!(dev->regs->status & I2CSTAT_ENABLE);
 }
 
-void debug(i2c_bus_t* dev){
-    printf("%sbusy, %saddressed_as_slave, irq %s pending\n",
-              busy(dev)? "" : "not ", 
-              addressed_as_slave(dev)? "" : "not ",
-              irq_pending(dev)? "is" : "not"); 
-}
-
-int
-i2c_read(i2c_bus_t* dev, void* vdata, int len){
-    char* data = (char*)vdata;
-    int count = 0;
-    uint32_t c;
-
-    dprintf("Reading %d bytes as slave 0x%x\n", len, dev->regs->address);
-    /** Configure Master Rx mode **/
-    clear_pending(dev);
-    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_SRX;
-    dev->regs->control |= I2CCON_ACK_EN;
-    /* Wait for addressed as slave */
-    dprintf("RX waiting for master\n");
-    while(!irq_pending(dev));
-    if(addressed_as_slave(dev)){
-
-        clear_pending(dev);
-        /* Dummy read */
-        c = dev->regs->data;
-
-        /* Read bytes */
-        while(count < len && busy(dev)){
-            /* After ACK period, IRQ is pending */
-            while(!irq_pending(dev) && busy(dev));
-            if(irq_pending(dev)){
-                c = dev->regs->data;
-                *data++ = c;
-                clear_pending(dev);
-                count++;
-            }
-        }
-        dev->regs->control &= ~I2CCON_ACK_EN;
-        while(busy(dev)){
-            while(!irq_pending(dev) && busy(dev));
-            clear_pending(dev);
-            c = dev->regs->data;
-        }
-        dprintf("read %d bytes\n", count);
-        dev->regs->status = ~(I2CSTAT_ENABLE | I2CSTAT_MODE_SRX);
-        return count;
-    }else{
-        dprintf("Not addressed as slave\n");
-        return -1;
-    }
-}
-
 static void
-master_txstart(i2c_bus_t* dev, int slave){
+master_txstart(struct i2c_bus_priv* dev, int slave)
+{
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Tx mode **/
-    dev->regs->status = I2CSTAT_MODE_MTX | I2CSTAT_ENABLE; 
+    dev->regs->status = I2CSTAT_MODE_MTX | I2CSTAT_ENABLE;
     /* Write slave address */
     dev->regs->data = I2CDATA_WRITE(slave);
     /* Write 0xF0 (M/T Start) to I2CSTAT */
@@ -271,7 +238,8 @@ master_txstart(i2c_bus_t* dev, int slave){
 }
 
 static void
-master_rxstart(i2c_bus_t* dev, int slave){
+master_rxstart(struct i2c_bus_priv* dev, int slave)
+{
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Rx mode **/
     dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_MRX;
@@ -282,9 +250,61 @@ master_rxstart(i2c_bus_t* dev, int slave){
 }
 
 int
-i2c_write(i2c_bus_t* dev, const void* vdata, int len){
+exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb, void* token)
+{
+    struct i2c_bus_priv* dev;
+    char* data = (char*)vdata;
+    int count = 0;
+    uint32_t c;
+    dev = i2c_bus_get_priv(i2c_bus);
+
+    dprintf("Reading %d bytes as slave 0x%x\n", len, dev->regs->address);
+    /** Configure Master Rx mode **/
+    clear_pending(dev);
+    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_SRX;
+    dev->regs->control |= I2CCON_ACK_EN;
+    /* Wait for addressed as slave */
+    dprintf("RX waiting for master\n");
+    while (!irq_pending(dev));
+    if (addressed_as_slave(dev)) {
+
+        clear_pending(dev);
+        /* Dummy read */
+        c = dev->regs->data;
+
+        /* Read bytes */
+        while (count < len && busy(dev)) {
+            /* After ACK period, IRQ is pending */
+            while (!irq_pending(dev) && busy(dev));
+            if (irq_pending(dev)) {
+                c = dev->regs->data;
+                *data++ = c;
+                clear_pending(dev);
+                count++;
+            }
+        }
+        dev->regs->control &= ~I2CCON_ACK_EN;
+        while (busy(dev)) {
+            while (!irq_pending(dev) && busy(dev));
+            clear_pending(dev);
+            c = dev->regs->data;
+        }
+        dprintf("read %d bytes\n", count);
+        dev->regs->status = ~(I2CSTAT_ENABLE | I2CSTAT_MODE_SRX);
+        return count;
+    } else {
+        dprintf("Not addressed as slave\n");
+        return -1;
+    }
+}
+
+static int
+exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
+{
+    struct i2c_bus_priv* dev;
     const char* data = (const char*)vdata;
     int count = 0;
+    dev = i2c_bus_get_priv(i2c_bus);
 
     dprintf("Writing %d bytes as slave 0x%x\n", len, dev->regs->address);
     /** Configure Master Rx mode **/
@@ -293,30 +313,47 @@ i2c_write(i2c_bus_t* dev, const void* vdata, int len){
     dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_STX;
     /* Wait for addressed as slave */
     dprintf("TX waiting for master\n");
-    while(!irq_pending(dev));
+    while (!irq_pending(dev));
 
-    if(addressed_as_slave(dev)){
-        while(count < len && busy(dev)){
+    if (addressed_as_slave(dev)) {
+        while (count < len && busy(dev)) {
             /* After ACK period, IRQ is pending */
             dev->regs->data = *data++;
             clear_pending(dev);
-            while(!irq_pending(dev) && busy(dev));
+            while (!irq_pending(dev) && busy(dev));
             count++;
         }
         dprintf("wrote %d bytes\n", count);
         dev->regs->status = ~(I2CSTAT_ENABLE | I2CSTAT_MODE_SRX);
         clear_pending(dev);
+
+        if (cb) {
+            cb(i2c_bus, I2CSTAT_COMPLETE, count, token);
+        }
         return count;
-    }else{
+    } else {
         dprintf("Not addressed as slave\n");
+        if (cb) {
+            cb(i2c_bus, I2CSTAT_CANCELLED, count, token);
+            return count;
+        }
         return -1;
     }
 }
 
-/* Exynos4 manual Figure 14-6 p14-9 */
-int
-i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
+static int
+exynos_i2c_master_stop(i2c_bus_t* i2c_bus)
 {
+    assert(!"Not implemented");
+    return -1;
+}
+
+/* Exynos4 manual Figure 14-6 p14-9 */
+static int
+exynos_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_callback_fn cb, void* token)
+{
+    struct i2c_bus_priv* dev;
+    dev = i2c_bus_get_priv(i2c_bus);
     dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
     master_rxstart(dev, slave);
 
@@ -324,71 +361,84 @@ i2c_mread(i2c_bus_t* dev, int slave, void* vdata, int len)
     dev->rx_buf = (char*)vdata;
     dev->rx_len = len;
     dev->rx_count = -1;
+    dev->cb = cb;
+    dev->token = token;
 
     /* Wait for completion */
-    while(busy(dev)){
-        i2c_handle_irq(dev);
+    if (cb == NULL) {
+        while (busy(dev)) {
+            i2c_handle_irq(i2c_bus);
+        }
     }
     return dev->rx_count;
 }
 
 /* Exynos4 manual Figure 14-6 p14-8 */
-int
-i2c_mwrite(i2c_bus_t* dev, int slave, const void* vdata, int len)
+static int
+exynos_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
 {
+    struct i2c_bus_priv* dev;
+    dev = i2c_bus_get_priv(i2c_bus);
     dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
     master_txstart(dev, slave);
 
     dev->tx_count = -1;
     dev->tx_len = len;
     dev->tx_buf = (const char*)vdata;
+    dev->cb = cb;
+    dev->token = token;
 
-    while(busy(dev)){
-        i2c_handle_irq(dev);
+    if (cb == NULL) {
+        while (busy(dev)) {
+            i2c_handle_irq(i2c_bus);
+        }
     }
     return dev->tx_count;
 }
 
 
-void
-i2c_handle_irq(i2c_bus_t* dev){
+static void
+exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
+{
+    struct i2c_bus_priv* dev;
     uint32_t v;
-    if(enabled(dev) && irq_pending(dev)){
-        switch(dev->regs->status & I2CSTAT_MODE_MASK){
+    dev = i2c_bus_get_priv(i2c_bus);
+    if (enabled(dev) && irq_pending(dev)) {
+        switch (dev->regs->status & I2CSTAT_MODE_MASK) {
         case I2CSTAT_MODE_MRX:
-            if(dev->rx_count < 0){
-                if(acked(dev)){
+            if (dev->rx_count < 0) {
+                if (acked(dev)) {
                     /* slave responded to the address */
                     dev->rx_count = 0;
-                }else{
+                } else {
                     /* No response: Abort */
                     dev->regs->status &= ~(I2CSTAT_BUSY);
                 }
-            }else if(dev->regs->control & I2CCON_ACK_EN){
+            } else if (dev->regs->control & I2CCON_ACK_EN) {
                 /* Read from slave */
                 v = dev->regs->data;
                 *dev->rx_buf++ = v;
                 dev->rx_count++;
                 /* Don't ACK the last byte */
-                if(dev->rx_count == dev->rx_len){
+                if (dev->rx_count == dev->rx_len) {
                     dev->regs->control &= ~(I2CCON_ACK_EN);
                 }
-            }else{
+            } else {
                 /* Finally, send stop */
                 dev->regs->status &= ~(I2CSTAT_BUSY);
             }
             break;
         case I2CSTAT_MODE_MTX:
-            if(acked(dev)){
+            if (acked(dev)) {
                 /* Start pumping out data */
                 v = *dev->tx_buf++;
                 dev->regs->data = v;
                 dev->tx_count++;
-                if(dev->tx_count == dev->tx_len){
+                if (dev->tx_count == dev->tx_len) {
                     /* Write 0xD0 (M/T Stop) to I2CSTAT */
                     dev->regs->status &= ~(I2CSTAT_BUSY);
                 }
-            }else{
+            } else {
                 /* No response: Abort */
                 dev->regs->status &= ~(I2CSTAT_BUSY);
             }
@@ -402,28 +452,68 @@ i2c_handle_irq(i2c_bus_t* dev){
     }
 }
 
-int
-i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c)
+static long
+exynos_i2c_set_speed(i2c_bus_t* i2c_bus, long bps)
 {
-    i2c_bus_t* dev = _i2c + id;
+    assert(!"Not implemented\n");
+    return -1;
+}
+
+static int
+exynos_i2c_set_address(i2c_bus_t* i2c_bus, int addr)
+{
+    struct i2c_bus_priv* dev;
+    dev = i2c_bus_get_priv(i2c_bus);
+    dev->regs->address = addr & 0xfe;
+    return 0;
+}
+
+int
+i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
+{
+    struct i2c_bus_priv* dev = _i2c + id;
     mux_sys_t* mux = &io_ops->mux_sys;
     /* Map memory */
     dprintf("Mapping i2c %d\n", id);
-    switch(id){
-    case I2C0:  MAP_IF_NULL(io_ops, EXYNOS_I2C0,  dev->regs); break;
-    case I2C1:  MAP_IF_NULL(io_ops, EXYNOS_I2C1,  dev->regs); break;
-    case I2C2:  MAP_IF_NULL(io_ops, EXYNOS_I2C2,  dev->regs); break;
-    case I2C3:  MAP_IF_NULL(io_ops, EXYNOS_I2C3,  dev->regs); break;
-    case I2C4:  MAP_IF_NULL(io_ops, EXYNOS_I2C4,  dev->regs); break;
-    case I2C5:  MAP_IF_NULL(io_ops, EXYNOS_I2C5,  dev->regs); break;
-    case I2C6:  MAP_IF_NULL(io_ops, EXYNOS_I2C6,  dev->regs); break;
-    case I2C7:  MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs); break;
+    switch (id) {
+    case I2C0:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C0,  dev->regs);
+        break;
+    case I2C1:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C1,  dev->regs);
+        break;
+    case I2C2:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C2,  dev->regs);
+        break;
+    case I2C3:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C3,  dev->regs);
+        break;
+    case I2C4:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C4,  dev->regs);
+        break;
+    case I2C5:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C5,  dev->regs);
+        break;
+    case I2C6:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C6,  dev->regs);
+        break;
+    case I2C7:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs);
+        break;
 #if defined(PLAT_EXYNOS4)
 #elif defined(PLAT_EXYNOS5)
-    case I2C8:  MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs); break;
-    case I2C9:  MAP_IF_NULL(io_ops, EXYNOS_I2C9,  dev->regs); break;
-    case I2C10: MAP_IF_NULL(io_ops, EXYNOS_I2C10, dev->regs); break;
-    case I2C11: MAP_IF_NULL(io_ops, EXYNOS_I2C11, dev->regs); break;
+    case I2C8:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs);
+        break;
+    case I2C9:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C9,  dev->regs);
+        break;
+    case I2C10:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C10, dev->regs);
+        break;
+    case I2C11:
+        MAP_IF_NULL(io_ops, EXYNOS_I2C11, dev->regs);
+        break;
 #else  /* EXYNOS? */
 #error Unknown Exynos based platform
 #endif /* EXYNOSX */
@@ -431,11 +521,11 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c)
         return -1;
     }
     /* Check that our memory was mapped */
-    if(dev->regs == NULL){
+    if (dev->regs == NULL) {
         return -2;
     }
     /* Configure MUX */
-    if(mux_feature_enable(mux, dev->mux)){
+    if (mux_feature_enable(mux, dev->mux)) {
         dprintf("Warning: failed to configure MUX\n");
     }
 
@@ -445,17 +535,20 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t** i2c)
 
 
     /* I2C setup */
-    dev->regs->control = I2CCON_ACK_EN | 0*I2CCON_CLK_SRC
-                       | I2CCON_PRESCALE(7) | I2CCON_IRQ_EN;
+    dev->regs->control = I2CCON_ACK_EN | 0 * I2CCON_CLK_SRC
+                         | I2CCON_PRESCALE(7) | I2CCON_IRQ_EN;
     dev->regs->line_control = I2CLC_SDA_DELAY15CLK | I2CLC_FILT_EN;
     dev->regs->address = 0x54;
 
-    *i2c = dev;
+    i2c->start_read  = exynos_i2c_start_read;
+    i2c->start_write = exynos_i2c_start_write;
+    i2c->read        = exynos_i2c_read;
+    i2c->write       = exynos_i2c_write;
+    i2c->set_speed   = exynos_i2c_set_speed;
+    i2c->set_address = exynos_i2c_set_address;
+    i2c->master_stop = exynos_i2c_master_stop;
+    i2c->handle_irq  = exynos_i2c_handle_irq;
+    i2c->priv        = (void*)dev;
     return 0;
 }
 
-int
-i2c_set_address(i2c_bus_t* i2c_bus, int addr){
-    i2c_bus->regs->address = addr & 0xfe;
-    return 0;
-}
