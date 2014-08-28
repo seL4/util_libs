@@ -12,6 +12,9 @@
 #define __PLATSUPPORT_PLAT_PMIC__
 
 
-#define MAX77802_BUSADDR    0x00
+#define PMIC_BUSADDR MAX77802_BUSADDR
+#define PMIC_I2C     I2C4
+
+#define LDO_ETH       25
 
 #endif /* __PLATSUPPORT_PLAT_PMIC__ */

@@ -9,7 +9,7 @@
  */
 
 
-#include <platsupport/plat/pmic_rtc.h>
+#include <platsupport/mach/pmic_rtc.h>
 #include "../../services.h"
 
 #define PMICRTC_DEBUG
@@ -41,7 +41,7 @@
 /* RTCREG_UPDATE */
 #define RTCUPDATE_READ    (1U << 4)
 #define RTCUPDATE_WRITE   (1U << 0)
-/* RTCREG_WATCHDOG */ 
+/* RTCREG_WATCHDOG */
 #define RTCWD_SMPL_EN     (1U << 7)
 #define RTCWD_WDT_EN      (1U << 6)
 #define RTCWD_SMPL_CFG(x) ((x) << 2)
@@ -52,27 +52,31 @@
 #define RTC_HOUR_PM       (1U << 6)
 
 static int
-id_valid(pmic_rtc_t* dev, int id){
+id_valid(pmic_rtc_t* dev, int id)
+{
     return id >= 0 && id < pmic_rtc_nalarms(dev);
 }
 
 static int
-pmic_rtc_reg_read(pmic_rtc_t* dev, uint8_t reg, void* data, int count){
+pmic_rtc_reg_read(pmic_rtc_t* dev, uint8_t reg, void* data, int count)
+{
     return i2c_kvslave_read(&dev->i2c_slave, reg, data, count);
 }
 
 static int
-pmic_rtc_reg_write(pmic_rtc_t* dev, uint8_t reg, const void* data, int count){
+pmic_rtc_reg_write(pmic_rtc_t* dev, uint8_t reg, const void* data, int count)
+{
     return i2c_kvslave_write(&dev->i2c_slave, reg, data, count);
 }
 
 static int
-pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag){
+pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag)
+{
     int ret;
 
     /* Write to the update register */
     ret = pmic_rtc_reg_write(dev, RTCREG_UPDATE, &flag, 1);
-    if(ret != 1){
+    if (ret != 1) {
         dprintf("Bus error\n");
         return -1;
     }
@@ -82,14 +86,16 @@ pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag){
 }
 
 static int
-pmic_rtc_set_tval(pmic_rtc_t* dev, int base, const struct rtc_time* time){
+pmic_rtc_set_tval(pmic_rtc_t* dev, int base, const struct rtc_time* time)
+{
     int count;
     count = pmic_rtc_reg_write(dev, base, time, sizeof(*time));
     return !(count == sizeof(*time));
 }
 
 static int
-pmic_rtc_get_tval(pmic_rtc_t* dev, int base, struct rtc_time* time){
+pmic_rtc_get_tval(pmic_rtc_t* dev, int base, struct rtc_time* time)
+{
     int count;
     count = pmic_rtc_reg_read(dev, base, time, sizeof(*time));
     time->hour &= ~RTC_HOUR_PM;
@@ -97,12 +103,13 @@ pmic_rtc_get_tval(pmic_rtc_t* dev, int base, struct rtc_time* time){
 }
 
 int
-pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc){
+pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
+{
     uint8_t data[7];
     int ret;
-    ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR, LITTLE8, LITTLE8, 
+    ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR, LITTLE8, LITTLE8,
                            &pmic_rtc->i2c_slave);
-    if(ret){
+    if (ret) {
         dprintf("Failed to register I2C slave\n");
         return -1;
     }
@@ -114,7 +121,7 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc){
     data[RTCREG_UPDATE   ] = 0x00;
     data[RTCREG_WATCHDOG ] = 0x00;
     ret = pmic_rtc_reg_write(pmic_rtc, RTCREG_INTSTAT, data, sizeof(data));
-    if(ret != sizeof(data)){
+    if (ret != sizeof(data)) {
         dprintf("Bus error\n");
         return -1;
     }
@@ -123,32 +130,36 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc){
 }
 
 int
-pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time){
-    if(pmic_rtc_update(pmic_rtc, RTCUPDATE_READ)){
+pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time)
+{
+    if (pmic_rtc_update(pmic_rtc, RTCUPDATE_READ)) {
         return -1;
     }
-    return pmic_rtc_get_tval(pmic_rtc, RTCREG_TIME, time); 
+    return pmic_rtc_get_tval(pmic_rtc, RTCREG_TIME, time);
 }
 
 int
-pmic_rtc_set_time(pmic_rtc_t* pmic_rtc, const struct rtc_time* time){
-    if(pmic_rtc_set_tval(pmic_rtc, RTCREG_TIME, time)){
+pmic_rtc_set_time(pmic_rtc_t* pmic_rtc, const struct rtc_time* time)
+{
+    if (pmic_rtc_set_tval(pmic_rtc, RTCREG_TIME, time)) {
         return -1;
     }
     return pmic_rtc_update(pmic_rtc, RTCUPDATE_WRITE);
 }
 
 int
-pmic_rtc_nalarms(pmic_rtc_t* pmic_rtc){
+pmic_rtc_nalarms(pmic_rtc_t* pmic_rtc)
+{
     return RTC_NALARMS;
 }
 
 int
-pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm){
-    if(!id_valid(pmic_rtc, id)){
+pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm)
+{
+    if (!id_valid(pmic_rtc, id)) {
         return -1;
     }
-    if(pmic_rtc_update(pmic_rtc, RTCUPDATE_READ)){
+    if (pmic_rtc_update(pmic_rtc, RTCUPDATE_READ)) {
         return -1;
     }
     return pmic_rtc_get_tval(pmic_rtc, RTCREG_ALARM(id), alarm);
@@ -156,11 +167,12 @@ pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm){
 
 
 int
-pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm){
-    if(!id_valid(pmic_rtc, id)){
+pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm)
+{
+    if (!id_valid(pmic_rtc, id)) {
         return -1;
     }
-    if(pmic_rtc_set_tval(pmic_rtc, RTCREG_ALARM(id), alarm)){
+    if (pmic_rtc_set_tval(pmic_rtc, RTCREG_ALARM(id), alarm)) {
         return -1;
     }
     return pmic_rtc_update(pmic_rtc, RTCUPDATE_WRITE);

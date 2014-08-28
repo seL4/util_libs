@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_PMIC_RTC__
-#define __PLATSUPPORT_PLAT_PMIC_RTC__
+#ifndef __MACHSUPPORT_MACH_PMIC_RTC__
+#define __MACHSUPPORT_MACH_PMIC_RTC__
 
 #include <stdint.h>
 #include <platsupport/i2c.h>
@@ -82,4 +82,4 @@ int pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm);
  */
 int pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm);
 
-#endif /* __PLATSUPPORT_PLAT_RTC__ */
+#endif /* __MACHSUPPORT_MACH_RTC__ */

@@ -9,7 +9,7 @@
  */
 
 
-#include <platsupport/plat/pmic.h>
+#include <platsupport/mach/pmic.h>
 #include <string.h>
 
 #define mV
@@ -24,10 +24,9 @@
 
 #define REG_CHIPID        0x00
 #define REG_RESET_DELAY   0x0A
-#define REG_VOUT_LDO1     0x40
-#define REG_VOUT_LDO(x)   (REG_VOUT_LDO1 + ((x) - 1))
 
 #define MAX77686_CHIPID   0x02
+#define MAX77802_CHIPID   0x06
 #define MAXXXXXX_CHIPID   0x91
 
 #define NLDO              (26 + 1 /* + reserved LDO0 */)
@@ -42,65 +41,104 @@
 #define LDOMODE_ON        (0x3 << 6)
 #define LDOMODE_MASK      (0x3 << 6)
 
+struct max77_config {
+    int ctrl1_start;
+    int ctrl2_start;
+    int nldo;
+};
+
+static const struct max77_config max77802_cfg = {
+    .ctrl1_start = 0x60,
+    .ctrl2_start = 0x90,
+    .nldo        = 35
+};
+
+static const struct max77_config max77686_cfg = {
+    .ctrl1_start = 0x40,
+    .ctrl2_start = 0x60,
+    .nldo        = 26
+};
+
+static inline const struct max77_config*
+pmic_get_priv(pmic_t* pmic) {
+    return (const struct max77_config*)pmic->priv;
+}
+
 static int
-pmic_reg_read(pmic_t* pmic, uint8_t reg, void* data, int count){
+pmic_reg_read(pmic_t* pmic, uint8_t reg, void* data, int count)
+{
     return !(i2c_kvslave_read(&pmic->i2c_slave, reg, data, count) == count);
 }
 
 static int
-pmic_reg_write(pmic_t* pmic, uint8_t reg, const void* data, int count){
+pmic_reg_write(pmic_t* pmic, uint8_t reg, const void* data, int count)
+{
     return !(i2c_kvslave_write(&pmic->i2c_slave, reg, data, count) == count);
 }
 
 static int
-ldo_valid(pmic_t* pmic, int ldo){
+ldo_valid(pmic_t* pmic, int ldo)
+{
     int nldo = pmic_nldo(pmic);
-    return !(nldo < 0 || ldo <= 0 || ldo >= nldo);
+    return !(nldo < 0 || ldo <= 0 || ldo > nldo);
 }
 
 
 int
-pmic_init(i2c_bus_t* i2c, pmic_t* pmic){
+pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
+{
     uint16_t chip_id;
     int ret;
-    ret = i2c_kvslave_init(i2c, MAX77686_BUSADDR, LITTLE8, LITTLE8, &pmic->i2c_slave);
-    if(ret){
+    ret = i2c_kvslave_init(i2c, addr, LITTLE8, LITTLE8, &pmic->i2c_slave);
+    if (ret) {
         dprintf("Failed to register I2C slave\n");
         return -1;
     }
     /* Read the chip ID */
-    if(pmic_reg_read(pmic, REG_CHIPID, &chip_id, 2)){
+    if (pmic_reg_read(pmic, REG_CHIPID, &chip_id, 2)) {
         dprintf("Bus error\n");
         return -1;
     }
     /* Check the chip ID */
-    switch(chip_id){
+    switch (chip_id) {
     case MAX77686_CHIPID:
+        pmic->priv = (void*)&max77686_cfg;
+        break;
     case MAXXXXXX_CHIPID:
-        dprintf("found chip ID 0x%x\n", chip_id);
-        return 0;
+    case MAX77802_CHIPID:
+        pmic->priv = (void*)&max77802_cfg;
+        break;
     default:
         dprintf("Unidentified chip 0x%02x\n", chip_id);
         return -1;
     }
+
+    dprintf("found chip ID 0x%x\n", chip_id);
+    return 0;
 }
 
 int
-pmic_nldo(pmic_t* pmic){
-    (void)pmic;
-    return NLDO;
+pmic_nldo(pmic_t* pmic)
+{
+    const struct max77_config* cfg = pmic_get_priv(pmic);
+    assert(cfg);
+    return cfg->nldo;
 }
 
 
 int
-pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt){
-    if(!ldo_valid(pmic, ldo)){
+pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt)
+{
+    if (!ldo_valid(pmic, ldo)) {
         return -1;
-    }else{
+    } else {
+        const struct max77_config* cfg;
         uint8_t v;
+        cfg = pmic_get_priv(pmic);
+        assert(cfg);
         /* Generate the register data */
         v = LDO_MV(milli_volt);
-        switch(ldo_mode){
+        switch (ldo_mode) {
         case LDO_OFF:
             v |= LDOMODE_OFF;
             break;
@@ -118,27 +156,31 @@ pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt){
             return -1;
         }
         /* Write the register */
-        if(pmic_reg_write(pmic, REG_VOUT_LDO(ldo), &v, 1)){
+        if (pmic_reg_write(pmic, cfg->ctrl1_start + ldo - 1, &v, 1)) {
             return -1;
-        }else{
+        } else {
             return LDO_GET_MV(v);
         }
     }
 }
 
 int
-pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode){
-    if(!ldo_valid(pmic, ldo)){
+pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode)
+{
+    if (!ldo_valid(pmic, ldo)) {
         return -1;
-    }else{
+    } else {
+        const struct max77_config* cfg;
         uint8_t v;
+        cfg = pmic_get_priv(pmic);
+        assert(cfg);
         /* Read in the register */
-        if(pmic_reg_read(pmic, REG_VOUT_LDO(ldo), &v, 1)){
+        if (pmic_reg_read(pmic, cfg->ctrl1_start + ldo - 1, &v, 1)) {
             return -1;
         }
         /* Decode the mode */
-        if(ldo_mode != NULL){
-            switch(v & LDOMODE_MASK){
+        if (ldo_mode != NULL) {
+            switch (v & LDOMODE_MASK) {
             case LDOMODE_OFF:
                 *ldo_mode = LDO_OFF;
                 break;
@@ -162,29 +204,31 @@ pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode){
 
 
 int
-pmic_get_reset_delay(pmic_t* pmic){
+pmic_get_reset_delay(pmic_t* pmic)
+{
     uint8_t data;
-    if(pmic_reg_read(pmic, REG_RESET_DELAY, &data, 1)){
+    if (pmic_reg_read(pmic, REG_RESET_DELAY, &data, 1)) {
         return -1;
-    }else{
+    } else {
         return 1000 * (data >> 1);
     }
 }
 
 int
-pmic_set_reset_delay(pmic_t* pmic, int ms){
+pmic_set_reset_delay(pmic_t* pmic, int ms)
+{
     uint8_t data;
     /* Clip ms value */
-    if(ms < 0){
+    if (ms < 0) {
         ms = 0;
-    }else if(ms > 10000){
+    } else if (ms > 10000) {
         ms = 10000;
     }
     /* Write the data */
     data = (ms / 1000) << 1;
-    if(pmic_reg_write(pmic, REG_RESET_DELAY, &data, 1)){
+    if (pmic_reg_write(pmic, REG_RESET_DELAY, &data, 1)) {
         return -1;
-    }else{
+    } else {
         return data;
     }
 }
