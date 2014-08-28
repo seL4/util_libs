@@ -12,7 +12,7 @@
 #if defined(PLAT_EXYNOS5) || defined(PLAT_EXYNOS4)
 
 #include <platsupport/i2c.h>
-#include "services.h"
+#include "../../services.h"
 
 #define DEFAULT_SPEED 100*1000
 
@@ -23,13 +23,13 @@ i2c_bus_get_priv(struct i2c_bus* i2c_bus)
 }
 
 static inline void
-_hold(i2c_bb_t* d)
+_hold(struct i2c_bb* d)
 {
     ps_usdelay(1000000 / d->speed + 1);
 }
 
 static inline void
-pin_l(i2c_bb_t* d, int gpio)
+pin_l(struct i2c_bb* d, int gpio)
 {
     gpio_t g;
     gpio_new(d->gpio_sys, gpio, GPIO_DIR_OUT, &g);
@@ -37,7 +37,7 @@ pin_l(i2c_bb_t* d, int gpio)
 }
 
 static inline int
-pin_r(i2c_bb_t* d, int gpio)
+pin_r(struct i2c_bb* d, int gpio)
 {
     gpio_t g;
     gpio_new(d->gpio_sys, gpio, GPIO_DIR_IN, &g);
@@ -45,20 +45,20 @@ pin_r(i2c_bb_t* d, int gpio)
 }
 
 static inline void
-pin_h(i2c_bb_t* d, int gpio)
+pin_h(struct i2c_bb* d, int gpio)
 {
     pin_r(d, gpio);
 }
 
-static inline int  sda_r (i2c_bb_t* d)  { return pin_r(d, d->sda);  }
-static inline void sda_l (i2c_bb_t* d)  { pin_l(d, d->sda); }
-static inline void sda_h (i2c_bb_t* d)  { pin_h(d, d->sda); }
+static inline int  sda_r (struct i2c_bb* d)  { return pin_r(d, d->sda);  }
+static inline void sda_l (struct i2c_bb* d)  { pin_l(d, d->sda); }
+static inline void sda_h (struct i2c_bb* d)  { pin_h(d, d->sda); }
 
-static inline void scl_l (i2c_bb_t* d)  { pin_l(d, d->scl); }
-static inline void scl_h (i2c_bb_t* d)  { while(!pin_r(d, d->scl)); }
+static inline void scl_l (struct i2c_bb* d)  { pin_l(d, d->scl); }
+static inline void scl_h (struct i2c_bb* d)  { while(!pin_r(d, d->scl)); }
 
 static inline void
-clk(i2c_bb_t* d){
+clk(struct i2c_bb* d){
     _hold  (d);
     scl_h  (d);
     _hold  (d);
@@ -66,7 +66,7 @@ clk(i2c_bb_t* d){
 }
 
 static inline void
-i2c_bb_start(i2c_bb_t* d){
+i2c_bb_start(struct i2c_bb* d){
     /* init */
     while(!sda_r(d));
     _hold  (d);
@@ -77,10 +77,10 @@ i2c_bb_start(i2c_bb_t* d){
 }
 
 static inline void
-i2c_bb_stop(i2c_bb_t* d){
+i2c_bb_stop(struct i2c_bb* d){
     sda_l  (d);
     _hold  (d);
-    sdl_h  (d);
+    scl_h  (d);
     ps_usdelay(1000);
     while(!sda_r(d));
     _hold  (d);
@@ -88,7 +88,7 @@ i2c_bb_stop(i2c_bb_t* d){
 
 
 static inline void
-i2c_bb_sendbit(i2c_bb_t* d, int bit){
+i2c_bb_sendbit(struct i2c_bb* d, int bit){
     /* Setup bit */
     if(bit){
         sda_h (d);
@@ -104,7 +104,7 @@ i2c_bb_sendbit(i2c_bb_t* d, int bit){
 }
 
 static inline int
-i2c_bb_readbit(i2c_bb_t* d){
+i2c_bb_readbit(struct i2c_bb* d){
     int bit;
     /* Release SDA */
     sda_r  (d);
@@ -119,7 +119,7 @@ i2c_bb_readbit(i2c_bb_t* d){
 }
 
 static int
-i2c_bb_sendbyte(i2c_bb_t* d, char b){
+i2c_bb_sendbyte(struct i2c_bb* d, char b){
     int i;
     unsigned char mask = 0x80;
     for(i = 0; i < 8; i++){
@@ -131,7 +131,7 @@ i2c_bb_sendbyte(i2c_bb_t* d, char b){
 }
 
 static int
-i2c_bb_readbyte(i2c_bb_t* d, int send_nak){
+i2c_bb_readbyte(struct i2c_bb* d, int send_nak){
     int i;
     char data = 0;
     for(i = 0; i < 8; i++){
@@ -218,12 +218,11 @@ i2c_bb_start_write(i2c_bus_t* i2c_bus, int addr, const void* vdata, size_t size,
 }
 
 static void
-i2c_bb_handle_irq(i2c_bus_t* i2c_bus, int addr){
+i2c_bb_handle_irq(i2c_bus_t* i2c_bus){
     struct i2c_bb* d;
     /* BB is a blocking call, but in case someone tried to poll, we ignore the call */
     d = i2c_bus_get_priv(i2c_bus);
     (void)d;
-    (void)addr;
 }
 
 static int
@@ -237,7 +236,7 @@ i2c_bb_set_address(i2c_bus_t* i2c_bus, int addr){
 
 
 static long
-i2c_bb_set_speed(i2c_bus* i2c_bus, long speed)
+i2c_bb_set_speed(i2c_bus_t* i2c_bus, long speed)
 {
     struct i2c_bb* d;
     d = i2c_bus_get_priv(i2c_bus);
@@ -246,12 +245,12 @@ i2c_bb_set_speed(i2c_bus* i2c_bus, long speed)
 }
 
 int
-i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda, int speed,
+i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda,
             struct i2c_bb* i2c_bb, struct i2c_bus* i2c)
 {
     /* Initialise the BB structure */
-    i2c_bb->scl = scl_gpio_id;
-    i2c_bb->sda = sda_gpio_id;
+    i2c_bb->scl = scl;
+    i2c_bb->sda = sda;
     i2c_bb->speed = DEFAULT_SPEED;
     i2c_bb->gpio_sys = gpio_sys;
     /* Initialise the I2C bus structure */
