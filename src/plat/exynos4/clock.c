@@ -9,7 +9,7 @@
  */
 
 #include "../../common.h"
-#include "../../clock.h"
+#include "../../arch/arm/clock.h"
 #include <assert.h>
 
 /* Memory map */

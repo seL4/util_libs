@@ -7,7 +7,7 @@
  *
  * @TAG(NICTA_BSD)
  */
-#include "../../clock.h"
+#include "../../arch/arm/clock.h"
 #include "../../services.h"
 #include <assert.h>
 #include <string.h>

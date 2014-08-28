@@ -12,7 +12,7 @@
 #include <platsupport/mux.h>
 #include <platsupport/clock.h>
 #include "../../services.h"
-#include "../../clock.h"
+#include "../../arch/arm/clock.h"
 
 #include <string.h>
 
