@@ -15,7 +15,7 @@
 #include <platsupport/spi.h>
 #include "../../services.h"
 
-#define DEBUG_SPI
+//#define DEBUG_SPI
 #ifdef DEBUG_SPI
 #define DSPI(args...) \
     do { \
