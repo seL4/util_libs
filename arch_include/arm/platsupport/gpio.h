@@ -13,6 +13,7 @@
 
 struct gpio_sys;
 typedef struct gpio_sys gpio_sys_t;
+typedef int gpio_id_t;
 
 #include <platsupport/io.h>
 #include <platsupport/plat/gpio.h>
@@ -24,7 +25,7 @@ typedef struct gpio_sys gpio_sys_t;
 
 typedef struct gpio {
 /// GPIO port identifier
-    int id;
+    gpio_id_t id;
 /// GPIO subsystem handle
     gpio_sys_t* gpio_sys;
 /// Chain GPIO's to enable bulk reads/writes
@@ -52,7 +53,7 @@ enum gpio_dir {
 
 struct gpio_sys{
 /// Initialise a GPIO pin
-    int (*init)(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
+    int (*init)(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio);
 /// Write to a GPIO
     int (*write)(gpio_t* gpio, const char* data, int len);
 /// Read from a GPIO
@@ -153,7 +154,7 @@ static inline void gpio_pending_clear(gpio_t* gpio){
  * @return               0 on success
  */
 
-static inline int gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio) {
+static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio) {
     assert(gpio);
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }

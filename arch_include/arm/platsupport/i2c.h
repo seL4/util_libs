@@ -13,6 +13,8 @@
 
 #include <platsupport/io.h>
 #include <platsupport/plat/i2c.h>
+/* For bit banged API */
+#include <platsupport/gpio.h>
 
 /***********
  *** BUS ***
@@ -44,7 +46,14 @@ struct i2c_bus {
     void* priv;
 };
 
-/*** Master mode ***/
+
+struct i2c_bb {
+    gpio_id_t scl;
+    gpio_id_t sda;
+    int speed;
+    gpio_sys_t* gpio_sys;
+};
+
 
 /**
  * Initialise an I2C bus
@@ -55,6 +64,18 @@ struct i2c_bus {
  * @return             0 on success
  */
 int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c_bus);
+
+/**
+ * Initialise a bit-banged I2C bus
+ * @param[in]  gpio_sys  A handle to a gpio subsystem. This handle must be valid while the bus is in use
+ * @param[in]  scl       The GPIO ID of the SCL pin
+ * @param[in]  sda       The GPIO ID of the SDA pin
+ * @param[out] i2c_bb    A bit-banged i2c structure to populate. This caller is responsible for managing the memory
+ *                       for this structure. The memory must be valid while the bus is in use.
+ * @param[out] i2c_bus   A generic I2C bus structure to populate
+ * @return               0 on success
+ */
+int i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda, struct i2c_bb* i2c_bb, struct i2c_bus* i2c_bus);
 
 /**
  * Set the speed of the I2C bus
