@@ -42,6 +42,12 @@ enum ldo_mode {
 int pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic);
 
 /**
+ * Print the status of of the PMIC and its power rails
+ */
+void pmic_print_status(pmic_t* pmic);
+
+
+/**
  * Returns the number of LDOs that the PMIC controls
  * @param[in] pmic      A handle to the PMIC
  * @return              The number of LDOs that the PMIC controls,

@@ -234,3 +234,56 @@ pmic_set_reset_delay(pmic_t* pmic, int ms)
 }
 
 
+void
+pmic_print_status(pmic_t* pmic)
+{
+    uint8_t data;
+    int nldo;
+    int err;
+    int i;
+    printf("### PMIC ###\n");
+    err = pmic_reg_read(pmic, REG_CHIPID, &data, 1);
+    assert(!err);
+    switch (data) {
+    case MAX77686_CHIPID:
+        printf("MAX77686");
+        break;
+    case MAX77802_CHIPID:
+        printf("MAX77802");
+        break;
+    case MAXXXXXX_CHIPID:
+        printf("MAXXXXXx");
+        break;
+    default:
+        printf("Unknown CHIP");
+    }
+    nldo = pmic_nldo(pmic);
+    printf(": %d LDOs\n", nldo);
+    for (i = 1; i < nldo; i++) {
+        int mv, v;
+        enum ldo_mode mode;
+        mv = pmic_ldo_get_cfg(pmic, i, &mode);
+        v = mv / 1000;
+        mv -= v * 1000;
+        printf("LDO%02d: %d.%03dV (", i, v, mv);
+        switch (mode) {
+        case LDO_OFF:
+            printf("Off");
+            break;
+        case LDO_STANDBY:
+            printf("Standby");
+            break;
+        case LDO_LOWPWR:
+            printf("Low power");
+            break;
+        case LDO_ON:
+            printf("On");
+            break;
+        default:
+            printf("Unknown state");
+        }
+        printf(")\n");
+    }
+    printf("Reset delay: %d ms\n", pmic_get_reset_delay(pmic));
+}
+
