@@ -97,3 +97,13 @@ void print_cpuid(void)
 }
 
 
+int get_cortex_a_part(void)
+{
+    uint32_t cpuid;
+    cpuid = read_cpuid_id();
+    if(CPUID_ARCH(cpuid) == CPUID_ARCH_CPUID && CPUID_IMPL(cpuid) == CPUID_IMPL_ARM){
+        return CPUID_PART(cpuid) & 0xFF;
+    }else{
+        return -1;
+    }
+}

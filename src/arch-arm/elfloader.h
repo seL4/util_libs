@@ -69,5 +69,16 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 void init_boot_pd(struct image_info *kernel_info);
 void init_lpae_boot_pd(struct image_info *kernel_info);
 
+/* Assembly functions. */
+extern void flush_dcache(void);
+extern void cpu_idle(void);
+
+/* Platform functions */
+void platform_init(void);
+void init_cpus(void);
+
+/* Secure monitor call */
+uint32_t smc(uint32_t, uint32_t, uint32_t, uint32_t);
+
 #endif /* _ELFLOADER_H_ */
 

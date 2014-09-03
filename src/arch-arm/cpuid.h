@@ -17,7 +17,6 @@
 #define CPSR_MODE_SUPERVISOR 0x13
 #define CPSR_MODE_HYPERVISOR 0x1a
 
-
 /* read ID register from CPUID */
 static inline uint32_t read_cpuid_id(void)
 {
@@ -46,6 +45,10 @@ static inline uint32_t read_cpsr(void)
  */
 void print_cpuid(void);
 
+/**
+ * Returns the Cortex-Ax part number, or -1
+ */
+int get_cortex_a_part(void);
 
 #endif /* _CPUID_H_ */
 
