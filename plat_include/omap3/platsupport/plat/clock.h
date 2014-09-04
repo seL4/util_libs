@@ -13,7 +13,6 @@
 
 enum clk_id {
     CLK_MASTER,
-    CLK_ARMCLK,
     NCLOCKS,
 };
 

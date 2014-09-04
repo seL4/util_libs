@@ -11,14 +11,23 @@
 #ifndef _EXYNOS5_CLOCK_H
 #define _EXYNOS5_CLOCK_H
 
-/* nothing implemented */
 enum clk_id {
     CLK_MASTER,
+    CLK_SPI0,
+    CLK_SPI1,
+    CLK_SPI2,
+    CLK_SPI0_ISP,
+    CLK_SPI1_ISP,
+    CLK_UART0,
+    CLK_UART1,
+    CLK_UART2,
+    CLK_UART3,
+    CLK_PWM,
     NCLOCKS,
 };
 
 enum clock_gate {
-/* These numbers currently have no meaning */
+    /* These numbers currently have no meaning */
     CLKGATE_I2C0 = 261,
     CLKGATE_I2C1 = 262,
     CLKGATE_I2C2 = 263,
@@ -27,6 +36,13 @@ enum clock_gate {
     CLKGATE_I2C5 = 266,
     CLKGATE_I2C6 = 267,
     CLKGATE_I2C7 = 268,
+    CLKGATE_SPI0,
+    CLKGATE_SPI1,
+    CLKGATE_SPI2,
+    CLKGATE_UART0,
+    CLKGATE_UART1,
+    CLKGATE_UART2,
+    CLKGATE_UART3,
     NCLKGATES,
 };
 

@@ -186,10 +186,7 @@ static struct i2c_bus_priv _i2c[NI2C] = {
         .mux = MUX_I2C1,
         .clk_gate = i2c1_serial,
         .clock = {
-            .id = CLK_CUSTOM,
-            CLK_OPS(i2c_clk),
-            .name = "I2C1 clk",
-            .priv = (void*)&_i2c[0],
+            CLK_OPS_CUSTOM("I2C1", i2c_clk, &_i2c[0])
         }
     },
     {
@@ -197,10 +194,7 @@ static struct i2c_bus_priv _i2c[NI2C] = {
         .mux = MUX_I2C2,
         .clk_gate = i2c2_serial,
         .clock = {
-            .id = CLK_CUSTOM,
-            CLK_OPS(i2c_clk),
-            .name = "I2C2 clk",
-            .priv = (void*)&_i2c[1],
+            CLK_OPS_CUSTOM("I2C2", i2c_clk, &_i2c[1])
         }
     },
     {
@@ -208,10 +202,7 @@ static struct i2c_bus_priv _i2c[NI2C] = {
         .mux = MUX_I2C3,
         .clk_gate = i2c3_serial,
         .clock = {
-            .id = CLK_CUSTOM,
-            CLK_OPS(i2c_clk),
-            .name = "I2C3 clk",
-            .priv = (void*)&_i2c[2],
+            CLK_OPS_CUSTOM("I2C3", i2c_clk, &_i2c[2])
         }
     }
 };
@@ -221,8 +212,7 @@ static struct i2c_bus_priv _i2c[NI2C] = {
  ******************/
 
 static inline struct i2c_bus_priv*
-i2c_bus_get_priv(i2c_bus_t* i2c_bus)
-{
+i2c_bus_get_priv(i2c_bus_t* i2c_bus) {
     return (struct i2c_bus_priv*)i2c_bus->priv;
 }
 

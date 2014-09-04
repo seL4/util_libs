@@ -29,17 +29,17 @@ enum clk_id {
     CLK_ATCLK,
     CLK_PCLK_DBG,
     /* Dividers */
-    DIV_CORE,
-    DIV_CORE2,
-    DIV_COPY,
+    CLK_DIVCORE,
+    CLK_DIVCORE2,
+    CLK_DIVCOPY,
     /* Muxes */
-    MUX_CORE,
-    MUX_HPM,
+    CLK_MUXCORE,
+    CLK_MUXHPM,
     /* ----- */
     NCLOCKS,
     /* Aliases */
     DIV_HPM         = CLK_SCLKHPM,
-    CLK_ARMCLK      = DIV_CORE2,
+    CLK_ARMCLK      = CLK_DIVCORE2,
     CLK_TRACECLK    = CLK_ATCLK,
     CLK_CTMCLK      = CLK_ATCLK,
     CLK_HCLK_CSSYS  = CLK_ATCLK,

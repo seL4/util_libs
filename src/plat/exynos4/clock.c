@@ -10,6 +10,7 @@
 
 #include "../../common.h"
 #include "../../arch/arm/clock.h"
+#include "../../mach/exynos/clock.h"
 #include <assert.h>
 
 /* Memory map */
@@ -36,41 +37,17 @@
 #define XUSBXTI_FREQ 24000000UL
 #define XXTI_FREQ    0UL /* ? */
 
-#define DIV_CLK_OPS(clk)           \
-        .get_freq = _div_get_freq, \
-        .set_freq = _div_set_freq, \
-        .recal = _div_recal,       \
-        .init = _div_init,         \
-        .parent = NULL,            \
-        .sibling = NULL,           \
-        .child = NULL,             \
-        .name = #clk
-
-#define MUX_CLK_OPS(clk)           \
-        .get_freq = _mux_get_freq, \
-        .set_freq = _mux_set_freq, \
-        .recal = _mux_recal,       \
-        .init = _mux_init,         \
-        .parent = NULL,            \
-        .sibling = NULL,           \
-        .child = NULL,             \
-        .name = #clk
-
-
+/* The input source could be read from boot switches */
+#if 1
+#define FINPLL_FREQ XUSBXTI_FREQ
+#else
+#define FINPLL_FREQ XXTI_FREQ
+#endif
 
 
 /************************
  ****       PLL      ****
  ************************/
-#define PLL_CLK_OPS(clk)           \
-        .get_freq = _pll_get_freq, \
-        .set_freq = _pll_set_freq, \
-        .recal = _pll_recal,       \
-        .init = _pll_init,         \
-        .parent = NULL,            \
-        .sibling = NULL,           \
-        .child = NULL,             \
-        .name = #clk
 
 /* CON 0 */
 #define PLL_PMS(p,m,s)  (((p)<< 8) | ((m) << 16) | ((s) << 0))
@@ -180,307 +157,16 @@ static struct pms_tbl _vpll_tbl[] = {
 #define CLK_SEL_XUSBXTI     0x1
 #define CLK_SEL_XXTI        0x0
 
-
-/* MUX STAT */
-#define CLK_MUXSTAT_BITS     4
-#define CLK_MUXSTAT_SHIFT(x) ((x)*CLK_MASK_BITS)
-#define CLK_MUXSTAT_MASK     ((1 << CLK_MASK_SHIFT(1)) - 1)
-#define CLK_MUXSTAT_CHANGING (0x4)
-
-
-/* CLK MASK */
-#define CLK_MASK_BITS     4
-#define CLK_MASK_SHIFT(x) ((x)*CLK_MASK_BITS)
-#define CLK_MASK_MASK     ((1 << CLK_MASK_SHIFT(1)) - 1)
-#define CLK_MASK_SET      (0x00)
-#define CLK_MASK_CLEAR    (0x01)
-
-/* CLK DIV */
-#define CLK_DIV_BITS     4
-#define CLK_DIV_SHIFT(x) ((x)*CLK_DIV_BITS)
-#define CLK_DIV_MASK     ((1 << CLK_DIV_SHIFT(1)) - 1)
-
-/* CLK DIVSTAT */
-#define CLK_DIVSTAT_OFFSET   (0x100)
-#define CLK_DIVSTAT_BITS     4
-#define CLK_DIVSTAT_SHIFT(x) ((x)*CLK_DIVSTAT_BITS)
-#define CLK_DIVSTAT_MASK     ((1 << CLK_DIVSTAT_SHIFT(1)) - 1)
-#define CLK_DIVSTAT_STABLE   0x0
-#define CLK_DIVSTAT_UNSTABLE 0x1
-
-/***** clock gating *****/
-#define CLK_GATE_BITS     1
-#define CLK_GATE_SHIFT(x) ((x)*CLK_GATE_BITS)
-#define CLK_GATE_MASK     ((1<<CLK_GATE_SHIFT(1)) - 1)
-#define CLK_GATE_SKIP     0x0
-#define CLK_GATE_PASS     0x1
-
-struct pll_regs {
-    uint32_t lock;
-    uint32_t res[63];
-    uint32_t con0;
-    uint32_t con1;
-    uint32_t con2;
-};
-
-/* 0x10034000 */
-struct cmu_leftbus_regs {
-    uint32_t res0[128];
-    uint32_t clk_src_leftbus;              /* 0x200 */
-    uint32_t res1[127];
-    uint32_t clk_mux_stat_leftbus;         /* 0x400 */
-    uint32_t res2[63];
-    uint32_t clk_div_leftbus;              /* 0x500 */
-    uint32_t res3[63];
-    uint32_t clk_div_stat_leftbus;         /* 0x600 */
-    uint32_t res4[127];
-    uint32_t clk_gate_ip_leftbus;          /* 0x800 */
-    uint32_t res6[63];
-    uint32_t res7[12];
-    uint32_t clk_gate_ip_image;            /* 0x930 */
-    uint32_t res8[51];
-    uint32_t clkout_cmu_leftbus;           /* 0xa00 */
-    uint32_t clkout_cmu_leftbus_div_stat;  /* 0xa04 */
-};
-/* 0x10038000 */
-struct cmu_rightbus_regs {
-    uint32_t res0[128];
-    uint32_t clk_src_rightbus;             /* 0x200 */
-    uint32_t res1[127];
-    uint32_t clk_mux_stat_rightbus;        /* 0x400 */
-    uint32_t res2[63];
-    uint32_t clk_div_rightbus;             /* 0x500 */
-    uint32_t res3[63];
-    uint32_t clk_div_stat_rightbus;        /* 0x600 */
-    uint32_t res4[127];
-    uint32_t clk_gate_ip_rightbus;         /* 0x800 */
-    uint32_t res6[63];
-    uint32_t res7[24];
-    uint32_t clk_gate_ip_perir;            /* 0x960 */
-    uint32_t res8[39];
-    uint32_t clkout_cmu_rightbus;          /* 0xa00 */
-    uint32_t clkout_cmu_rightbus_div_stat; /* 0xa04 */
-};
-/* 0x1003c000 */
-struct cmu_top_regs {
-    uint32_t res0[4];
-    uint32_t epll_lock;               /* 0x010 */
-    uint32_t res1[3];
-    uint32_t vpll_lock;               /* 0x020 */
-    uint32_t res2[59];
-    uint32_t epll_con0;               /* 0x110 */
-    uint32_t epll_con1;               /* 0x114 */
-    uint32_t epll_con2;               /* 0x118 */
-    uint32_t res3[1];
-    uint32_t vpll_con0;               /* 0x120 */
-    uint32_t vpll_con1;               /* 0x124 */
-    uint32_t vpll_con2;               /* 0x128 */
-    uint32_t res4[57];
-    uint32_t clk_src_top0;            /* 0x210 */
-    uint32_t clk_src_top1;            /* 0x214 */
-    uint32_t res5[2];
-    uint32_t clk_src_cam0;            /* 0x220 */
-    uint32_t clk_src_tv;              /* 0x224 */
-    uint32_t clk_src_mfc;             /* 0x228 */
-    uint32_t clk_src_g3d;             /* 0x22c */
-    uint32_t res6[1];
-    uint32_t clk_src_lcd;             /* 0x234 */
-    uint32_t clk_src_isp;             /* 0x238 */
-    uint32_t clk_src_maudio;          /* 0x23c */
-    uint32_t clk_src_fsys;            /* 0x240 */
-    uint32_t res7[3];
-    uint32_t clk_src_peril0;          /* 0x250 */
-    uint32_t clk_src_peril1;          /* 0x254 */
-    uint32_t clk_src_cam1;            /* 0x258 */
-    uint32_t res8[49];
-    uint32_t clk_src_mask_cam0;       /* 0x320 */
-    uint32_t clk_src_mask_tv;         /* 0x324 */
-    uint32_t res9[3];
-    uint32_t clk_src_mask_lcd;        /* 0x334 */
-    uint32_t clk_src_mask_isp;        /* 0x338 */
-    uint32_t clk_src_mask_maudio;     /* 0x33c */
-    uint32_t clk_src_mask_fsys;       /* 0x340 */
-    uint32_t res10[3];
-    uint32_t clk_src_mask_peril0;     /* 0x350 */
-    uint32_t clk_src_mask_peril1;     /* 0x354 */
-    uint32_t res11[46];
-    uint32_t clk_mux_stat_top0;       /* 0x410 */
-    uint32_t clk_mux_stat_top1;       /* 0x414 */
-    uint32_t res12[4];
-    uint32_t clk_mux_stat_mfc;        /* 0x428 */
-    uint32_t clk_mux_stat_g3d;        /* 0x42c */
-    uint32_t res13[10];
-    uint32_t clk_mux_stat_cam1;       /* 0x458 */
-    uint32_t res14[45];
-    uint32_t clk_div_top;             /* 0x510 */
-    uint32_t res15[3];
-    uint32_t clk_div_cam0;            /* 0x520 */
-    uint32_t clk_div_tv;              /* 0x524 */
-    uint32_t clk_div_mfc;             /* 0x528 */
-    uint32_t clk_div_g3d;             /* 0x52c */
-    uint32_t res16[1];
-    uint32_t clk_div_lcd;             /* 0x534 */
-    uint32_t clk_div_isp;             /* 0x538 */
-    uint32_t clk_div_maudio;          /* 0x53c */
-    uint32_t clk_div_fsys0;           /* 0x540 */
-    uint32_t clk_div_fsys1;           /* 0x544 */
-    uint32_t clk_div_fsys2;           /* 0x548 */
-    uint32_t clk_div_fsys3;           /* 0x54c */
-    uint32_t clk_div_peril0;          /* 0x550 */
-    uint32_t clk_div_peril1;          /* 0x554 */
-    uint32_t clk_div_peril2;          /* 0x558 */
-    uint32_t clk_div_peril3;          /* 0x55c */
-    uint32_t clk_div_peril4;          /* 0x560 */
-    uint32_t clk_div_peril5;          /* 0x564 */
-    uint32_t clk_div_cam1;            /* 0x568 */
-    uint32_t res17[5];
-    uint32_t clkdiv2_ratio;           /* 0x580 */
-    uint32_t res18[35];
-    uint32_t clk_div_stat_top;        /* 0x610 */
-    uint32_t res19[3];
-    uint32_t clk_div_stat_cam0;       /* 0x620 */
-    uint32_t clk_div_stat_tv;         /* 0x624 */
-    uint32_t clk_div_stat_mfc;        /* 0x628 */
-    uint32_t clk_div_stat_g3d;        /* 0x62c */
-    uint32_t res20[2];
-    uint32_t clk_div_stat_isp;        /* 0x638 */
-    uint32_t clk_div_stat_maudio;     /* 0x63c */
-    uint32_t clk_div_stat_fsys0;      /* 0x640 */
-    uint32_t clk_div_stat_fsys1;      /* 0x644 */
-    uint32_t clk_div_stat_fsys2;      /* 0x648 */
-    uint32_t clk_div_stat_fsys3;      /* 0x64c */
-    uint32_t clk_div_stat_peril0;     /* 0x650 */
-    uint32_t clk_div_stat_peril1;     /* 0x654 */
-    uint32_t clk_div_stat_peril2;     /* 0x658 */
-    uint32_t clk_div_stat_peril3;     /* 0x65c */
-    uint32_t clk_div_stat_peril4;     /* 0x660 */
-    uint32_t clk_div_stat_peril5;     /* 0x664 */
-    uint32_t clk_div_stat_cam1;       /* 0x668 */
-    uint32_t res21[5];
-    uint32_t clkdiv2_stat;            /* 0x680 */
-    uint32_t res22[48];
-    uint32_t clk_gate_bus_fsys1;      /* 0x744 */
-    uint32_t res23[48];
-    uint32_t clk_gate_ip_cam;         /* 0x920 */
-    uint32_t clk_gate_ip_tv;          /* 0x924 */
-    uint32_t clk_gate_ip_mfc;         /* 0x928 */
-    uint32_t clk_gate_ip_g3d;         /* 0x92c */
-    uint32_t res24[2];
-    uint32_t clk_gate_ip_isp;         /* 0x938 */
-    uint32_t res25[1];
-    uint32_t clk_gate_ip_fsys;        /* 0x940 */
-    uint32_t clk_gate_ip_gps;         /* 0x94c */
-    uint32_t clk_gate_ip_peril;       /* 0x950 */
-    uint32_t res26[7];
-    uint32_t clk_gate_block;          /* 0x970 */
-    uint32_t res27[35];
-    uint32_t clkout_cmu_top;          /* 0xa00 */
-    uint32_t clkout_cmu_top_div_stat; /* 0xa04 */
-};
-/* 0x10040000 */
-struct cmu_dmc1_regs {
-    uint32_t res0[2];
-    uint32_t mpll_lock;               /* 0x008 */
-    uint32_t res1[63];
-    uint32_t mpll_con0;               /* 0x108 */
-    uint32_t mpll_con1;               /* 0x10c */
-    uint32_t res2[60];
-    uint32_t clk_src_dmc;             /* 0x200 */
-    uint32_t res3[63];
-    uint32_t clk_src_mask_dmc;        /* 0x300 */
-    uint32_t res4[63];
-    uint32_t clk_mux_stat_dmc;        /* 0x400 */
-    uint32_t res5[63];
-    uint32_t clk_div_dmc0;            /* 0x500 */
-    uint32_t clk_div_dmc1;            /* 0x504 */
-    uint32_t res6[62];
-    uint32_t clk_div_stat_dmc0;       /* 0x600 */
-    uint32_t clk_div_stat_dmc1;       /* 0x604 */
-    uint32_t res7[62];
-    uint32_t clk_gate_bus_dmc0;       /* 0x700 */
-    uint32_t clk_gate_bus_dmc1;       /* 0x704 */
-    uint32_t res8[62];
-    uint32_t res9[64];
-    uint32_t clk_gate_ip_dmc0;        /* 0x900 */
-    uint32_t clk_gate_ip_dmc1;        /* 0x904 */
-    uint32_t res10[62];
-    uint32_t clkout_cmu_dmc;          /* 0xa00 */
-    uint32_t clkout_cmu_dmc_div_stat; /* 0xa04 */
-};
-/* 0x10041000 */
-struct cmu_dmc2_regs {
-    uint32_t dcgidx_map0;             /* 0x000 */
-    uint32_t dcgidx_map1;             /* 0x004 */
-    uint32_t dcgidx_map2;             /* 0x008 */
-    uint32_t res0[5];
-    uint32_t dcgperf_map0;            /* 0x020 */
-    uint32_t dcgperf_map1;            /* 0x024 */
-    uint32_t res1[6];
-    uint32_t dvcidx_map;              /* 0x040 */
-    uint32_t res2[7];
-    uint32_t freq_cpu;                /* 0x060 */
-    uint32_t freq_dpm;                /* 0x064 */
-    uint32_t res3[6];
-    uint32_t dvsemclk_en;             /* 0x080 */
-    uint32_t maxperf;                 /* 0x084 */
-    uint32_t res4[3];
-    uint32_t dmc_pause_ctrl;          /* 0x094 */
-    uint32_t ddrphy_lock_ctrl;        /* 0x098 */
-    uint32_t c2c_priv;               /* 0x09c */
-};
-/* 0x10044000 */
-struct cmu_cpu1_regs {
-    uint32_t apll_lock;               /* 0x000 */
-    uint32_t res0[63];
-    uint32_t apll_con0;               /* 0x100 */
-    uint32_t apll_con1;               /* 0x104 */
-    uint32_t res1[62];
-    uint32_t clk_src_cpu;             /* 0x200 */
-    uint32_t res2[127];
-    uint32_t clk_mux_stat_cpu;        /* 0x400 */
-    uint32_t res3[63];
-    uint32_t clk_div_cpu0;            /* 0x500 */
-    uint32_t clk_div_cpu1;            /* 0x504 */
-    uint32_t res4[62];
-    uint32_t clk_div_stat_cpu0;       /* 0x600 */
-    uint32_t clk_div_stat_cpu1;       /* 0x604 */
-    uint32_t res5[62];
-    uint32_t res6[128];
-    uint32_t clk_gate_ip_cpu;         /* 0x900 */
-    uint32_t res8[63];
-    uint32_t clkout_cmu_cpu;          /* 0xa00 */
-    uint32_t clkout_cmu_cpu_div_stat; /* 0xa04 */
-};
-/* 0x10045000 */
-struct cmu_cpu2_regs {
-    uint32_t armclk_stopctrl;         /* 0x000 */
-    uint32_t atclk_stopctrl;          /* 0x004 */
-    uint32_t res0[6];
-    uint32_t pwr_ctrl;                /* 0x020 */
-    uint32_t pwr_ctrl2;               /* 0x024 */
-    uint32_t res1[246];
-    uint32_t l2_status;               /* 0x400 */
-    uint32_t res2[3];
-    uint32_t cpu_status;              /* 0x410 */
-    uint32_t res3[3];
-    uint32_t ptm_status;              /* 0x420 */
-};
-/* 0x10048000 */
-struct cmu_isp_regs {
-    uint32_t res0[192];
-    uint32_t clk_div_isp0;            /* 0x300 */
-    uint32_t clk_div_isp1;            /* 0x304 */
-    uint32_t res1[62];
-    uint32_t clk_div_stat_isp0;       /* 0x400 */
-    uint32_t clk_div_stat_isp1;       /* 0x404 */
-    uint32_t res3[254];
-    uint32_t clk_gate_ip_isp0;        /* 0x800 */
-    uint32_t clk_gate_ip_isp1;        /* 0x804 */
-    uint32_t res4[126];
-    uint32_t clkout_cmu_isp;          /* 0xa00 */
-    uint32_t clkout_cmu_isp_div_stat; /* 0xa04 */
-    uint32_t res5[62];
-    uint32_t cmu_isp_spare[4];        /* 0xb00 */
+enum clkregs {
+    CLKREGS_LEFT,
+    CLKREGS_RIGHT,
+    CLKREGS_TOP,
+    CLKREGS_DMC1,
+    CLKREGS_DMC2,
+    CLKREGS_CPU1,
+    CLKREGS_CPU2,
+    CLKREGS_ISP,
+    NCLKREGS
 };
 
 volatile struct cmu_leftbus_regs*  _cmu_leftbus  = NULL;
@@ -493,151 +179,7 @@ volatile struct cmu_cpu2_regs*     _cmu_cpu2     = NULL;
 volatile struct cmu_isp_regs*      _cmu_isp      = NULL;
 
 
-
-static struct clock finpll_clk;
-static struct clock aoutpll_clk;
-static struct clock sclkmpll_clk;
-static struct clock sclkepll_clk;
-static struct clock sclkvpll_clk;
-static struct clock sclkapll_clk;
-static struct clock muxcore_clk;
-static struct clock divcore_clk;
-static struct clock arm_clk;
-static struct clock corem0_clk;
-static struct clock corem1_clk;
-static struct clock cores_clk;
-static struct clock periphclk_clk;
-static struct clock atclk_clk;
-static struct clock pclk_dbg_clk;
-static struct clock sclk_mpll_userc_clk;
-static struct clock sclkhpm_clk;
-static struct clock divcopy_clk;
-static struct clock muxhpm_clk;
-
-static clk_t* clks[];
-static clk_t* clks[] = {
-    [CLK_MASTER]         = &finpll_clk,
-    [CLK_MOUTAPLL]       = &aoutpll_clk,
-    [CLK_SCLKMPLL]       = &sclkmpll_clk,
-    [CLK_SCLKEPLL]       = &sclkepll_clk,
-    [CLK_SCLKVPLL]       = &sclkvpll_clk,
-    [CLK_SCLKAPLL]       = &sclkapll_clk,
-    [MUX_CORE]           = &muxcore_clk,
-    [DIV_CORE]           = &divcore_clk,
-    [DIV_CORE2]          = &arm_clk,
-    [CLK_ACLK_COREM0]    = &corem0_clk,
-    [CLK_ACLK_COREM1]    = &corem1_clk,
-    [CLK_ACLK_CORES]     = &cores_clk,
-    [CLK_PERIPHCLK]      = &periphclk_clk,
-    [CLK_ATCLK]          = &atclk_clk,
-    [CLK_PCLK_DBG]       = &pclk_dbg_clk,
-    [CLK_SCLKMPLL_USERC] = &sclk_mpll_userc_clk,
-    [CLK_SCLKHPM]        = &sclkhpm_clk,
-    [DIV_COPY]           = &divcopy_clk,
-    [MUX_HPM]            = &muxhpm_clk
-};
-
-
-
-static clk_t*
-exynos4_get_clock(clock_sys_t* sys, enum clk_id id)
-{
-    clk_t* clk = clks[id];
-    if (id < 0 || id >= sizeof(clks) / sizeof(*clks)) {
-        printf("Invalid clock: %d\n", id);
-        assert(!"Invalid clock");
-        return NULL;
-    }
-    clk->clk_sys = sys;
-    clk = clk_init(clk);
-    return clk;
-}
-
-static int
-exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode){
-    (void)sys;
-    (void)gate;
-    (void)mode;
-    return 0;
-}
-
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
-{
-    MAP_IF_NULL(o, CMU_LEFTBUS , _cmu_leftbus);
-    MAP_IF_NULL(o, CMU_RIGHTBUS, _cmu_rightbus);
-    MAP_IF_NULL(o, CMU_TOP     , _cmu_top);
-    MAP_IF_NULL(o, CMU_DMC1    , _cmu_dmc1);
-    MAP_IF_NULL(o, CMU_DMC2    , _cmu_dmc2);
-    MAP_IF_NULL(o, CMU_CPU1    , _cmu_cpu1);
-    MAP_IF_NULL(o, CMU_CPU2    , _cmu_cpu2);
-    MAP_IF_NULL(o, CMU_ISP     , _cmu_isp);
-    MAPCHECK(&_cmu_leftbus->clkout_cmu_leftbus_div_stat, 0xa04);
-    MAPCHECK(&_cmu_rightbus->clkout_cmu_rightbus_div_stat, 0xa04);
-    MAPCHECK(&_cmu_dmc1->clkout_cmu_dmc_div_stat, 0xa04);
-    MAPCHECK(&_cmu_cpu1->clkout_cmu_cpu_div_stat, 0xa04);
-    MAPCHECK(&_cmu_dmc2->c2c_priv, 0x09c);
-
-    MAPCHECK(&_cmu_cpu2->ptm_status, 0x420);
-    MAPCHECK(&_cmu_isp->cmu_isp_spare[0], 0xb00);
-
-    /* TODO: create a struct for registers */
-    clock_sys->priv = (void*)0xDEADBEEF;
-    clock_sys->get_clock = &exynos4_get_clock; 
-    clock_sys->gate_enable = &exynos4_gate_enable;
-    return 0;
-}
-
-void
-clk_print_clock_tree(clock_sys_t* sys)
-{
-    (void)sys;
-    clk_t* clk = clks[CLK_MASTER];
-    clk_print_tree(clk, "");
-}
-
-/* MASTER_CLK */
-static freq_t
-_finpll_get_freq(clk_t* clk)
-{
-    return clk->freq;
-}
-
-static freq_t
-_finpll_set_freq(clk_t* clk, freq_t hz)
-{
-    /* Master clock frequency is fixed */
-    (void)hz;
-    return clk_get_freq(clk);
-}
-
-static void
-_finpll_recal(clk_t* clk)
-{
-    assert(0);
-}
-
-static clk_t*
-_finpll_init(clk_t* clk)
-{
-    /* TODO: Read source from boot switch/qpio */
-#if 1
-    clk->freq = XUSBXTI_FREQ;
-#else
-    clk->freq = XXTI_FREQ
-#endif
-    return clk;
-}
-
-static struct clock finpll_clk = {
-    .id = CLK_MASTER,
-    CLK_OPS(finpll),
-    .freq = 0 * MHZ,
-    .priv = NULL,
-    .parent = NULL,
-    .sibling = NULL,
-    .child = NULL
-};
+static struct clock finpll_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 static freq_t
 _pll_get_freq(clk_t* clk)
@@ -647,19 +189,19 @@ _pll_get_freq(clk_t* clk)
     switch (clk->id) {
     case CLK_MOUTAPLL:
         regs = (volatile struct pll_regs*)&_cmu_cpu1->apll_lock;
-        mux = _cmu_cpu1->clk_mux_stat_cpu >> 0;
+        mux = _cmu_cpu1->clk_src_stat_cpu >> 0;
         break;
     case CLK_SCLKMPLL:
         regs = (volatile struct pll_regs*)&_cmu_dmc1->mpll_lock;
-        mux = _cmu_dmc1->clk_mux_stat_dmc >> 12;
+        mux = _cmu_dmc1->clk_src_stat_dmc >> 12;
         break;
     case CLK_SCLKEPLL:
         regs = (volatile struct pll_regs*)&_cmu_top->epll_lock;
-        mux = _cmu_top->clk_mux_stat_top0 >> 4;
+        mux = _cmu_top->clk_src_stat_top0 >> 4;
         break;
     case CLK_SCLKVPLL:
         regs = (volatile struct pll_regs*)&_cmu_top->vpll_lock;
-        mux = _cmu_top->clk_mux_stat_top0 >> 8;
+        mux = _cmu_top->clk_src_stat_top0 >> 8;
         break;
     default:
         assert(0);
@@ -745,38 +287,10 @@ _pll_init(clk_t* clk)
     return clk;
 }
 
-static struct clock aoutpll_clk = {
-    .id = CLK_MOUTAPLL,
-    PLL_CLK_OPS(aoutpll),
-    .freq = 1000 * MHZ,
-    .priv = NULL,
-};
-
-
-/* MPLL_CLK */
-static struct clock sclkmpll_clk = {
-    .id = CLK_SCLKMPLL,
-    PLL_CLK_OPS(sclkmpll),
-    .freq = 800 * MHZ,
-    .priv = NULL,
-};
-
-/* EPLL_CLK */
-static struct clock sclkepll_clk = {
-    .id = CLK_SCLKMPLL,
-    PLL_CLK_OPS(sclkepll),
-    .freq = 800 * MHZ,
-    .priv = NULL,
-};
-
-/* VPLL_CLK */
-static struct clock sclkvpll_clk = {
-    .id = CLK_SCLKMPLL,
-    PLL_CLK_OPS(sclkvpll),
-    .freq = 800 * MHZ,
-    .priv = NULL,
-};
-
+static struct clock aoutpll_clk  = { CLK_OPS(MOUTAPLL, pll, NULL) };
+static struct clock sclkmpll_clk = { CLK_OPS(SCLKMPLL, pll, NULL) };
+static struct clock sclkepll_clk = { CLK_OPS(SCLKEPLL, pll, NULL) };
+static struct clock sclkvpll_clk = { CLK_OPS(SCLKVPLL, pll, NULL) };
 
 
 static freq_t
@@ -787,7 +301,7 @@ _div_get_freq(clk_t* clk)
     assert(_cmu_cpu1);
     switch (clk->id) {
         /* CPU 0 */
-    case DIV_CORE2:
+    case CLK_DIVCORE2:
         div = _cmu_cpu1->clk_div_cpu0 >> 28;
         break;
     case CLK_SCLKAPLL:
@@ -808,7 +322,7 @@ _div_get_freq(clk_t* clk)
     case CLK_ACLK_COREM0:
         div = _cmu_cpu1->clk_div_cpu0 >> 4;
         break;
-    case DIV_CORE:
+    case CLK_DIVCORE:
         div = _cmu_cpu1->clk_div_cpu0 >> 0;
         break;
         /* CPU1 */
@@ -818,7 +332,7 @@ _div_get_freq(clk_t* clk)
     case CLK_SCLKHPM:
         div = _cmu_cpu1->clk_div_cpu1 >> 4;
         break;
-    case DIV_COPY:
+    case CLK_DIVCOPY:
         div = _cmu_cpu1->clk_div_cpu1 >> 0;
         break;
         /* ---- */
@@ -850,7 +364,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
     }
     switch (clk->id) {
         /* CPU 0 */
-    case DIV_CORE2:
+    case CLK_DIVCORE2:
         reg = &_cmu_cpu1->clk_div_cpu0;
         shift = 28;
         break;
@@ -878,7 +392,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
         reg = &_cmu_cpu1->clk_div_cpu0;
         shift = 4;
         break;
-    case DIV_CORE:
+    case CLK_DIVCORE:
         reg = &_cmu_cpu1->clk_div_cpu0;
         shift = 0;
         break;
@@ -891,7 +405,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
         reg = &_cmu_cpu1->clk_div_cpu1;
         shift = 4;
         break;
-    case DIV_COPY:
+    case CLK_DIVCOPY:
         reg = &_cmu_cpu1->clk_div_cpu1;
         shift = 0;
         break;
@@ -923,27 +437,27 @@ _div_init(clk_t* clk)
     case CLK_SCLKAPLL:
         parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MOUTAPLL);
         break;
-    case DIV_CORE:
+    case CLK_DIVCORE:
     case CLK_ATCLK:
-        parent = clk_get_clock(clk_get_clock_sys(clk), MUX_CORE);
+        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MUXCORE);
         break;
-    case DIV_CORE2:
-        parent = clk_get_clock(clk_get_clock_sys(clk), DIV_CORE);
+    case CLK_DIVCORE2:
+        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_DIVCORE);
         break;
     case CLK_ACLK_COREM0:
     case CLK_ACLK_CORES:
     case CLK_ACLK_COREM1:
     case CLK_PERIPHCLK:
-        parent = clk_get_clock(clk_get_clock_sys(clk), DIV_CORE2);
+        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_DIVCORE2);
         break;
     case CLK_PCLK_DBG:
         parent = clk_get_clock(clk_get_clock_sys(clk), CLK_ATCLK);
         break;
     case CLK_SCLKHPM:
-        parent = clk_get_clock(clk_get_clock_sys(clk), DIV_COPY);
+        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_DIVCOPY);
         break;
-    case DIV_COPY:
-        parent = clk_get_clock(clk_get_clock_sys(clk), MUX_HPM);
+    case CLK_DIVCOPY:
+        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MUXHPM);
         break;
     default:
         assert(!"Unknown clock id for div");
@@ -955,82 +469,17 @@ _div_init(clk_t* clk)
     return clk;
 }
 
-static struct clock sclkapll_clk = {
-    .id = CLK_SCLKAPLL,
-    DIV_CLK_OPS(sclkapll),
-    .freq = 1000 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock divcore_clk = {
-    .id = DIV_CORE,
-    DIV_CLK_OPS(DIVcore),
-    .freq = 1000 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock arm_clk = {
-    .id = DIV_CORE2,
-    DIV_CLK_OPS(armclk),
-    .freq = 1000 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock corem0_clk = {
-    .id = CLK_ACLK_COREM0,
-    DIV_CLK_OPS(aclk_corem0),
-    .freq = 333 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock corem1_clk = {
-    .id = CLK_ACLK_COREM1,
-    DIV_CLK_OPS(aclk_corem1),
-    .freq = 166 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock cores_clk = {
-    .id = CLK_ACLK_CORES,
-    DIV_CLK_OPS(aclk_cores),
-    .freq = 250 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock periphclk_clk = {
-    .id = CLK_PERIPHCLK,
-    DIV_CLK_OPS(periphclk),
-    .freq = 125 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock atclk_clk = {
-    .id = CLK_ATCLK,
-    DIV_CLK_OPS(atclk),
-    .freq = 200 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock pclk_dbg_clk = {
-    .id = CLK_PCLK_DBG,
-    DIV_CLK_OPS(pclk_dbg),
-    .freq = 100 * MHZ,
-    .priv = NULL,
-};
-
-static struct clock sclkhpm_clk = {
-    .id = CLK_SCLKHPM,
-    DIV_CLK_OPS(sclk_hpm),
-    .freq = 200 * MHZ,
-    .priv = NULL
-};
-
-static struct clock divcopy_clk = {
-    .id = DIV_COPY,
-    DIV_CLK_OPS(DIVcopy),
-    .freq = 200 * MHZ,
-    .priv = NULL
-};
+static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL   , div, NULL) };
+static struct clock divcore_clk   = { CLK_OPS(DIVCORE    , div, NULL) };
+static struct clock arm_clk       = { CLK_OPS(DIVCORE2   , div, NULL) };
+static struct clock corem0_clk    = { CLK_OPS(ACLK_COREM0, div, NULL) };
+static struct clock corem1_clk    = { CLK_OPS(ACLK_COREM1, div, NULL) };
+static struct clock cores_clk     = { CLK_OPS(ACLK_CORES , div, NULL) };
+static struct clock periphclk_clk = { CLK_OPS(PERIPHCLK  , div, NULL) };
+static struct clock atclk_clk     = { CLK_OPS(ATCLK      , div, NULL) };
+static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG   , div, NULL) };
+static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM    , div, NULL) };
+static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, NULL) };
 
 
 
@@ -1067,17 +516,17 @@ _mux_init(clk_t* clk)
     assert(clk);
     switch (clk->id) {
     case CLK_SCLKMPLL_USERC:
-        mux = _cmu_cpu1->clk_mux_stat_cpu >> 24;
+        mux = _cmu_cpu1->clk_src_stat_cpu >> 24;
         parent_id[0] = CLK_MASTER;
         parent_id[1] = CLK_SCLKMPLL;
         break;
-    case MUX_HPM:
-        mux = _cmu_cpu1->clk_mux_stat_cpu >> 20;
+    case CLK_MUXHPM:
+        mux = _cmu_cpu1->clk_src_stat_cpu >> 20;
         parent_id[0] = CLK_MOUTAPLL;
         parent_id[1] = CLK_SCLKMPLL;
         break;
-    case MUX_CORE:
-        mux = _cmu_cpu1->clk_mux_stat_cpu >> 16;
+    case CLK_MUXCORE:
+        mux = _cmu_cpu1->clk_src_stat_cpu >> 16;
         parent_id[0] = CLK_MOUTAPLL;
         /* Tree says SCLKMPLL_USERC, Table says SCLKMPLL... */
         parent_id[1] = CLK_SCLKMPLL_USERC;
@@ -1087,7 +536,7 @@ _mux_init(clk_t* clk)
         assert(!"Unknown clock id for mux");
         return NULL;
     }
-    mux &= CLK_MUXSTAT_MASK;
+    mux &= MASK(4);
     if (mux & 0x4) {
         printf("%s is in transition\n", clk->name);
         assert(0);
@@ -1099,25 +548,102 @@ _mux_init(clk_t* clk)
     return clk;
 }
 
+static struct clock sclk_mpll_userc_clk = { CLK_OPS(SCLKMPLL_USERC, mux, NULL) };
+static struct clock muxcore_clk = { CLK_OPS(MUXCORE, mux, NULL) };
+static struct clock muxhpm_clk = { CLK_OPS(MUXHPM, mux, NULL) };
 
-static struct clock sclk_mpll_userc_clk = {
-    .id = CLK_SCLKMPLL_USERC,
-    MUX_CLK_OPS(sclk_mpll_userc),
-    .freq = 800 * MHZ,
-    .priv = NULL
+static int
+exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
+{
+    (void)sys;
+    (void)gate;
+    (void)mode;
+    return 0;
+}
+
+int
+clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+{
+    MAP_IF_NULL(o, CMU_LEFTBUS , _cmu_leftbus);
+    MAP_IF_NULL(o, CMU_RIGHTBUS, _cmu_rightbus);
+    MAP_IF_NULL(o, CMU_TOP     , _cmu_top);
+    MAP_IF_NULL(o, CMU_DMC1    , _cmu_dmc1);
+    MAP_IF_NULL(o, CMU_DMC2    , _cmu_dmc2);
+    MAP_IF_NULL(o, CMU_CPU1    , _cmu_cpu1);
+    MAP_IF_NULL(o, CMU_CPU2    , _cmu_cpu2);
+    MAP_IF_NULL(o, CMU_ISP     , _cmu_isp);
+    MAPCHECK(&_cmu_leftbus->clkout_cmu_leftbus_div_stat, 0xa04);
+    MAPCHECK(&_cmu_rightbus->clkout_cmu_rightbus_div_stat, 0xa04);
+    MAPCHECK(&_cmu_dmc1->clkout_cmu_dmc_div_stat, 0xa04);
+    MAPCHECK(&_cmu_cpu1->clkout_cmu_cpu_div_stat, 0xa04);
+    MAPCHECK(&_cmu_dmc2->c2c_priv, 0x09c);
+
+    MAPCHECK(&_cmu_cpu2->ptm_status, 0x420);
+    MAPCHECK(&_cmu_isp->cmu_isp_spare[0], 0xb00);
+
+    /* TODO: create a struct for registers */
+    clock_sys->priv = (void*)0xDEADBEEF;
+    clock_sys->get_clock = &ps_get_clock;
+    clock_sys->gate_enable = &exynos4_gate_enable;
+    return 0;
+}
+
+
+
+void
+clk_print_clock_tree(clock_sys_t* sys UNUSED)
+{
+    clk_t* clk = ps_clocks[CLK_MASTER];
+    clk_print_tree(clk, "");
+}
+
+clk_t* ps_clocks[] = {
+    [CLK_MASTER]         = &finpll_clk,
+    [CLK_MOUTAPLL]       = &aoutpll_clk,
+    [CLK_SCLKMPLL]       = &sclkmpll_clk,
+    [CLK_SCLKEPLL]       = &sclkepll_clk,
+    [CLK_SCLKVPLL]       = &sclkvpll_clk,
+    [CLK_SCLKAPLL]       = &sclkapll_clk,
+    [CLK_MUXCORE]        = &muxcore_clk,
+    [CLK_DIVCORE]        = &divcore_clk,
+    [CLK_DIVCORE2]       = &arm_clk,
+    [CLK_ACLK_COREM0]    = &corem0_clk,
+    [CLK_ACLK_COREM1]    = &corem1_clk,
+    [CLK_ACLK_CORES]     = &cores_clk,
+    [CLK_PERIPHCLK]      = &periphclk_clk,
+    [CLK_ATCLK]          = &atclk_clk,
+    [CLK_PCLK_DBG]       = &pclk_dbg_clk,
+    [CLK_SCLKMPLL_USERC] = &sclk_mpll_userc_clk,
+    [CLK_SCLKHPM]        = &sclkhpm_clk,
+    [CLK_DIVCOPY]        = &divcopy_clk,
+    [CLK_MUXHPM]         = &muxhpm_clk
 };
 
-static struct clock muxcore_clk = {
-    .id = MUX_CORE,
-    MUX_CLK_OPS(MUXcore),
-    .freq = 1000 * MHZ,
-    .priv = NULL
+
+/* These frequencies are NOT the recommended
+ * frequencies. They are to be used when we
+ * need to make assumptions about what u-boot
+ * has left us with. */
+freq_t ps_freq_default[] = {
+    [CLK_MASTER]         = FINPLL_FREQ,
+    [CLK_MOUTAPLL]       = 1000 * MHZ,
+    [CLK_SCLKMPLL]       =  800 * MHZ,
+    [CLK_SCLKEPLL]       =   96 * MHZ,
+    [CLK_SCLKVPLL]       =  108 * MHZ,
+    [CLK_SCLKAPLL]       =  500 * MHZ,
+    [CLK_MUXCORE]        = 1000 * MHZ,
+    [CLK_DIVCORE]        = 1000 * MHZ,
+    [CLK_DIVCORE2]       = 1000 * MHZ,
+    [CLK_ACLK_COREM0]    =  333 * MHZ,
+    [CLK_ACLK_COREM1]    =  167 * MHZ,
+    [CLK_ACLK_CORES]     =  250 * MHZ,
+    [CLK_PERIPHCLK]      =  125 * MHZ,
+    [CLK_ATCLK]          =  200 * MHZ,
+    [CLK_PCLK_DBG]       =  100 * MHZ,
+    [CLK_SCLKMPLL_USERC] =  800 * MHZ,
+    [CLK_SCLKHPM]        =  200 * MHZ,
+    [CLK_DIVCOPY]        =  200 * MHZ,
+    [CLK_MUXHPM]         = 1000 * MHZ
 };
 
-static struct clock muxhpm_clk = {
-    .id = MUX_HPM,
-    MUX_CLK_OPS(MUXhpm),
-    .freq = 1000 * MHZ,
-    .priv = NULL
-};
 

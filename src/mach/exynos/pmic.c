@@ -244,6 +244,9 @@ pmic_print_status(pmic_t* pmic)
     printf("### PMIC ###\n");
     err = pmic_reg_read(pmic, REG_CHIPID, &data, 1);
     assert(!err);
+    if (err) {
+        return;
+    }
     switch (data) {
     case MAX77686_CHIPID:
         printf("MAX77686");

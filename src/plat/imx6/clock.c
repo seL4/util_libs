@@ -39,6 +39,39 @@
 #define PLL_USB_ENABLE    BIT(13)
 #define PLL_USB_POWER     BIT(12)
 
+/* Also known as PLL_SYS */
+#define PLL2_PADDR 0x020C8030
+
+#define PLL2_CTRL_LOCK          BIT(31)
+#define PLL2_CTRL_PDFOFFSET_EN  BIT(18)
+#define PLL2_CTRL_BYPASS        BIT(16)
+#define PLL2_CTRL_BYPASS_SRC(x) ((x) << 14)
+#define PLL2_CTRL_ENABLE        BIT(13)
+#define PLL2_CTRL_PWR_DOWN      BIT(12)
+#define PLL2_CTRL_DIVSEL        BIT(0)
+#define PLL2_SS_STOP(x)         ((x) << 16)
+#define PLL2_SS_EN              BIT(15)
+#define PLL2_SS_STEP(x)         ((x) <<  0)
+
+#define PLL_CLKGATE BIT(31)
+#define PLL_STABLE  BIT(30)
+#define PLL_FRAC(x) ((x) << 24)
+
+#define CLKGATE_OFF    0x0
+#define CLKGATE_ON_RUN 0x2
+#define CLKGATE_ON_ALL 0x3
+#define CLKGATE_MASK   CLKGATE_ON_ALL
+
+#define CLKO1_SRC_AHB       (0xBU << 0)
+#define CLKO1_SRC_IPG       (0xCU << 0)
+#define CLKO1_SRC_MASK      (0xFU << 0)
+#define CLKO1_ENABLE        (1U << 7)
+
+#define CLKO2_SRC_MMDC_CH0  (0U << 21)
+#define CLKO2_SRC_MASK      (0x1FU << 16)
+#define CLKO2_ENABLE        (1U << 24)
+#define CLKO_SEL            (1U << 8)
+
 struct ccm_regs {
     uint32_t ccr;      /* 0x000 */
     uint32_t ccdr;     /* 0x004 */
@@ -69,11 +102,6 @@ struct ccm_regs {
     uint32_t res2[1];
     uint32_t cmeor;    /* 0x088 */
 };
-
-
-#define PLL_CLKGATE BIT(31)
-#define PLL_STABLE  BIT(30)
-#define PLL_FRAC(x) ((x) << 24)
 
 typedef struct {
     uint32_t val;
@@ -140,44 +168,16 @@ struct ccm_alg_regs {
     uint32_t digprog;                /* 0x260 */
 };
 
-#define FIN (24 * MHZ)
-
 static volatile struct clock_regs {
     struct ccm_regs     * ccm;
     struct ccm_alg_regs * alg;
 } clk_regs = {.ccm = NULL, .alg = NULL};
 
-
-static struct clock ipg_clk;
-static struct clock ahb_clk;
-static struct clock mmdc_ch0_clk;
-static struct clock pll2_clk;
-static struct clock master_clk;
-static struct clock arm_clk;
-static struct clock enet_clk;
-static struct clock usb1_clk;
-static struct clock usb2_clk;
-static struct clock clko1_clk;
-static struct clock clko2_clk;
-
-/* Also known as PLL_SYS */
-#define PLL2_PADDR 0x020C8030
-
 struct pll2_regs {
-#define PLL2_CTRL_LOCK          BIT(31)
-#define PLL2_CTRL_PDFOFFSET_EN  BIT(18)
-#define PLL2_CTRL_BYPASS        BIT(16)
-#define PLL2_CTRL_BYPASS_SRC(x) ((x) << 14)
-#define PLL2_CTRL_ENABLE        BIT(13)
-#define PLL2_CTRL_PWR_DOWN      BIT(12)
-#define PLL2_CTRL_DIVSEL        BIT(0)
     uint32_t ctrl;
     uint32_t ctrl_s;
     uint32_t ctrl_c;
     uint32_t ctrl_t;
-#define PLL2_SS_STOP(x)         ((x) << 16)
-#define PLL2_SS_EN              BIT(15)
-#define PLL2_SS_STEP(x)         ((x) <<  0)
     uint32_t ss;
     uint32_t res0[3];
     uint32_t num;
@@ -187,131 +187,7 @@ struct pll2_regs {
 };
 
 
-/*********************
- **** Clock gates ****
- *********************/
-#define CLK_OFF    0x0
-#define CLK_ON_RUN 0x2
-#define CLK_ON_ALL 0x3
-#define CLK_GATE_MASK CLK_ON_ALL
-
-
-/****************
- **** Clocks ****
- ****************/
-
-/* generic */
-
-static clk_t* clks[] = {
-    [CLK_MASTER]   = &master_clk,
-    [CLK_PLL2  ]   = &pll2_clk,
-    [CLK_MMDC_CH0] = &mmdc_ch0_clk,
-    [CLK_AHB]      = &ahb_clk,
-    [CLK_IPG]      = &ipg_clk,
-    [CLK_ARM]      = &arm_clk,
-    [CLK_ENET]     = &enet_clk,
-    [CLK_USB1]     = &usb1_clk,
-    [CLK_USB2]     = &usb2_clk,
-    [CLK_CLKO1]    = &clko1_clk,
-    [CLK_CLKO2]    = &clko2_clk,
-};
-
-static freq_t freq_default[] = {
-    [CLK_MASTER]   = 24 * MHZ,
-    [CLK_PLL2  ]   = 528 * MHZ,
-    [CLK_MMDC_CH0] = 528 * MHZ,
-    [CLK_AHB]      = 132 * MHZ,
-    [CLK_IPG]      = 66 * MHZ,
-    [CLK_ARM]      = 792 * MHZ,
-    [CLK_ENET]     = 48 * MHZ,
-    [CLK_USB1]     = 480 * MHZ,
-    [CLK_USB2]     = 480 * MHZ,
-    [CLK_CLKO1]    = 1,
-    [CLK_CLKO2]    = 1,
-};
-
-
-static clk_t*
-imx6_get_clock(clock_sys_t* sys, enum clk_id id)
-{
-    clk_t* clk = clks[id];
-    assert(clk);
-    clk->clk_sys = sys;
-    return clk_init(clk);
-}
-
-static int
-imx6_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
-{
-    assert(clk_regs.ccm);
-    assert(mode == CLKGATE_ON);
-    (void)assert(gate >= 0);
-    assert(gate < 112);
-
-    uint32_t v;
-    uint32_t reg = gate / 16;
-    uint32_t shift = (gate & 0xf) * 2;
-    v = clk_regs.ccm->ccgr[reg];
-    v &= ~(CLK_GATE_MASK << shift);
-    v |= (CLK_ON_ALL << shift);
-    clk_regs.ccm->ccgr[reg] = v;
-    return 0;
-}
-
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys){
-    MAP_IF_NULL(o, CCM       , clk_regs.ccm);
-    MAP_IF_NULL(o, CCM_ANALOG, clk_regs.alg);
-    clock_sys->priv = (void*)&clk_regs;
-    clock_sys->get_clock = &imx6_get_clock;
-    clock_sys->gate_enable = &imx6_gate_enable;
-    return 0;
-}
-
-void
-clk_print_clock_tree(clock_sys_t* sys)
-{
-    clk_t *clk = clk_get_clock(sys, CLK_MASTER);
-    clk_print_tree(clk, "");
-}
-
-
-/* MASTER_CLK */
-static freq_t
-_master_get_freq(clk_t* clk)
-{
-    return clk->freq;
-}
-
-static freq_t
-_master_set_freq(clk_t* clk, freq_t hz)
-{
-    /* Master clock frequency is fixed */
-    (void)hz;
-    return clk_get_freq(clk);
-}
-
-static void
-_master_recal(clk_t* clk UNUSED)
-{
-    assert(0);
-}
-
-static clk_t*
-_master_init(clk_t* clk)
-{
-    if (clk->priv == NULL) {
-        clk->priv = (void*)&clk_regs;
-    }
-    return clk;
-}
-
-static struct clock master_clk = {
-    .id = CLK_MASTER,
-    CLK_OPS(master),
-    .freq = FIN,
-    .priv = NULL,
-};
+static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 
 /* ARM_CLK */
@@ -320,10 +196,6 @@ _arm_get_freq(clk_t* clk)
 {
     uint32_t div;
     uint32_t fout, fin;
-    if (clk_regs.alg == NULL) {
-        _printf("Warning: Using default frequency for %s clock\n", clk->name);
-        return clk->freq;
-    }
     div = clk_regs.alg->pll_arm.val;
     div &= PLL_ARM_DIV_MASK;
     fin = clk_get_freq(clk->parent);
@@ -337,9 +209,6 @@ _arm_set_freq(clk_t* clk, freq_t hz)
     uint32_t div;
     uint32_t fin;
     uint32_t v;
-    if (clk_regs.alg == NULL) {
-        return clk_get_freq(clk);
-    }
 
     fin = clk_get_freq(clk->parent);
     div = 2 * hz / fin;
@@ -376,12 +245,7 @@ _arm_init(clk_t* clk)
     return clk;
 }
 
-static struct clock arm_clk = {
-    .id = CLK_ARM,
-    CLK_OPS(arm),
-    .freq = 792 * MHZ,
-    .priv = NULL,
-};
+static struct clock arm_clk = { CLK_OPS(ARM, arm, NULL) };
 
 
 /* ENET_CLK */
@@ -391,10 +255,7 @@ _enet_get_freq(clk_t* clk)
 {
     uint32_t div;
     uint32_t fin;
-    if (clk_regs.alg == NULL) {
-        _printf("Warning: Using default frequency for %s clock\n", clk->name);
-        return clk->freq;
-    }
+
     fin = clk_get_freq(clk->parent);
     div = clk_regs.alg->pll_enet.val;
     div &= PLL_ENET_DIV_MASK;
@@ -465,12 +326,7 @@ _enet_init(clk_t* clk)
     return clk;
 }
 
-static struct clock enet_clk = {
-    .id = CLK_ENET,
-    CLK_OPS(enet),
-    .freq = 48 * MHZ,
-    .priv = NULL,
-};
+static struct clock enet_clk = { CLK_OPS(ENET, enet, NULL) };
 
 
 
@@ -480,10 +336,6 @@ _pll2_get_freq(clk_t* clk)
 {
     uint32_t p, s;
     struct pll2_regs *regs;
-    if (clk_regs.alg == NULL) {
-        _printf("Warning: Using default frequency for %s clock\n", clk->name);
-        return clk->freq;
-    }
     regs = (struct pll2_regs*)((uint32_t)clk_regs.alg + (PLL2_PADDR & 0xfff));
     assert((regs->ctrl & PLL2_CTRL_LOCK) != 0);
     assert((regs->ctrl & PLL2_CTRL_BYPASS) == 0);
@@ -529,12 +381,7 @@ _pll2_init(clk_t* clk)
     return clk;
 }
 
-static struct clock pll2_clk = {
-    .id = CLK_PLL2,
-    CLK_OPS(pll2),
-    .freq = 528 * MHZ,
-    .priv = NULL,
-};
+static struct clock pll2_clk = { CLK_OPS(PLL2, pll2, NULL) };
 
 /* MMDC_CH0_CLK */
 static freq_t
@@ -568,12 +415,7 @@ _mmdc_ch0_init(clk_t* clk)
     return clk;
 }
 
-static struct clock mmdc_ch0_clk = {
-    .id = CLK_MMDC_CH0,
-    CLK_OPS(mmdc_ch0),
-    .freq = 528 * MHZ,
-    .priv = NULL,
-};
+static struct clock mmdc_ch0_clk = { CLK_OPS(MMDC_CH0, mmdc_ch0, NULL) };
 
 /* AHB_CLK_ROOT */
 static freq_t
@@ -605,12 +447,7 @@ _ahb_init(clk_t* clk)
     return clk;
 }
 
-static struct clock ahb_clk = {
-    .id = CLK_AHB,
-    CLK_OPS(ahb),
-    .freq = 132 * MHZ,
-    .priv = NULL,
-};
+static struct clock ahb_clk = { CLK_OPS(AHB, ahb, NULL) };
 
 /* IPG_CLK_ROOT */
 static freq_t
@@ -642,21 +479,13 @@ _ipg_init(clk_t* clk)
     return clk;
 }
 
-static struct clock ipg_clk = {
-    .id = CLK_IPG,
-    CLK_OPS(ipg),
-    .freq = 66000000UL,
-    .priv = NULL,
-};
+static struct clock ipg_clk = { CLK_OPS(IPG, ipg, NULL) };
 
 /* USB_CLK */
 static freq_t
 _usb_get_freq(clk_t* clk)
 {
     volatile alg_sct_t* pll_usb;
-    if(clk_regs.alg == NULL){
-        return freq_default[clk->id];
-    }
     pll_usb = clk_regs.alg->pll_usb;
     if (clk->id == CLK_USB2) {
         pll_usb++;
@@ -711,21 +540,8 @@ _usb_init(clk_t* clk)
     return clk;
 }
 
-static struct clock usb1_clk = {
-    .id = CLK_USB1,
-    CLK_OPS(usb),
-    .freq = 480 * MHZ,
-    .priv = NULL,
-    .name = "usb1"
-};
-
-static struct clock usb2_clk = {
-    .id = CLK_USB2,
-    CLK_OPS(usb),
-    .freq = 480 * MHZ,
-    .priv = NULL,
-    .name = "usb2"
-};
+static struct clock usb1_clk = { CLK_OPS(USB1, usb, NULL) };
+static struct clock usb2_clk = { CLK_OPS(USB2, usb, NULL) };
 
 
 /* clkox */
@@ -734,7 +550,7 @@ _clko_get_freq(clk_t* clk)
 {
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t div;
-    switch(clk->id){
+    switch (clk->id) {
     case CLK_CLKO1:
         div = (clk_regs.ccm->ccosr >> 4) & 0x7;
         break;
@@ -754,10 +570,10 @@ _clko_set_freq(clk_t* clk, freq_t hz)
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t div = (fin / hz) + 1;
     uint32_t v = clk_regs.ccm->ccosr;
-    if(div > 0x7){
+    if (div > 0x7) {
         div = 0x7;
     }
-    switch(clk->id){
+    switch (clk->id) {
     case CLK_CLKO1:
         v &= ~(0x7U << 4);
         v |= div << 4;
@@ -777,20 +593,8 @@ _clko_set_freq(clk_t* clk, freq_t hz)
 static void
 _clko_recal(clk_t* clk UNUSED)
 {
-    (void)clk;
     assert(0);
 }
-
-
-#define CLKO1_SRC_AHB       (0xBU << 0)
-#define CLKO1_SRC_IPG       (0xCU << 0)
-#define CLKO1_SRC_MASK      (0xFU << 0)
-#define CLKO1_ENABLE        (1U << 7)
-
-#define CLKO2_SRC_MMDC_CH0  (0U << 21)
-#define CLKO2_SRC_MASK      (0x1FU << 16)
-#define CLKO2_ENABLE        (1U << 24)
-#define CLKO_SEL            (1U << 8)
 
 static clk_t*
 _clko_init(clk_t* clk)
@@ -800,7 +604,7 @@ _clko_init(clk_t* clk)
         /* We currently only support 1 src, but there are many to choose from */
         clk_t* parent;
         uint32_t v = clk_regs.ccm->ccosr;
-        switch(clk->id){
+        switch (clk->id) {
         case CLK_CLKO1:
             parent = clk_get_clock(clk_get_clock_sys(clk), CLK_IPG);
             /* set source */
@@ -829,16 +633,78 @@ _clko_init(clk_t* clk)
     return clk;
 }
 
-static struct clock clko1_clk = {
-    CLK_OPS(clko),
-    .id = CLK_CLKO1,
-    .priv = NULL,
-    .name = "CLKO1",
+static struct clock clko1_clk = { CLK_OPS(CLKO1, clko, NULL) };
+static struct clock clko2_clk = { CLK_OPS(CLKO2, clko, NULL) };
+
+static int
+imx6_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+{
+    assert(clk_regs.ccm);
+    assert(mode == CLKGATE_ON);
+    (void)assert(gate >= 0);
+    assert(gate < 112);
+
+    uint32_t v;
+    uint32_t reg = gate / 16;
+    uint32_t shift = (gate & 0xf) * 2;
+    v = clk_regs.ccm->ccgr[reg];
+    v &= ~(CLKGATE_MASK << shift);
+    v |= (CLKGATE_ON_ALL << shift);
+    clk_regs.ccm->ccgr[reg] = v;
+    return 0;
+}
+
+int
+clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+{
+    MAP_IF_NULL(o, CCM       , clk_regs.ccm);
+    MAP_IF_NULL(o, CCM_ANALOG, clk_regs.alg);
+    clock_sys->priv = (void*)&clk_regs;
+    clock_sys->get_clock = &ps_get_clock;
+    clock_sys->gate_enable = &imx6_gate_enable;
+    return 0;
+}
+
+void
+clk_print_clock_tree(clock_sys_t* sys)
+{
+    clk_t *clk = clk_get_clock(sys, CLK_MASTER);
+    clk_print_tree(clk, "");
+}
+
+
+
+
+clk_t* ps_clocks[] = {
+    [CLK_MASTER]   = &master_clk,
+    [CLK_PLL2  ]   = &pll2_clk,
+    [CLK_MMDC_CH0] = &mmdc_ch0_clk,
+    [CLK_AHB]      = &ahb_clk,
+    [CLK_IPG]      = &ipg_clk,
+    [CLK_ARM]      = &arm_clk,
+    [CLK_ENET]     = &enet_clk,
+    [CLK_USB1]     = &usb1_clk,
+    [CLK_USB2]     = &usb2_clk,
+    [CLK_CLKO1]    = &clko1_clk,
+    [CLK_CLKO2]    = &clko2_clk,
 };
 
-static struct clock clko2_clk = {
-    CLK_OPS(clko),
-    .id = CLK_CLKO2,
-    .priv = NULL,
-    .name = "CLKO2"
+/* These frequencies are NOT the recommended
+ * frequencies. They are to be used when we
+ * need to make assumptions about what u-boot
+ * has left us with. */
+freq_t ps_freq_default[] = {
+    [CLK_MASTER]   =  24 * MHZ,
+    [CLK_PLL2  ]   = 528 * MHZ,
+    [CLK_MMDC_CH0] = 528 * MHZ,
+    [CLK_AHB]      = 132 * MHZ,
+    [CLK_IPG]      =  66 * MHZ,
+    [CLK_ARM]      = 792 * MHZ,
+    [CLK_ENET]     =  48 * MHZ,
+    [CLK_USB1]     = 480 * MHZ,
+    [CLK_USB2]     = 480 * MHZ,
+    [CLK_CLKO1]    =  66 * MHZ,
+    [CLK_CLKO2]    = 528 * MHZ,
 };
+
+

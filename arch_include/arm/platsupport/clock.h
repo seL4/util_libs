@@ -49,8 +49,8 @@ struct clock {
     const char* name;
     /// Clock specific private data
     void *priv;
-    /// The requested frequency
-    freq_t freq;
+    /// The requested frequency (not the actual frequency)
+    freq_t req_freq;
     /* For requesting a freq change up the tree. This should
      * be NULL until clk_register_child has been called */
     clk_t* parent;
@@ -58,10 +58,10 @@ struct clock {
     clk_t* sibling;
     /// For signalling a freq change down the tree
     clk_t* child;
-    /* Changing parents and initialisation requires access to the clock 
+    /* Changing parents and initialisation requires access to the clock
      * subsystem. A reference is stored here for convenience */
     clock_sys_t* clk_sys;
-    /// Clock specific functions 
+    /// Clock specific functions
     clk_t* (*init)(clk_t* clk);
     freq_t (*get_freq)(clk_t*);
     freq_t (*set_freq)(clk_t*, freq_t hz);
@@ -69,30 +69,58 @@ struct clock {
 };
 
 
-static inline int clock_sys_valid(const clock_sys_t* clock_sys){
+/**
+ * Determine if a clock subsystem structure is valid
+ * @param[in] clock_sys  A handle to the clock subsystem
+ * @return               1 if the structure is valid;
+ */
+static inline int clock_sys_valid(const clock_sys_t* clock_sys)
+{
     return clock_sys && clock_sys->priv;
 }
 
 
 /**
  * Initialise the clock subsystem
- * @parm[in] io_ops      A handle to io operations that may be used
- *                       initialisation
+ * @parm[in] io_ops      A handle to io operations that may be used for
+ *                       initialisation. If NULL is passed, the clock system
  * @param[out] clock_sys On success, clk_sys will contain a handle
  *                       to the clocking subsystem
  * @return               0 on success
  */
 int clock_sys_init(ps_io_ops_t* io_ops, clock_sys_t* clock_sys);
 
+/**
+ * Initialise a clock subsystem that does not support clock configuration
+ * and reports a static set of default clock frequencies.
+ * The use of this initialisation method is not advised as the accuracy
+ * of default clock frequencies are heavily tied to what the bootloader
+ * may (or may not) have configured.
+ * @param[out] clock_sys On success, clk_sys will contain a handle
+ *                       to the clocking subsystem
+ * @return               0 on success
+ */
+int clock_sys_init_default(clock_sys_t* clock_sys);
+
+/**
+ * Override the default frequency for a clock.
+ * This function may be used in conjunction with clock_sys_init_default.
+ * Again, the use of these methods are not advised.
+ * @param[in] id         The ID of the clock to configure
+ * @param[in] hz         The frequency of the clock
+ * @return               0 on success
+ */
+int clock_sys_set_default_freq(enum clk_id id, freq_t hz);
 
 /**
  * Initialise and acquire a system clock
  * @param[in] clock_sys  A handle to the clock subsystem
  * @param[in] id         The ID of the clock to acquire
- * @return               On success, a handle to the acquired clock. 
+ * @return               On success, a handle to the acquired clock.
  *                       Otherwise, NULL.
  */
-static inline clk_t* clk_get_clock(clock_sys_t* clock_sys, enum clk_id id){
+static inline clk_t* clk_get_clock(clock_sys_t* clock_sys, enum clk_id id)
+{
     clk_t * clk;
     assert(clock_sys);
     assert(clock_sys->get_clock);
@@ -100,7 +128,7 @@ static inline clk_t* clk_get_clock(clock_sys_t* clock_sys, enum clk_id id){
     return clk;
 };
 
-/** 
+/**
  * prints a list of initialised clocks
  * @param[in] clock_sys  A handle to the clock subsystem
  */
@@ -115,7 +143,8 @@ void clk_print_clock_tree(clock_sys_t* clock_sys);
 
  */
 static inline int clk_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate,
-                                   enum clock_gate_mode mode){
+                                  enum clock_gate_mode mode)
+{
     assert(clock_sys);
     assert(clock_sys->gate_enable);
     return clock_sys->gate_enable(clock_sys, gate, mode);
@@ -125,7 +154,7 @@ static inline int clk_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate,
  * Set the clock frequency.
  * @param[in] clk    The clock to set the frequency of.
  * @param[in] hz     Hz to set the clk to
- * @return           The hz the clock was set to 
+ * @return           The hz the clock was set to
  *                   (may not exactly match input param)
  */
 static inline freq_t clk_set_freq(clk_t* clk, freq_t hz)
@@ -139,10 +168,11 @@ static inline freq_t clk_set_freq(clk_t* clk, freq_t hz)
  * Set the clock frequency.
  * @param[in] clk    The clock to set the frequency of.
  * @param[in] hz     Hz to set the clk to
- * @return           The hz the clock was set to 
+ * @return           The hz the clock was set to
  *                   (may not exactly match input param)
  */
-static inline freq_t clk_get_freq(clk_t* clk){
+static inline freq_t clk_get_freq(clk_t* clk)
+{
     assert(clk);
     assert(clk->get_freq);
     return clk->get_freq(clk);

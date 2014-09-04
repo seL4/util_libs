@@ -8,6 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 #include "../../arch/arm/clock.h"
+#include "../../mach/exynos/clock.h"
 #include "../../services.h"
 #include <assert.h>
 #include <string.h>
@@ -24,50 +25,205 @@
 #define EXYNOS5_CMU_R1X_PADDR   0x1002C000
 #define EXYNOS5_CMU_CDREX_PADDR 0x10030000
 
-#define EXYNOS5_CMUX_SIZE       0x1000
-#define EXYNOS5_CMU_CPU_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_CORE_SIZE  EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_ACP_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_ISP_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_TOP_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_LEX_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_R0X_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_R1X_SIZE   EXYNOS5_CMUX_SIZE
-#define EXYNOS5_CMU_CDREX_SIZE EXYNOS5_CMUX_SIZE
+#define EXYNOS5_CMU_SIZE       0x1000
+#define EXYNOS5_CMU_CPU_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_CORE_SIZE   EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_ACP_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_ISP_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_TOP_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_LEX_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_R0X_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_R1X_SIZE    EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_CDREX_SIZE  EXYNOS5_CMU_SIZE
 
 
+#define CLKID_UART0      CLKID(TOP, 23, 0)
+#define CLKID_UART1      CLKID(TOP, 23, 1)
+#define CLKID_UART2      CLKID(TOP, 23, 2)
+#define CLKID_UART3      CLKID(TOP, 23, 3)
+#define CLKID_PWM        CLKID(TOP, 23, 4)
+#define CLKID_SPI0       CLKID(TOP, 24, 4)
+#define CLKID_SPI1       CLKID(TOP, 24, 5)
+#define CLKID_SPI2       CLKID(TOP, 24, 6)
+#define CLKID_SPI0_ISP   CLKID(TOP, 28, 0)
+#define CLKID_SPI1_ISP   CLKID(TOP, 28, 1)
 
-static struct clock_regs {
-    void* cpu;
-    void* core;
-    void* acp;
-    void* isp;
-    void* top;
-    void* lex;
-    void* r0x;
-    void* r1x;
-    void* cdrex;
-} clk_regs;
-
-static struct clock master_clk;
-
-static clk_t* clks[] = {
-    [CLK_MASTER]   = &master_clk,
+enum clkregs {
+    CLKREGS_CPU,
+    CLKREGS_CORE,
+    CLKREGS_ACP,
+    CLKREGS_ISP,
+    CLKREGS_TOP,
+    CLKREGS_LEX,
+    CLKREGS_R0X,
+    CLKREGS_R1X,
+    CLKREGS_CDREX,
+    NCLKREGS
 };
 
-static const freq_t freq_default[] = {
-    [CLK_MASTER]   = 24 * MHZ,
-};
+/* Available clock sources for the peripheral block */
+static enum clk_id clk_src_peri_blk[] = {
+                                            CLK_MASTER,
+                                            CLK_MASTER,
+                                            -1, /* CLK_HDMI27M   */
+                                            -1, /* CLK_DPTXPHY   */
+                                            -1, /* CLK_UHOSTPHY  */
+                                            -1, /* CLK_HDMIPHY   */
+                                            -1, /* CLK_MPLL_USER */
+                                            -1, /* CLK_EPLL      */
+                                            -1, /* CLK_VPLL      */
+                                            -1  /* CLK_CPLL      */
+                                        };
 
-static clk_t*
-exynos5_get_clock(clock_sys_t* sys, enum clk_id id)
+
+static struct clk_regs* clk_regs[NCLKREGS];
+
+static struct clock master_clk = { CLK_OPS(MASTER, default_clk, NULL) };
+
+/* The SPI div register is a special case as we have 2 dividers, one of which
+ * is 2 nibbles wide */
+static freq_t
+_spi_get_freq(clk_t* clk)
 {
-    clk_t* clk = clks[id];
-    assert(clk);
-    clk->clk_sys = sys;
-    return clk_init(clk);
+    freq_t fin;
+    int clkid;
+    int rpre, r;
+    clkid = exynos_clk_get_priv_id(clk);
+    switch (clk->id) {
+    case CLK_SPI0:
+    case CLK_SPI0_ISP:
+    case CLK_SPI1_ISP:
+        break;
+    case CLK_SPI1:
+        clkid += 3;
+        break;
+    case CLK_SPI2:
+        clkid += 6;
+        break;
+    default:
+        return 0;
+    }
+    r = exynos_cmu_get_div(clk_regs, clkid, 1);
+    rpre = exynos_cmu_get_div(clk_regs, clkid + 3, 2);
+    fin = clk_get_freq(clk->parent);
+    return fin / (r + 1) / (rpre + 1);
 }
 
+static freq_t
+_spi_set_freq(clk_t* clk, freq_t hz)
+{
+    freq_t fin;
+    int clkid;
+    int rpre, r;
+    clkid = exynos_clk_get_priv_id(clk);
+    switch (clk->id) {
+    case CLK_SPI0:
+    case CLK_SPI0_ISP:
+    case CLK_SPI1_ISP:
+        break;
+    case CLK_SPI1:
+        clkid += 3;
+        break;
+    case CLK_SPI2:
+        clkid += 6;
+        break;
+    default:
+        return 0;
+    }
+    fin = clk_get_freq(clk->parent);
+    r = fin / 0xff / hz;
+    rpre = fin / (r + 1) / hz;
+    exynos_cmu_set_div(clk_regs, clkid, 1, r);
+    exynos_cmu_set_div(clk_regs, clkid + 3, 2, rpre);
+    return clk_get_freq(clk);
+}
+
+static void
+_spi_recal(clk_t* clk)
+{
+    assert(!"Not implemented");
+}
+
+static clk_t*
+_spi_init(clk_t* clk)
+{
+    /* MUX -> DIVspix -> DIVspipre */
+    clk_t* parent;
+    int clkid;
+    int src;
+    clkid = exynos_clk_get_priv_id(clk);
+    src = exynos_cmu_get_src(clk_regs, clkid);
+    assert(src < ARRAY_SIZE(clk_src_peri_blk) && src >= 0);
+    assert(clk_src_peri_blk[src] != -1);
+    parent = clk_get_clock(clk->clk_sys, clk_src_peri_blk[src]);
+    assert(parent);
+    clk_init(parent);
+    clk_register_child(parent, clk);
+    return clk;
+}
+
+static struct clock spi0_clk     = { CLK_OPS(SPI0    , spi, CLKID_SPI0    ) };
+static struct clock spi1_clk     = { CLK_OPS(SPI1    , spi, CLKID_SPI1    ) };
+static struct clock spi2_clk     = { CLK_OPS(SPI2    , spi, CLKID_SPI2    ) };
+static struct clock spi0_isp_clk = { CLK_OPS(SPI0_ISP, spi, CLKID_SPI0_ISP) };
+static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, CLKID_SPI1_ISP) };
+
+
+
+static freq_t
+_peric_clk_get_freq(clk_t* clk)
+{
+    freq_t fin;
+    int clkid;
+    int div;
+    clkid = exynos_clk_get_priv_id(clk);
+    div = exynos_cmu_get_div(clk_regs, clkid, 1);
+    fin = clk_get_freq(clk->parent);
+    return fin / (div + 1);
+}
+
+static freq_t
+_peric_clk_set_freq(clk_t* clk, freq_t hz)
+{
+    freq_t fin;
+    int clkid;
+    int div;
+    fin = clk_get_freq(clk->parent);
+    clkid = exynos_clk_get_priv_id(clk);
+    div = fin / hz;
+    exynos_cmu_set_div(clk_regs, clkid, 1, div);
+    return clk_get_freq(clk);
+}
+
+static void
+_peric_clk_recal(clk_t* clk)
+{
+    assert(!"Not implemented");
+}
+
+static clk_t*
+_peric_clk_init(clk_t* clk)
+{
+    /* MUX -> DIVuartx -> DIVuartpre */
+    clk_t* parent;
+    int clkid;
+    int src;
+    clkid = exynos_clk_get_priv_id(clk);
+    src = exynos_cmu_get_src(clk_regs, clkid);
+    assert(src < ARRAY_SIZE(clk_src_peri_blk) && src >= 0);
+    assert(clk_src_peri_blk[src] != -1);
+    parent = clk_get_clock(clk->clk_sys, clk_src_peri_blk[src]);
+    assert(parent);
+    clk_init(parent);
+    clk_register_child(parent, clk);
+    return clk;
+}
+
+static struct clock uart0_clk = { CLK_OPS(UART0, peric_clk, CLKID_UART0) };
+static struct clock uart1_clk = { CLK_OPS(UART1, peric_clk, CLKID_UART1) };
+static struct clock uart2_clk = { CLK_OPS(UART2, peric_clk, CLKID_UART2) };
+static struct clock uart3_clk = { CLK_OPS(UART3, peric_clk, CLKID_UART3) };
+static struct clock pwm_clk   = { CLK_OPS(PWM  , peric_clk, CLKID_PWM  ) };
 static int
 exynos5_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
 {
@@ -75,9 +231,10 @@ exynos5_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gat
 }
 
 static int
-clock_sys_common_init(clock_sys_t* clock_sys){
+clock_sys_common_init(clock_sys_t* clock_sys)
+{
     clock_sys->priv = (void*)&clk_regs;
-    clock_sys->get_clock = &exynos5_get_clock;
+    clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &exynos5_gate_enable;
     return 0;
 }
@@ -87,79 +244,92 @@ exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
                        void* lex, void* r0x,  void* r1x, void* cdrex,
                        clock_sys_t* clock_sys)
 {
-    struct clock_regs* regs = &clk_regs;
-    if(cpu)   regs->cpu   = cpu;
-    if(core)  regs->core  = core;
-    if(acp)   regs->acp   = acp;
-    if(isp)   regs->isp   = isp;
-    if(top)   regs->top   = top;
-    if(lex)   regs->lex   = lex;
-    if(r0x)   regs->r0x   = r0x;
-    if(r1x)   regs->r1x   = r1x;
-    if(cdrex) regs->cdrex = cdrex;
+    if (cpu) {
+        clk_regs[CLKREGS_CPU]   = cpu;
+    }
+    if (core) {
+        clk_regs[CLKREGS_CORE]  = core;
+    }
+    if (acp) {
+        clk_regs[CLKREGS_ACP]   = acp;
+    }
+    if (isp) {
+        clk_regs[CLKREGS_ISP]   = isp;
+    }
+    if (top) {
+        clk_regs[CLKREGS_TOP]   = top;
+    }
+    if (lex) {
+        clk_regs[CLKREGS_LEX]   = lex;
+    }
+    if (r0x) {
+        clk_regs[CLKREGS_R0X]   = r0x;
+    }
+    if (r1x) {
+        clk_regs[CLKREGS_R1X]   = r1x;
+    }
+    if (cdrex) {
+        clk_regs[CLKREGS_CDREX] = cdrex;
+    }
     return clock_sys_common_init(clock_sys);
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys){
-    struct clock_regs* regs = &clk_regs;
-    MAP_IF_NULL(o, EXYNOS5_CMU_CPU,   regs->cpu);
-    MAP_IF_NULL(o, EXYNOS5_CMU_CORE,  regs->core);
-    MAP_IF_NULL(o, EXYNOS5_CMU_ACP,   regs->acp);
-    MAP_IF_NULL(o, EXYNOS5_CMU_ISP,   regs->isp);
-    MAP_IF_NULL(o, EXYNOS5_CMU_TOP,   regs->top);
-    MAP_IF_NULL(o, EXYNOS5_CMU_LEX,   regs->lex);
-    MAP_IF_NULL(o, EXYNOS5_CMU_R0X,   regs->r0x);
-    MAP_IF_NULL(o, EXYNOS5_CMU_R1X,   regs->r1x);
-    MAP_IF_NULL(o, EXYNOS5_CMU_CDREX, regs->cdrex);
+clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+{
+    MAP_IF_NULL(o, EXYNOS5_CMU_CPU,   clk_regs[CLKREGS_CPU]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_CORE,  clk_regs[CLKREGS_CORE]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_ACP,   clk_regs[CLKREGS_ACP]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_ISP,   clk_regs[CLKREGS_ISP]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_TOP,   clk_regs[CLKREGS_TOP]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_LEX,   clk_regs[CLKREGS_LEX]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_R0X,   clk_regs[CLKREGS_R0X]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_R1X,   clk_regs[CLKREGS_R1X]);
+    MAP_IF_NULL(o, EXYNOS5_CMU_CDREX, clk_regs[CLKREGS_CDREX]);
     return clock_sys_common_init(clock_sys);
 }
+
 
 void
 clk_print_clock_tree(clock_sys_t* sys)
 {
-    clk_t *clk = clk_get_clock(sys, CLK_MASTER);
+    (void)sys;
+    clk_t* clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");
-    assert(!"Not implemented");
 }
 
 
-/* MASTER_CLK */
-static freq_t
-_master_get_freq(clk_t* clk)
-{
-    return clk->freq;
-}
-
-static freq_t
-_master_set_freq(clk_t* clk, freq_t hz)
-{
-    /* Master clock frequency is fixed */
-    (void)hz;
-    return clk_get_freq(clk);
-}
-
-static void
-_master_recal(clk_t* clk UNUSED)
-{
-    assert(0);
-}
-
-static clk_t*
-_master_init(clk_t* clk)
-{
-    if (clk->priv == NULL) {
-        clk->priv = (void*)&clk_regs;
-    }
-    clk->freq = freq_default[clk->id];
-    return clk;
-}
-
-static struct clock master_clk = {
-    .id = CLK_MASTER,
-    CLK_OPS(master),
-    .freq = 0,
-    .priv = NULL,
+clk_t* ps_clocks[] = {
+    [CLK_MASTER  ]   = &master_clk,
+    [CLK_SPI0    ]   = &spi0_clk,
+    [CLK_SPI1    ]   = &spi1_clk,
+    [CLK_SPI2    ]   = &spi2_clk,
+    [CLK_SPI0_ISP]   = &spi0_isp_clk,
+    [CLK_SPI1_ISP]   = &spi1_isp_clk,
+    [CLK_UART0   ]   = &uart0_clk,
+    [CLK_UART1   ]   = &uart1_clk,
+    [CLK_UART2   ]   = &uart2_clk,
+    [CLK_UART3   ]   = &uart3_clk,
+    [CLK_PWM     ]   = &pwm_clk,
 };
+
+/* These frequencies are NOT the recommended
+ * frequencies. They are to be used when we
+ * need to make assumptions about what u-boot
+ * has left us with. */
+freq_t ps_freq_default[] = {
+    [CLK_MASTER  ]   = 24 * MHZ,
+    [CLK_SPI0    ]   = 24 * MHZ,
+    [CLK_SPI1    ]   = 24 * MHZ,
+    [CLK_SPI2    ]   = 24 * MHZ,
+    [CLK_SPI0_ISP]   = 24 * MHZ,
+    [CLK_SPI1_ISP]   = 24 * MHZ,
+    [CLK_UART0   ]   = 24 * MHZ,
+    [CLK_UART1   ]   = 24 * MHZ,
+    [CLK_UART2   ]   = 24 * MHZ,
+    [CLK_UART3   ]   = 24 * MHZ,
+    [CLK_PWM     ]   = 24 * MHZ,
+};
+
 
 
