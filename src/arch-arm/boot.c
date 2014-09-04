@@ -24,14 +24,6 @@ static struct image_info user_info;
 typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
                               paddr_t ui_p_reg_end, int32_t pv_offset, vaddr_t v_entry);
 
-/* Assembly functions. */
-extern int get_cpuid(void);
-extern void flush_dcache(void);
-extern void cpu_idle(void);
-
-/* Platform functions */
-void init_cpus(void);
-
 /* Poor-man's lock. */
 static volatile int non_boot_lock = 0;
 
@@ -85,6 +77,7 @@ void main(void)
     /* Print welcome message. */
     printf("\nELF-loader started on ");
     print_cpuid();
+    platform_init();
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
 
