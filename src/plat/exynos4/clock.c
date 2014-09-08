@@ -9,7 +9,6 @@
  */
 
 #include "../../common.h"
-#include "../../arch/arm/clock.h"
 #include "../../mach/exynos/clock.h"
 #include <assert.h>
 
@@ -44,18 +43,33 @@
 #define FINPLL_FREQ XXTI_FREQ
 #endif
 
+#define OFFSET_MOUTAPLL    (0x00 / 4)
+#define OFFSET_SCLKMPLL    (0x08 / 4)
+#define OFFSET_SCLKEPLL    (0x10 / 4)
+#define OFFSET_SCLKVPLL    (0x20 / 4)
+
+#define CLKID_MOUTAPLL     CLKID(CPU1, 0, 0)
+#define CLKID_SCLKMPLL     CLKID(DMC1, 2, 3)
+#define CLKID_SCLKEPLL     CLKID(TOP , 4, 1)
+#define CLKID_SCLKVPLL     CLKID(TOP , 4, 2)
+
+#define CLKID_DIVCORE      CLKID(CPU1, 0, 0)
+#define CLKID_ACLK_COREM0  CLKID(CPU1, 0, 1)
+#define CLKID_ACLK_COREM1  CLKID(CPU1, 0, 2)
+#define CLKID_PERIPHCLK    CLKID(CPU1, 0, 3)
+#define CLKID_ATCLK        CLKID(CPU1, 0, 4)
+#define CLKID_PCLK_DBG     CLKID(CPU1, 0, 5)
+#define CLKID_SCLKAPLL     CLKID(CPU1, 0, 6)
+#define CLKID_DIVCORE2     CLKID(CPU1, 0, 7)
+#define CLKID_DIVCOPY      CLKID(CPU1, 1, 0)
+#define CLKID_SCLKHPM      CLKID(CPU1, 1, 1)
+#define CLKID_ACLK_CORES   CLKID(CPU1, 1, 2)
+
+
 
 /************************
  ****       PLL      ****
  ************************/
-
-/* CON 0 */
-#define PLL_PMS(p,m,s)  (((p)<< 8) | ((m) << 16) | ((s) << 0))
-#define PLL_PMS_MASK    PLL_PMS(0x3f, 0x1ff, 0x3)
-#define PLL_ENABLE      BIT(31)
-#define PLL_LOCKED      BIT(29)
-/* CON1 */
-#define PLL_BYPASS      BIT(22)
 
 /**** suggested PMS values ****/
 /* fout = fin * (m/p/(1<<s)) */
@@ -87,10 +101,7 @@
 #define VPLL_266       PLL_PMS(3, 133, 2)
 #define VPLL_350       PLL_PMS(3, 175, 2)
 #define VPLL_440       PLL_PMS(3, 110, 1)
-struct pms_tbl {
-    int mhz;
-    uint32_t pms;
-};
+
 static struct pms_tbl _ampll_tbl[] = {
     { 200, AMPLL_200 },
     { 300, AMPLL_300 },
@@ -136,14 +147,6 @@ static struct pms_tbl _vpll_tbl[] = {
 /************************
  **** source options ****
  ************************/
-/* CMU_TOP fields */
-#define PERIL0      0x50
-#define TOP0        0x10
-/* CMU_DMC fields */
-#define DMC         0x00
-/* CMU_CPU fields */
-#define CPU         0x00
-
 /* PERIL CLK SEL */
 #define CLK_SEL_BITS        4
 #define CLK_SEL_SHIFT(x)    ((x)*CLK_SEL_BITS)
@@ -169,113 +172,11 @@ enum clkregs {
     NCLKREGS
 };
 
-volatile struct cmu_leftbus_regs*  _cmu_leftbus  = NULL;
-volatile struct cmu_rightbus_regs* _cmu_rightbus = NULL;
-volatile struct cmu_top_regs*      _cmu_top      = NULL;
-volatile struct cmu_dmc1_regs*     _cmu_dmc1     = NULL;
-volatile struct cmu_dmc2_regs*     _cmu_dmc2     = NULL;
-volatile struct cmu_cpu1_regs*     _cmu_cpu1     = NULL;
-volatile struct cmu_cpu2_regs*     _cmu_cpu2     = NULL;
-volatile struct cmu_isp_regs*      _cmu_isp      = NULL;
-
+volatile struct clk_regs* _clk_regs[NCLKREGS];
 
 static struct clock finpll_clk = { CLK_OPS_DEFAULT(MASTER) };
 
-static freq_t
-_pll_get_freq(clk_t* clk)
-{
-    volatile struct pll_regs *regs;
-    uint32_t mux;
-    switch (clk->id) {
-    case CLK_MOUTAPLL:
-        regs = (volatile struct pll_regs*)&_cmu_cpu1->apll_lock;
-        mux = _cmu_cpu1->clk_src_stat_cpu >> 0;
-        break;
-    case CLK_SCLKMPLL:
-        regs = (volatile struct pll_regs*)&_cmu_dmc1->mpll_lock;
-        mux = _cmu_dmc1->clk_src_stat_dmc >> 12;
-        break;
-    case CLK_SCLKEPLL:
-        regs = (volatile struct pll_regs*)&_cmu_top->epll_lock;
-        mux = _cmu_top->clk_src_stat_top0 >> 4;
-        break;
-    case CLK_SCLKVPLL:
-        regs = (volatile struct pll_regs*)&_cmu_top->vpll_lock;
-        mux = _cmu_top->clk_src_stat_top0 >> 8;
-        break;
-    default:
-        assert(0);
-        return -1;
-    }
-    if ((regs->con1) & PLL_BYPASS || (mux & 0x1)) {
-        /* Muxed or bypassed to FINPLL */
-        return clk_get_freq(clk->parent);
-    } else {
-        uint32_t v, p, m, s;
-        v = regs->con0 & PLL_PMS_MASK;
-        m = (v >> 16) & 0x1ff;
-        p = (v >>  8) &  0x3f;
-        s = (v >>  0) &   0x3;
-        return ((uint64_t)clk_get_freq(clk->parent) * m / p) >> s;
-    }
-}
 
-static freq_t
-_pll_set_freq(clk_t* clk, freq_t hz)
-{
-    volatile struct pll_regs* pll_regs;
-    struct pms_tbl *tbl;
-    int tbl_size;
-    int mhz = hz / (1 * MHZ);
-    uint32_t pms;
-    int i;
-    switch (clk->id) {
-    case CLK_SCLKEPLL:
-        tbl = _epll_tbl;
-        tbl_size = sizeof(_epll_tbl) / sizeof(*_epll_tbl);
-        pll_regs = (volatile struct pll_regs*)&_cmu_top->epll_lock;
-        break;
-    case CLK_SCLKMPLL:
-        tbl = _ampll_tbl;
-        tbl_size = sizeof(_ampll_tbl) / sizeof(*_ampll_tbl);
-        pll_regs = (volatile struct pll_regs*)&_cmu_dmc1->mpll_lock;
-        break;
-    case CLK_SCLKVPLL:
-        tbl = _vpll_tbl;
-        tbl_size = sizeof(_vpll_tbl) / sizeof(*_vpll_tbl);
-        pll_regs = (volatile struct pll_regs*)&_cmu_top->vpll_lock;
-        break;
-    case CLK_MOUTAPLL:
-        tbl = _ampll_tbl;
-        tbl_size = sizeof(_ampll_tbl) / sizeof(*_ampll_tbl);
-        pll_regs = (volatile struct pll_regs*)&_cmu_cpu1->apll_lock;
-        break;
-    default:
-        printf("Unknown clock ID %d\n", clk->id);
-        assert(0);
-        return 0;
-    }
-    /* Search the table for an appropriate value */
-    pms = tbl[tbl_size - 1].pms;
-    for (i = 0; i < tbl_size; i++) {
-        if (tbl[i].mhz >= mhz) {
-            pms = tbl[i].pms;
-            break;
-        }
-    }
-    pll_regs->con1 |= PLL_BYPASS;
-    pll_regs->con0 = pms | PLL_ENABLE;
-    while (!(pll_regs->con0 & PLL_LOCKED));
-    pll_regs->con1 &= ~PLL_BYPASS;
-    /* Can we handle this ourselves? */
-    return clk_get_freq(clk);
-}
-
-static void
-_pll_recal(clk_t* clk)
-{
-    assert(0);
-}
 
 
 static clk_t*
@@ -287,147 +188,15 @@ _pll_init(clk_t* clk)
     return clk;
 }
 
-static struct clock aoutpll_clk  = { CLK_OPS(MOUTAPLL, pll, NULL) };
-static struct clock sclkmpll_clk = { CLK_OPS(SCLKMPLL, pll, NULL) };
-static struct clock sclkepll_clk = { CLK_OPS(SCLKEPLL, pll, NULL) };
-static struct clock sclkvpll_clk = { CLK_OPS(SCLKVPLL, pll, NULL) };
+static struct pll_priv moutapll_priv = PLL_PRIV(MOUTAPLL, PMS, _ampll_tbl);
+static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, PMS, _ampll_tbl);
+static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, PMS, _epll_tbl);
+static struct pll_priv sclkvpll_priv = PLL_PRIV(SCLKVPLL, PMS, _vpll_tbl);
 
-
-static freq_t
-_div_get_freq(clk_t* clk)
-{
-    uint32_t div = 1;
-    uint32_t fin = clk_get_freq(clk->parent);
-    assert(_cmu_cpu1);
-    switch (clk->id) {
-        /* CPU 0 */
-    case CLK_DIVCORE2:
-        div = _cmu_cpu1->clk_div_cpu0 >> 28;
-        break;
-    case CLK_SCLKAPLL:
-        div = _cmu_cpu1->clk_div_cpu0 >> 24;
-        break;
-    case CLK_PCLK_DBG:
-        div = _cmu_cpu1->clk_div_cpu0 >> 20;
-        break;
-    case CLK_ATCLK:
-        div = _cmu_cpu1->clk_div_cpu0 >> 16;
-        break;
-    case CLK_PERIPHCLK:
-        div = _cmu_cpu1->clk_div_cpu0 >> 12;
-        break;
-    case CLK_ACLK_COREM1:
-        div = _cmu_cpu1->clk_div_cpu0 >> 8;
-        break;
-    case CLK_ACLK_COREM0:
-        div = _cmu_cpu1->clk_div_cpu0 >> 4;
-        break;
-    case CLK_DIVCORE:
-        div = _cmu_cpu1->clk_div_cpu0 >> 0;
-        break;
-        /* CPU1 */
-    case CLK_ACLK_CORES:
-        div = _cmu_cpu1->clk_div_cpu1 >> 8;
-        break;
-    case CLK_SCLKHPM:
-        div = _cmu_cpu1->clk_div_cpu1 >> 4;
-        break;
-    case CLK_DIVCOPY:
-        div = _cmu_cpu1->clk_div_cpu1 >> 0;
-        break;
-        /* ---- */
-    default:
-        printf("Unimplemented\n");
-        return 0;
-    }
-    div &= CLK_DIV_MASK;
-    return fin / (div + 1);
-}
-
-static freq_t
-_div_set_freq(clk_t* clk, freq_t hz)
-{
-    uint32_t p;
-    uint32_t v;
-    uint32_t div;
-    volatile uint32_t *reg;
-    int shift;
-    /* Can we achieve hz by division? */
-    p = clk_get_freq(clk->parent);
-    if (p < hz || p / (CLK_DIV_MASK + 1) > hz) {
-        clk_set_freq(clk->parent, hz);
-    }
-    p = clk_get_freq(clk->parent);
-    div = p / hz;
-    if (div > CLK_DIV_MASK) {
-        div = CLK_DIV_MASK;
-    }
-    switch (clk->id) {
-        /* CPU 0 */
-    case CLK_DIVCORE2:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 28;
-        break;
-    case CLK_SCLKAPLL:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 24;
-        break;
-    case CLK_PCLK_DBG:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 20;
-        break;
-    case CLK_ATCLK:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 16;
-        break;
-    case CLK_PERIPHCLK:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 12;
-        break;
-    case CLK_ACLK_COREM1:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 8;
-        break;
-    case CLK_ACLK_COREM0:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 4;
-        break;
-    case CLK_DIVCORE:
-        reg = &_cmu_cpu1->clk_div_cpu0;
-        shift = 0;
-        break;
-        /* CPU1 */
-    case CLK_ACLK_CORES:
-        reg = &_cmu_cpu1->clk_div_cpu1;
-        shift = 8;
-        break;
-    case CLK_SCLKHPM:
-        reg = &_cmu_cpu1->clk_div_cpu1;
-        shift = 4;
-        break;
-    case CLK_DIVCOPY:
-        reg = &_cmu_cpu1->clk_div_cpu1;
-        shift = 0;
-        break;
-        /* ---- */
-    default:
-        printf("Unimplemented\n");
-        return 0;
-    }
-    v = *reg;
-    v &= ~(CLK_DIV_MASK << shift);
-    v |= div << shift;
-//    *reg = v;
-    reg += CLK_DIVSTAT_OFFSET / 4;
-    while (*reg & (CLK_DIVSTAT_UNSTABLE << shift));
-    return clk_get_freq(clk);
-}
-
-static void
-_div_recal(clk_t* clk)
-{
-    assert(0);
-}
+static struct clock aoutpll_clk  = { CLK_OPS(MOUTAPLL, pll, &moutapll_priv) };
+static struct clock sclkmpll_clk = { CLK_OPS(SCLKMPLL, pll, &sclkmpll_priv) };
+static struct clock sclkepll_clk = { CLK_OPS(SCLKEPLL, pll, &sclkepll_priv) };
+static struct clock sclkvpll_clk = { CLK_OPS(SCLKVPLL, pll, &sclkvpll_priv) };
 
 static clk_t*
 _div_init(clk_t* clk)
@@ -469,17 +238,18 @@ _div_init(clk_t* clk)
     return clk;
 }
 
-static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL   , div, NULL) };
-static struct clock divcore_clk   = { CLK_OPS(DIVCORE    , div, NULL) };
-static struct clock arm_clk       = { CLK_OPS(DIVCORE2   , div, NULL) };
-static struct clock corem0_clk    = { CLK_OPS(ACLK_COREM0, div, NULL) };
-static struct clock corem1_clk    = { CLK_OPS(ACLK_COREM1, div, NULL) };
-static struct clock cores_clk     = { CLK_OPS(ACLK_CORES , div, NULL) };
-static struct clock periphclk_clk = { CLK_OPS(PERIPHCLK  , div, NULL) };
-static struct clock atclk_clk     = { CLK_OPS(ATCLK      , div, NULL) };
-static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG   , div, NULL) };
-static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM    , div, NULL) };
-static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, NULL) };
+
+static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL   , div, CLKID_SCLKAPLL)    };
+static struct clock divcore_clk   = { CLK_OPS(DIVCORE    , div, CLKID_DIVCORE)     };
+static struct clock arm_clk       = { CLK_OPS(DIVCORE2   , div, CLKID_DIVCORE2)    };
+static struct clock corem0_clk    = { CLK_OPS(ACLK_COREM0, div, CLKID_ACLK_COREM0) };
+static struct clock corem1_clk    = { CLK_OPS(ACLK_COREM1, div, CLKID_ACLK_COREM1) };
+static struct clock cores_clk     = { CLK_OPS(ACLK_CORES , div, CLKID_ACLK_CORES)  };
+static struct clock periphclk_clk = { CLK_OPS(PERIPHCLK  , div, CLKID_PERIPHCLK)   };
+static struct clock atclk_clk     = { CLK_OPS(ATCLK      , div, CLKID_ATCLK)       };
+static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG   , div, CLKID_PCLK_DBG)    };
+static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM    , div, CLKID_SCLKHPM)     };
+static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, CLKID_DIVCOPY)     };
 
 
 
@@ -512,21 +282,20 @@ _mux_init(clk_t* clk)
     clk_t* parent = NULL;
     uint32_t mux;
     enum clk_id parent_id[2];
-    assert(_cmu_cpu1);
     assert(clk);
     switch (clk->id) {
     case CLK_SCLKMPLL_USERC:
-        mux = _cmu_cpu1->clk_src_stat_cpu >> 24;
+        mux = _clk_regs[CLKREGS_CPU1]->srcstat[0] >> 24;
         parent_id[0] = CLK_MASTER;
         parent_id[1] = CLK_SCLKMPLL;
         break;
     case CLK_MUXHPM:
-        mux = _cmu_cpu1->clk_src_stat_cpu >> 20;
+        mux = _clk_regs[CLKREGS_CPU1]->srcstat[0] >> 20;
         parent_id[0] = CLK_MOUTAPLL;
         parent_id[1] = CLK_SCLKMPLL;
         break;
     case CLK_MUXCORE:
-        mux = _cmu_cpu1->clk_src_stat_cpu >> 16;
+        mux = _clk_regs[CLKREGS_CPU1]->srcstat[0] >> 16;
         parent_id[0] = CLK_MOUTAPLL;
         /* Tree says SCLKMPLL_USERC, Table says SCLKMPLL... */
         parent_id[1] = CLK_SCLKMPLL_USERC;
@@ -561,31 +330,27 @@ exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode
     return 0;
 }
 
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+static int
+clock_sys_common_init(clock_sys_t* clock_sys)
 {
-    MAP_IF_NULL(o, CMU_LEFTBUS , _cmu_leftbus);
-    MAP_IF_NULL(o, CMU_RIGHTBUS, _cmu_rightbus);
-    MAP_IF_NULL(o, CMU_TOP     , _cmu_top);
-    MAP_IF_NULL(o, CMU_DMC1    , _cmu_dmc1);
-    MAP_IF_NULL(o, CMU_DMC2    , _cmu_dmc2);
-    MAP_IF_NULL(o, CMU_CPU1    , _cmu_cpu1);
-    MAP_IF_NULL(o, CMU_CPU2    , _cmu_cpu2);
-    MAP_IF_NULL(o, CMU_ISP     , _cmu_isp);
-    MAPCHECK(&_cmu_leftbus->clkout_cmu_leftbus_div_stat, 0xa04);
-    MAPCHECK(&_cmu_rightbus->clkout_cmu_rightbus_div_stat, 0xa04);
-    MAPCHECK(&_cmu_dmc1->clkout_cmu_dmc_div_stat, 0xa04);
-    MAPCHECK(&_cmu_cpu1->clkout_cmu_cpu_div_stat, 0xa04);
-    MAPCHECK(&_cmu_dmc2->c2c_priv, 0x09c);
-
-    MAPCHECK(&_cmu_cpu2->ptm_status, 0x420);
-    MAPCHECK(&_cmu_isp->cmu_isp_spare[0], 0xb00);
-
-    /* TODO: create a struct for registers */
-    clock_sys->priv = (void*)0xDEADBEEF;
+    clock_sys->priv = (void*)_clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &exynos4_gate_enable;
     return 0;
+}
+
+int
+clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+{
+    MAP_IF_NULL(o, CMU_LEFTBUS , _clk_regs[CLKREGS_LEFT]);
+    MAP_IF_NULL(o, CMU_RIGHTBUS, _clk_regs[CLKREGS_RIGHT]);
+    MAP_IF_NULL(o, CMU_TOP     , _clk_regs[CLKREGS_TOP]);
+    MAP_IF_NULL(o, CMU_DMC1    , _clk_regs[CLKREGS_DMC1]);
+    MAP_IF_NULL(o, CMU_DMC2    , _clk_regs[CLKREGS_DMC2]);
+    MAP_IF_NULL(o, CMU_CPU1    , _clk_regs[CLKREGS_CPU1]);
+    MAP_IF_NULL(o, CMU_CPU2    , _clk_regs[CLKREGS_CPU2]);
+    MAP_IF_NULL(o, CMU_ISP     , _clk_regs[CLKREGS_ISP]);
+    return clock_sys_common_init(clock_sys);
 }
 
 
@@ -627,23 +392,23 @@ clk_t* ps_clocks[] = {
 freq_t ps_freq_default[] = {
     [CLK_MASTER]         = FINPLL_FREQ,
     [CLK_MOUTAPLL]       = 1000 * MHZ,
-    [CLK_SCLKMPLL]       =  800 * MHZ,
-    [CLK_SCLKEPLL]       =   96 * MHZ,
-    [CLK_SCLKVPLL]       =  108 * MHZ,
-    [CLK_SCLKAPLL]       =  500 * MHZ,
+    [CLK_MUXHPM]         = 1000 * MHZ,
+    [CLK_DIVCOPY]        =  200 * MHZ,
+    [CLK_SCLKHPM]        =  200 * MHZ,
     [CLK_MUXCORE]        = 1000 * MHZ,
-    [CLK_DIVCORE]        = 1000 * MHZ,
-    [CLK_DIVCORE2]       = 1000 * MHZ,
-    [CLK_ACLK_COREM0]    =  333 * MHZ,
-    [CLK_ACLK_COREM1]    =  167 * MHZ,
-    [CLK_ACLK_CORES]     =  250 * MHZ,
-    [CLK_PERIPHCLK]      =  125 * MHZ,
     [CLK_ATCLK]          =  200 * MHZ,
     [CLK_PCLK_DBG]       =  100 * MHZ,
-    [CLK_SCLKMPLL_USERC] =  800 * MHZ,
-    [CLK_SCLKHPM]        =  200 * MHZ,
-    [CLK_DIVCOPY]        =  200 * MHZ,
-    [CLK_MUXHPM]         = 1000 * MHZ
-};
+    [CLK_DIVCORE]        = 1000 * MHZ,
+    [CLK_DIVCORE2]       = 1000 * MHZ,
+    [CLK_PERIPHCLK]      =  125 * MHZ,
+    [CLK_ACLK_COREM1]    =  167 * MHZ,
+    [CLK_ACLK_CORES]     =  250 * MHZ,
+    [CLK_ACLK_COREM0]    =  333 * MHZ,
 
+    [CLK_SCLKAPLL]       =  500 * MHZ,
+    [CLK_SCLKVPLL]       =  108 * MHZ,
+    [CLK_SCLKEPLL]       =   96 * MHZ,
+    [CLK_SCLKMPLL]       =  800 * MHZ,
+    [CLK_SCLKMPLL_USERC] =  800 * MHZ,
+};
 
