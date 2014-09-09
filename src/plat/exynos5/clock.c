@@ -36,15 +36,28 @@
 #define EXYNOS5_CMU_R1X_SIZE    EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_CDREX_SIZE  EXYNOS5_CMU_SIZE
 
+#define OFFSET_SCLKCPLL    (0x20 / 4)
+#define OFFSET_SCLKEPLL    (0x30 / 4)
+#define OFFSET_SCLKVPLL    (0x40 / 4)
+#define OFFSET_SCLKGPLL    (0x50 / 4)
+#define OFFSET_SCLKMPLL    (0x00 / 4)
+#define OFFSET_SCLKBPLL    (0x10 / 4)
 
-#define CLKID_UART0      CLKID(TOP, 23, 0)
-#define CLKID_UART1      CLKID(TOP, 23, 1)
-#define CLKID_UART2      CLKID(TOP, 23, 2)
-#define CLKID_UART3      CLKID(TOP, 23, 3)
-#define CLKID_PWM        CLKID(TOP, 23, 4)
-#define CLKID_SPI0       CLKID(TOP, 24, 4)
-#define CLKID_SPI1       CLKID(TOP, 24, 5)
-#define CLKID_SPI2       CLKID(TOP, 24, 6)
+#define CLKID_SCLKCPLL     CLKID(TOP, 6, 2)
+#define CLKID_SCLKEPLL     CLKID(TOP, 6, 3)
+#define CLKID_SCLKVPLL     CLKID(TOP, 6, 4)
+#define CLKID_SCLKGPLL     CLKID(TOP, 6, 7)
+#define CLKID_SCLKMPLL     CLKID(CORE, 0, 2)
+#define CLKID_SCLKBPLL     CLKID(CDREX, 0, 0)
+
+#define CLKID_UART0      CLKID(TOP, 20, 0)
+#define CLKID_UART1      CLKID(TOP, 20, 1)
+#define CLKID_UART2      CLKID(TOP, 20, 2)
+#define CLKID_UART3      CLKID(TOP, 20, 3)
+#define CLKID_PWM        CLKID(TOP, 20, 5)
+#define CLKID_SPI0       CLKID(TOP, 21, 4)
+#define CLKID_SPI1       CLKID(TOP, 21, 5)
+#define CLKID_SPI2       CLKID(TOP, 21, 6)
 #define CLKID_SPI0_ISP   CLKID(TOP, 28, 0)
 #define CLKID_SPI1_ISP   CLKID(TOP, 28, 1)
 
@@ -69,16 +82,89 @@ static enum clk_id clk_src_peri_blk[] = {
                                             -1, /* CLK_DPTXPHY   */
                                             -1, /* CLK_UHOSTPHY  */
                                             -1, /* CLK_HDMIPHY   */
-                                            -1, /* CLK_MPLL_USER */
-                                            -1, /* CLK_EPLL      */
-                                            -1, /* CLK_VPLL      */
-                                            -1  /* CLK_CPLL      */
+                                            CLK_SCLKMPLL,
+                                            CLK_SCLKEPLL,
+                                            CLK_SCLKVPLL,
+                                            CLK_SCLKCPLL
                                         };
 
 
 volatile struct clk_regs* _clk_regs[NCLKREGS];
 
 static struct clock master_clk = { CLK_OPS(MASTER, default_clk, NULL) };
+
+
+static struct pms_tbl _ambcgpll_tbl[] = {
+    {  200, PLL_PMS( 3, 100, 2) },
+    {  333, PLL_PMS( 4, 222, 2) },
+    {  400, PLL_PMS( 3, 100, 1) },
+    {  533, PLL_PMS(12, 533, 1) },
+    {  600, PLL_PMS( 4, 200, 1) },
+    {  667, PLL_PMS( 7, 389, 1) },
+    {  800, PLL_PMS( 3, 100, 0) },
+    { 1000, PLL_PMS( 3, 125, 0) },
+    { 1066, PLL_PMS(12, 533, 0) },
+    { 1200, PLL_PMS( 3, 150, 0) },
+    { 1400, PLL_PMS( 3, 175, 0) },
+    { 1600, PLL_PMS( 3, 200, 0) }
+};
+
+static struct pms_tbl _epll_tbl[] = {
+    {  33, PLL_PMSK(3, 131, 5,  4719) },
+    {  45, PLL_PMSK(3,  90, 4, 20762) },
+    {  48, PLL_PMSK(2,  64, 4,     0) },
+    {  49, PLL_PMSK(3,  98, 4, 19923) },
+    {  50, PLL_PMSK(2,  67, 4, 43691) },
+    {  68, PLL_PMSK(2,  90, 4, 20762) },
+    {  74, PLL_PMSK(2,  98, 4, 19923) },
+    {  80, PLL_PMSK(2, 107, 4, 43691) },
+    {  84, PLL_PMSK(2, 112, 4,     0) },
+    {  96, PLL_PMSK(2,  64, 3,     0) },
+    { 144, PLL_PMSK(2,  96, 3,     0) },
+    { 192, PLL_PMSK(2,  64, 2,     0) },
+    { 288, PLL_PMSK(2,  96, 2,     0) },
+};
+
+static struct pms_tbl _vpll_tbl[] = {
+    {  27, PLL_PMSK(2,  72, 5,     0) },
+    {  54, PLL_PMSK(2,  72, 4,     0) },
+    {  74, PLL_PMSK(2,  99, 4,     0) },
+    { 108, PLL_PMSK(2,  72, 3,     0) },
+    { 148, PLL_PMSK(2,  99, 3, 59070) },
+    { 149, PLL_PMSK(2,  99, 3,     0) },
+    { 223, PLL_PMSK(2,  74, 2, 16384) },
+    { 300, PLL_PMSK(2, 100, 2,     0) },
+    { 320, PLL_PMSK(2, 107, 2, 43691) },
+    { 330, PLL_PMSK(2, 110, 2,     0) },
+    { 333, PLL_PMSK(2, 111, 2,     0) },
+    { 335, PLL_PMSK(2, 112, 2, 43691) },
+    { 371, PLL_PMSK(2,  62, 1, 53292) },
+    { 445, PLL_PMSK(3, 111, 1, 17285) },
+    { 446, PLL_PMSK(2,  74, 1, 16384) },
+    { 519, PLL_PMSK(3, 130, 1, 52937) },
+    { 600, PLL_PMSK(2, 100, 1,     0) },
+};
+
+
+
+
+static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, PMS, _ambcgpll_tbl);
+static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, PMS, _ambcgpll_tbl);
+static struct pll_priv sclkcpll_priv = PLL_PRIV(SCLKCPLL, PMS, _ambcgpll_tbl);
+static struct pll_priv sclkgpll_priv = PLL_PRIV(SCLKGPLL, PMS, _ambcgpll_tbl);
+
+static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, PMSK, _epll_tbl);
+static struct pll_priv sclkvpll_priv = PLL_PRIV(SCLKVPLL, PMSK, _vpll_tbl);
+
+static struct clock sclkmpll_clk  = { CLK_OPS(SCLKMPLL, pll, &sclkmpll_priv) };
+static struct clock sclkbpll_clk  = { CLK_OPS(SCLKBPLL, pll, &sclkbpll_priv) };
+static struct clock sclkcpll_clk  = { CLK_OPS(SCLKCPLL, pll, &sclkcpll_priv) };
+static struct clock sclkgpll_clk  = { CLK_OPS(SCLKGPLL, pll, &sclkgpll_priv) };
+static struct clock sclkepll_clk  = { CLK_OPS(SCLKEPLL, pll, &sclkepll_priv) };
+static struct clock sclkvpll_clk  = { CLK_OPS(SCLKVPLL, pll, &sclkvpll_priv) };
+
+
+
 
 /* The SPI div register is a special case as we have 2 dividers, one of which
  * is 2 nibbles wide */
@@ -90,21 +176,26 @@ _spi_get_freq(clk_t* clk)
     int rpre, r;
     clkid = exynos_clk_get_priv_id(clk);
     switch (clk->id) {
-    case CLK_SPI0:
     case CLK_SPI0_ISP:
+        clkid += 32;
+        break;
     case CLK_SPI1_ISP:
+        clkid += 35;
+        break;
+    case CLK_SPI0:
+        clkid += 12;
         break;
     case CLK_SPI1:
-        clkid += 3;
+        clkid += 15;
         break;
     case CLK_SPI2:
-        clkid += 6;
+        clkid += 18;
         break;
     default:
         return 0;
     }
     r = exynos_cmu_get_div(_clk_regs, clkid, 1);
-    rpre = exynos_cmu_get_div(_clk_regs, clkid + 3, 2);
+    rpre = exynos_cmu_get_div(_clk_regs, clkid + 2, 2);
     fin = clk_get_freq(clk->parent);
     return fin / (r + 1) / (rpre + 1);
 }
@@ -117,15 +208,20 @@ _spi_set_freq(clk_t* clk, freq_t hz)
     int rpre, r;
     clkid = exynos_clk_get_priv_id(clk);
     switch (clk->id) {
-    case CLK_SPI0:
     case CLK_SPI0_ISP:
+        clkid += 32;
+        break;
     case CLK_SPI1_ISP:
+        clkid += 35;
+        break;
+    case CLK_SPI0:
+        clkid += 12;
         break;
     case CLK_SPI1:
-        clkid += 3;
+        clkid += 15;
         break;
     case CLK_SPI2:
-        clkid += 6;
+        clkid += 18;
         break;
     default:
         return 0;
@@ -134,7 +230,7 @@ _spi_set_freq(clk_t* clk, freq_t hz)
     r = fin / 0xff / hz;
     rpre = fin / (r + 1) / hz;
     exynos_cmu_set_div(_clk_regs, clkid, 1, r);
-    exynos_cmu_set_div(_clk_regs, clkid + 3, 2, rpre);
+    exynos_cmu_set_div(_clk_regs, clkid + 2, 2, rpre);
     return clk_get_freq(clk);
 }
 
@@ -177,6 +273,8 @@ _peric_clk_get_freq(clk_t* clk)
     int clkid;
     int div;
     clkid = exynos_clk_get_priv_id(clk);
+    /* The DIV register has an additional 2 word offset */
+    clkid += 16;
     div = exynos_cmu_get_div(_clk_regs, clkid, 1);
     fin = clk_get_freq(clk->parent);
     return fin / (div + 1);
@@ -189,8 +287,10 @@ _peric_clk_set_freq(clk_t* clk, freq_t hz)
     int clkid;
     int div;
     fin = clk_get_freq(clk->parent);
-    clkid = exynos_clk_get_priv_id(clk);
     div = fin / hz;
+    clkid = exynos_clk_get_priv_id(clk);
+    /* The DIV register has an additional 2 word offset */
+    clkid += 16;
     exynos_cmu_set_div(_clk_regs, clkid, 1, div);
     return clk_get_freq(clk);
 }
@@ -312,6 +412,12 @@ clk_t* ps_clocks[] = {
     [CLK_UART2   ]   = &uart2_clk,
     [CLK_UART3   ]   = &uart3_clk,
     [CLK_PWM     ]   = &pwm_clk,
+    [CLK_SCLKMPLL]   = &sclkmpll_clk,
+    [CLK_SCLKBPLL]   = &sclkbpll_clk,
+    [CLK_SCLKCPLL]   = &sclkcpll_clk,
+    [CLK_SCLKGPLL]   = &sclkgpll_clk,
+    [CLK_SCLKEPLL]   = &sclkepll_clk,
+    [CLK_SCLKVPLL]   = &sclkvpll_clk
 };
 
 /* These frequencies are NOT the recommended
@@ -319,18 +425,22 @@ clk_t* ps_clocks[] = {
  * need to make assumptions about what u-boot
  * has left us with. */
 freq_t ps_freq_default[] = {
-    [CLK_MASTER  ]   = 24 * MHZ,
-    [CLK_SPI0    ]   = 24 * MHZ,
-    [CLK_SPI1    ]   = 24 * MHZ,
-    [CLK_SPI2    ]   = 24 * MHZ,
-    [CLK_SPI0_ISP]   = 24 * MHZ,
-    [CLK_SPI1_ISP]   = 24 * MHZ,
-    [CLK_UART0   ]   = 24 * MHZ,
-    [CLK_UART1   ]   = 24 * MHZ,
-    [CLK_UART2   ]   = 24 * MHZ,
-    [CLK_UART3   ]   = 24 * MHZ,
-    [CLK_PWM     ]   = 24 * MHZ,
+    [CLK_MASTER  ]   =    24 * MHZ,
+    [CLK_SCLKVPLL]   =    24 * MHZ,
+    [CLK_SCLKGPLL]   =  1056 * MHZ,
+    [CLK_SCLKBPLL]   =   800 * MHZ,
+    [CLK_PWM     ]   =    24 * MHZ,
+    [CLK_SCLKCPLL]   =   640 * MHZ,
+    [CLK_UART3   ]   =    64 * MHZ,
+    [CLK_UART2   ]   =    64 * MHZ,
+    [CLK_UART1   ]   =    64 * MHZ,
+    [CLK_UART0   ]   =    64 * MHZ,
+    [CLK_SPI1_ISP]   =    24 * MHZ,
+    [CLK_SPI0_ISP]   =    24 * MHZ,
+    [CLK_SCLKMPLL]   =   532 * MHZ,
+    [CLK_SPI1    ]   = 53200 * KHZ,
+    [CLK_SCLKEPLL]   =    24 * MHZ,
+    [CLK_SPI2    ]   =     6 * MHZ,
+    [CLK_SPI0    ]   =     6 * MHZ,
 };
-
-
 

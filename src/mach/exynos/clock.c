@@ -52,7 +52,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
     clkid = exynos_clk_get_priv_id(clk);
     clk_regs = clk_get_clk_regs(clk);
     fin = clk_get_freq(clk->parent);
-    if (fin / 1 < hz){
+    if (fin / 1 < hz) {
         /* Parent frequency too low */
         fin = clk_set_freq(clk->parent, hz * (MASK(DIV_VAL_BITS) / 2 + 1));
     }
@@ -152,3 +152,13 @@ _pll_recal(clk_t* clk)
 {
     assert(0);
 }
+
+clk_t*
+_pll_init(clk_t* clk)
+{
+    clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
+    clk_init(parent);
+    clk_register_child(parent, clk);
+    return clk;
+}
+

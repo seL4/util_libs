@@ -23,6 +23,12 @@ enum clk_id {
     CLK_UART2,
     CLK_UART3,
     CLK_PWM,
+    CLK_SCLKMPLL,
+    CLK_SCLKBPLL,
+    CLK_SCLKCPLL,
+    CLK_SCLKGPLL,
+    CLK_SCLKEPLL,
+    CLK_SCLKVPLL,
     NCLOCKS,
 };
 

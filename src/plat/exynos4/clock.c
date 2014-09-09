@@ -178,16 +178,6 @@ static struct clock finpll_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 
 
-
-static clk_t*
-_pll_init(clk_t* clk)
-{
-    clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
-    clk_init(parent);
-    clk_register_child(parent, clk);
-    return clk;
-}
-
 static struct pll_priv moutapll_priv = PLL_PRIV(MOUTAPLL, PMS, _ampll_tbl);
 static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, PMS, _ampll_tbl);
 static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, PMS, _epll_tbl);
