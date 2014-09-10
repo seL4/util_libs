@@ -66,22 +66,6 @@
 
 static clk_t *clk;
 
-static void uart_reset(struct ps_chardevice *d)
-{
-    *REG_PTR(d->vaddr, ULCON)    = 0x00000000;
-    *REG_PTR(d->vaddr, UCON)     = 0x00003000;
-    *REG_PTR(d->vaddr, UFCON)    = 0x00000000;
-    *REG_PTR(d->vaddr, UMCON)    = 0x00000000;
-//  *REG_PTR(d->vaddr, UTRSTAT)  = 0x00000000;
-//  *REG_PTR(d->vaddr, UERSTAT)  = 0x00000000;
-//  *REG_PTR(d->vaddr, UFSTAT)   = 0x00000000;
-//  *REG_PTR(d->vaddr, UMSTAT)   = 0x00000000;
-    *REG_PTR(d->vaddr, UBRDIV)   = 0x00000000;
-    *REG_PTR(d->vaddr, UFRACVAL) = 0x00000000;
-    *REG_PTR(d->vaddr, UINTP)    = 0x00000000;
-    *REG_PTR(d->vaddr, UINTSP)   = 0x00000000;
-    *REG_PTR(d->vaddr, UINTM)    = 0x0000000f;
-}
 
 static int uart_getchar(struct ps_chardevice *d)
 {
@@ -113,7 +97,7 @@ static void uart_flush(struct ps_chardevice *d)
 
 static void uart_handle_irq(struct ps_chardevice *d UNUSED, int irq UNUSED)
 {
-	/*TODO*/
+    /*TODO*/
 }
 
 #define BRDIV_BITS 16
@@ -122,7 +106,7 @@ static int uart_set_baud(const struct ps_chardevice *d, long bps)
     long div_val, sclk_uart;
     uint32_t brdiv, brfrac;
 
-    sclk_uart = 64000000;/*clk_get_freq(clk)*/;
+    sclk_uart = UART_DEFAULT_FIN;/*clk_get_freq(clk)*/;
     div_val  = sclk_uart / bps - 16;
     /* Check if we need to scale down the clock */
     if (div_val / 16 >> BRDIV_BITS > 0) {
@@ -143,7 +127,8 @@ static int uart_set_baud(const struct ps_chardevice *d, long bps)
 }
 
 static int
-uart_set_charsize(struct ps_chardevice* d, int char_size){
+uart_set_charsize(struct ps_chardevice* d, int char_size)
+{
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
     v &= ~(0x3 << 0);
@@ -168,7 +153,8 @@ uart_set_charsize(struct ps_chardevice* d, int char_size){
 }
 
 static int
-uart_set_stop(struct ps_chardevice *d, int stop_bits){
+uart_set_stop(struct ps_chardevice *d, int stop_bits)
+{
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
     v &= ~(0x1 << 2);
@@ -187,7 +173,8 @@ uart_set_stop(struct ps_chardevice *d, int stop_bits){
 }
 
 static int
-uart_set_parity(struct ps_chardevice *d, enum uart_parity parity){
+uart_set_parity(struct ps_chardevice *d, enum uart_parity parity)
+{
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
     v &= ~(0x7 << 3);
@@ -209,12 +196,13 @@ uart_set_parity(struct ps_chardevice *d, enum uart_parity parity){
 }
 
 int
-uart_configure(struct ps_chardevice *d, long bps, int char_size, 
-               enum uart_parity parity, int stop_bits){
+uart_configure(struct ps_chardevice *d, long bps, int char_size,
+               enum uart_parity parity, int stop_bits)
+{
     return uart_set_baud(d, bps)
-        || uart_set_parity(d, parity)
-        || uart_set_charsize(d, char_size)
-        || uart_set_stop(d, stop_bits);
+           || uart_set_parity(d, parity)
+           || uart_set_charsize(d, char_size)
+           || uart_set_stop(d, stop_bits);
 }
 
 /** Legacy **/
@@ -235,8 +223,8 @@ static int uart_ioctl(struct ps_chardevice *d, int param, long arg)
 }
 
 struct ps_chardevice* uart_init(const struct dev_defn* defn,
-        const ps_io_ops_t* ops,
-        struct ps_chardevice* dev) {
+                                const ps_io_ops_t* ops,
+                                struct ps_chardevice* dev) {
 
     int v;
     void* vaddr = chardev_map(defn, ops);
@@ -261,48 +249,45 @@ struct ps_chardevice* uart_init(const struct dev_defn* defn,
 
     /* reset and initialise hardware */
 #ifdef PLAT_EXYNOS5
-    if(mux_sys_valid(&ops->mux_sys)){
+    if (mux_sys_valid(&ops->mux_sys)) {
         /* The interface declares ops as a const, but this
-         * can no longer be true as we may need to modify the 
+         * can no longer be true as we may need to modify the
          * MUX/CLOCK. The interface should be updated. Until it
          * is, we have a dirty cast. */
         mux_sys_t* mux_sys = (mux_sys_t*)&ops->mux_sys;
         int err;
-        switch(dev->id){
-        case EXYNOS5_UART0:
+        switch (dev->id) {
+        case PS_SERIAL0:
             err = mux_feature_enable(mux_sys, MUX_UART0);
             break;
-        case EXYNOS5_UART1:
+        case PS_SERIAL1:
             err = mux_feature_enable(mux_sys, MUX_UART1);
             break;
-        case EXYNOS5_UART2:
+        case PS_SERIAL2:
             err = mux_feature_enable(mux_sys, MUX_UART2);
             break;
-        case EXYNOS5_UART3: 
+        case PS_SERIAL3:
             err = mux_feature_enable(mux_sys, MUX_UART3);
             break;
         default:
             printf("Invalid UART ID %d! Could not initialise MUX\n", dev->id);
             err = 0;
         }
-        if(err){
+        if (err) {
             printf("Failed to initialise MUX for UART %d\n", dev->id);
         }
- 
-    }else{
+
+    } else {
         printf("INFO: Skipping MUX initialisation for UART %d\n", dev->id);
     }
 #endif
 
     /* TODO: Use correct clock source */
-    if(clock_sys_valid(&ops->clock_sys)){
+    if (clock_sys_valid(&ops->clock_sys)) {
         clk = clk_get_clock(&dev->ioops.clock_sys, CLK_MASTER);
-    }else{
+    } else {
         clk = NULL;
     }
-
-    uart_reset(dev);
-    /* NOTE: Use of printf before the UART is reconfigured may cause a stall */
 
     /* Set character encoding */
     assert(!uart_configure(dev, 115200UL, 8, PARITY_NONE, 1));

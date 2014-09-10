@@ -13,7 +13,7 @@
 
 
 #include <platsupport/chardev.h>
-
+#include <platsupport/plat/uart.h>
 
 enum uart_parity {
     PARITY_EVEN,

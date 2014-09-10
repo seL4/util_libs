@@ -14,17 +14,13 @@
 
 /* official device names */
 enum chardev_id {
-    EXYNOS5_UART0,
-    EXYNOS5_UART1,
-    EXYNOS5_UART2,
-    EXYNOS5_UART3,
-    /* Aliases */
-    PS_SERIAL0 = EXYNOS5_UART0,
-    PS_SERIAL1 = EXYNOS5_UART1,
-    PS_SERIAL2 = EXYNOS5_UART2,
-    PS_SERIAL3 = EXYNOS5_UART3,
+    PS_SERIAL0,
+    PS_SERIAL1,
+    PS_SERIAL2,
+    PS_SERIAL3,
+    PS_NSERIAL,
     /* defaults */
-    PS_SERIAL_DEFAULT = EXYNOS5_UART0
+    PS_SERIAL_DEFAULT = PS_SERIAL2
 };
 
 

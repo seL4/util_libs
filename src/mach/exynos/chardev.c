@@ -16,28 +16,18 @@
 #include "../../chardev.h"
 #include "../../common.h"
 
-//#include "uart.h"
+#include <platsupport/plat/uart.h>
 
-#define UART0_PADDR 0x12C00000
-#define UART1_PADDR 0x12C10000
-#define UART2_PADDR 0x12C20000
-#define UART3_PADDR 0x12C30000
-
-#define UART0_IRQ 83
-#define UART1_IRQ 84
-#define UART2_IRQ 85
-#define UART3_IRQ 86
-
-static const int uart0_irqs[] = {UART0_IRQ, -1};
-static const int uart1_irqs[] = {UART1_IRQ, -1};
-static const int uart2_irqs[] = {UART2_IRQ, -1};
-static const int uart3_irqs[] = {UART3_IRQ, -1};
+static const int uart0_irqs[] = {EXYNOS_UART0_IRQ, -1};
+static const int uart1_irqs[] = {EXYNOS_UART1_IRQ, -1};
+static const int uart2_irqs[] = {EXYNOS_UART2_IRQ, -1};
+static const int uart3_irqs[] = {EXYNOS_UART3_IRQ, -1};
 
 struct ps_chardevice* uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev);
 
 #define UART_DEFN(devid) {                     \
-        .id      = EXYNOS5_UART##devid,          \
-        .paddr   = UART##devid##_PADDR,        \
+        .id      = PS_SERIAL##devid,           \
+        .paddr   = EXYNOS_UART##devid##_PADDR, \
         .size    = (1<<12),                    \
         .irqs    = uart##devid##_irqs,         \
         .init_fn = &uart_init                  \

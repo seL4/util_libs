@@ -8,14 +8,15 @@
  * @TAG(NICTA_BSD)
  */
 
-#define UART0_PADDR           0x12C00000
-#define UART1_PADDR           0x12C10000
-#define UART2_PADDR           0x12C20000
-#define UART3_PADDR           0x12C30000
+#define EXYNOS_UART0_PADDR           0x12C00000
+#define EXYNOS_UART1_PADDR           0x12C10000
+#define EXYNOS_UART2_PADDR           0x12C20000
+#define EXYNOS_UART3_PADDR           0x12C30000
 
-#define UART0_IRQ 83
-#define UART1_IRQ 84
-#define UART2_IRQ 85
-#define UART3_IRQ 86
+#define EXYNOS_UART0_IRQ 83
+#define EXYNOS_UART1_IRQ 84
+#define EXYNOS_UART2_IRQ 85
+#define EXYNOS_UART3_IRQ 86
 
+#define UART_DEFAULT_FIN 64000000
 

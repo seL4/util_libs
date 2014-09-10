@@ -12,6 +12,7 @@
 #define _EXYNOS4_GPIO_H
 
 #include <platsupport/gpio.h>
+#include <platsupport/mux.h>
 
 /* Port encodings */
 #define _GPIOPORT(bank, port)       (((bank) << 8) | (port))

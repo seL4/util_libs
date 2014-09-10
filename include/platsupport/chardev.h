@@ -51,8 +51,8 @@ typedef struct ps_chardevice ps_chardevice_t;
  * @return   : NULL on error, otherwise returns the device structure pointer
  */
 struct ps_chardevice* ps_cdev_init(enum chardev_id id,
-        const ps_io_ops_t* ops,
-        struct ps_chardevice* dev);
+                                   const ps_io_ops_t* ops,
+                                   struct ps_chardevice* dev);
 
 /*
  * Create a pseudo device: initialise with nop function pointers
@@ -61,7 +61,7 @@ struct ps_chardevice* ps_cdev_init(enum chardev_id id,
  * @return   : NULL on error, otherwise returns the device structure pointer
  */
 struct ps_chardevice* ps_cdev_new(const ps_io_ops_t* o,
-        struct ps_chardevice* d);
+                                  struct ps_chardevice* d);
 
 /***************************************
  *** inline character device helpers ***
@@ -71,7 +71,7 @@ static inline void ps_cdev_putchar(struct ps_chardevice* d, int c)
     int ret;
     do {
         ret = d->putchar(d, c);
-    } while (ret != c);
+    } while (ret < 0);
 }
 
 static inline int ps_cdev_getchar(struct ps_chardevice* d)
