@@ -9,13 +9,32 @@
  */
 
 #include <stdlib.h>
-#include <platsupport/plat/uart.h>
+#include <platsupport/plat/serial.h>
 
-#include "uart.h"
+#include "serial.h"
 #include <sel4/sel4.h>
+
+#define IMXUART_DLL             0x000
+#define IMXUART_RHR             0x000 /* UXRD */
+#define IMXUART_THR             0x040 /* UTXD */
+#define IMXUART_UCR1            0x080 /* Control reg */
+
+#define IMXUART_LSR             0x094 /* USR1 -- status reg */
+#define IMXUART_LSR_RXFIFIOE    (1<<9)
+#define IMXUART_LSR_RXOE        (1<<1)
+#define IMXUART_LSR_RXPE        (1<<2)
+#define IMXUART_LSR_RXFE        (1<<3)
+#define IMXUART_LSR_RXBI        (1<<4)
+#define IMXUART_LSR_TXFIFOE     (1<<13)
+#define IMXUART_LSR_TXSRE       (1<<6)
+#define IMXUART_LSR_RXFIFOSTS   (1<<7)
+
+#define UART_RHR_READY_MASK    (1 << 15)
+#define UART_BYTE_MASK           0xFF
+
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
-static int uart_getchar(struct ps_chardevice* d)
+static int uart_getchar(ps_chardevice_t* d)
 {
     int character = -1;
     uint32_t data = 0;
@@ -30,12 +49,12 @@ static int uart_getchar(struct ps_chardevice* d)
     return character;
 }
 
-static int uart_putchar(struct ps_chardevice* d, int c)
+static int uart_putchar(ps_chardevice_t* d, int c)
 {
     if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
         *REG_PTR(d->vaddr, IMXUART_THR) = c;
-        if(c == '\n') {
-            uart_putchar(d,'\r');
+        if (c == '\n') {
+            uart_putchar(d, '\r');
         }
         return c;
     } else {
@@ -43,32 +62,27 @@ static int uart_putchar(struct ps_chardevice* d, int c)
     }
 }
 
-static int uart_ioctl(struct ps_chardevice* d UNUSED, int param UNUSED, long arg UNUSED)
-{
-    /* TODO */
-    return 0;
-}
 
-static void uart_handle_irq(struct ps_chardevice* d UNUSED, int irq UNUSED)
+static void uart_handle_irq(ps_chardevice_t* d UNUSED, int irq UNUSED)
 {
     /* TODO */
 }
 
 
-struct ps_chardevice*
+int
 uart_init(const struct dev_defn* defn,
           const ps_io_ops_t* ops,
-          struct ps_chardevice* dev) {
+          ps_chardevice_t* dev)
+{
 
     void* vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
-        return NULL;
+        return -1;
     }
     dev->id         = defn->id;
     dev->vaddr      = vaddr;
     dev->getchar    = &uart_getchar;
     dev->putchar    = &uart_putchar;
-    dev->ioctl      = &uart_ioctl;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->rxirqcb    = NULL;
@@ -82,5 +96,5 @@ uart_init(const struct dev_defn* defn,
      * Enable interrrupts for receiver
      */
     *REG_PTR(dev->vaddr, IMXUART_UCR1) |= IMXUART_LSR_RXFIFIOE;
-    return dev;
+    return 0;
 }

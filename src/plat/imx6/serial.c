@@ -10,8 +10,8 @@
 
 #include <stdlib.h>
 #include <platsupport/serial.h>
-#include <platsupport/plat/uart.h>
-#include "uart.h"
+#include <platsupport/plat/serial.h>
+#include "serial.h"
 
 #define UART_REF_CLK           40089600
 
@@ -73,13 +73,13 @@ struct imx6_uart_regs {
 typedef volatile struct imx6_uart_regs imx6_uart_regs_t;
 
 static inline imx6_uart_regs_t*
-imx6_uart_get_priv(struct ps_chardevice *d)
+imx6_uart_get_priv(ps_chardevice_t *d)
 {
     return (imx6_uart_regs_t*)d->vaddr;
 }
 
 
-static int uart_getchar(struct ps_chardevice *d)
+static int uart_getchar(ps_chardevice_t *d)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     uint32_t reg = 0;
@@ -94,7 +94,7 @@ static int uart_getchar(struct ps_chardevice *d)
     return c;
 }
 
-static int uart_putchar(struct ps_chardevice* d, int c)
+static int uart_putchar(ps_chardevice_t* d, int c)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
@@ -108,15 +108,8 @@ static int uart_putchar(struct ps_chardevice* d, int c)
     }
 }
 
-static int
-uart_ioctl(struct ps_chardevice *d UNUSED, int param UNUSED, long arg UNUSED)
-{
-    /* TODO (not critical) */
-    return 0;
-}
-
 static void
-uart_handle_irq(struct ps_chardevice* d UNUSED, int irq UNUSED)
+uart_handle_irq(ps_chardevice_t* d UNUSED, int irq UNUSED)
 {
     /* TODO */
 }
@@ -127,7 +120,7 @@ uart_handle_irq(struct ps_chardevice* d UNUSED, int irq UNUSED)
  * BMR and BIR are 16 bit
  */
 static void
-imx6_uart_set_baud(struct ps_chardevice* d, long bps)
+imx6_uart_set_baud(ps_chardevice_t* d, long bps)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     uint32_t bmr, bir, fcr;
@@ -142,7 +135,7 @@ imx6_uart_set_baud(struct ps_chardevice* d, long bps)
 }
 
 int
-uart_configure(struct ps_chardevice* d, long bps, int char_size, enum uart_parity parity, int stop_bits)
+uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     uint32_t cr2;
@@ -184,15 +177,16 @@ uart_configure(struct ps_chardevice* d, long bps, int char_size, enum uart_parit
     return 0;
 }
 
-struct ps_chardevice* uart_init(const struct dev_defn* defn,
-                                const ps_io_ops_t* ops,
-                                struct ps_chardevice* dev) {
+int uart_init(const struct dev_defn* defn,
+              const ps_io_ops_t* ops,
+              ps_chardevice_t* dev)
+{
     imx6_uart_regs_t* regs;
 
     /* Attempt to map the virtual address, assure this works */
     void* vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
-        return NULL;
+        return -1;
     }
 
     /* Set up all the  device properties. */
@@ -200,7 +194,6 @@ struct ps_chardevice* uart_init(const struct dev_defn* defn,
     dev->vaddr      = (void*)vaddr;
     dev->getchar    = &uart_getchar;
     dev->putchar    = &uart_putchar;
-    dev->ioctl      = &uart_ioctl;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->rxirqcb    = NULL;
@@ -228,6 +221,6 @@ struct ps_chardevice* uart_init(const struct dev_defn* defn,
     regs->fcr |= UART_FCR_RXTL(1);               /* Set the rx tigger level to 1.     */
     regs->cr1 |= UART_CR1_RRDYEN;                /* Enable recv interrupt.            */
 
-    return dev;
+    return 0;
 }
 

@@ -11,6 +11,15 @@
 #ifndef __PLATSUPPORT_PLAT_CHARDEV_H__
 #define __PLATSUPPORT_PLAT_CHARDEV_H__
 
+#define UART1_PADDR  0x4806a000
+#define UART2_PADDR  0x4806c000
+#define UART3_PADDR  0x49020000
+#define UART4_PADDR  0x49042000
+
+#define UART1_IRQ    72
+#define UART2_IRQ    73
+#define UART3_IRQ    74
+#define UART4_IRQ    80
 
 /* official device names */
 enum chardev_id {

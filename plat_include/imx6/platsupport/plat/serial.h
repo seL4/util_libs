@@ -8,9 +8,20 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_CHARDEV_H__
-#define __PLATSUPPORT_PLAT_CHARDEV_H__
+#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
+#define __PLATSUPPORT_PLAT_SERIAL_H__
 
+#define UART1_PADDR  0x02020000
+#define UART2_PADDR  0x021E8000
+#define UART3_PADDR  0x021EC000
+#define UART4_PADDR  0x021F0000
+#define UART5_PADDR  0x021F4000
+
+#define UART1_IRQ    58
+#define UART2_IRQ    59
+#define UART3_IRQ    60
+#define UART4_IRQ    61
+#define UART5_IRQ    62
 
 /* official device names */
 enum chardev_id {
@@ -30,6 +41,6 @@ enum chardev_id {
 };
 
 
-#endif /* __PLATSUPPORT_PLAT_CHARDEV_H__ */
+#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
 
 

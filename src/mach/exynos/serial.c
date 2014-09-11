@@ -10,7 +10,7 @@
 
 /* disabled until someone makes it compile */
 
-#include "uart.h"
+#include "serial.h"
 #include "mux.h"
 #include "platsupport/clock.h"
 
@@ -67,7 +67,7 @@
 static clk_t *clk;
 
 
-static int uart_getchar(struct ps_chardevice *d)
+static int uart_getchar(ps_chardevice_t *d)
 {
     if (*REG_PTR(d->vaddr, UTRSTAT) & RXBUF_READY) {
         return *REG_PTR(d->vaddr, URXH);
@@ -76,7 +76,7 @@ static int uart_getchar(struct ps_chardevice *d)
     }
 }
 
-static int uart_putchar(struct ps_chardevice *d, int c)
+static int uart_putchar(ps_chardevice_t *d, int c)
 {
     /* Wait for serial to become ready. */
     while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TXBUF_EMPTY) );
@@ -90,18 +90,18 @@ static int uart_putchar(struct ps_chardevice *d, int c)
     return c;
 }
 
-static void uart_flush(struct ps_chardevice *d)
+static void uart_flush(ps_chardevice_t *d)
 {
     while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TX_EMPTY) );
 }
 
-static void uart_handle_irq(struct ps_chardevice *d UNUSED, int irq UNUSED)
+static void uart_handle_irq(ps_chardevice_t *d UNUSED, int irq UNUSED)
 {
     /*TODO*/
 }
 
 #define BRDIV_BITS 16
-static int uart_set_baud(const struct ps_chardevice *d, long bps)
+static int uart_set_baud(const ps_chardevice_t *d, long bps)
 {
     long div_val, sclk_uart;
     uint32_t brdiv, brfrac;
@@ -127,7 +127,7 @@ static int uart_set_baud(const struct ps_chardevice *d, long bps)
 }
 
 static int
-uart_set_charsize(struct ps_chardevice* d, int char_size)
+uart_set_charsize(ps_chardevice_t* d, int char_size)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -153,7 +153,7 @@ uart_set_charsize(struct ps_chardevice* d, int char_size)
 }
 
 static int
-uart_set_stop(struct ps_chardevice *d, int stop_bits)
+uart_set_stop(ps_chardevice_t *d, int stop_bits)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -173,7 +173,7 @@ uart_set_stop(struct ps_chardevice *d, int stop_bits)
 }
 
 static int
-uart_set_parity(struct ps_chardevice *d, enum uart_parity parity)
+uart_set_parity(ps_chardevice_t *d, enum serial_parity parity)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -196,8 +196,8 @@ uart_set_parity(struct ps_chardevice *d, enum uart_parity parity)
 }
 
 int
-uart_configure(struct ps_chardevice *d, long bps, int char_size,
-               enum uart_parity parity, int stop_bits)
+uart_configure(ps_chardevice_t *d, long bps, int char_size,
+               enum serial_parity parity, int stop_bits)
 {
     return uart_set_baud(d, bps)
            || uart_set_parity(d, parity)
@@ -205,37 +205,20 @@ uart_configure(struct ps_chardevice *d, long bps, int char_size,
            || uart_set_stop(d, stop_bits);
 }
 
-/** Legacy **/
-static int uart_ioctl(struct ps_chardevice *d, int param, long arg)
+int uart_init(const struct dev_defn* defn,
+              const ps_io_ops_t* ops,
+              ps_chardevice_t* dev)
 {
-    switch (param) {
-    case UART_IOCTL_BAUD:
-        return uart_set_baud(d, arg);
-    case UART_IOCTL_CSIZE:
-        return uart_set_charsize(d, arg);
-    case UART_IOCTL_CSTOP:
-        return uart_set_stop(d, arg);
-    case UART_IOCTL_CPARITY:
-        return uart_set_parity(d, arg);
-    default:
-        return -1;
-    }
-}
-
-struct ps_chardevice* uart_init(const struct dev_defn* defn,
-                                const ps_io_ops_t* ops,
-                                struct ps_chardevice* dev) {
 
     int v;
     void* vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
-        return NULL;
+        return -1;
     }
     dev->id         = defn->id;
     dev->vaddr      = vaddr;
     dev->getchar    = &uart_getchar;
     dev->putchar    = &uart_putchar;
-    dev->ioctl      = &uart_ioctl;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->rxirqcb    = NULL;
@@ -298,6 +281,6 @@ struct ps_chardevice* uart_init(const struct dev_defn* defn,
     v |=  (TXMODE(POLL) | RXMODE(POLL));
     *REG_PTR(dev->vaddr, UCON) = v;
 
-    return dev;
+    return 0;
 }
 

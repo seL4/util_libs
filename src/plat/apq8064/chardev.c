@@ -16,31 +16,31 @@
 #include "../../chardev.h"
 #include "../../common.h"
 #include <utils/util.h>
-
 #include "serial.h"
 
-static const int uart1_irqs[] = {UART1_IRQ, -1};
-static const int uart2_irqs[] = {UART2_IRQ, -1};
-static const int uart3_irqs[] = {UART3_IRQ, -1};
-static const int uart4_irqs[] = {UART4_IRQ, -1};
-static const int uart5_irqs[] = {UART5_IRQ, -1};
+static const int gsbi3_uart_irqs[] = {GSBI3_UART_IRQ, -1};
+static const int gsbi4_uart_irqs[] = {GSBI4_UART_IRQ, -1};
+static const int gsbi5_uart_irqs[] = {GSBI5_UART_IRQ, -1};
+static const int gsbi6_uart_irqs[] = {GSBI6_UART_IRQ, -1};
+static const int gsbi7_uart_irqs[] = {GSBI7_UART_IRQ, -1};
 
 
-#define UART_DEFN(devid) {          \
-    .id      = IMX6_UART##devid,    \
-    .paddr   = UART##devid##_PADDR, \
-    .size    = BIT(12),             \
-    .irqs    = uart##devid##_irqs,  \
-    .init_fn = &uart_init           \
+#define GSBI_UART_DEFN(devid) {          \
+    .id      = GSBI##devid##_UART,       \
+    .paddr   = GSBI##devid##_UART_PADDR, \
+    .size    = BIT(12),                  \
+    .irqs    = gsbi##devid##_uart_irqs,  \
+    .init_fn = &uart_init                \
 }
 
 
+
 static const struct dev_defn dev_defn[] = {
-    UART_DEFN(1),
-    UART_DEFN(2),
-    UART_DEFN(3),
-    UART_DEFN(4),
-    UART_DEFN(5)
+    GSBI_UART_DEFN(3),
+    GSBI_UART_DEFN(4),
+    GSBI_UART_DEFN(5),
+    GSBI_UART_DEFN(6),
+    GSBI_UART_DEFN(7)
 };
 
 struct ps_chardevice*

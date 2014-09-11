@@ -19,11 +19,9 @@ struct dev_defn {
     uintptr_t paddr;
     int   size;
     const int* irqs;
-    struct ps_chardevice* (*init_fn)(
-        const struct dev_defn* defn,
-        const ps_io_ops_t* ops,
-        struct ps_chardevice* dev
-    );
+    int (*init_fn)(const struct dev_defn* defn,
+                   const ps_io_ops_t* ops,
+                   struct ps_chardevice* dev);
 };
 
 

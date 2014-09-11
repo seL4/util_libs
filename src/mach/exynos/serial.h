@@ -10,9 +10,4 @@
 
 #include "../../chardev.h"
 
-#define UART_IOCTL_BAUD    0
-#define UART_IOCTL_CSTOP   1
-#define UART_IOCTL_CSIZE   2
-#define UART_IOCTL_CPARITY 3
-
-struct ps_chardevice* uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev);
+int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev);

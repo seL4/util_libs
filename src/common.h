@@ -17,8 +17,4 @@
 #include <utils/page.h>
 #include <utils/util.h>
 
-#include "debug.h"
-
-#define PPTR(paddr) (void*)(paddr)
-
 #endif /* __COMMON_H__ */

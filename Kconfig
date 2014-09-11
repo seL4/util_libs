@@ -17,3 +17,20 @@ config LIB_PLATSUPPORT
         prerequisite is that a function to map physical device memory 
         be provided.
 
+choice
+    prompt "X86 serial port base address"
+    depends on LIB_SEL4_PLAT_SUPPORT && PLAT_PC99 && LIB_SEL4_PLAT_SUPPORT_X86_SERIAL_PUTCHAR
+    default LIB_SEL4_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
+    help
+        The base address of the serial port that sel4platsupport will use for communicaton
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
+       bool "0x3f8 COM1"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM2
+       bool "0x2f8 COM2"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM3
+       bool "0x3e8 COM3"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM4
+       bool "0x2e8 COM4"
+endchoice
+
+

@@ -12,7 +12,7 @@
 #define __PLATSUPPORT_CHARDEV_H__
 
 #include <platsupport/io.h>
-#include <platsupport/plat/chardev.h>
+#include <platsupport/plat/serial.h>
 
 struct ps_chardevice;
 struct ps_clk;
@@ -28,8 +28,6 @@ struct ps_chardevice {
     /* Character operations for this device */
     int     (*getchar)(struct ps_chardevice* device);
     int     (*putchar)(struct ps_chardevice* device, int c);
-    /* TODO be removed */
-    int       (*ioctl)(struct ps_chardevice* device, int param, long arg);
     void (*handle_irq)(struct ps_chardevice* device, int irq);
     /* array of irqs associated with this device */
     const int *irqs;
@@ -79,10 +77,6 @@ static inline int ps_cdev_getchar(struct ps_chardevice* d)
     return d->getchar(d);
 }
 
-static inline int ps_cdev_ioctl(struct ps_chardevice* d, int param, long arg)
-{
-    return d->ioctl(d, param, arg);
-}
 
 static inline void ps_cdev_handle_irq(struct ps_chardevice* d, int irq)
 {

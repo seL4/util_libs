@@ -17,17 +17,7 @@
 #include "../../common.h"
 
 #include <utils/arith.h>
-#include "uart.h"
-
-#define UART1_PADDR 0x4806a000
-#define UART2_PADDR 0x4806c000
-#define UART3_PADDR 0x49020000
-#define UART4_PADDR 0x49042000
-
-#define UART1_IRQ   72
-#define UART2_IRQ   73
-#define UART3_IRQ   74
-#define UART4_IRQ   80
+#include "serial.h"
 
 static const int uart1_irqs[] = {UART1_IRQ, -1};
 static const int uart2_irqs[] = {UART2_IRQ, -1};
@@ -60,7 +50,7 @@ ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o,
     int i;
     for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
         if (dev_defn[i].id == id) {
-            return dev_defn[i].init_fn(dev_defn + i, o, d);
+            return (dev_defn[i].init_fn(dev_defn + i, o, d)) ? NULL : d;
         }
     }
     return NULL;

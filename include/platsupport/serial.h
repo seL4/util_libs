@@ -13,19 +13,36 @@
 
 
 #include <platsupport/chardev.h>
-#include <platsupport/plat/uart.h>
+#include <platsupport/plat/serial.h>
 
-enum uart_parity {
+enum serial_parity {
     PARITY_EVEN,
     PARITY_ODD,
     PARITY_NONE
 };
 
+/*
+ * Initialiase a device
+ * @param  id: the id of the character device
+ * @param ops: a structure containing OS specific operations for memory access
+ * @param dev: a character device structure to populate
+ * @return   : NULL on error, otherwise returns the device structure pointer
+ */
+int serial_init(enum chardev_id id,
+                const ps_io_ops_t* ops,
+                ps_chardevice_t* dev);
 
-int uart_configure(struct ps_chardevice *d,
-                   long bps,
-                   int  char_size,
-                   enum uart_parity parity,
-                   int  stop_bits);
+/*
+ * Performs line configuration of a serial port
+ * @param       dev: an initialised character device structure
+ * @param       bps: The desired boad rate
+ * @param char_size: The desired character size
+ * @param stop_bits: The number of stop bits
+ */
+int serial_configure(ps_chardevice_t* dev,
+                     long bps,
+                     int  char_size,
+                     enum serial_parity parity,
+                     int  stop_bits);
 
 #endif /* __PLATSUPPORT_UART_H__ */

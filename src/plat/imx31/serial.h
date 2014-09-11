@@ -8,11 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#include <platsupport/chardev.h>
+#include "../../chardev.h"
 
-void register_debug_device(struct ps_chardevice* d);
-
-void ps_printhex(uint32_t h);
-int ps_putchar(int c);
-int ps_getchar(void);
-void ps_print(const char* str);
+int uart_init(const struct dev_defn* defn,
+              const ps_io_ops_t* ops,
+              ps_chardevice_t* dev);

@@ -12,7 +12,33 @@
 #include <stdlib.h>
 #include <sel4/sel4.h>
 
-static int serial_getchar(struct ps_chardevice *device)
+/*
+ * Port offsets
+ * W    - write
+ * R    - read
+ * RW   - read and write
+ * DLAB - Alternate register function bit
+ */
+
+#define SERIAL_THR  0 /* Transmitter Holding Buffer (W ) DLAB = 0 */
+#define SERIAL_RBR  0 /* Receiver Buffer            (R ) DLAB = 0 */
+#define SERIAL_DLL  0 /* Divisor Latch Low Byte     (RW) DLAB = 1 */
+#define SERIAL_IER  1 /* Interrupt Enable Register  (RW) DLAB = 0 */
+#define SERIAL_DLH  1 /* Divisor Latch High Byte    (RW) DLAB = 1 */
+#define SERIAL_IIR  2 /* Interrupt Identification   (R ) */
+#define SERIAL_FCR  2 /* FIFO Control Register      (W ) */
+#define SERIAL_LCR  3 /* Line Control Register      (RW) */
+#define SERIAL_MCR  4 /* Modem Control Register     (RW) */
+#define SERIAL_LSR  5 /* Line Status Register       (R ) */
+#define SERIAL_MSR  6 /* Modem Status Register      (R ) */
+#define SERIAL_SR   7 /* Scratch Register           (RW) */
+#define CONSOLE(port, label) ((port) + (SERIAL_##label))
+#define SERIAL_DLAB BIT(7)
+#define SERIAL_LSR_DATA_READY BIT(0)
+#define SERIAL_LSR_TRANSMITTER_EMPTY BIT(5)
+
+
+static int serial_getchar(ps_chardevice_t *device)
 {
     uint32_t res;
     uint32_t io_port = (uint32_t) device->vaddr;
@@ -31,7 +57,7 @@ static int serial_getchar(struct ps_chardevice *device)
     return (int) res;
 }
 
-static int serial_putchar(struct ps_chardevice* device, int c)
+static int serial_putchar(ps_chardevice_t* device, int c)
 {
     uint32_t res;
     uint32_t io_port = (uint32_t) device->vaddr;
@@ -46,34 +72,26 @@ static int serial_putchar(struct ps_chardevice* device, int c)
     /* Write out the next character. */
     ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
 
-    if(c == '\n') {
+    if (c == '\n') {
         serial_putchar(device, '\r');
     }
 
     return c;
 }
 
-static int serial_ioctl(struct ps_chardevice *device UNUSED, int param UNUSED, long arg UNUSED)
-{
-    /* TODO (not critical) */
-    assert(!"Not implemented");
-    return 0;
-}
-
-static void serial_handle_irq(struct ps_chardevice* device UNUSED, int irq UNUSED)
+static void serial_handle_irq(ps_chardevice_t* device UNUSED, int irq UNUSED)
 {
     /* No IRQ handling required here. */
 }
 
-struct ps_chardevice*
-serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev)
+int
+serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
 {
     /* Set up all the  device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void*) defn->paddr; /* Save the IO port base number. */
     dev->getchar    = &serial_getchar;
     dev->putchar    = &serial_putchar;
-    dev->ioctl      = &serial_ioctl;
     dev->handle_irq = &serial_handle_irq;
     dev->irqs       = defn->irqs;
     dev->rxirqcb    = NULL;
@@ -112,5 +130,5 @@ serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chard
     /* Enable the receiver interrupt. */
     ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, IER), 1, 0x01);
 
-    return dev;
+    return 0;
 }
