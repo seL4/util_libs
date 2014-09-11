@@ -104,11 +104,15 @@ popd &>/dev/null
 
 #
 # Convert userspace / kernel into an archive which can then be linked
-# against the elfloader binary.
+# against the elfloader binary. Change to the directory of archive.cpio
+# before this operation to avoid polluting the symbol table with references
+# to the temporary directory.
 #
+pushd "${TEMP_DIR}" >/dev/null
 ${TOOLPREFIX}ld -T "${SCRIPT_DIR}/archive.bin.lds" \
-        --oformat ${FORMAT} -r -b binary ${TEMP_DIR}/archive.cpio \
+        --oformat ${FORMAT} -r -b binary archive.cpio \
         -o "${TEMP_DIR}/archive.o" || fail
+popd >/dev/null
 
 #
 # Link everything together to produce the final ELF image.
