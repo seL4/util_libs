@@ -24,7 +24,6 @@
 #if defined(PLAT_EXYNOS5250)
 #define UART_DEFAULT_FIN    100000000
 #elif defined(PLAT_EXYNOS5410)
-#error
 #define UART_DEFAULT_FIN     64000000
 #else
 #error Unknown platform
