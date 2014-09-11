@@ -9,20 +9,20 @@
 #
 
 config LIB_PLATSUPPORT
-    bool "Build platform support library which is OS independant"
+    bool "OS independent platform support library"
     default y
     depends on LIB_UTILS
     help
-        Build an OS independant platform support library. The only 
+        Build an OS independent platform support library. The only 
         prerequisite is that a function to map physical device memory 
         be provided.
 
 choice
     prompt "X86 serial port base address"
-    depends on LIB_SEL4_PLAT_SUPPORT && PLAT_PC99 && LIB_SEL4_PLAT_SUPPORT_X86_SERIAL_PUTCHAR
-    default LIB_SEL4_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
+    depends on LIB_PLAT_SUPPORT && PLAT_PC99
+    default LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
     help
-        The base address of the serial port that sel4platsupport will use for communicaton
+        The base address of the serial port that libplatsupport will use for communication
     config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
        bool "0x3f8 COM1"
     config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM2

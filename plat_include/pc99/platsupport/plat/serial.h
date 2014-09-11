@@ -43,7 +43,7 @@ enum chardev_id {
 #elif defined(CONFIG_LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM4)
     PS_SERIAL_DEFAULT = PC99_SERIAL_COM4
 #else
-#  error Serial port not set
+    PS_SERIAL_DEFAULT = PC99_SERIAL_COM1
 #endif
 
 
