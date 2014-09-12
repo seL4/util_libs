@@ -208,7 +208,7 @@ int uart_init(const struct dev_defn* defn,
     while (!(regs->cr2 & UART_CR2_SRST));
 
     /* Line configuration */
-    uart_configure(dev, 115200, 8, 0, 1);
+    uart_configure(dev, 115200, 8, PARITY_NONE, 1);
 
     /* Enable the UART */
     regs->cr1 |= UART_CR1_UARTEN;                /* Enable The uart.                  */

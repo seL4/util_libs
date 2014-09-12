@@ -16,9 +16,9 @@
 #include <platsupport/plat/serial.h>
 
 enum serial_parity {
+    PARITY_NONE,
     PARITY_EVEN,
-    PARITY_ODD,
-    PARITY_NONE
+    PARITY_ODD
 };
 
 /*
