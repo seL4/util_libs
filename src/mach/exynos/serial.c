@@ -209,7 +209,6 @@ int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
               ps_chardevice_t* dev)
 {
-
     int v;
     void* vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
@@ -261,7 +260,7 @@ int uart_init(const struct dev_defn* defn,
         }
 
     } else {
-        printf("INFO: Skipping MUX initialisation for UART %d\n", dev->id);
+        //    printf("INFO: Skipping MUX initialisation for UART %d\n", dev->id);
     }
 #endif
 
