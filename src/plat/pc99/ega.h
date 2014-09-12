@@ -7,11 +7,11 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_SERIAL_H
-#define _PLATSUPPORT_PLAT_SERIAL_H
+#ifndef _PLATSUPPORT_PLAT_EGA_H
+#define _PLATSUPPORT_PLAT_EGA_H
 
 #include "../../chardev.h"
 
-int serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+int text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
 
-#endif /* _PLATSUPPORT_PLAT_SERIAL_H */
+#endif /* _PLATSUPPORT_PLAT_EGA_H */

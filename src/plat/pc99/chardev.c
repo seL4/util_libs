@@ -17,12 +17,15 @@
 #include "../../common.h"
 
 #include "serial.h"
+#include "ega.h"
 #include <utils/arith.h>
 
 static const int com1_irqs[] = {SERIAL_CONSOLE_COM1_IRQ, -1};
 static const int com2_irqs[] = {SERIAL_CONSOLE_COM2_IRQ, -1};
 static const int com3_irqs[] = {SERIAL_CONSOLE_COM3_IRQ, -1};
 static const int com4_irqs[] = {SERIAL_CONSOLE_COM4_IRQ, -1};
+
+static const int ega_irqs[] = { -1};
 
 #define PC99_SERIAL_DEFN(devid) {          \
     .id      = PC99_SERIAL_COM##devid,    \
@@ -32,11 +35,21 @@ static const int com4_irqs[] = {SERIAL_CONSOLE_COM4_IRQ, -1};
     .init_fn = &serial_init           \
 }
 
+
+#define PC99_TEXT_EGA_DEFN() {      \
+        .id = PC99_TEXT_EGA,        \
+        .paddr = EGA_TEXT_FB_BASE,  \
+        .size = BIT(12),            \
+        .irqs = ega_irqs,           \
+        .init_fn = text_ega_init    \
+    }
+
 static const struct dev_defn dev_defn[] = {
     PC99_SERIAL_DEFN(1),
     PC99_SERIAL_DEFN(2),
     PC99_SERIAL_DEFN(3),
     PC99_SERIAL_DEFN(4),
+    PC99_TEXT_EGA_DEFN()
 };
 
 struct ps_chardevice*

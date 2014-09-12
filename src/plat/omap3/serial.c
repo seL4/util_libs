@@ -10,7 +10,6 @@
 
 #include "serial.h"
 #include <stdlib.h>
-#include <platsupport/plat/serial.h>
 
 #define IMXUART_DLL             0x000
 #define IMXUART_RHR             0x000

@@ -8,7 +8,7 @@
 # @TAG(NICTA_BSD)
 #
 
-config LIB_PLATSUPPORT
+menuconfig LIB_PLATSUPPORT
     bool "OS independent platform support library"
     default y
     depends on LIB_UTILS
@@ -18,11 +18,11 @@ config LIB_PLATSUPPORT
         be provided.
 
 choice
-    prompt "X86 serial port base address"
-    depends on LIB_PLAT_SUPPORT && PLAT_PC99
+    prompt "X86 console device"
+    depends on LIB_PLATSUPPORT && PLAT_PC99
     default LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
     help
-        The base address of the serial port that libplatsupport will use for communication
+        The serial port that libplatsupport will use for communication
     config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
        bool "0x3f8 COM1"
     config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM2
@@ -31,6 +31,8 @@ choice
        bool "0x3e8 COM3"
     config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM4
        bool "0x2e8 COM4"
+    config LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA
+       bool "80x25 text mode EGA screen"
 endchoice
 
 
