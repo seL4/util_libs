@@ -66,6 +66,12 @@
 
 static clk_t *clk;
 
+enum mux_feature uart_mux[] = {
+                                  [PS_SERIAL0] = MUX_UART0,
+                                  [PS_SERIAL1] = MUX_UART1,
+                                  [PS_SERIAL2] = MUX_UART2,
+                                  [PS_SERIAL3] = MUX_UART3
+                              };
 
 static int uart_getchar(ps_chardevice_t *d)
 {
@@ -230,39 +236,15 @@ int uart_init(const struct dev_defn* defn,
     uart_flush(dev);
 
     /* reset and initialise hardware */
-#ifdef PLAT_EXYNOS5
     if (mux_sys_valid(&ops->mux_sys)) {
-        /* The interface declares ops as a const, but this
-         * can no longer be true as we may need to modify the
-         * MUX/CLOCK. The interface should be updated. Until it
-         * is, we have a dirty cast. */
         mux_sys_t* mux_sys = (mux_sys_t*)&ops->mux_sys;
-        int err;
-        switch (dev->id) {
-        case PS_SERIAL0:
-            err = mux_feature_enable(mux_sys, MUX_UART0);
-            break;
-        case PS_SERIAL1:
-            err = mux_feature_enable(mux_sys, MUX_UART1);
-            break;
-        case PS_SERIAL2:
-            err = mux_feature_enable(mux_sys, MUX_UART2);
-            break;
-        case PS_SERIAL3:
-            err = mux_feature_enable(mux_sys, MUX_UART3);
-            break;
-        default:
-            printf("Invalid UART ID %d! Could not initialise MUX\n", dev->id);
-            err = 0;
-        }
-        if (err) {
+        if (mux_feature_enable(mux_sys, uart_mux[dev->id])) {
             printf("Failed to initialise MUX for UART %d\n", dev->id);
         }
 
     } else {
         //    printf("INFO: Skipping MUX initialisation for UART %d\n", dev->id);
     }
-#endif
 
     /* TODO: Use correct clock source */
     if (clock_sys_valid(&ops->clock_sys)) {

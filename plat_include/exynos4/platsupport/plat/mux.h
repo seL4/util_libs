@@ -23,13 +23,14 @@ enum mux_feature {
     MUX_SPI0,
     MUX_SPI1,
     MUX_SPI2,
-#if 0
     MUX_UART0,
+    MUX_UART0_FLOW,
     MUX_UART1,
+    MUX_UART1_FLOW,
     MUX_UART2,
+    MUX_UART2_FLOW,
     MUX_UART3,
-    MUX_UART4,
-#endif
+    MUX_UART3_FLOW,
     NMUX_FEATURES
 };
 

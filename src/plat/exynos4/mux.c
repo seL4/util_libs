@@ -81,20 +81,68 @@ static struct mux_feature_data spi2_data[] = {
     { .port = GPIOPORT_NONE }
 };
 
-
+/* UART */
+static struct mux_feature_data uart0_data[] = {
+    { .port = GPA0, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA0, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart0_flow_data[] = {
+    { .port = GPA0, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA0, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart1_data[] = {
+    { .port = GPA0, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA0, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart1_flow_data[] = {
+    { .port = GPA0, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA0, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart2_data[] = {
+    { .port = GPA1, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA1, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart2_flow_data[] = {
+    { .port = GPA1, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA1, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart3_data[] = {
+    { .port = GPA1, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA1, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
+static struct mux_feature_data uart3_flow_data[] = {
+    { .port = GPA1, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPA1, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPIOPORT_NONE }
+};
 
 struct mux_feature_data* feature_data[] = {
-    [MUX_I2C0]     = i2c0_data,
-    [MUX_I2C1]     = i2c1_data,
-    [MUX_I2C2]     = i2c2_data,
-    [MUX_I2C3]     = i2c3_data,
-    [MUX_I2C4]     = i2c4_data,
-    [MUX_I2C5]     = i2c5_data,
-    [MUX_I2C6]     = i2c6_data,
-    [MUX_I2C7]     = i2c7_data,
-    [MUX_SPI0]     = spi0_data,
-    [MUX_SPI1]     = spi1_data,
-    [MUX_SPI2]     = spi2_data,
+    [MUX_I2C0]       = i2c0_data,
+    [MUX_I2C1]       = i2c1_data,
+    [MUX_I2C2]       = i2c2_data,
+    [MUX_I2C3]       = i2c3_data,
+    [MUX_I2C4]       = i2c4_data,
+    [MUX_I2C5]       = i2c5_data,
+    [MUX_I2C6]       = i2c6_data,
+    [MUX_I2C7]       = i2c7_data,
+    [MUX_SPI0]       = spi0_data,
+    [MUX_SPI1]       = spi1_data,
+    [MUX_SPI2]       = spi2_data,
+    [MUX_UART0]      = uart0_data,
+    [MUX_UART1]      = uart1_data,
+    [MUX_UART2]      = uart2_data,
+    [MUX_UART3]      = uart3_data,
+    [MUX_UART0_FLOW] = uart0_flow_data,
+    [MUX_UART1_FLOW] = uart1_flow_data,
+    [MUX_UART2_FLOW] = uart2_flow_data,
+    [MUX_UART3_FLOW] = uart3_flow_data,
 };
 
 
