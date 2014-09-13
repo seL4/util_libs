@@ -22,6 +22,7 @@
 #include <string.h>
 #include <platsupport/plat/serial.h>
 #include "../../chardev.h"
+#include <string.h>
 
 /* Assumptions on the graphics mode and frame buffer location */
 #define EGA_TEXT_FB_BASE 0xB8000
@@ -90,6 +91,40 @@ text_ega_putchar(ps_chardevice_t* d, int c)
     return 0;
 }
 
+
+static ssize_t
+text_ega_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    const char* data = (const char*)vdata;
+    int i;
+    for (i = 0; i < count; i++) {
+        if (text_ega_putchar(d, *data++) < 0) {
+            return i;
+        }
+    }
+    return count;
+}
+
+static ssize_t
+text_ega_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    char* data;
+    int ret;
+    int i;
+    data = (char*)vdata;
+    for (i = 0; i < count; i++) {
+        ret = text_ega_getchar(d);
+        if (ret != EOF) {
+            *data++ = ret;
+        } else {
+            return i;
+        }
+    }
+    return count;
+}
+
+
+
 static void
 text_ega_handle_irq(ps_chardevice_t* d, int irq)
 {
@@ -105,6 +140,7 @@ text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice
      * avoid clearing the entire screen if this is the case. This comes about due
      * to implementing device 'sharing' by just giving every process the device */
     int clear = !base_ptr;
+    memset(dev, 0, sizeof(*dev));
     base_ptr = chardev_map(defn, ops);
     assert(base_ptr);
     /* clear the screen */
@@ -116,8 +152,8 @@ text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice
 
     dev->id         = defn->id;
     dev->vaddr      = (void*)base_ptr;
-    dev->getchar    = &text_ega_getchar;
-    dev->putchar    = &text_ega_putchar;
+    dev->read       = &text_ega_read;
+    dev->write      = &text_ega_write;
     dev->handle_irq = &text_ega_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;

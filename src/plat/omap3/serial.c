@@ -9,6 +9,7 @@
  */
 
 #include "serial.h"
+#include <string.h>
 #include <stdlib.h>
 
 #define IMXUART_DLL             0x000
@@ -46,10 +47,42 @@ static int uart_putchar(ps_chardevice_t* d, int c)
     }
 }
 
-static void uart_handle_irq(ps_chardevice_t* d, int irq)
+static void uart_handle_irq(ps_chardevice_t* d)
 {
     /* TODO */
 }
+
+static ssize_t
+uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    const char* data = (const char*)vdata;
+    int i;
+    for (i = 0; i < count; i++) {
+        if (uart_putchar(d, *data++) < 0) {
+            return i;
+        }
+    }
+    return count;
+}
+
+static ssize_t
+uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    char* data;
+    int ret;
+    int i;
+    data = (char*)vdata;
+    for (i = 0; i < count; i++) {
+        ret = uart_getchar(d);
+        if (ret != EOF) {
+            *data++ = ret;
+        } else {
+            return i;
+        }
+    }
+    return count;
+}
+
 
 
 int
@@ -57,23 +90,18 @@ uart_init(const struct dev_defn* defn,
           const ps_io_ops_t* ops,
           ps_chardevice_t* dev)
 {
-
     void* vaddr = chardev_map(defn, ops);
+    memset(dev, 0, sizeof(*dev));
     if (vaddr == NULL) {
         return -1;
     }
     dev->id         = defn->id;
     dev->vaddr      = vaddr;
-    dev->getchar    = &uart_getchar;
-    dev->putchar    = &uart_putchar;
+    dev->read       = &uart_read;
+    dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
-    dev->rxirqcb    = NULL;
-    dev->txirqcb    = NULL;
     dev->ioops      = *ops;
-
-    /* TODO */
-    dev->clk        = NULL;
 
     return 0;
 }

@@ -16,6 +16,7 @@
 
 #include "../../common.h"
 #include <platsupport/serial.h>
+#include <string.h>
 
 #define UART_DEBUG
 
@@ -25,9 +26,19 @@
 #define DUART(...) do{}while(0);
 #endif
 
-/*****************
- *** functions ***
- *****************/
+/* TX FIFO IRQ threshold ratio {0..7}.
+ * The absolute value depends on the FIFO size of the individual UART
+ * A high value avoids underruns, but increases IRQ overhead */
+#define FIFO_TXLVL_VAL   2
+
+/* RX FIFO IRQ threshold ratio {0..7}.
+ * The absolute value depends on the FIFO size of the individual UART
+ * A low value avoids overruns, but increases IRQ overhead */
+#define FIFO_RXLVL_VAL   2
+
+/* Timeout on RX {0..15} */
+#define RX_TIMEOUT_VAL   15 /* 8*(N + 1) frames */
+
 
 #define ULCON       0x0000 /* line control */
 #define UCON        0x0004 /* control */
@@ -35,7 +46,7 @@
 #define UMCON       0x000C /* modem control */
 #define UTRSTAT     0x0010 /* TX/RX status */
 #define UERSTAT     0x0014 /* RX error status */
-#define UFSTAT      0x0018 /* FIFO status */
+#define UFRSTAT     0x0018 /* FIFO status */
 #define UMSTAT      0x001C /* modem status */
 #define UTXH        0x0020 /* TX buffer */
 #define URXH        0x0024 /* RX buffer */
@@ -46,21 +57,49 @@
 #define UINTM       0x0038 /* interrupt mask */
 
 
-/* ULCON */
-#define WORD_LENGTH_8   (3<<0)
-
 /* UTRSTAT */
-#define TX_EMPTY        (1<<2)
-#define TXBUF_EMPTY     (1<<1)
-#define RXBUF_READY     (1<<0)
+#define TRSTAT_RXTIMEOUT      BIT(3)
+#define TRSTAT_TX_EMPTY       BIT(2)
+#define TRSTAT_TXBUF_EMPTY    BIT(1)
+#define TRSTAT_RXBUF_READY    BIT(0)
+
+/* FRSTAT */
+#define FRSTAT_TX_FULL        BIT(24)
+#define FRSTAT_GET_TXFIFO(x)  (((x) >> 16) & 0xff)
+#define FRSTAT_RXFIFO_ERR     BIT(9)
+#define FRSTAT_RXFIFO_FULL    BIT(8)
+#define FRSTAT_GET_RXFIFO(x)  (((x) >>  0) & 0xff)
+
 
 /* UCON */
-#define UCON_MODE_DISABLE 0x0
-#define UCON_MODE_POLL    0x1
-#define UCON_MODE_DMA     0x2
-#define UCON_MODE_MASK    0x3
-#define TXMODE(x)         (UCON_MODE_##x << 2)
-#define RXMODE(x)         (UCON_MODE_##x << 0)
+#define CON_MODE_DISABLE      0x0
+#define CON_MODE_POLL         0x1
+#define CON_MODE_DMA          0x2
+#define CON_MODE_MASK         0x3
+#define CON_TXMODE(x)         (CON_MODE_##x << 2)
+#define CON_RXMODE(x)         (CON_MODE_##x << 0)
+#define CON_RX_TIMEOUT(x)     (((x) & 0xf) << 12)
+#define CON_RX_TIMEOUT_MASK   CON_RX_TIMEOuT(0xf)
+#define CON_RX_TIMEOUT_EMPTY  BIT(11)
+#define CON_TXIRQTYPE_LEVEL   BIT(9)
+#define CON_RXIRQTYPE_LEVEL   BIT(8)
+#define CON_RXTIMEOUT_ENABLE  BIT(7)
+#define CON_RXERR_IRQ_EN      BIT(6)
+/* FIFO control */
+#define FIFO_EN               BIT(0)
+#define FIFO_RX_RESET         BIT(1)
+#define FIFO_TX_RESET         BIT(2)
+#define FIFO_TXLVL(x)         ((x) << 8)
+#define FIFO_TXLVL_MASK       FIFO_TXLVL(0x7)
+#define FIFO_RXLVL(x)         ((x) << 4)
+#define FIFO_RXLVL_MASK       FIFO_RXLVL(0x7)
+
+/* INTP, INTSP, INTM */
+#define INT_MODEM BIT(3)
+#define INT_TX    BIT(2)
+#define INT_ERR   BIT(1)
+#define INT_RX    BIT(0)
+
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
@@ -73,37 +112,197 @@ enum mux_feature uart_mux[] = {
                                   [PS_SERIAL3] = MUX_UART3
                               };
 
-static int uart_getchar(ps_chardevice_t *d)
+static int
+uart_putchar(ps_chardevice_t *d, int c)
 {
-    if (*REG_PTR(d->vaddr, UTRSTAT) & RXBUF_READY) {
+    if (*REG_PTR(d->vaddr, UFRSTAT) & FRSTAT_TX_FULL) {
+        /* abort: no room in FIFO */
+        return -1;
+    } else {
+        /* Write out the next character. */
+        *REG_PTR(d->vaddr, UTXH) = c;
+        if (c == '\n') {
+            /* In this case, We should have checked that we had two free bytes in
+             * the FIFO before we submitted the first char, however, the fifo size
+             * would need to be considered and this differs between UARTs.
+             * To keep things simple, we recognise that it is rare for a '\n' to
+             * be sent when there is insufficent FIFO space and accept the
+             * inefficiencies of spinning, waiting for space.
+             */
+            while (uart_putchar(d, '\r') < 0);
+        }
+        return c;
+    }
+}
+
+static int
+uart_fill_fifo(ps_chardevice_t *d, const char* data, size_t len)
+{
+    int i;
+    for (i = 0; i < len; i++) {
+        if (uart_putchar(d, *data++) < 0) {
+            return i;
+        }
+    }
+    return len;
+}
+
+
+static ssize_t
+uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t wcb, void* token)
+{
+    const char* data = (const char*)vdata;
+    int sent;
+    if (d->write_descriptor.data) {
+        /* Transaction is already in progress */
+        return -1;
+    }
+    /* Fill the FIFO */
+    sent = uart_fill_fifo(d, data, count);
+    if (wcb) {
+        /* Register the callback */
+        d->write_descriptor.callback = wcb;
+        d->write_descriptor.token = token;
+        d->write_descriptor.bytes_transfered = sent;
+        d->write_descriptor.bytes_requested = count;
+        d->write_descriptor.data = (void*)data + sent;
+        /* Enable TX IRQ */
+        *REG_PTR(d->vaddr, UINTP) = INT_TX;
+        *REG_PTR(d->vaddr, UINTM) &= ~INT_TX;
+    }
+    return sent;
+}
+
+static void
+uart_handle_tx_irq(ps_chardevice_t* d)
+{
+    int sent;
+    int to_send;
+    /* pipe more data onto the fifo */
+    to_send = d->write_descriptor.bytes_requested - d->write_descriptor.bytes_transfered;
+    sent = uart_fill_fifo(d, d->write_descriptor.data, to_send);
+    d->write_descriptor.bytes_transfered += sent;
+    d->write_descriptor.data += sent;
+
+    /* Check if this transaction is complete */
+    if (d->write_descriptor.bytes_transfered == d->write_descriptor.bytes_requested) {
+        /* Shutdown IRQs */
+        *REG_PTR(d->vaddr, UINTM) |= INT_TX;
+        d->write_descriptor.data = NULL;
+        /* Signal completion */
+        d->write_descriptor.callback(d, CHARDEV_STAT_COMPLETE,
+                                     d->write_descriptor.bytes_transfered,
+                                     d->write_descriptor.token);
+    }
+
+    /* Clear the pending flag, ready for the next IRQ */
+    *REG_PTR(d->vaddr, UINTP) = INT_TX;
+}
+
+static int
+uart_getchar(ps_chardevice_t *d)
+{
+    if (*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_RXBUF_READY) {
         return *REG_PTR(d->vaddr, URXH);
     } else {
         return -1;
     }
 }
 
-static int uart_putchar(ps_chardevice_t *d, int c)
+static int
+uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
 {
-    /* Wait for serial to become ready. */
-    while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TXBUF_EMPTY) );
-
-    /* Write out the next character. */
-    *REG_PTR(d->vaddr, UTXH) = c;
-    if (c == '\n') {
-        uart_putchar(d, '\r');
+    int i;
+    for (i = 0; i < len; i++) {
+        int c;
+        c = uart_getchar(d);
+        if (c < 0) {
+            break;
+        }
+        *data++ = c;
     }
+    /* Clear the pending flag */
+    *REG_PTR(d->vaddr, UINTP) = INT_RX;
+    return i;
+}
 
-    return c;
+static ssize_t
+uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb, void* token)
+{
+    char *data = (char*)vdata;
+    int read;
+    if (d->read_descriptor.data) {
+        /* Transaction is already in progress */
+        return -1;
+    }
+    read = uart_read_fifo(d, data, count);
+    if (rcb) {
+        /* Register the callback */
+        d->read_descriptor.callback = rcb;
+        d->read_descriptor.token = token;
+        d->read_descriptor.bytes_transfered = read;
+        d->read_descriptor.bytes_requested = count;
+        d->read_descriptor.data = (void*)data + read;
+        /* RX IRQ always enabled */
+    }
+    return read;
+}
+
+
+static void
+uart_handle_rx_irq(ps_chardevice_t* d)
+{
+    int timeout;
+    uint32_t v;
+    int read;
+    int to_read;
+    /* If a callback was not registered, simply return. User is expected
+     * to read FIFO data with a call to 'read' */
+    if (d->read_descriptor.data == NULL) {
+        return;
+    }
+    /* Check for timeout */
+    v = *REG_PTR(d->vaddr, UTRSTAT);
+    timeout = v & TRSTAT_RXTIMEOUT;
+    /* Clear timeout condition */
+    *REG_PTR(d->vaddr, UTRSTAT) = v;
+
+    to_read = d->read_descriptor.bytes_requested - d->read_descriptor.bytes_transfered;
+    read = uart_read_fifo(d, d->read_descriptor.data, to_read);
+    d->read_descriptor.bytes_transfered += read;
+    d->read_descriptor.data += read;
+
+    /* Check if this transaction is complete */
+    if (timeout || d->read_descriptor.bytes_transfered == d->read_descriptor.bytes_requested) {
+        d->read_descriptor.data = NULL;
+        /* Signal completion */
+        d->read_descriptor.callback(d, CHARDEV_STAT_COMPLETE,
+                                    d->read_descriptor.bytes_transfered,
+                                    d->read_descriptor.token);
+    }
 }
 
 static void uart_flush(ps_chardevice_t *d)
 {
-    while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TX_EMPTY) );
+    while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_TX_EMPTY) );
 }
 
-static void uart_handle_irq(ps_chardevice_t *d UNUSED, int irq UNUSED)
+static void
+uart_handle_irq(ps_chardevice_t *d)
 {
-    /*TODO*/
+    uint32_t sts;
+    sts = *REG_PTR(d->vaddr, UINTP);
+    if (sts & INT_TX) {
+        sts &= ~INT_TX;
+        uart_handle_tx_irq(d);
+    }
+    if (sts & INT_RX) {
+        sts &= ~INT_RX;
+        uart_handle_rx_irq(d);
+    }
+    if (sts) {
+        DUART("Unhandled IRQ (status 0x%x)\n", sts);
+    }
 }
 
 #define BRDIV_BITS 16
@@ -220,14 +419,13 @@ int uart_init(const struct dev_defn* defn,
     if (vaddr == NULL) {
         return -1;
     }
+    memset(dev, 0, sizeof(*dev));
     dev->id         = defn->id;
     dev->vaddr      = vaddr;
-    dev->getchar    = &uart_getchar;
-    dev->putchar    = &uart_putchar;
+    dev->read       = &uart_read;
+    dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
-    dev->rxirqcb    = NULL;
-    dev->txirqcb    = NULL;
     dev->ioops      = *ops;
 
     /* TODO */
@@ -255,12 +453,18 @@ int uart_init(const struct dev_defn* defn,
 
     /* Set character encoding */
     assert(!uart_configure(dev, 115200UL, 8, PARITY_NONE, 1));
-
-    /* Enable TX/RX */
-    v = *REG_PTR(dev->vaddr, UCON);
-    v &= ~(TXMODE(MASK) | RXMODE(MASK));
-    v |=  (TXMODE(POLL) | RXMODE(POLL));
+    /* Set FIFO trigger levels */
+    v = FIFO_EN;
+    v |= FIFO_RXLVL(FIFO_RXLVL_VAL);
+    v |= FIFO_TXLVL(FIFO_TXLVL_VAL);
+    *REG_PTR(dev->vaddr, UFCON) = v;
+    /* Configure TX/RX modes and enable TX/RX */
+    v = CON_RX_TIMEOUT(RX_TIMEOUT_VAL) | CON_RXTIMEOUT_ENABLE;
+    v |= (CON_TXMODE(POLL) | CON_RXMODE(POLL));
+    v |= CON_TXIRQTYPE_LEVEL | CON_RXIRQTYPE_LEVEL;
     *REG_PTR(dev->vaddr, UCON) = v;
+    /* Enable RX IRQ */
+    *REG_PTR(dev->vaddr, UINTM) = ~INT_RX;
 
     return 0;
 }

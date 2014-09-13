@@ -12,6 +12,7 @@
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
 #include "serial.h"
+#include <string.h>
 
 #define USR       0x0008 /* Status register */
 #define UCR       0x0010 /* Control register */
@@ -27,7 +28,7 @@
 
 
 static void
-uart_handle_irq(ps_chardevice_t* d UNUSED, int irq UNUSED)
+uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
 }
 
@@ -48,7 +49,36 @@ static int uart_getchar(ps_chardevice_t* d UNUSED)
     return EOF;
 }
 
+static ssize_t
+uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    const char* data = (const char*)vdata;
+    int i;
+    for (i = 0; i < count; i++) {
+        if (uart_putchar(d, *data++) < 0) {
+            return i;
+        }
+    }
+    return count;
+}
 
+static ssize_t
+uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    char* data;
+    int ret;
+    int i;
+    data = (char*)vdata;
+    for (i = 0; i < count; i++) {
+        ret = uart_getchar(d);
+        if (ret != EOF) {
+            *data++ = ret;
+        } else {
+            return i;
+        }
+    }
+    return count;
+}
 
 int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
@@ -56,6 +86,7 @@ int uart_init(const struct dev_defn* defn,
 {
     /* Attempt to map the virtual address, assure this works */
     void* vaddr = chardev_map(defn, ops);
+    memset(dev, 0, sizeof(*dev));
     if (vaddr == NULL) {
         return -1;
     }
@@ -63,14 +94,11 @@ int uart_init(const struct dev_defn* defn,
     /* Set up all the  device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void*)vaddr;
-    dev->getchar    = &uart_getchar;
-    dev->putchar    = &uart_putchar;
+    dev->read       = &uart_read;
+    dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
-    dev->rxirqcb    = NULL;
-    dev->txirqcb    = NULL;
     dev->ioops      = *ops;
-    dev->clk = NULL;
 
     return 0;
 }

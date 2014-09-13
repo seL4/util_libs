@@ -11,6 +11,7 @@
 #include "serial.h"
 #include <stdlib.h>
 #include <sel4/sel4.h>
+#include <string.h>
 
 /*
  * Port offsets
@@ -79,7 +80,39 @@ static int serial_putchar(ps_chardevice_t* device, int c)
     return c;
 }
 
-static void serial_handle_irq(ps_chardevice_t* device UNUSED, int irq UNUSED)
+
+static ssize_t
+serial_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    const char* data = (const char*)vdata;
+    int i;
+    for (i = 0; i < count; i++) {
+        if (serial_putchar(d, *data++) < 0) {
+            return i;
+        }
+    }
+    return count;
+}
+
+static ssize_t
+serial_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+{
+    char* data;
+    int ret;
+    int i;
+    data = (char*)vdata;
+    for (i = 0; i < count; i++) {
+        ret = serial_getchar(d);
+        if (ret != EOF) {
+            *data++ = ret;
+        } else {
+            return i;
+        }
+    }
+    return count;
+}
+
+static void serial_handle_irq(ps_chardevice_t* device UNUSED)
 {
     /* No IRQ handling required here. */
 }
@@ -87,17 +120,15 @@ static void serial_handle_irq(ps_chardevice_t* device UNUSED, int irq UNUSED)
 int
 serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
 {
+    memset(dev, 0, sizeof(*dev));
     /* Set up all the  device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void*) defn->paddr; /* Save the IO port base number. */
-    dev->getchar    = &serial_getchar;
-    dev->putchar    = &serial_putchar;
+    dev->read       = &serial_read;
+    dev->write      = &serial_write;
     dev->handle_irq = &serial_handle_irq;
     dev->irqs       = defn->irqs;
-    dev->rxirqcb    = NULL;
-    dev->txirqcb    = NULL;
     dev->ioops      = *ops;
-    dev->clk = NULL;
 
     /* Initialise the device. */
     uint32_t io_port = (uint32_t) dev->vaddr;
