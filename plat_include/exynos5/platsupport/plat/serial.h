@@ -11,6 +11,9 @@
 #ifndef __PLATSUPPORT_PLAT_SERIAL_H__
 #define __PLATSUPPORT_PLAT_SERIAL_H__
 
+#include <platsupport/mux.h>
+#include <platsupport/clock.h>
+
 #define EXYNOS_UART0_PADDR  0x12C00000
 #define EXYNOS_UART1_PADDR  0x12C10000
 #define EXYNOS_UART2_PADDR  0x12C20000
@@ -40,6 +43,23 @@ enum chardev_id {
     /* defaults */
     PS_SERIAL_DEFAULT = PS_SERIAL2
 };
+
+/*
+ * Initialiase an exynos serial device
+ * @param[in] id      the id of the character device
+ * @param[in] vaddr   The address at which the device can be accessed
+ * @param[in] mux_sys A mux subsystem for pin control. If NULL is passed here,
+ *                    the initialisation process will assume that the mux has
+ *                    already been configured.
+ * @param[in] clk_sys A clock subsystem for controlling the UART input clock.
+ *                    If NULL is passed, the default clock frequency is assumed,
+ *                    however, this may vary depending on the bootloader.
+ * @param[out] dev    A character device structure to initialise
+ * @return            0 on success
+ */
+int exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
+                       clock_sys_t* clock_sys, ps_chardevice_t* dev);
+
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
 

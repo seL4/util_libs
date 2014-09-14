@@ -10,13 +10,16 @@
 
 /* disabled until someone makes it compile */
 
+#include <platsupport/clock.h>
+#include <platsupport/serial.h>
+#include <utils/util.h>
+#include <string.h>
+
 #include "serial.h"
 #include "mux.h"
-#include "platsupport/clock.h"
 
 #include "../../common.h"
-#include <platsupport/serial.h>
-#include <string.h>
+
 
 #define UART_DEBUG
 
@@ -111,6 +114,40 @@ enum mux_feature uart_mux[] = {
                                   [PS_SERIAL2] = MUX_UART2,
                                   [PS_SERIAL3] = MUX_UART3
                               };
+
+static const int uart_irqs[][2] = {
+    [PS_SERIAL0] = {EXYNOS_UART0_IRQ, -1},
+    [PS_SERIAL1] = {EXYNOS_UART1_IRQ, -1},
+    [PS_SERIAL2] = {EXYNOS_UART2_IRQ, -1},
+    [PS_SERIAL3] = {EXYNOS_UART3_IRQ, -1}
+};
+
+static const uint32_t uart_paddr[] = {
+    [PS_SERIAL0] = EXYNOS_UART0_PADDR,
+    [PS_SERIAL1] = EXYNOS_UART1_PADDR,
+    [PS_SERIAL2] = EXYNOS_UART2_PADDR,
+    [PS_SERIAL3] = EXYNOS_UART3_PADDR
+};
+
+
+
+#define UART_DEFN(devid) {                     \
+        .id      = PS_SERIAL##devid,           \
+        .paddr   = EXYNOS_UART##devid##_PADDR, \
+        .size    = BIT(12),                    \
+        .irqs    = uart_irqs[devid],           \
+        .init_fn = &uart_init                  \
+    }
+
+
+static const struct dev_defn dev_defn[] = {
+    UART_DEFN(0),
+    UART_DEFN(1),
+    UART_DEFN(2),
+    UART_DEFN(3),
+};
+
+
 
 static int
 uart_putchar(ps_chardevice_t *d, int c)
@@ -291,7 +328,7 @@ static void
 uart_handle_irq(ps_chardevice_t *d)
 {
     uint32_t sts;
-    sts = *REG_PTR(d->vaddr, UINTP);
+    sts = *REG_PTR(d->vaddr, UINTSP);
     if (sts & INT_TX) {
         sts &= ~INT_TX;
         uart_handle_tx_irq(d);
@@ -401,8 +438,8 @@ uart_set_parity(ps_chardevice_t *d, enum serial_parity parity)
 }
 
 int
-uart_configure(ps_chardevice_t *d, long bps, int char_size,
-               enum serial_parity parity, int stop_bits)
+serial_configure(ps_chardevice_t *d, long bps, int char_size,
+                 enum serial_parity parity, int stop_bits)
 {
     return uart_set_baud(d, bps)
            || uart_set_parity(d, parity)
@@ -410,23 +447,18 @@ uart_configure(ps_chardevice_t *d, long bps, int char_size,
            || uart_set_stop(d, stop_bits);
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int
+exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
+                   clock_sys_t* clock_sys, ps_chardevice_t* dev)
 {
     int v;
-    void* vaddr = chardev_map(defn, ops);
-    if (vaddr == NULL) {
-        return -1;
-    }
     memset(dev, 0, sizeof(*dev));
-    dev->id         = defn->id;
+    dev->id         = id;
     dev->vaddr      = vaddr;
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
-    dev->irqs       = defn->irqs;
-    dev->ioops      = *ops;
+    dev->irqs       = &uart_irqs[id][0];
 
     /* TODO */
     dev->clk        = NULL;
@@ -434,8 +466,7 @@ int uart_init(const struct dev_defn* defn,
     uart_flush(dev);
 
     /* reset and initialise hardware */
-    if (mux_sys_valid(&ops->mux_sys)) {
-        mux_sys_t* mux_sys = (mux_sys_t*)&ops->mux_sys;
+    if (mux_sys_valid(mux_sys)) {
         if (mux_feature_enable(mux_sys, uart_mux[dev->id])) {
             printf("Failed to initialise MUX for UART %d\n", dev->id);
         }
@@ -445,14 +476,14 @@ int uart_init(const struct dev_defn* defn,
     }
 
     /* TODO: Use correct clock source */
-    if (clock_sys_valid(&ops->clock_sys)) {
-        clk = clk_get_clock(&dev->ioops.clock_sys, CLK_MASTER);
+    if (clock_sys_valid(clock_sys)) {
+        clk = clk_get_clock(clock_sys, CLK_MASTER);
     } else {
         clk = NULL;
     }
 
     /* Set character encoding */
-    assert(!uart_configure(dev, 115200UL, 8, PARITY_NONE, 1));
+    assert(!serial_configure(dev, 115200UL, 8, PARITY_NONE, 1));
     /* Set FIFO trigger levels */
     v = FIFO_EN;
     v |= FIFO_RXLVL(FIFO_RXLVL_VAL);
@@ -465,7 +496,41 @@ int uart_init(const struct dev_defn* defn,
     *REG_PTR(dev->vaddr, UCON) = v;
     /* Enable RX IRQ */
     *REG_PTR(dev->vaddr, UINTM) = ~INT_RX;
+    *REG_PTR(dev->vaddr, UINTP) = INT_RX | INT_TX | INT_ERR | INT_MODEM;
 
     return 0;
 }
+
+int
+serial_init(enum chardev_id id, ps_io_ops_t* ops,
+            ps_chardevice_t* dev)
+{
+    void* vaddr;
+    vaddr = ps_io_map(&ops->io_mapper, uart_paddr[id], BIT(12), 0, PS_MEM_NORMAL);
+    if (vaddr == NULL) {
+        return -1;
+    }
+    return exynos_serial_init(id, vaddr, &ops->mux_sys, &ops->clock_sys, dev);
+}
+
+
+int
+uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
+{
+    return serial_init(defn->id, (ps_io_ops_t*)ops, dev);
+}
+
+
+ps_chardevice_t*
+ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)
+{
+    unsigned int i;
+    for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
+        if (dev_defn[i].id == id) {
+            return (dev_defn[i].init_fn(dev_defn + i, o, d)) ? NULL : d;
+        }
+    }
+    return NULL;
+}
+
 

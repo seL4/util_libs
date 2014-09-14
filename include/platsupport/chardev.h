@@ -12,11 +12,13 @@
 #define __PLATSUPPORT_CHARDEV_H__
 
 #include <platsupport/io.h>
-#include <platsupport/plat/serial.h>
 
 struct ps_chardevice;
 struct ps_clk;
 typedef struct ps_chardevice ps_chardevice_t;
+
+#include <platsupport/plat/serial.h>
+
 
 enum chardev_status {
 /// Transfer completed successfully

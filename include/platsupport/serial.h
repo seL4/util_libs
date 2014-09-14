@@ -29,7 +29,7 @@ enum serial_parity {
  * @return   : NULL on error, otherwise returns the device structure pointer
  */
 int serial_init(enum chardev_id id,
-                const ps_io_ops_t* ops,
+                ps_io_ops_t* ops,
                 ps_chardevice_t* dev);
 
 /*
