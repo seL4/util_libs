@@ -13,7 +13,6 @@
  * kernels, as we use a seL4 debug syscall to print to the serial console.
  */
 
-#include <sel4/sel4.h>
 #include "../../plat_internal.h"
 #include <stdio.h>
 

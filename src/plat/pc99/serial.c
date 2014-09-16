@@ -10,7 +10,6 @@
 
 #include "serial.h"
 #include <stdlib.h>
-#include <sel4/sel4.h>
 #include <string.h>
 
 /*

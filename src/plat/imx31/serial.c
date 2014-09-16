@@ -12,7 +12,6 @@
 #include <platsupport/plat/serial.h>
 
 #include "serial.h"
-#include <sel4/sel4.h>
 #include <string.h>
 
 #define IMXUART_DLL             0x000
