@@ -49,7 +49,8 @@ endif
 endif
 
 CC  := $(CCACHE) $(if ${GOANNA},${GOANNA},$(TOOLPREFIX)gcc$(TOOLSUFFIX))
-ASM := $(CCACHE) $(TOOLPREFIX)gcc$(TOOLSUFFIX)
+CXX := $(CCACHE) $(TOOLPREFIX)g++$(TOOLSUFFIX)
+ASM := $(CCACHE) $(TOOLPREFIX)as$(TOOLSUFFIX)
 LD  := $(CCACHE) $(TOOLPREFIX)ld$(TOOLSUFFIX)
 AR  := $(CCACHE) $(TOOLPREFIX)ar$(TOOLSUFFIX)
 CPP := $(CCACHE) $(TOOLPREFIX)cpp$(TOOLSUFFIX)
@@ -69,7 +70,7 @@ WARNINGS     := all
 # kernel build vs non-kernel build compiler options
 export NK_BUILD=y
 
-CFLAGS += $(INCLUDE_PATH:%=-I%)
+CPPFLAGS += $(INCLUDE_PATH:%=-I%)
 
 # Strip enclosing quotes.
 CONFIG_USER_CFLAGS:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_USER_CFLAGS}))
@@ -84,31 +85,40 @@ ENDGROUP := -Wl,--end-group
 
 ifeq (${CONFIG_USER_CFLAGS},)
     CFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=gnu99
+    CXXFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=c++11
 
     ifeq (${CONFIG_USER_OPTIMISATION_Os},y)
         CFLAGS += -Os
+        CXXFLAGS += -Os
     endif
     ifeq (${CONFIG_USER_OPTIMISATION_O0},y)
         CFLAGS += -O0
+        CXXFLAGS += -O0
     endif
     ifeq (${CONFIG_USER_OPTIMISATION_O1},y)
         CFLAGS += -O1
+        CXXFLAGS += -O1
     endif
     ifeq (${CONFIG_USER_OPTIMISATION_O3},y)
         CFLAGS += -O3
+        CXXFLAGS += -O3
     endif
     ifeq (${CONFIG_USER_OPTIMISATION_O2},y)
         CFLAGS += -O2
+        CXXFLAGS += -O2
     endif
 
     ifeq (${CONFIG_LINK_TIME_OPTIMISATIONS},y)
         CFLAGS += -flto
+        CXXFLAGS += -flto
         STARTGROUP :=
         ENDGROUP :=
     endif
 
     CFLAGS += $(NK_CFLAGS)
+    CXXFLAGS += $(NK_CXXFLAGS)
     CFLAGS += -fno-stack-protector
+    CXXFLAGS += -fno-stack-protector
 else
     # Override the cflags with Kconfig-specified flags
 	CFLAGS += ${CONFIG_USER_CFLAGS}
@@ -123,7 +133,6 @@ EH := $(shell $(CC) --print-file-name libgcc_eh.a)
 ifneq "${EH}" "libgcc_eh.a"
   LIBGCC += -lgcc_eh
 endif
-
 
 LDFLAGS += $(NK_LDFLAGS) \
 		   $(SEL4_LIBDIR:%=-L%) \
@@ -144,13 +153,15 @@ LDFLAGS += -u ${ENTRY_POINT}
 # Set the entry point
 LDFLAGS += -e ${ENTRY_POINT}
 
+ASFLAGS += $(NK_ASFLAGS)
+
 # Object files
 OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(OFILES)
 
 # Define standard crt files if are building against a C library that has them
 ifeq (${CONFIG_HAVE_CRT},y)
-	CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-	FINOBJFILES ?= $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
+	CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtbegin.o)
+	FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 else
 	CRTOBJFILES ?=
 	FINOBJFILES ?=
@@ -218,14 +229,19 @@ ifeq (${CONFIG_BUILDSYS_CPP_SEPARATE},y)
 %.o: %.c_pp
 	@echo " [CC] $@"
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(CC) -x c $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 else
 %.o: %.c $(HFILES) | install-headers
 	@echo " [CC] $@"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(call make-depend,$<,$@,$(patsubst %.o,%.d,$@))
-	$(Q)$(CC) -x c $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 endif
+%.o: %.cxx $(HFILES) | install-headers
+	@echo " [CXX] $@"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(call make-cxx-depend,$<,$@,$(patsubst %.o,%.d,$@))
+	$(Q)$(CXX) -x c++ $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 .PRECIOUS: %.c_pp
 %.c_pp: %.c $(HFILES) | install-headers
@@ -235,13 +251,13 @@ endif
 	$(Q)$(CC) -E \
         $(if ${CONFIG_BUILDSYS_CPP_RETAIN_COMMENTS},-C -CC,) \
         $(if ${CONFIG_BUILDSYS_CPP_LINE_DIRECTIVES},,-P) \
-        $(CFLAGS) -c $< -o $@
+        $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 %.o: %.S $(HFILES) | install-headers
 	@echo " [ASM] $@"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(call make-depend,$<,$@,$(patsubst %.o,%.d,$@))
-	$(Q)$(ASM) $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) $(ASFLAGS) $(CPPFLAGS) -c $< -o $@
 
 %.a: $(OBJFILES)
 	@echo " [AR] $@"
@@ -281,6 +297,15 @@ define make-depend
          -MP            \
          -MT $2         \
          $(CFLAGS)      \
+         $(CPPFLAGS)    \
+         $1
+endef
+define make-cxx-depend
+  ${CXX} -MM            \
+         -MF $3         \
+         -MP            \
+         -MT $2         \
+         $(CXXFLAGS)    \
          $(CPPFLAGS)    \
          $1
 endef

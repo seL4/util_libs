@@ -11,6 +11,10 @@
 CFLAGS :=
 CPPFLAGS :=
 ASFLAGS :=
+CXXFLAGS :=
+
+# CCFLAGS represent flags that will later get included into both CFLAGS and CXXFLAGS
+CCFLAGS :=
 
 ifeq ($(NK_BUILD),y)
 
@@ -19,62 +23,41 @@ ifeq ($(objtree),)
 endif
 
 include $(PWD)/tools/kbuild/Kbuild.include
-else
-cflags-y  = $(call cc-option,-Wall,)
-cflags-y += $(call cc-option,-Wstrict-prototypes,)
-cflags-y += $(call cc-option,-Wmissing-prototypes,)
-cflags-y += $(call cc-option,-Wnested-externs,)
-cflags-y += $(call cc-option,-Wmissing-declarations,)
-cflags-y += $(call cc-option,-Wredundant-decls,)
-cflags-y += $(call cc-option,-Wpointer-arith,)
-cflags-y += $(call cc-option,-Wundef,)
-cflags-y += $(call cc-option,-Wno-nonnull,)
-cflags-y += $(call cc-option,-Wdeclaration-after-statement,)
-cflags-y += $(call cc-option,-nostdlib,)
-cflags-y += $(call cc-option,-nostdinc,)
-cflags-y += $(call cc-option,-O2,)
-cflags-y += $(call cc-option,-Werror,)
-cflags-y += $(call cc-option,-std=gnu99,)
 endif
 
 # NON-KERNEL BUILD CFLAGS used by common.mk
 NK_CFLAGS =
+NK_CXXFLAGS =
 NK_LDFLAGS =
 NK_ASFLAGS =
 
+NK_CCFLAGS =
+
+ldflags-y += $(call cc-ldoption, -Wl$(comma)--build-id=none)
+
 ifeq ($(CONFIG_ARCH_I386),y)
-	cflags-y += $(call cc-option,-m32)
-	cflags-y += $(call cc-option,-fno-stack-protector)
-	cflags-y += $(call cc-option,-mno-sse)
-	cflags-y += $(call cc-option,-mno-sse2)
-	cflags-y += $(call cc-option,-mno-mmx)
-	cflags-y += $(call cc-option,-mno-3dnow)
-	cppflags-y += $(call cc-option,-mno-sse)
-	cppflags-y += $(call cc-option,-mno-sse2)
-	cppflags-y += $(call cc-option,-mno-mmx)
-	cppflags-y += $(call cc-option,-mno-3dnow)
+	ccflags-y += $(call cc-option,-m32)
+	ccflags-y += $(call cc-option,-fno-stack-protector)
+	ccflags-y += $(call cc-option,-mno-sse)
+	ccflags-y += $(call cc-option,-mno-sse2)
+	ccflags-y += $(call cc-option,-mno-mmx)
+	ccflags-y += $(call cc-option,-mno-3dnow)
 	DEFINES += IA32
 	DEFINES += ARCH_IA32
 	export ARCH = ia32
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
-	cflags-y += $(call cc-option,-marm)
-	NK_CFLAGS += $(call cc-option,-marm)
-	NK_LDFLAGS += $(call cc-ldoption, -Wl$(comma)--build-id=none)
+	ccflags-y += $(call cc-option,-marm)
 	DEFINES += ARCH_ARM
 	export ARCH = arm
 endif
 
 ifeq ($(CONFIG_ARCH_IA32),y)
-	cflags-y += $(call cc-option,-m32)
+	ccflags-y += $(call cc-option,-m32)
 
-	LDFLAGS += -m elf_i386
-	ASFLAGS += --32
-
-	NK_LDFLAGS += -Wl,-m -Wl,elf_i386
-	NK_CFLAGS += -m32
-	NK_ASFLAGS += --32
+	ldflags-y += -Wl,-m,elf_i386
+	asflags-y += -Wa,--32
 
 	DEFINES += X86_32
 	DEFINES += CONFIG_X86_32
@@ -110,45 +93,38 @@ ifeq ($(CONFIG_X86_64),y)
 endif
 
 ifeq ($(CONFIG_ARM1136JF_S),y)
-	cflags-y += $(call cc-option,-mcpu=arm1136jf-s,-march=armv6)
-	ASFLAGS += -mcpu=arm1136jf-s -march=armv6
+	ccflags-y += $(call cc-option,-mcpu=arm1136jf-s,-march=armv6)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=arm1136jf-s, -Wa$(comma)-march=armv6)
 	DEFINES += ARMV6
 	DEFINES += ARM1136J_S
 	export ARMV=armv6
 	export CPU=arm1136jf-s
-	NK_CFLAGS += $(call cc-option,-mcpu=arm1136jf-s,-march=armv6)
-	NK_ASFLAGS += -mcpu=arm1136jf-s -march=armv6
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A8),y)
-	cflags-y += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
-	ASFLAGS += $(call cc-option, -mcpu=cortex-a8,-march-armv7-a)
+	ccflags-y += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a8, -Wa$(comma)-march-armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A8
 	export ARMV=armv7-a
 	export CPU=cortex-a8
-	NK_CFLAGS += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A9),y)
-	cflags-y += $(call cc-option, -mcpu=cortex-a9, -march=armv7-a)
+	ccflags-y += $(call cc-option, -mcpu=cortex-a9, -march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A9
 	export ARMV=armv7-a
 	export CPU=cortex-a9
-	NK_CFLAGS += $(call cc-option, -mcpu=cortex-a9, -march=armv7-a)
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A15),y)
-	cflags-y += $(call cc-option, -mtune=cortex-a15,)
-	cflags-y += -marm  $(call cc-option,-march=armv7e,-march=armv7-a)
+	ccflags-y += $(call cc-option, -mtune=cortex-a15,)
+	ccflags-y += -marm $(call cc-option,-march=armv7e,-march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A15
 	export ARMV=armv7-a
 	export CPU=cortex-a15
-	NK_CFLAGS += $(call cc-option, -mtune=cortex-a15,)
-	NK_CFLAGS += $(call cc-option,-march=armv7e,-march=armv7-a)
-	NK_CFLAGS += -marm 
 endif
 
 ifeq ($(CONFIG_PLAT_KZM),y)
@@ -223,7 +199,8 @@ export MACH=$(strip $(foreach mach,exynos imx omap,$(findstring $(mach),$(PLAT))
 
 # Kernel debugging.
 ifeq ($(CONFIG_DEBUG_BUILD),y)
-	cflags-y += $(call cc-option,-g)
+	# Set CFLAGS because we only want this to go to the kernel build system, not user
+	CFLAGS += $(call cc-option,-g)
 	DEFINES += DEBUG
 	DEFINES += SEL4_DEBUG_KERNEL
 	export DEBUG=1
@@ -231,11 +208,11 @@ endif
 
 # Userspace debugging.
 ifeq (${CONFIG_USER_DEBUG_INFO},y)
-	NK_CFLAGS += $(call cc-option,-g3,-g) $(call cc-option,-ggdb3,-ggdb) $(call cc-option,-save-temps,)
+	NK_CCFLAGS += $(call cc-option,-g3,-g) $(call cc-option,-ggdb3,-ggdb) $(call cc-option,-save-temps,)
 endif
 
 ifeq (${CONFIG_USER_DEBUG_BUILD},y)
-	NK_CFLAGS += "-g"
+	NK_CCFLAGS += $(call cc-option, -g)
 else
 	DEFINES += NDEBUG
 endif
@@ -264,8 +241,13 @@ endif
 
 # beware, the CPPFLAGS is also used during compiling, so we don't need to
 # append the macros to include paths to the CFLAGS again
-CFLAGS += -DHAVE_AUTOCONF -I$(objtree)/include/generated ${DEFINES:%=-D%} ${cflags-y}
-CPPFLAGS += ${cppflags-y}
+CPPFLAGS += -DHAVE_AUTOCONF -I$(objtree)/include/generated ${DEFINES:%=-D%} ${cppflags-y}
+
+# Build kernel flags
+CFLAGS += ${ccflags-y} ${cflags-y} ${CCFLAGS}
+CXXFLAGS += ${ccflags-y} ${cxxflags-y} ${CCFLAGS}
+LDFLAGS += ${ldflags-y}
+ASFLAGS += ${asflags-y}
 
 ifneq (${CONFIG_USER_EXTRA_CFLAGS},"")
 # Add Kconfig-specified cflags. Note that these can be trumped by the contents
@@ -277,16 +259,16 @@ endif
 # Break up KERNEL_CFLAGS.
 CONFIG_KERNEL_CFLAGS := $(shell echo "${CONFIG_KERNEL_CFLAGS}")
 
-CPPFLAGS += -DHAVE_AUTOCONF ${DEFINES:%=-D%} -I$(objtree)/include/generated
-CPPFLAGS += $(call cc-option,-std=gnu99)
-
-# pass the macros to the non-kernel builing system
-NK_CFLAGS += -I$(objtree)/include/generated ${DEFINES:%=-D%}
+# Build non kernel flags
+NK_CFLAGS += ${ccflags-y} ${cflags-y} ${NK_CCFLAGS}
+NK_CXXFLAGS += ${ccflags-y} ${cxxflags-y} ${NK_CCFLAGS}
+NK_LDFLAGS += ${ldflags-y}
+NK_ASFLAGS += ${asflags-y}
 
 ifeq ($(NK_BUILD),y)
-	export NK_CFLAGS NK_LDFLAGS NK_ASFLAGS
+	export NK_CFLAGS NK_LDFLAGS NK_ASFLAGS NK_CXXFLAGS
 else
-	export CFLAGS LDFLAGS ASFLAGS CPPFLAGS NK_CFLAGS NK_LDFLAGS NK_ASFLAGS
+	export CFLAGS LDFLAGS ASFLAGS CPPFLAGS CXXFLAGS NK_CFLAGS NK_LDFLAGS NK_ASFLAGS NK_CXXFLAGS
 	# Export KBuild variables so the kernel's Makefile can access them.
 	export \
 		CONFIG_OPTIMISATION_Os \
