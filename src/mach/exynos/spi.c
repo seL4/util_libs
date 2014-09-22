@@ -256,13 +256,13 @@ spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
     if (mux_sys && mux_sys_valid(mux_sys)) {
         mux_feature_enable(mux_sys, spi_bus->mux);
     } else {
-        LOG_INFO("SPI: Skipping MUX initialisation as no mux subsystem was provided\n");
+//        LOG_INFO("SPI: Skipping MUX initialisation as no mux subsystem was provided\n");
     }
 
     if (clock_sys && clock_sys_valid(clock_sys)) {
-        LOG_INFO("SPI: Assuming default clock frequent (Implement me)\n");
+//        LOG_INFO("SPI: Assuming default clock frequent (Implement me)\n");
     } else {
-        LOG_INFO("SPI: Assuming default clock frequency as no clock subsystem was provided\n");
+//        LOG_INFO("SPI: Assuming default clock frequency as no clock subsystem was provided\n");
     }
 
     spi_bus->mode = 0;
