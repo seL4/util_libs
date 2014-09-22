@@ -227,8 +227,8 @@ _spi_set_freq(clk_t* clk, freq_t hz)
         return 0;
     }
     fin = clk_get_freq(clk->parent);
-    r = fin / 0xff / hz;
-    rpre = fin / (r + 1) / hz;
+    rpre = fin / 0xf / hz;
+    r = fin / (rpre + 1) / hz;
     exynos_cmu_set_div(_clk_regs, clkid, 1, r);
     exynos_cmu_set_div(_clk_regs, clkid + 2, 2, rpre);
     return clk_get_freq(clk);
