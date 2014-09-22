@@ -66,7 +66,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
         div = MASK(CLK_DIV_BITS);
     }
 
-    exynos_cmu_set_div(clk_regs, clkid, div, 1);
+    exynos_cmu_set_div(clk_regs, clkid, 1, div);
     return clk_get_freq(clk);
 }
 

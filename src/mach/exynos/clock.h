@@ -185,7 +185,7 @@ exynos_cmu_get_div(clk_regs_io_t** regs, int clkid, int span)
 }
 
 static inline void
-exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int div, int span)
+exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
