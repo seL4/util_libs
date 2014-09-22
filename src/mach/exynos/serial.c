@@ -266,23 +266,23 @@ uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
 static ssize_t
 uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb, void* token)
 {
-    char *data = (char*)vdata;
-    int read;
     if (d->read_descriptor.data) {
         /* Transaction is already in progress */
         return -1;
-    }
-    read = uart_read_fifo(d, data, count);
-    if (rcb) {
-        /* Register the callback */
+    } else if (rcb) {
+        /* We don't want to perform an actual read here as we want the ISR to catch
+         * timeouts appropriately. Just register the callback and wait for the IRQ */
         d->read_descriptor.callback = rcb;
         d->read_descriptor.token = token;
-        d->read_descriptor.bytes_transfered = read;
+        d->read_descriptor.bytes_transfered = 0;
         d->read_descriptor.bytes_requested = count;
-        d->read_descriptor.data = (void*)data + read;
-        /* RX IRQ always enabled */
+        d->read_descriptor.data = (void*)vdata;
+        /* Dont need to enable the RX IRQ because it is always enabled */
+        return 0;
+    } else {
+        /* Read what we can into the buffer and return */
+        return uart_read_fifo(d, (char*)vdata, count);
     }
-    return read;
 }
 
 
@@ -303,11 +303,13 @@ uart_handle_rx_irq(ps_chardevice_t* d)
     timeout = v & TRSTAT_RXTIMEOUT;
     /* Clear timeout condition */
     *REG_PTR(d->vaddr, UTRSTAT) = v;
-
+    /* Drain the RX FIFO */
     to_read = d->read_descriptor.bytes_requested - d->read_descriptor.bytes_transfered;
     read = uart_read_fifo(d, d->read_descriptor.data, to_read);
-    d->read_descriptor.bytes_transfered += read;
-    d->read_descriptor.data += read;
+    if (read >= 0) {
+        d->read_descriptor.bytes_transfered += read;
+        d->read_descriptor.data += read;
+    }
 
     /* Check if this transaction is complete */
     if (timeout || d->read_descriptor.bytes_transfered == d->read_descriptor.bytes_requested) {
@@ -328,7 +330,7 @@ static void
 uart_handle_irq(ps_chardevice_t *d)
 {
     uint32_t sts;
-    sts = *REG_PTR(d->vaddr, UINTSP);
+    sts = *REG_PTR(d->vaddr, UINTP);
     if (sts & INT_TX) {
         sts &= ~INT_TX;
         uart_handle_tx_irq(d);
