@@ -112,6 +112,7 @@ endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A9),y)
 	ccflags-y += $(call cc-option, -mcpu=cortex-a9, -march=armv7-a)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a9, -Wa$(comma)-march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A9
 	export ARMV=armv7-a
@@ -120,7 +121,9 @@ endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 	ccflags-y += $(call cc-option, -mtune=cortex-a15,)
+	asflags-y += $(call as-option, -Wa$(comma)-mtune=cortex-a15,)
 	ccflags-y += -marm $(call cc-option,-march=armv7e,-march=armv7-a)
+	asflags-y += -Wa,-marm $(call as-option,-Wa$(comma)-march=armv7e,-Wa$(comma)-march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A15
 	export ARMV=armv7-a
