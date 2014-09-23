@@ -94,6 +94,7 @@ ps_get_clock(clock_sys_t* sys, enum clk_id id)
         clk_t* clk;
         clk = ps_clocks[id];
         assert(clk);
+        assert(ps_clocks[id]->init);
         clk->clk_sys = sys;
         return clk_init(clk);
     }
@@ -104,22 +105,33 @@ clk_print_tree(clk_t* clk, char* prefix)
 {
     int depth = strlen(prefix);
     char new_prefix[depth + 2];
-    strcpy(new_prefix, prefix);
-    strcpy(new_prefix + depth, "|");
+    strcpy(&new_prefix[0], prefix);
+    new_prefix[depth] = '|';
+    new_prefix[depth + 1] = '\0';
     while (clk != NULL) {
         const char* units[] = {"hz", "Khz", "Mhz", "Ghz"};
         const char** u = units;
-        float freq = clk_get_freq(clk);
+        freq_t freq;
+        int freqh, freql;
+        freq = clk_get_freq(clk);
         /* Find frequency with appropriate units */
-        while (freq > 10000) {
+        while (freq > 10000 * 1000) {
             freq /= 1000;
             u++;
         }
+        freqh = freq / 1000;
+        freql = freq % 1000;
         /* Generate tree graphics */
         if (clk->sibling == NULL) {
             strcpy(new_prefix + depth, " ");
         }
-        printf("%s\\%s (%0.1f %s)\n", new_prefix, clk->name, freq, *u);
+        if (freqh == 0) {
+            printf("%s\\%s (%03d %s)\n", new_prefix, clk->name, freql, u[0]);
+        } else if (freql == 0) {
+            printf("%s\\%s (%d %s)\n", new_prefix, clk->name, freqh, u[1]);
+        } else {
+            printf("%s\\%s (%d.%03d %s)\n", new_prefix, clk->name, freqh, freql, u[1]);
+        }
         clk_print_tree(clk->child, new_prefix);
         clk = clk->sibling;
     }
