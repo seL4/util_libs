@@ -13,34 +13,6 @@
 #include "../../services.h"
 #include "mux.h"
 
-#if defined(PLAT_EXYNOS5250)
-/* These are for the arndale */
-#define EXYNOS_GPIOLEFT_PADDR    0x11400000
-#define EXYNOS_GPIORIGHT_PADDR   0x13400000
-#define EXYNOS_GPIOC2C_PADDR     0x10D10000
-#define EXYNOS_GPIOAUDIO_PADDR   0x03860000
-#elif defined(PLAT_EXYNOS5410)
-/* These are for Odroid-XU */
-#define EXYNOS_GPIOLEFT_PADDR    0x13400000
-#define EXYNOS_GPIORIGHT_PADDR   0x14000000
-#define EXYNOS_GPIOC2C_PADDR     0x10D10000
-#define EXYNOS_GPIOAUDIO_PADDR   0x03860000
-#elif defined(PLAT_EXYNOS4)
-/* These are for Odroid-X */
-#define EXYNOS_GPIOLEFT_PADDR    0x11400000
-#define EXYNOS_GPIORIGHT_PADDR   0x11000000
-#define EXYNOS_GPIOC2C_PADDR     0x106E0000
-#define EXYNOS_GPIOAUDIO_PADDR   0x03860000
-#else
-#error Unidentified Exynos5 SoC
-#endif
-
-#define EXYNOS_GPIOX_SIZE        0x1000
-#define EXYNOS_GPIOLEFT_SIZE     EXYNOS_GPIOX_SIZE
-#define EXYNOS_GPIORIGHT_SIZE    EXYNOS_GPIOX_SIZE
-#define EXYNOS_GPIOC2C_SIZE      EXYNOS_GPIOX_SIZE
-#define EXYNOS_GPIOAUDIO_SIZE    EXYNOS_GPIOX_SIZE
-
 
 #define BITFIELD_SHIFT(x, bits)    ((x) * (bits))
 #define BITFIELD_MASK(x, bits)     (MASK(bits) << BITFIELD_SHIFT(x, bits))
@@ -60,24 +32,25 @@
 static volatile struct mux_bank* _bank[GPIO_NBANKS];
 
 static struct mux_bank**
-mux_priv_get_banks(mux_sys_t* mux){
+mux_priv_get_banks(mux_sys_t* mux) {
     assert(mux);
     return (struct mux_bank**)mux->priv;
 }
 
 static struct mux_cfg*
-get_mux_cfg(mux_sys_t* mux, int port){
+get_mux_cfg(mux_sys_t* mux, int port) {
     struct mux_bank** bank;
     int b, p;
     bank = mux_priv_get_banks(mux);
     b = GPIOPORT_GET_BANK(port);
     p = GPIOPORT_GET_PORT(port);
     assert(b >= 0 && b < GPIO_NBANKS);
-    return &bank[b]->gp[p]; 
+    return &bank[b]->gp[p];
 }
 
 static void
-exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func){
+exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func)
+{
     volatile struct mux_cfg* cfg = (volatile struct mux_cfg*)_cfg;
     uint32_t v;
     v = cfg->con;
@@ -89,12 +62,13 @@ exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func){
 }
 
 static void
-exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val){
+exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val)
+{
     volatile struct mux_cfg* cfg = (volatile struct mux_cfg*)_cfg;
     uint32_t v;
     v = cfg->dat;
     v &= ~BITFIELD_MASK(pin, 1);
-    if(val){
+    if (val) {
         v |= 1 << BITFIELD_SHIFT(pin, 1);
     }
     DMUX("dat.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
@@ -102,7 +76,8 @@ exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val){
 }
 
 static int
-exynos_mux_get_dat(struct mux_cfg* _cfg, int pin){
+exynos_mux_get_dat(struct mux_cfg* _cfg, int pin)
+{
     volatile struct mux_cfg* cfg = (volatile struct mux_cfg*)_cfg;
     uint32_t val;
     val = cfg->dat;
@@ -111,7 +86,8 @@ exynos_mux_get_dat(struct mux_cfg* _cfg, int pin){
 }
 
 static void
-exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud){
+exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud)
+{
     uint32_t v;
     v = cfg->pud;
     v &= ~BITFIELD_MASK(pin, 2);
@@ -122,20 +98,29 @@ exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud){
 }
 
 static void
-exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv){
+exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv)
+{
     volatile struct mux_cfg* cfg = (volatile struct mux_cfg*)_cfg;
     uint32_t v;
     int drv;
-    if(_drv < 1){
+    if (_drv < 1) {
         _drv = 1;
-    }else if(_drv > 4){
+    } else if (_drv > 4) {
         _drv = 4;
     }
-    switch(_drv){
-    case 1: drv = DRV1X; break;
-    case 2: drv = DRV2X; break;
-    case 3: drv = DRV3X; break;
-    case 4: drv = DRV4X; break;
+    switch (_drv) {
+    case 1:
+        drv = DRV1X;
+        break;
+    case 2:
+        drv = DRV2X;
+        break;
+    case 3:
+        drv = DRV3X;
+        break;
+    case 4:
+        drv = DRV4X;
+        break;
     default:
         assert(!"Invalid drive strength");
         drv = 0;
@@ -148,8 +133,9 @@ exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv){
 }
 
 static void
-exynos_mux_configure(struct mux_cfg* cfg, int pin, 
-                     int con, int pud, int drv){
+exynos_mux_configure(struct mux_cfg* cfg, int pin,
+                     int con, int pud, int drv)
+{
     exynos_mux_set_pud(cfg, pin, pud);
     exynos_mux_set_drv(cfg, pin, drv);
     exynos_mux_set_con(cfg, pin, con);
@@ -160,28 +146,29 @@ exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
     struct mux_feature_data* data = feature_data[mux_feature];
     (void)mux;
-    for(; data->port != GPIOPORT_NONE; data++){
+    for (; data->port != GPIOPORT_NONE; data++) {
         struct mux_cfg*  cfg;
         /* Apply */
-        DMUX("Enabling feature: bank %d, port %d, pin %d\n", 
-                GPIOPORT_GET_BANK(data->port),
-                GPIOPORT_GET_PORT(data->port),
-                data->pin);
+        DMUX("Enabling feature: bank %d, port %d, pin %d\n",
+             GPIOPORT_GET_BANK(data->port),
+             GPIOPORT_GET_PORT(data->port),
+             data->pin);
 
         cfg = get_mux_cfg(mux, data->port);
         assert(cfg);
 
-        exynos_mux_configure(cfg, data->pin, 
-                                MUXVALUE_CON(data->value),
-                                MUXVALUE_PUD(data->value),
-                                MUXVALUE_DRV(data->value));
+        exynos_mux_configure(cfg, data->pin,
+                             MUXVALUE_CON(data->value),
+                             MUXVALUE_PUD(data->value),
+                             MUXVALUE_DRV(data->value));
         DMUX("con.%d @ 0x%08x : 0x%08x (conpdn:0x%08x)\n", data->pin, (uint32_t)&cfg->con, cfg->con, cfg->conpdn);
 
     }
     return 0;
 }
 
-static int exynos_mux_init_common(mux_sys_t* mux){
+static int exynos_mux_init_common(mux_sys_t* mux)
+{
     mux->priv = &_bank;
     mux->feature_enable = &exynos_mux_feature_enable;
     return 0;
@@ -189,11 +176,20 @@ static int exynos_mux_init_common(mux_sys_t* mux){
 
 int
 exynos_mux_init(void* gpioleft, void* gpioright, void* gpioc2c,
-                  void* gpioaudio, mux_sys_t* mux){
-    if(gpioleft)  _bank[GPIO_LEFT_BANK ] = gpioleft;
-    if(gpioright) _bank[GPIO_RIGHT_BANK] = gpioright;
-    if(gpioc2c)   _bank[GPIO_C2C_BANK  ] = gpioc2c;
-    if(gpioaudio) _bank[GPIO_AUDIO_BANK] = gpioaudio;
+                void* gpioaudio, mux_sys_t* mux)
+{
+    if (gpioleft) {
+        _bank[GPIO_LEFT_BANK ] = gpioleft;
+    }
+    if (gpioright) {
+        _bank[GPIO_RIGHT_BANK] = gpioright;
+    }
+    if (gpioc2c) {
+        _bank[GPIO_C2C_BANK  ] = gpioc2c;
+    }
+    if (gpioaudio) {
+        _bank[GPIO_AUDIO_BANK] = gpioaudio;
+    }
     return exynos_mux_init_common(mux);
 }
 
@@ -213,21 +209,23 @@ mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
 /****************** GPIO ******************/
 
 static inline mux_sys_t*
-gpio_sys_get_mux(const gpio_sys_t* gpio_sys){
+gpio_sys_get_mux(const gpio_sys_t* gpio_sys)
+{
     assert(gpio_sys);
     assert(gpio_sys->priv);
     return (mux_sys_t*)gpio_sys->priv;
 }
 
 static inline mux_sys_t*
-gpio_get_mux(const gpio_t *gpio){
+gpio_get_mux(const gpio_t *gpio)
+{
     assert(gpio);
     return gpio_sys_get_mux(gpio->gpio_sys);
 }
 
 
 static struct mux_cfg*
-get_gpio_cfg(gpio_t* gpio){
+get_gpio_cfg(gpio_t* gpio) {
     mux_sys_t* mux;
     assert(gpio);
     mux = gpio_get_mux(gpio);
@@ -235,7 +233,7 @@ get_gpio_cfg(gpio_t* gpio){
 }
 
 static struct mux_bank*
-gpio_get_bank(gpio_t* gpio){
+gpio_get_bank(gpio_t* gpio) {
     struct mux_bank **banks;
     mux_sys_t* mux;
     int portid, bank;
@@ -263,9 +261,9 @@ gpio_is_gpx(gpio_t *gpio)
 static int
 gpio_get_xextint_idx(gpio_t *gpio)
 {
-    if(!gpio_is_gpx(gpio)){
+    if (!gpio_is_gpx(gpio)) {
         return -1;
-    }else{
+    } else {
         int portid, port;
         portid = GPIOID_PORT(gpio->id);
         port = GPIOPORT_GET_PORT(portid);
@@ -274,26 +272,27 @@ gpio_get_xextint_idx(gpio_t *gpio)
 }
 
 static int
-gpio_get_extint_idx(gpio_t *gpio){
+gpio_get_extint_idx(gpio_t *gpio)
+{
     int portid, port;
     portid = GPIOID_PORT(gpio->id);
     port = GPIOPORT_GET_PORT(portid);
 
     /* Special cases. */
-    if(portid == GPV2 || portid == GPV3){
+    if (portid == GPV2 || portid == GPV3) {
         return port - 1;
-    }else if(portid == GPV4){
+    } else if (portid == GPV4) {
         return port - 2;
 #ifdef PLAT_EXYNOS5
-    /* GPC4 on EXYNOS5 is very special indeed. */
-    }else if(portid == GPC4){
+        /* GPC4 on EXYNOS5 is very special indeed. */
+    } else if (portid == GPC4) {
         return 13;
 #endif
-    /* General case */
-    }else if(port >= 0 && port <= PORTS_PER_BANK){
+        /* General case */
+    } else if (port >= 0 && port <= PORTS_PER_BANK) {
         return port;
-    /* All other cases, including GPX range */
-    }else{
+        /* All other cases, including GPX range */
+    } else {
         return -1;
     }
 }
@@ -301,7 +300,7 @@ gpio_get_extint_idx(gpio_t *gpio){
 static int
 gpio_dir_get_intcon(enum gpio_dir dir)
 {
-    switch(dir){
+    switch (dir) {
     case GPIO_DIR_IRQ_LOW:
         return 0x0;
     case GPIO_DIR_IRQ_HIGH:
@@ -318,7 +317,8 @@ gpio_dir_get_intcon(enum gpio_dir dir)
 }
 
 static int
-exynos_pending_status(gpio_t* gpio, int clear){
+exynos_pending_status(gpio_t* gpio, int clear)
+{
     volatile struct mux_bank* bank;
     uint32_t pend;
     int pin;
@@ -327,25 +327,25 @@ exynos_pending_status(gpio_t* gpio, int clear){
     assert(bank);
 
     pin = GPIOID_PIN(gpio->id);
-    if(gpio_is_gpx(gpio)){
+    if (gpio_is_gpx(gpio)) {
         int idx;
         /* You HAD to be different GPX... */
         idx = gpio_get_xextint_idx(gpio);
-        if(idx < 0){
+        if (idx < 0) {
             return -1;
         }
         pend = (bank->ext_xint_pend[idx] & ~bank->ext_xint_mask[idx]) & BIT(pin);
-        if(clear){
+        if (clear) {
             bank->ext_xint_pend[idx] = BIT(pin);
         }
-    }else{
+    } else {
         int idx;
         idx = gpio_get_extint_idx(gpio);
-        if(idx < 0){
+        if (idx < 0) {
             return -1;
         }
         pend = (bank->ext_int_pend[idx] & ~bank->ext_int_mask[idx]) & BIT(pin);
-        if(clear){
+        if (clear) {
             bank->ext_int_pend[idx] = BIT(pin);
         }
     }
@@ -353,7 +353,8 @@ exynos_pending_status(gpio_t* gpio, int clear){
 }
 
 static int
-exynos_gpio_int_configure(gpio_t *gpio, int int_con){
+exynos_gpio_int_configure(gpio_t *gpio, int int_con)
+{
     volatile struct mux_bank* bank;
     int pin;
 
@@ -362,12 +363,12 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
     assert(bank);
 
     pin = GPIOID_PIN(gpio->id);
-    if(gpio_is_gpx(gpio)){
+    if (gpio_is_gpx(gpio)) {
         /* You HAD to be different GPX... */
         uint32_t v;
         int idx;
         idx = gpio_get_xextint_idx(gpio);
-        if(idx < 0){
+        if (idx < 0) {
             return -1;
         }
         v = bank->ext_xint_con[idx];
@@ -377,11 +378,11 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
         bank->ext_xint_mask[idx] &= ~BIT(pin);
         bank->ext_xint_pend[idx] = BIT(pin); /* Set to clear */
         bank->ext_xint_fltcon[idx][idx & 0x1] = 0;
-    }else{
+    } else {
         uint32_t v;
         int idx;
         idx = gpio_get_extint_idx(gpio);
-        if(idx < 0){
+        if (idx < 0) {
             return -1;
         }
         v = bank->ext_int_con[idx];
@@ -403,7 +404,8 @@ exynos_gpio_int_configure(gpio_t *gpio, int int_con){
 }
 
 static int
-exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
+exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
+{
     struct mux_cfg* cfg;
     assert(gpio);
 
@@ -413,18 +415,18 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     gpio->gpio_sys = gpio_sys;
     gpio->next = NULL;
     cfg = get_gpio_cfg(gpio);
-    if(cfg == NULL){
+    if (cfg == NULL) {
         return -1;
     }
 
-    if(dir == GPIO_DIR_IN){
+    if (dir == GPIO_DIR_IN) {
         exynos_mux_configure(cfg, GPIOID_PIN(id), 0x0, PUD_PULLUP, 1);
-    }else if(dir == GPIO_DIR_OUT){
+    } else if (dir == GPIO_DIR_OUT) {
         exynos_mux_configure(cfg, GPIOID_PIN(id), 0x1, PUD_NONE, 1);
-    }else{
+    } else {
         int con;
         con = gpio_dir_get_intcon(dir);
-        if(con < 0){
+        if (con < 0) {
             return -1;
         }
         exynos_mux_configure(cfg, GPIOID_PIN(id), 0xf, PUD_PULLUP, 1);
@@ -435,9 +437,10 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
 
 
 static int
-exynos_gpio_write(gpio_t* gpio, const char* data, int len){
+exynos_gpio_write(gpio_t* gpio, const char* data, int len)
+{
     int count;
-    for(count = 0; count < len && gpio; count++){
+    for (count = 0; count < len && gpio; count++) {
         struct mux_cfg* cfg;
         cfg = get_gpio_cfg(gpio);
         exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), *data++);
@@ -447,14 +450,15 @@ exynos_gpio_write(gpio_t* gpio, const char* data, int len){
 }
 
 static int
-exynos_gpio_read(gpio_t* gpio, char* data, int len){
+exynos_gpio_read(gpio_t* gpio, char* data, int len)
+{
     int count;
-    for(count = 0; count < len && gpio; count++){
+    for (count = 0; count < len && gpio; count++) {
         struct mux_cfg* cfg;
         cfg = get_gpio_cfg(gpio);
-        if(exynos_mux_get_dat(cfg, GPIOID_PIN(gpio->id))){
+        if (exynos_mux_get_dat(cfg, GPIOID_PIN(gpio->id))) {
             *data++ = 0xff;
-        }else{
+        } else {
             *data++ = 0x00;
         }
         gpio = gpio->next;
@@ -463,12 +467,13 @@ exynos_gpio_read(gpio_t* gpio, char* data, int len){
 }
 
 int
-exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){
+exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys)
+{
     assert(gpio_sys);
     assert(mux_sys);
-    if(!mux_sys_valid(mux_sys)){
+    if (!mux_sys_valid(mux_sys)) {
         return -1;
-    }else{
+    } else {
         /* GPIO is done through the MUX on exynos */
         gpio_sys->priv = mux_sys;
         gpio_sys->read = &exynos_gpio_read;
@@ -481,7 +486,8 @@ exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys){
 
 
 int
-gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys){
+gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
+{
     assert(gpio_sys);
     assert(io_ops);
     return exynos_gpio_sys_init(&io_ops->mux_sys, gpio_sys);
