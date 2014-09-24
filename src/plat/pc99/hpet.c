@@ -87,6 +87,13 @@ enum {
     TN_INT_ROUTE_CAP = 32
 };
 
+/* General HPET config bits */
+enum {
+    /* 1 if main counter is running and interrupts are enabled */
+    ENABLE_CNF = 0,
+    /* 1 if LegacyReplacementRoute is being used */
+    LEG_RT_CNF = 1
+};
 
 /* MSI registers - used to configure front side bus delivery of the
  * HPET interrupt. This allows us to avoid writing an I/O APIC driver.
@@ -126,7 +133,7 @@ hpet_start(const pstimer_t* device)
 
     hpet_t *hpet = (hpet_t *) device->data;
     /* enable the global timer */
-    *hpet->general_config_reg = 1;
+    *hpet->general_config_reg |= BIT(ENABLE_CNF);
 
     /* turn timer0 on */
     hpet->timers[0].config |= BIT(TN_INT_ENB_CNF);
@@ -147,7 +154,7 @@ hpet_stop(const pstimer_t* device)
     hpet->timers[0].config &= ~(BIT(TN_INT_ENB_CNF));
 
     /* turn the global timer off */
-    *hpet->general_config_reg = 0;
+    *hpet->general_config_reg &= ~BIT(ENABLE_CNF);
 
     return 0;
 }
@@ -285,24 +292,42 @@ hpet_get_timer(hpet_config_t *config)
         return NULL;
     }
 
-    /* check that this timer supports front size bus delivery */
-    if (!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP))) {
-        fprintf(stderr, "This driver expects timer0 to support fsb delivery\n");
-        return NULL;
-    }
-
     hpet->irq = config->irq;
 
-    /* set timer 0 to delivery interrupts via the front side bus (using MSIs) */
-    hpet->timers[0].config |= BIT(TN_FSB_EN_CNF);
+    if (config->ioapic_delivery) {
+        /* Check if this IO/APIC offset is valid */
+        uint32_t irq_mask = hpet->timers[0].config >> TN_INT_ROUTE_CAP;
+        if (!(BIT(config->irq) & irq_mask)) {
+            LOG_ERROR("IRQ %d not in the support mask 0x%x\n", config->irq, irq_mask);
+            return NULL;
+        }
+        /* Remove any legacy replacement route so our interrupts go where we want them
+         * NOTE: PIT will cease to function from here on */
+        *hpet->general_config_reg &= ~BIT(LEG_RT_CNF);
+        /* Make sure we're not deliverying by MSI */
+        hpet->timers[0].config &= ~BIT(TN_FSB_EN_CNF);
+        /* Put the IO/APIC offset in (this is called an irq, but in reality it is
+         * an index into whichever IO/APIC the HPET delivers to */
+        hpet->timers[0].config &= ~(MASK(5) << TN_INT_ROUTE_CNF);
+        hpet->timers[0].config |= config->irq << TN_INT_ROUTE_CNF;
+    } else {
+        /* check that this timer supports front size bus delivery */
+        if (!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP))) {
+            LOG_ERROR("Requested fsb delivery, but timer0 does not support");
+            return NULL;
+        }
 
-    /* set up the message address register and message value register so we receive
-     * MSIs for timer 0*/
-    hpet->timers[0].fsb_irr =
-        /* top 32 bits is the message address register */
-        ((0x0FEEllu << FIXED) << 32llu)
-        /* bottom 32 bits is the message value register */
-        | config->irq;
+        /* set timer 0 to delivery interrupts via the front side bus (using MSIs) */
+        hpet->timers[0].config |= BIT(TN_FSB_EN_CNF);
+
+        /* set up the message address register and message value register so we receive
+         * MSIs for timer 0*/
+        hpet->timers[0].fsb_irr =
+            /* top 32 bits is the message address register */
+            ((0x0FEEllu << FIXED) << 32llu)
+            /* bottom 32 bits is the message value register */
+            | config->irq;
+    }
 
     /* read the period of the timer (its in femptoseconds) and calculate no of ticks per ns */
     uint32_t tick_period_fs = (uint32_t) (*hpet->general_cap_id_reg >> 32llu);

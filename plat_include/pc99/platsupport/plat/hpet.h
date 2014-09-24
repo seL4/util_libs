@@ -20,6 +20,8 @@ typedef struct PACKED {
     void *vaddr;
     /* irq number of hpet interrupts */
     uint32_t irq;
+    /* Use IOAPIC instead of FSB delivery */
+    int ioapic_delivery;
 } hpet_config_t;
 
 pstimer_t *hpet_get_timer(hpet_config_t *config);
