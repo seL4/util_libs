@@ -82,7 +82,7 @@ struct tmu_regs {
 };
 typedef volatile struct tmu_regs tmu_regs_t;
 
-tmu_regs_t* _tmu_regs[NTMU];
+static tmu_regs_t* _tmu_regs[NTMU];
 
 static inline tmu_regs_t*
 tmu_priv_get_regs(tmu_t* tmu)
@@ -90,8 +90,9 @@ tmu_priv_get_regs(tmu_t* tmu)
     return (tmu_regs_t*)tmu->priv;
 }
 
-int
-exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
+
+static int
+do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
 {
     tmu_regs_t* regs;
     uint32_t v;
@@ -103,11 +104,14 @@ exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
     if (id < 0 || id >= NTMU) {
         return -1;
     }
-    /* Map the memory */
-    MAP_IF_NULL(io_ops, EXYNOS_TMU, _tmu_regs[id]);
+    /* Initialise memory map */
+    if (vaddr) {
+        _tmu_regs[id] = vaddr;
+    }
     if (_tmu_regs[id] == NULL) {
         return -1;
     }
+
     regs = _tmu_regs[id];
     tmu->priv = (void*)_tmu_regs[id];
 
@@ -142,6 +146,33 @@ exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
     /* Clear the reading */
     v = regs->temperature;
     return 0;
+}
+
+int
+exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
+{
+    return do_exynos_tmu_init(id, vaddr, tmu);
+}
+
+int
+exynos5_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
+{
+    return do_exynos_tmu_init(id, vaddr, tmu);
+}
+
+int
+exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
+{
+    /* Check bounds */
+    if (id < 0 || id >= NTMU) {
+        return -1;
+    }
+    /* Map the memory */
+    MAP_IF_NULL(io_ops, EXYNOS_TMU, _tmu_regs[id]);
+    if (_tmu_regs[id] == NULL) {
+        return -1;
+    }
+    return do_exynos_tmu_init(id, (void*)_tmu_regs[id], tmu);
 }
 
 int
