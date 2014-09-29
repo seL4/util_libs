@@ -126,7 +126,7 @@ text_ega_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t 
 
 
 static void
-text_ega_handle_irq(ps_chardevice_t* d, int irq)
+text_ega_handle_irq(ps_chardevice_t* d)
 {
     /* TODO */
 }

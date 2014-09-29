@@ -62,12 +62,13 @@ static int serial_putchar(ps_chardevice_t* device, int c)
     uint32_t res;
     uint32_t io_port = (uint32_t) device->vaddr;
 
-    /* Wait for serial to become ready. */
-    do {
-        res = 0;
-        int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
-        assert(!error);
-    } while (!(res & SERIAL_LSR_TRANSMITTER_EMPTY));
+    /* Check if serial is ready. */
+    res = 0;
+    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    assert(!error);
+    if (!(res & SERIAL_LSR_TRANSMITTER_EMPTY)) {
+        return -1;
+    }
 
     /* Write out the next character. */
     ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
@@ -79,11 +80,10 @@ static int serial_putchar(ps_chardevice_t* device, int c)
     return c;
 }
 
-
 static ssize_t
 serial_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
 {
-    const char* data = (const char*)vdata;
+    const unsigned char* data = (const unsigned char*)vdata;
     int i;
     for (i = 0; i < count; i++) {
         if (serial_putchar(d, *data++) < 0) {
