@@ -35,8 +35,10 @@
 #define T4_DIVISOR_MASK    T4_DIVISOR(0xf)
 
      /* TINT_CSTAT */
-#define T4_INT_ENABLE      BIT(4)
-#define T4_INT_STAT        BIT(9)
+#define INT_ENABLE(x)      BIT(x)
+#define INT_STAT(x)        BIT((x) + 5)
+#define INT_ENABLE_ALL     ( INT_ENABLE(0) | INT_ENABLE(1) | INT_ENABLE(2) \
+                           | INT_ENABLE(3) | INT_ENABLE(4)                 )
 
 
 /* Memory map for pwm */
@@ -89,15 +91,16 @@ pwm_timer_stop(const pstimer_t *timer) {
     pwm->pwm_map->tcon &= ~(T4_MANUALRELOAD);
 
     /* disable interrupts */
-    pwm->pwm_map->tint_cstat &= ~(T4_INT_ENABLE);
+    pwm->pwm_map->tint_cstat &= ~(INT_ENABLE(4));
             
     /* ack interrupt */
-    pwm->pwm_map->tint_cstat |= ~(T4_INT_STAT);
+    pwm->pwm_map->tint_cstat |= ~(INT_STAT(4));
 
     return 0;
 }
 
 void configure_timeout(const pstimer_t *timer, uint64_t ns) {
+    uint32_t v;
 
     pwm_t *pwm = (pwm_t*) timer->data;
 
@@ -105,7 +108,7 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns) {
     pwm->pwm_map->tcon &= ~(T4_ENABLE);
 
     /* Enable interrupt on overflow. */
-    pwm->pwm_map->tint_cstat |= T4_INT_ENABLE; 
+    pwm->pwm_map->tint_cstat |= INT_ENABLE(4);
 
     /* clear the scale */
     pwm->pwm_map->tcfg0 &= ~(T234_PRESCALE_MASK);
@@ -128,7 +131,9 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns) {
     pwm->pwm_map->tcon &= ~(T4_MANUALRELOAD);
                                                               
     /* Clear pending overflows. */
-    pwm->pwm_map->tint_cstat |= T4_INT_STAT;
+    v = pwm->pwm_map->tint_cstat;
+    v = (v & INT_ENABLE_ALL) | INT_STAT(4);
+    pwm->pwm_map->tint_cstat = v;
                                                                     
 
 }
@@ -169,9 +174,11 @@ pwm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 
 static void 
 pwm_handle_irq(const pstimer_t *timer, uint32_t irq) {
-  
     pwm_t *pwm = (pwm_t*) timer->data;
-    pwm->pwm_map->tint_cstat |= T4_INT_STAT;
+    uint32_t v;
+    v = pwm->pwm_map->tint_cstat;
+    v = (v & INT_ENABLE_ALL) | INT_STAT(4);
+    pwm->pwm_map->tint_cstat = v;
 }
 
 
