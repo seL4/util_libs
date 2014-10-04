@@ -70,8 +70,7 @@ int main(int argc, char **argv) {
     }
     if (fseek(archive, 0, SEEK_SET) != 0) {
         perror("failed to return to beginning of archive");
-        fclose(archive);
-        return errno;
+        goto fail;
     }
 
     /* Mmap the file so we can operate on it with libcpio. */
