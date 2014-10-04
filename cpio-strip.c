@@ -88,6 +88,7 @@ int main(int argc, char **argv) {
     https://github.inside.nicta.com.au/seL4/libcpio/issues/1
     if (err != 0) {
 #else
+    (void)err;
     if (info.file_count == 0) {
 #endif
         fprintf(stderr, "failed to read CPIO info\n");

@@ -2,7 +2,7 @@ libcpio = ${SEL4_LIBS_PATH}/libcpio
 
 cpio-strip: cpio-strip.c ${libcpio}/src/cpio.c ${libcpio}/include/cpio/cpio.h
 	@echo " [CC] $@"
-	${Q}${CC} -std=gnu1x -I${libcpio}/include cpio-strip.c ${libcpio}/src/cpio.c -o $@
+	${Q}${CC} -W -Wall -Wextra -std=gnu1x -I${libcpio}/include cpio-strip.c ${libcpio}/src/cpio.c -o $@
 
 clean:
 	rm cpio-strip
