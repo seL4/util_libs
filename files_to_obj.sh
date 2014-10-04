@@ -66,6 +66,15 @@ done
 pushd "${TEMP_DIR}/cpio" >/dev/null
 ARCHIVE="${TEMP_DIR}/archive.cpio"
 ls | cpio -o -H newc > ${ARCHIVE} 2>/dev/null
+
+# Strip CPIO metadata if possible.
+set +e
+which cpio-strip &>/dev/null
+if [ $? -eq 0 ]; then
+    cpio-strip ${ARCHIVE}
+fi
+set -e
+
 popd > /dev/null
 
 # Generate a linker script.
