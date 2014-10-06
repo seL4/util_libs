@@ -30,7 +30,7 @@
     /* Boo hiss, no _Static_assert for us. */
 
     #define compile_time_assert(name, expr) \
-        typedef char JOIN(JOIN(JOIN(_assertion_failed_, name), _), __COUNTER__)[(expr) ? 1 : -1] UNUSED
+        extern char JOIN(JOIN(JOIN(_assertion_failed_, name), _), __COUNTER__)[__builtin_constant_p(expr) ? ((expr) ? 1 : -1) : -1] UNUSED
 
     #define _Static_assert(expr, str) compile_time_assert(_static_assert, (expr))
 
