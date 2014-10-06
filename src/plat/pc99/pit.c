@@ -45,7 +45,7 @@
 #define PITCR_MODE_SWSTROBE  0x4
 
 #define TICKS_PER_SECOND 1193182
-#define PIT_MAX_TICKS 0xFFFF
+#define PIT_PERIODIC_MAX 54925000
 
 typedef struct {
     ps_io_port_ops_t *ops;
@@ -78,7 +78,7 @@ configure_pit(const pstimer_t *timer, uint8_t mode, uint64_t ns)
     }
 
     /* pit is only 16 bits */
-    if (ticks > PIT_MAX_TICKS) {
+    if (ticks > 0xFFFF) {
         /* ticks too high */
         fprintf(stderr, "Ticks too high\n");
         return EINVAL;
@@ -155,7 +155,7 @@ pit_get_time(const pstimer_t* device)
     }
 
     /* Assemble the high and low 8 bits using (high << 8) + low, and then convert to nanoseconds. */
-    return (PIT_MAX_TICKS - ((high << 8) + low)) * NS_IN_S / TICKS_PER_SECOND;
+    return ((high << 8) + low) * NS_IN_S / TICKS_PER_SECOND;
 }
 
 int
