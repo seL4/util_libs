@@ -126,7 +126,6 @@ desc_txget(struct desc *desc, dma_addr_t *dma, struct raw_desc_funcs *d_fn)
     /* Clean stale buffers so we can try to reuse them */
     desc_txcomplete(desc, d_fn);
     if (desc->tx.unused == 0) {
-        assert(0);
         return 0;
     }
 
