@@ -41,7 +41,7 @@ static int create_ring(struct desc_ring *r, ps_dma_man_t *dma_man, dma_addr_t de
 
 struct desc*
 desc_init(ps_dma_man_t *dma_man, int rx_count, int tx_count, int buf_count,
-          int buf_size, struct eth_driver *driver)
+          int buf_size, int buf_alignment, struct eth_driver *driver)
 {
     struct desc *d;
     struct raw_desc_funcs *d_fn = driver->d_fn;
@@ -76,7 +76,7 @@ desc_init(ps_dma_man_t *dma_man, int rx_count, int tx_count, int buf_count,
         goto panic;
     }
 
-    error = fill_dma_pool(d, buf_count, buf_size);
+    error = fill_dma_pool(d, buf_count, buf_size, buf_alignment);
     if (error) {
         LOG_ERROR("Failed to fill dma pool. Panic!");
         goto panic;

@@ -163,7 +163,7 @@ ethif_imx6_init(int dev_id, ps_io_ops_t interface)
     }
 
     desc = desc_init(&interface.dma_manager, CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT, 
-                    CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, NUM_DMA_BUFS, MAX_PKT_SIZE, driver);
+                    CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, NUM_DMA_BUFS, MAX_PKT_SIZE, 16, driver);
     if (!desc) {
         LOG_ERROR("Failed to initialize / allocate DMA descriptors");
         goto error;
@@ -353,13 +353,13 @@ imx6_raw_enableIRQ(struct eth_driver *driver, int *nirqs)
 dma_addr_t
 imx6_create_tx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0);
+    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, 16);
 }
 
 dma_addr_t
 imx6_create_rx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0);
+    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, 16);
 }
 
 void

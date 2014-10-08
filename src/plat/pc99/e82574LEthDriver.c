@@ -436,7 +436,7 @@ ethif_e82574L_init(int dev_id, ps_io_ops_t io_ops, char *pci_bar_start)
 
     desc = desc_init(&io_ops.dma_manager, CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT, 
                      CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, NUM_DMA_BUFS, 
-                     MAX_PKT_SIZE, driver);
+                     MAX_PKT_SIZE, 128, driver);
     if (!desc) {
         assert(0);
     }
@@ -541,13 +541,13 @@ e82574L_raw_handleIRQ(struct netif* netif, int irq)
 dma_addr_t
 e82574L_create_tx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct tx_ldesc) * count, 1);
+    return dma_alloc_pin(dma_man, sizeof(struct tx_ldesc) * count, 1, 128);
 }
 
 dma_addr_t
 e82574L_create_rx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct rx_ldesc) * count, 1);
+    return dma_alloc_pin(dma_man, sizeof(struct rx_ldesc) * count, 1, 128);
 }
 
 void

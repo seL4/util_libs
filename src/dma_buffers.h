@@ -13,9 +13,9 @@
 
 #include "descriptors.h"
 
-dma_addr_t dma_alloc_pin(ps_dma_man_t *dma_man, size_t size, int cached); 
+dma_addr_t dma_alloc_pin(ps_dma_man_t *dma_man, size_t size, int cached, int alignment);
 void free_dma_buf(struct desc *desc, dma_addr_t buf);
 dma_addr_t alloc_dma_buf(struct desc *desc);
-int fill_dma_pool(struct desc *desc, int count, int buf_size);
+int fill_dma_pool(struct desc *desc, int count, int buf_size, int alignment);
 
 #endif

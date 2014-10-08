@@ -59,11 +59,12 @@ struct desc {
  * @param[in] tx_count   Number of TX descriptors and buffers to create
  * @param[in] buf_count  Number of DMA buffers to allocate for both RX and TX purposes
  * @param[in] bufsize    Size of DMA buffers to allocate
+ * @param[in] buf_alignment Required alignment of each DMA buffer
  * @param[in] driver     Ethernet driver to use.
  * @return               A reference to the descriptor structure created.
  */
 struct desc* desc_init(ps_dma_man_t *dma_man, int rx_count, int tx_count, int buf_count, 
-                       int bufsize, struct eth_driver *driver);
+                       int bufsize, int buf_alignment, struct eth_driver *driver);
 
 /**
  * Free any memory alloctated for the descriptors
