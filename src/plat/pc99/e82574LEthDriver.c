@@ -104,8 +104,8 @@ struct regs {
 #define PACKET_BUFFER_SIZE 8192
 #define PACKET_BUFFER_SIZE_CODE 0b10
    
-struct raw_iface_funcs* setup_raw_iface_funcs();
-struct raw_desc_funcs* setup_raw_desc_funcs();
+static struct raw_iface_funcs* setup_raw_iface_funcs();
+static struct raw_desc_funcs* setup_raw_desc_funcs();
 void e82574L_start_tx_logic();
 void e82574L_start_rx_logic();
 void e82574L_low_level_init(struct netif *netif); 
@@ -142,7 +142,7 @@ e82574L_eth_get_mac(struct eth_driver *eth_driver, uint8_t *hwaddr)
             hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
 }
 
-void 
+static void 
 reset_device (struct regs *regs) 
 {
     volatile uint32_t temp_control = *regs->control; 
@@ -152,7 +152,7 @@ reset_device (struct regs *regs)
     return;
 }
 
-void 
+static void 
 enable_interrupts(struct regs *regs) 
 {
     volatile uint32_t temp_ims = *regs->ims;
@@ -164,7 +164,7 @@ enable_interrupts(struct regs *regs)
     return;
 }
 
-void 
+static void 
 disable_all_interrupts(struct regs *regs) 
 {
     volatile uint32_t temp_imc = *regs->imc;
@@ -174,7 +174,7 @@ disable_all_interrupts(struct regs *regs)
     return;
 }
 
-void 
+static void 
 initialise_control(struct regs *regs) 
 {
     volatile uint32_t temp_ctrl = *regs->control;
@@ -192,7 +192,7 @@ initialise_control(struct regs *regs)
     return;
 }
 
-void 
+static void 
 moderate_interrupts(struct regs *regs) 
 {
     volatile uint32_t temp_itr = 0;
@@ -203,7 +203,7 @@ moderate_interrupts(struct regs *regs)
     *regs->itr = temp_itr;
 }
 
-void 
+static void 
 initialise(struct regs *regs)
 {
     disable_all_interrupts(regs); 
@@ -221,7 +221,7 @@ initialise(struct regs *regs)
     return;
 }
 
-void initialise_TXDCTL(struct regs *regs) 
+static void initialise_TXDCTL(struct regs *regs) 
 {
     uint32_t temp_TXDCTL = 0;   
     //******** TXDCTL *********//
@@ -240,7 +240,7 @@ void initialise_TXDCTL(struct regs *regs)
     return;
 }
 
-void initialise_TCTL(struct regs *regs) {
+static void initialise_TCTL(struct regs *regs) {
     volatile uint32_t temp_TCTL = *regs->tctl;
     
     //******* TCTL ************//
@@ -280,7 +280,7 @@ void initialise_TCTL(struct regs *regs) {
     return;
 }
 
-void initialise_TIPG(struct regs *regs) {
+static void initialise_TIPG(struct regs *regs) {
     volatile uint32_t temp_TIPG = *regs->tipg;
     
     //********* TIPG **********//
@@ -304,7 +304,7 @@ void initialise_TIPG(struct regs *regs) {
     return;
 }
 
-void initialise_transmit(struct regs *regs) 
+static void initialise_transmit(struct regs *regs) 
 {
     initialise_TXDCTL(regs);
     initialise_TCTL(regs);
@@ -312,7 +312,7 @@ void initialise_transmit(struct regs *regs)
     return;
 }
 
-void initialise_RCTL(struct regs *regs) {
+static void initialise_RCTL(struct regs *regs) {
     uint32_t temp = *(regs->rctl);
 
     // zero reserved bits
@@ -358,7 +358,7 @@ void initialise_RCTL(struct regs *regs) {
     return;
 }
 
-void initialise_receive(struct regs *regs) {
+static void initialise_receive(struct regs *regs) {
     // zero the MTA array
     int i;
     for (i = 0; i < MTA_LENGTH; i++) {
@@ -369,7 +369,7 @@ void initialise_receive(struct regs *regs) {
     return;
 }
 
-void
+static void
 map_regs(struct regs *regs, char *bar0_map)
 {
     regs->control = (uint32_t*) (bar0_map + CTRL_REG_OFFSET);
@@ -446,7 +446,7 @@ ethif_e82574L_init(int dev_id, ps_io_ops_t io_ops, char *pci_bar_start)
     return driver;
 }
 
-struct raw_iface_funcs*
+static struct raw_iface_funcs*
 setup_raw_iface_funcs()
 {
     struct raw_iface_funcs* r_fn = malloc(sizeof(struct raw_iface_funcs));
@@ -462,7 +462,7 @@ setup_raw_iface_funcs()
     return r_fn;
 }
 
-struct raw_desc_funcs*
+static struct raw_desc_funcs*
 setup_raw_desc_funcs()
 {
     struct raw_desc_funcs *d_fn = malloc(sizeof(struct raw_desc_funcs));
