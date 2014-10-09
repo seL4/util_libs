@@ -44,3 +44,11 @@ config LIB_ETHDRIVER_TX_DESC_COUNT
     help
         The number of TX descriptors in the descriptor ring for the
         driver.
+
+config LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
+    int "Number of preallocated DMA buffers"
+    depends on LIB_ETHIF
+    default 64
+    help
+        To avoid allocating and freeing buffers continuously the driver
+        can preallocate a base amount internally.

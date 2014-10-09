@@ -21,9 +21,6 @@ typedef enum e1000_family {
     e1000_82574
 } e1000_family_t;
 
-#define NUM_DMA_BUFS (CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT * 2 + \
-                        CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT)
-
 // TX Descriptor Status Bits
 #define TX_DD BIT(0) /* Descriptor Done */
 #define TX_EOP BIT(0) /* End of Packet */
@@ -776,7 +773,7 @@ common_init(ps_io_ops_t io_ops, void *bar0, e1000_family_t family) {
     initialize_transmit(dev);
     initialize_receive(dev);
     driver->desc = desc_init(&io_ops.dma_manager, CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT,
-                         CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, NUM_DMA_BUFS, 2048, 128, driver);
+                         CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, 2048, 128, driver);
     if (!driver->desc) {
         /* Reset device */
         disable_all_interrupts(dev);

@@ -36,10 +36,14 @@ void
 free_dma_buf(struct desc *desc, dma_addr_t buf)
 {
     assert(desc);
-    assert(desc->queue_index > 0);
     assert(buf.virt);
-    desc->queue_index--;
-    desc->pool_queue[desc->queue_index] = buf;
+    if (desc->queue_index == 0) {
+        ps_dma_unpin(&desc->dma_man, buf.virt, desc->buf_size);
+        ps_dma_free(&desc->dma_man, buf.virt, desc->buf_size);
+    } else {
+        desc->queue_index--;
+        desc->pool_queue[desc->queue_index] = buf;
+    }
 }
 
 dma_addr_t
@@ -47,8 +51,7 @@ alloc_dma_buf(struct desc *desc)
 {
     dma_addr_t ret;
     if (desc->queue_index == desc->pool_size) {
-        assert(0); // die for now, we don't handle out of buffers...
-        return (dma_addr_t){0, 0};
+        return dma_alloc_pin(&desc->dma_man, desc->buf_size, 1, desc->buf_alignment);
     }
     ret = desc->pool_queue[desc->queue_index];
     desc->queue_index++;
@@ -73,5 +76,6 @@ fill_dma_pool(struct desc *desc, int count, int buf_size, int alignment)
     desc->queue_index = 0;
     desc->pool_size = count;
     desc->buf_size = buf_size;
+    desc->buf_alignment = alignment;
     return 0;
 }

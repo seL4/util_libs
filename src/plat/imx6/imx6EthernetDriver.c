@@ -30,6 +30,8 @@
 
 #define DEFAULT_MAC "\x00\x19\xb8\x00\xf0\xa3"
 
+#define DMA_SIZE_ALIGN 16
+
 /* Receive descriptor status */ 
 #define RXD_EMPTY     BIT(15) /* Buffer has no data. Waiting for reception. */
 #define RXD_OWN0      BIT(14) /* Receive software ownership. R/W by user */
@@ -57,12 +59,6 @@
 #define TXD_ADDCRC    BIT(10) /* Append a CRC to the end of the frame */
 #define TXD_ADDBADCRC BIT( 9) /* Append a bad CRC to the end of the frame */
 
-/* We chose the total number of spare DMA buffers to be 2 * RX ring size + TX ring size
- * This means we can be processing a full set of received packets, transmitting as
- * many packets as possible, and still have buffers to receive more packets. In reality
- * I made this constant up so it's probably bad */
-#define NUM_DMA_BUFS (CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT * 2 + \
-                        CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT)
 int setup_iomux_enet(ps_io_ops_t *io_ops);
 
 #define INTERRUPT_ENET 150
@@ -163,7 +159,7 @@ ethif_imx6_init(int dev_id, ps_io_ops_t interface)
     }
 
     desc = desc_init(&interface.dma_manager, CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT, 
-                    CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, NUM_DMA_BUFS, MAX_PKT_SIZE, 16, driver);
+                    CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, MAX_PKT_SIZE, DMA_SIZE_ALIGN, driver);
     if (!desc) {
         LOG_ERROR("Failed to initialize / allocate DMA descriptors");
         goto error;
@@ -353,13 +349,13 @@ imx6_raw_enableIRQ(struct eth_driver *driver, int *nirqs)
 dma_addr_t
 imx6_create_tx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, 16);
+    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, DMA_SIZE_ALIGN);
 }
 
 dma_addr_t
 imx6_create_rx_descs(ps_dma_man_t *dma_man, int count)
 {
-    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, 16);
+    return dma_alloc_pin(dma_man, sizeof(struct descriptor) * count, 0, DMA_SIZE_ALIGN);
 }
 
 void

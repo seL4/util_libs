@@ -49,6 +49,7 @@ struct desc {
     int queue_index;
     int pool_size;
     int buf_size;
+    int buf_alignment;
     ps_dma_man_t dma_man;
 };
 
@@ -57,13 +58,12 @@ struct desc {
  * @param[in] dma_man    DMA manager for allocating dma buffers
  * @param[in] rx_count   Number of RX descriptors and buffers to create
  * @param[in] tx_count   Number of TX descriptors and buffers to create
- * @param[in] buf_count  Number of DMA buffers to allocate for both RX and TX purposes
  * @param[in] bufsize    Size of DMA buffers to allocate
  * @param[in] buf_alignment Required alignment of each DMA buffer
  * @param[in] driver     Ethernet driver to use.
  * @return               A reference to the descriptor structure created.
  */
-struct desc* desc_init(ps_dma_man_t *dma_man, int rx_count, int tx_count, int buf_count, 
+struct desc* desc_init(ps_dma_man_t *dma_man, int rx_count, int tx_count,
                        int bufsize, int buf_alignment, struct eth_driver *driver);
 
 /**
