@@ -21,6 +21,11 @@ typedef enum e1000_family {
     e1000_82574
 } e1000_family_t;
 
+/* An alignment of 128 bytes is required for most structures by the hardware */
+#define DMA_ALIGN 128
+/* This driver is hard coded to use 2k buffers, don't just change this */
+#define BUF_SIZE 2048
+
 // TX Descriptor Status Bits
 #define TX_DD BIT(0) /* Descriptor Done */
 #define TX_EOP BIT(0) /* End of Packet */
@@ -414,11 +419,11 @@ static struct raw_iface_funcs iface_fns = {
 };
 
 static dma_addr_t create_tx_descs(ps_dma_man_t *dma_man, int count) {
-    return dma_alloc_pin(dma_man, sizeof(struct legacy_tx_ldesc) * count, 1, 128);
+    return dma_alloc_pin(dma_man, sizeof(struct legacy_tx_ldesc) * count, 1, DMA_ALIGN);
 }
 
 static dma_addr_t create_rx_descs(ps_dma_man_t *dma_man, int count) {
-    return dma_alloc_pin(dma_man, sizeof(struct legacy_rx_ldesc) * count, 1, 128);
+    return dma_alloc_pin(dma_man, sizeof(struct legacy_rx_ldesc) * count, 1, DMA_ALIGN);
 }
 
 static void disable_transmit(e1000_dev_t *dev) {
@@ -531,7 +536,7 @@ static void reset_tx_descs(struct eth_driver *driver) {
 
     /* Set length of the ring */
     size_t desc_bytes = desc->tx.count * sizeof(struct legacy_tx_ldesc);
-    assert(desc_bytes % 128 == 0); // tdlen must be 128 byte aligned
+    assert(desc_bytes % DMA_ALIGN == 0); // tdlen must be 128 byte aligned
     set_tdlen(dev, desc_bytes);
 
     /* Sync everything we just did */
@@ -659,7 +664,7 @@ static void reset_rx_descs(struct eth_driver *driver) {
 
     /* Set length of the ring */
     size_t desc_bytes = desc->rx.count * sizeof(struct legacy_rx_ldesc);
-    assert(desc_bytes % 128 == 0); // tdlen must be 128 byte aligned
+    assert(desc_bytes % DMA_ALIGN == 0); // tdlen must be 128 byte aligned
     set_rdlen(dev, desc_bytes);
 
     __sync_synchronize();
@@ -773,7 +778,7 @@ common_init(ps_io_ops_t io_ops, void *bar0, e1000_family_t family) {
     initialize_transmit(dev);
     initialize_receive(dev);
     driver->desc = desc_init(&io_ops.dma_manager, CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT,
-                         CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, 2048, 128, driver);
+                         CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT, BUF_SIZE, DMA_ALIGN, driver);
     if (!driver->desc) {
         /* Reset device */
         disable_all_interrupts(dev);
