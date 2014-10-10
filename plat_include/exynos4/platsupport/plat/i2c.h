@@ -24,5 +24,13 @@ enum i2c_id {
     NI2C
 };
 
+/**
+ * Initalise an exynos I2C bus with memory mapped i2c deviced
+ * @param[in]   id      The id of the I2C bus to initalise
+ * @param[in]   base    The base address of the i2c device's mapped memory
+ * @param[in]   mux     Mux system for exynos
+ * @param[out]  i2c     I2C bus struct to be populated
+ */
+int exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c);
 
 #endif /* _PLATSUPPORT_PLAT_I2C_H_ */

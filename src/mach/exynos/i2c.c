@@ -369,6 +369,11 @@ exynos_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2
         while (busy(dev)) {
             i2c_handle_irq(i2c_bus);
         }
+    } else {
+        i2c_bus->cb = cb;
+        i2c_bus->token = token;
+        clear_pending(dev); // Clears any interrupts
+        return dev->rx_len;
     }
     return dev->rx_count;
 }
@@ -392,10 +397,24 @@ exynos_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t 
         while (busy(dev)) {
             i2c_handle_irq(i2c_bus);
         }
+    } else {
+        i2c_bus->cb = cb;
+        i2c_bus->token = token;
+        clear_pending(dev); // Clears any interrupts
+        return dev->tx_len;
     }
     return dev->tx_count;
 }
 
+static void
+exynos_i2c_send_stop(i2c_bus_t* i2c_bus, enum i2c_stat status) {
+    struct i2c_bus_priv *dev = i2c_bus_get_priv(i2c_bus);
+    dev->regs->status &= ~(I2CSTAT_BUSY);
+    clear_pending(dev);
+    if (i2c_bus->cb) {
+        i2c_bus->cb(i2c_bus, status, dev->tx_count, i2c_bus->token);
+    }
+}
 
 static void
 exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
@@ -412,7 +431,7 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                     dev->rx_count = 0;
                 } else {
                     /* No response: Abort */
-                    dev->regs->status &= ~(I2CSTAT_BUSY);
+                    exynos_i2c_send_stop(i2c_bus, I2CSTAT_ERROR); 
                 }
             } else if (dev->regs->control & I2CCON_ACK_EN) {
                 /* Read from slave */
@@ -425,7 +444,7 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 }
             } else {
                 /* Finally, send stop */
-                dev->regs->status &= ~(I2CSTAT_BUSY);
+                exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
             }
             break;
         case I2CSTAT_MODE_MTX:
@@ -436,11 +455,11 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 dev->tx_count++;
                 if (dev->tx_count == dev->tx_len) {
                     /* Write 0xD0 (M/T Stop) to I2CSTAT */
-                    dev->regs->status &= ~(I2CSTAT_BUSY);
+                    exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
                 }
             } else {
                 /* No response: Abort */
-                dev->regs->status &= ~(I2CSTAT_BUSY);
+                exynos_i2c_send_stop(i2c_bus, I2CSTAT_ERROR); 
             }
             break;
         case I2CSTAT_MODE_STX:
@@ -468,62 +487,14 @@ exynos_i2c_set_address(i2c_bus_t* i2c_bus, int addr)
     return 0;
 }
 
-int
-i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
+static int
+i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
 {
-    struct i2c_bus_priv* dev = _i2c + id;
-    mux_sys_t* mux = &io_ops->mux_sys;
-    /* Map memory */
-    dprintf("Mapping i2c %d\n", id);
-    switch (id) {
-    case I2C0:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C0,  dev->regs);
-        break;
-    case I2C1:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C1,  dev->regs);
-        break;
-    case I2C2:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C2,  dev->regs);
-        break;
-    case I2C3:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C3,  dev->regs);
-        break;
-    case I2C4:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C4,  dev->regs);
-        break;
-    case I2C5:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C5,  dev->regs);
-        break;
-    case I2C6:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C6,  dev->regs);
-        break;
-    case I2C7:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs);
-        break;
-#if defined(PLAT_EXYNOS4)
-#elif defined(PLAT_EXYNOS5)
-    case I2C8:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs);
-        break;
-    case I2C9:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C9,  dev->regs);
-        break;
-    case I2C10:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C10, dev->regs);
-        break;
-    case I2C11:
-        MAP_IF_NULL(io_ops, EXYNOS_I2C11, dev->regs);
-        break;
-#else  /* EXYNOS? */
-#error Unknown Exynos based platform
-#endif /* EXYNOSX */
-    default :
-        return -1;
-    }
     /* Check that our memory was mapped */
     if (dev->regs == NULL) {
         return -2;
     }
+    dprintf("Memory for regs mapped\n");
     /* Configure MUX */
     if (mux_feature_enable(mux, dev->mux)) {
         dprintf("Warning: failed to configure MUX\n");
@@ -550,5 +521,69 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     i2c->handle_irq  = exynos_i2c_handle_irq;
     i2c->priv        = (void*)dev;
     return 0;
+}
+
+int
+exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c)
+{
+    struct i2c_bus_priv* dev = _i2c + id;
+    dprintf("Mapping i2c %d\n", id);
+    dev->regs = base;
+    return i2c_init_common(mux, i2c, dev);
+
+int
+i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
+{
+    struct i2c_bus_priv* dev = _i2c + id;
+    mux_sys_t* mux = &io_ops->mux_sys;
+    /* Map memory */
+    dprintf("Mapping i2c %d\n", id);
+    switch (id) {
+        case I2C0:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C0,  dev->regs);
+            break;
+        case I2C1:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C1,  dev->regs);
+            break;
+        case I2C2:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C2,  dev->regs);
+            break;
+        case I2C3:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C3,  dev->regs);
+            break;
+        case I2C4:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C4,  dev->regs);
+            break;
+        case I2C5:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C5,  dev->regs);
+            break;
+        case I2C6:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C6,  dev->regs);
+            break;
+        case I2C7:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs);
+            break;
+#if defined(PLAT_EXYNOS4)
+#elif defined(PLAT_EXYNOS5)
+        case I2C8:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs);
+            break;
+        case I2C9:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C9,  dev->regs);
+            break;
+        case I2C10:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C10, dev->regs);
+            break;
+        case I2C11:
+            MAP_IF_NULL(io_ops, EXYNOS_I2C11, dev->regs);
+            break;
+#else  /* EXYNOS? */
+#error Unknown Exynos based platform
+#endif /* EXYNOSX */
+        default :
+            return -1;
+        }
+    }
+    return i2c_init_common(mux, i2c, dev);
 }
 

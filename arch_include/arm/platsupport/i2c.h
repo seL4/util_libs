@@ -12,7 +12,10 @@
 #define _PLATSUPPORT_I2C_H_
 
 #include <platsupport/io.h>
+
+typedef struct i2c_bus i2c_bus_t;
 #include <platsupport/plat/i2c.h>
+
 /* For bit banged API */
 #include <platsupport/gpio.h>
 
@@ -31,7 +34,6 @@ enum i2c_stat {
     I2CSTAT_CANCELLED
 };
 
-typedef struct i2c_bus i2c_bus_t;
 typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void* token);
 
 struct i2c_bus {
@@ -43,6 +45,8 @@ struct i2c_bus {
     int (*master_stop)(i2c_bus_t* bus);
     int (*set_address)(i2c_bus_t* bus, int addr);
     void (*handle_irq)(i2c_bus_t* bus);
+    i2c_callback_fn cb;
+    void* token;
     void* priv;
 };
 
@@ -111,13 +115,15 @@ static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
  *                    should be set to 0.
  * @param[in] data    A address to store the recieved data
  * @param[in] size    The number of bytes to read
+ * @param[in] token   The token for the callback to return
  * @return            The number of bytes read
  */
-static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t size)
+static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t size, 
+        i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->start_read);
-    return i2c_bus->start_read(i2c_bus, addr, data, size, NULL, NULL);
+    return i2c_bus->start_read(i2c_bus, addr, data, size, cb, token);
 }
 
 /**
@@ -130,13 +136,15 @@ static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t siz
  *                    should be set to 0.
  * @param[in] data    The address of the data to send
  * @param[in] size    The number of bytes to send
+ * @param[in] token   The token for the callback to return
  * @return            The number of bytes sent
  */
-static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, size_t size)
+static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, size_t size, 
+        i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->start_write);
-    return i2c_bus->start_write(i2c_bus, addr, data, size, NULL, NULL);
+    return i2c_bus->start_write(i2c_bus, addr, data, size, cb, token);
 }
 
 /*** Slave mode ***/
@@ -297,17 +305,23 @@ int i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave);
  * @param[in] i2c_slave  A handle to the I2C slave device to read from
  * @param[in] data       A address to read the data to
  * @param[in] size       The number of bytes to read
+ * @param[in] cb         The callback which is called when write is complete
+ * @param[in] token      The token that the callback returns
  * @return               The actual number of registers read
  */
-int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size);
+int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb, 
+        void* token);
 
 /**
  * Write to a streaming slave device
  * @param[in] i2c_slave  A handle to the I2C slave device to write to
  * @param[in] data       The address of the data to be written
  * @param[in] size       The number of bytes to write
+ * @param[in] cb         The callback which is called when write is complete
+ * @param[in] token      The token that the callback returns
  * @return               The actual number of registers written
  */
-int i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size);
+int i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb, 
+        void* token);
 
 #endif /* _PLATSUPPORT_I2C_H_ */
