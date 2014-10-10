@@ -76,14 +76,14 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
     /* Send the register address */
     dprintf("Seek register 0x%02llx\n", reg);
     _fill_reg(d, reg, i2c_slave->address_fmt);
-    bytes = i2c_slave_write(i2c_slave, d, abytes);
+    bytes = i2c_slave_write(i2c_slave, d, abytes, NULL, NULL);
     if(bytes != abytes){
         dprintf("Bus error\n");
         return -1;
     }
     /* Receive the reply */
     dprintf("Read register %d\n", dbytes * count);
-    bytes = i2c_slave_read(i2c_slave, d, dbytes * count);
+    bytes = i2c_slave_read(i2c_slave, d, dbytes * count, NULL, NULL);
     if(bytes < 0){
         dprintf("read error\n");
         return bytes;
@@ -116,7 +116,7 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count){
     /* Load up the data */
     _fill_data(d + abytes, data, i2c_slave->data_fmt, count);
     /* Send the request */
-    bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes);
+    bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, NULL, NULL);
     if(bytes <= 0){
         dprintf("Bus error (%d)\n", bytes);
         return bytes;
@@ -145,7 +145,7 @@ i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
 {
     int dbytes = ABS(i2c_slave->data_fmt);
     char* data = (char*)vdata;
-    int this = 0;
+    int this = -1;
     int remain = count;
     /* For large reads, copyin/out requires that they be split reads */
     while(remain > 0){
@@ -183,15 +183,15 @@ i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t reg, const void* vdata, int c
 }
 
 int
-i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size)
+i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb, void* token)
 {
-    return i2c_mread(i2c_slave->bus, i2c_slave->address, data, size);
+    return i2c_mread(i2c_slave->bus, i2c_slave->address, data, size, cb, token);
 }
-
+        
 int
-i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size)
+i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb, void* token)
 {
-    return i2c_mwrite(i2c_slave->bus, i2c_slave->address, data, size);
+    return i2c_mwrite(i2c_slave->bus, i2c_slave->address, data, size, cb, token);
 }
 
 int
@@ -208,7 +208,7 @@ i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr){
     int count;
     char dummy[10];
     for(count = 0, i = start & ~0x1; i < 0x100 && count < naddr; i+=2){
-        ret = i2c_mread(i2c_bus, i, &dummy, 10);
+        ret = i2c_mread(i2c_bus, i, &dummy, 10, NULL, NULL);
         if(ret == 10){
             *addr++ = i;
             count++;

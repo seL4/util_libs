@@ -319,7 +319,7 @@ transfer_data(spi_bus_t* spi_bus)
         if (spi_bus->txcnt < spi_bus->txsize) {
             d = *spi_bus->txbuf++;
         } else {
-            d = 0xff;
+            d = 0;
         }
         spi_bus->regs->tx_data = d;
         spi_bus->txcnt++;
