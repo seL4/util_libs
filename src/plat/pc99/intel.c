@@ -150,6 +150,8 @@ struct __attribute((packed)) legacy_rx_ldesc {
 typedef struct e1000_dev {
     e1000_family_t family;
     void *iobase;
+    /* shadow the value of RDT so we don't have to re-read it to increment */
+    uint32_t rdt;
 }e1000_dev_t;
 
 static void disable_all_interrupts(e1000_dev_t *dev) {
@@ -675,7 +677,8 @@ static void reset_rx_descs(struct eth_driver *driver) {
     __sync_synchronize();
 
     /* Set the tail to initialize be full */
-    set_rdt(dev, (read_rdh(dev) + desc->rx.count - 1) % desc->rx.count);
+    dev->rdt = (read_rdh(dev) + desc->rx.count - 1) % desc->rx.count;
+    set_rdt(dev, dev->rdt);
 
     __sync_synchronize();
 }
@@ -692,7 +695,8 @@ static void ready_tx_desc(int buf_num, int num, struct eth_driver *driver) {
 
 static void ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver) {
     e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
-    set_rdt(dev, (read_rdt(dev) + 1) % driver->desc->rx.count);
+    dev->rdt = (dev->rdt + 1) % driver->desc->rx.count;
+    set_rdt(dev, dev->rdt);
     __sync_synchronize();
 }
 
