@@ -35,6 +35,7 @@ typedef struct libpci_device {
 
     uint16_t vendor_id;
     uint16_t device_id;
+    uint16_t subsystem_id;
     uint8_t interrupt_pin;
     uint8_t interrupt_line;
 

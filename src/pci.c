@@ -101,6 +101,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     libpci_device_list[libpci_num_devices].device_name = libpci_deviceID_str(vendor_id, device_id);
     libpci_device_list[libpci_num_devices].interrupt_line = libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_LINE);
     libpci_device_list[libpci_num_devices].interrupt_pin = libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_PIN);
+    libpci_device_list[libpci_num_devices].subsystem_id = libpci_read_reg16(bus, dev, fun, PCI_SUBSYSTEM_ID);
     libpci_read_ioconfig(&libpci_device_list[libpci_num_devices].cfg, bus, dev, fun);
 
     #if (PCI_DEBUG >= 2)
