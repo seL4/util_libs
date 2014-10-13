@@ -8,6 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
+#ifndef ETHIF_INTEL_H
+#define ETHIF_INTEL_H
+
 #include <platsupport/io.h>
 
 /**
@@ -29,3 +32,5 @@ ethif_e82580_init(ps_io_ops_t io_ops, void *bar0);
  */
 struct eth_driver*
 ethif_e82574_init(ps_io_ops_t io_ops, void *bar0);
+
+#endif
