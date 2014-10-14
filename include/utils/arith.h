@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <utils/attribute.h>
+#include <utils/builtin.h>
 #include <stdint.h>
 
 #define BIT(n) (1ul<<(n))
@@ -24,6 +25,9 @@
 #define MASK(n) ({(void)assert((n) <= 31); MASK_UNSAFE(n); })
 
 #define IS_ALIGNED(n, b) (!((n) & MASK(b)))
+
+#define LOG_BASE_2(n) \
+    ({ (sizeof(typeof (n)) * 8) - CLZ((n)) - 1;})
 
 #define IS_POWER_OF_2_OR_ZERO(x) (0 == ((x) & ((x) - 1)))
 #define IS_POWER_OF_2(x) (((x) != 0) && IS_POWER_OF_2_OR_ZERO(x))
