@@ -24,7 +24,8 @@
 
 #define CORE_LOCAL_PWR_EN     0x3
 
-#define SMC_SHUTDOWN          -7
+#define SMC_SHUTDOWN          (-7)
+#define SMC_DISABLE_TRUSTZONE (-1024)
 
 /**
  * This structure and its location is defined by U-Boot
@@ -38,8 +39,8 @@ typedef volatile struct {
     uint32_t cpu1_boot_reg;  /* 0x1C */
     uint32_t direct_go_flag; /* 0x20 */
     uint32_t direct_go_addr; /* 0x24 */
-    uint32_t res1[2];        /* 0x28 */
-    /* 0x30 */
+    uint32_t cpustate[8];    /* 0x28 */ /* only 4 cpustate on 5410 */
+    uint32_t clusterstate[2];   /* 0x54 */ /* missing on 5410 */
 } nscode_t;
 
 
@@ -59,19 +60,19 @@ typedef volatile struct cpu_cfg {
 
 
 /* U-Boot control */
-nscode_t* _nsscode  = (nscode_t*)EXYNOS5_SYSRAM_NS;
+nscode_t *nsscode  = (nscode_t*)EXYNOS5_SYSRAM_NS;
 
 /* CPU configuration */
-cpu_cfg_t *_cpu_cfg = (cpu_cfg_t*)EXYNOS5_POWER_CPU_CFG;
+cpu_cfg_t *cpu_cfg = (cpu_cfg_t*)EXYNOS5_POWER_CPU_CFG;
 
 
 void boot_cpu(int cpu, uintptr_t entry)
 {
     /* Setup the CPU's entry point */
-    _nsscode->cpu1_boot_reg = entry;
+    nsscode->cpu1_boot_reg = entry;
     asm volatile("dmb");
     /* Spin up the CPU */
-    _cpu_cfg[cpu].core.config = CORE_LOCAL_PWR_EN;
+    cpu_cfg[cpu].core.config = CORE_LOCAL_PWR_EN;
 }
 
 void platform_init(void)
@@ -80,13 +81,18 @@ void platform_init(void)
         printf("\nSwitching CPU...\n");
         boot_cpu(BOOTCPU, (uintptr_t)_start);
         /* Shutdown */
-        smc(SMC_SHUTDOWN, 0, 0, 0);
-        while (1) {
-            cpu_idle();
+        for (;;) {
+            /* 
+             * Turn off interrupts before going to 
+             * sleep --- otherwise they could wake us up.
+             */
+            asm volatile (
+                "msr CPSR_cxsf, #0xc" ::
+                );
+            smc(SMC_SHUTDOWN, 0, 0, 0);
         }
     } else {
-        _nsscode->cpu1_boot_reg = 0;
+        nsscode->cpu1_boot_reg = 0;
+        smc(SMC_DISABLE_TRUSTZONE, 0, 0, 0);
     }
 }
-
-
