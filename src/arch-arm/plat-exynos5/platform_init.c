@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "stdint.h"
-#include "stdio.h"
+#include "../stdint.h"
+#include "../stdio.h"
 #include "../cpuid.h"
 #include "../elfloader.h"
 
