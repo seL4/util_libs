@@ -25,6 +25,9 @@
 #include <utils/stack.h>
 #include <utils/time.h>
 
+#define TRUE 1
+#define FALSE 0
+
 #ifdef NDEBUG
 #define LOG_ERROR(format, ...)
 #define LOG_INFO(format, ...)
