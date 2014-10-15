@@ -115,11 +115,12 @@ static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
  *                    should be set to 0.
  * @param[in] data    A address to store the recieved data
  * @param[in] size    The number of bytes to read
- * @param[in] token   The token for the callback to return
+ * @param[in] cb      A callback to call when the transfer has finished.
+ * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes read
  */
-static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t size, 
-        i2c_callback_fn cb, void* token)
+static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t size,
+                            i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->start_read);
@@ -136,11 +137,12 @@ static inline int i2c_mread(i2c_bus_t* i2c_bus, int addr, void* data, size_t siz
  *                    should be set to 0.
  * @param[in] data    The address of the data to send
  * @param[in] size    The number of bytes to send
- * @param[in] token   The token for the callback to return
+ * @param[in] cb      A callback to call when the transfer has finished.
+ * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes sent
  */
-static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, size_t size, 
-        i2c_callback_fn cb, void* token)
+static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, size_t size,
+                             i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->start_write);
@@ -168,13 +170,15 @@ static inline int i2c_set_address(i2c_bus_t* i2c_bus, int address)
  * @param[in] i2c_bus A handle to an i2c bus driver
  * @param[in] data    A address to store the recieved data
  * @param[in] size    The number of bytes to read
+ * @param[in] cb      A callback to call when the transfer has finished.
+ * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes read
  */
-static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size)
+static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size, i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->read);
-    return i2c_bus->read(i2c_bus, data, size, NULL, NULL);
+    return i2c_bus->read(i2c_bus, data, size, cb, token);
 }
 
 /**
@@ -182,13 +186,15 @@ static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size)
  * @param[in] i2c_bus A handle to an i2c bus driver
  * @param[in] data    The address of the data to send
  * @param[in] size    The number of bytes to send
+ * @param[in] cb      A callback to call when the transfer has finished.
+ * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes sent
  */
-static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size)
+static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size, i2c_callback_fn cb, void* token)
 {
     assert(i2c_bus);
     assert(i2c_bus->write);
-    return i2c_bus->write(i2c_bus, data, size, NULL, NULL);
+    return i2c_bus->write(i2c_bus, data, size, cb, token);
 }
 
 /**
@@ -309,8 +315,8 @@ int i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave);
  * @param[in] token      The token that the callback returns
  * @return               The actual number of registers read
  */
-int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb, 
-        void* token);
+int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb,
+                   void* token);
 
 /**
  * Write to a streaming slave device
@@ -321,7 +327,7 @@ int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn
  * @param[in] token      The token that the callback returns
  * @return               The actual number of registers written
  */
-int i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb, 
-        void* token);
+int i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb,
+                    void* token);
 
 #endif /* _PLATSUPPORT_I2C_H_ */
