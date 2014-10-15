@@ -14,7 +14,7 @@
 
 #define mV
 
-#define PMIC_DEBUG
+//#define PMIC_DEBUG
 #ifdef PMIC_DEBUG
 #define dprintf(...) printf("PMIC:" __VA_ARGS__)
 #else
