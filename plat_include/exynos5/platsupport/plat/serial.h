@@ -28,6 +28,8 @@
 #define UART_DEFAULT_FIN    100000000
 #elif defined(PLAT_EXYNOS5410)
 #define UART_DEFAULT_FIN     64000000
+#elif defined(PLAT_EXYNOS5422)
+#define UART_DEFAULT_FIN  53200000
 #else
 #error Unknown platform
 #endif
