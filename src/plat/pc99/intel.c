@@ -310,8 +310,6 @@ void handle_irq(struct netif *netif, int irq) {
         if(icr & ICR_82574_RXQ0) {
             while(ethif_input(netif));
         }
-        __sync_synchronize();
-        REG_82574_ICR(dev) = 0xffffff;
         break;
     default:
         assert(!"Unknown device");
@@ -323,17 +321,10 @@ const int* enable_irq(struct eth_driver *eth_driver, int *nirqs) {
     uint32_t temp;
     switch(dev->family) {
     case e1000_82580:
-        /* Ack any existing interrupts by reading the ICR */
-        temp = REG_82580_ICR(dev);
-        (void)temp;
-        /* Now enable interrupts */
         REG_82580_IMS(dev) = IMS_82580_RXDW;
         break;
     case e1000_82574:
-        /* Ack any existing interrupts by writing ICR */
-        REG_82574_ICR(dev) = 0xffffff;
-        /* now enable interrupts */
-        REG_82574_IMS(dev) |= IMS_82574_RXQ0;
+        REG_82574_IMS(dev) = IMS_82574_RXQ0;
         break;
     default:
         assert(!"Unknown device");
@@ -528,6 +519,7 @@ static void reset_tx_descs(struct eth_driver *driver) {
 
     /* Ensure updates are visible */
     __sync_synchronize();
+    asm volatile("sfence");
 
     /* Tell the hardware where the ring is */
     set_tx_ring(dev, (uint32_t)desc->tx.ring.phys);
@@ -660,6 +652,7 @@ static void reset_rx_descs(struct eth_driver *driver) {
 
     /* Ensure updates are visible */
     __sync_synchronize();
+    asm volatile("sfence");
 
     /* Tell the hardware where the ring is */
     set_rx_ring(dev, (uint32_t)desc->rx.ring.phys);
@@ -687,6 +680,7 @@ static void ready_tx_desc(int buf_num, int num, struct eth_driver *driver) {
     e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
     /* Synchronize any previous updates before moving the tail register */
     __sync_synchronize();
+    asm volatile("sfence");
     /* Move the tail reg. */
     set_tdt(dev,(buf_num + num) % driver->desc->tx.count);
     /* Make sure these updates get seen */
@@ -695,6 +689,8 @@ static void ready_tx_desc(int buf_num, int num, struct eth_driver *driver) {
 
 static void ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driver) {
     e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+    /* synchronize any updates of the descriptors */
+    asm volatile("sfence");
     dev->rdt = (dev->rdt + 1) % driver->desc->rx.count;
     set_rdt(dev, dev->rdt);
     __sync_synchronize();
@@ -702,12 +698,16 @@ static void ready_rx_desc(int buf_num, int tx_desc_wrap, struct eth_driver *driv
 
 static int is_tx_desc_ready(int buf_num, struct desc *desc) {
     volatile struct legacy_tx_ldesc *ring = desc->tx.ring.virt;
-    return !(ring[buf_num].STA & TX_DD);
+    int res = !(ring[buf_num].STA & TX_DD);
+    asm volatile("mfence");
+    return res;
 }
 
 static int is_rx_desc_empty(int buf_num, struct desc *desc) {
     volatile struct legacy_rx_ldesc *ring = desc->rx.ring.virt;
-    return !(ring[buf_num].status & RX_DD);
+    int res = !(ring[buf_num].status & RX_DD);
+    asm volatile("mfence");
+    return res;
 }
 
 static void set_tx_desc_buf(int buf_num, dma_addr_t buf, int len, int tx_desc_wrap, int tx_last_section, struct desc *desc) {
@@ -732,7 +732,6 @@ static void set_rx_desc_buf(int buf_num, dma_addr_t buf, int len, struct desc *d
     d[buf_num].status = 0;
     d[buf_num].error = 0;
     d[buf_num].VLAN = 0;
-    __sync_synchronize();
 }
 
 static int get_rx_buf_len(int buf_num, struct desc *desc) {
