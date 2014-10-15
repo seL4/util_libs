@@ -13,9 +13,9 @@
 
 .global smc
 smc:
-    stmfd    sp!, {r4-r11, lr}
+    .arch_extension sec
+    stmfd    sp!, {r3-r11, lr}
     dsb
-    .word 0x410024fc /* smc #0 */
-    ldmfd    sp!, {r4-r11, pc}
-    bx lr
+    smc #0
+    ldmfd    sp!, {r3-r11, pc}
 
