@@ -32,7 +32,6 @@
 #include "gpio.h"
 #include "../io.h"
 #include "../unimplemented.h"
-//#include <ethdrivers/raw_iface.h>
 
 enum mxc_gpio_direction {
 	MXC_GPIO_DIRECTION_IN,
@@ -81,8 +80,7 @@ static int mxc_gpio_direction(unsigned int gpio,
         uintptr_t gpio_phys = (uintptr_t)gpio_paddr[port];
         gpio_ports[port] = (unsigned long)ps_io_map(&io_ops->io_mapper, gpio_phys, GPIO_SIZE, 0, PS_MEM_NORMAL);
         if(gpio_ports[port] == 0){
-            MAP_DEBUG(printf("Warning: No map for GPIO %d. Assuming that it is "
-                             "already configured\n", port));
+            LOG_ERROR("Warning: No map for GPIO %d. Assuming that it is already configured\n", port);
             return 0;
         }
     }

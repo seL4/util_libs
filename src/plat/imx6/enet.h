@@ -11,7 +11,6 @@
 #ifndef _IMX6_ENET_H_
 #define _IMX6_ENET_H_
 
-#include "../../descriptors.h"
 #include <stdint.h>
 #include <platsupport/io.h>
 
@@ -39,7 +38,13 @@ void enet_dump_regs(struct enet* enet);
 void enet_clear_mib(struct enet* enet);
 void enet_print_mib(struct enet* enet);
 
-struct enet * enet_init(struct desc* desc, ps_io_ops_t *io_ops);
+struct desc_data {
+    uint32_t tx_phys;
+    uint32_t rx_phys;
+    uint32_t rx_bufsize;
+};
+
+struct enet * enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops);
 
 /* Read and write to the phy over the mdio interface */
 int enet_mdio_read(struct enet * enet, uint16_t phy, uint16_t reg);

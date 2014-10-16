@@ -9,14 +9,13 @@
  */
 
 #include "enet.h"
-#include "debug.h"
 #include <stdint.h>
 #include <assert.h>
 #include "io.h"
 #include <platsupport/clock.h>
-#include "../../descriptors.h"
-#include "imx6EthernetDriver.h"
 #include "unimplemented.h"
+#include "../../debug.h"
+#include <stdlib.h>
 
 #define IMX6_ENET_PADDR 0x02188000
 #define IMX6_ENET_SIZE  0x00004000
@@ -217,6 +216,9 @@ enet_get_regs(struct enet* enet){
 #define TCR_FDEN      BIT(2) /* Full duplex enable */
 #define TCR_GTS       BIT(0) /* Graceful TX stop */
 
+/* Receive Accelerator Function Configuration */
+#define RACC_LINEDIS  BIT(6) /* Discard frames with MAC layer errors */
+
 /* Transmit FIFO watermark */
 #define TFWR_STRFWD   BIT( 8) /* Enables store and forward */
 
@@ -240,7 +242,7 @@ enet_get_regs(struct enet* enet){
 #define PAUSE_DURATION             32 /* Pause duration field when sending pause frames */
 #define STRFWD_BYTES              128 /* Number of bytes in buffer before transmission begins */
 
-#define TIPG                       27 /* TX inter-packet gap between 8 and 27 bytes */
+#define TIPG                       8 /* TX inter-packet gap between 8 and 27 bytes */
 
 #define PHYOP_VALID      (BIT(30) | BIT(17))
 #define PHYOP_READ        BIT(29)
@@ -414,7 +416,6 @@ void
 enet_enable(struct enet * enet){
     enet_regs_t* regs = enet_get_regs(enet);
     regs->ecr |= ECR_ETHEREN;
-    regs->rdar = RDAR_RDAR;
 }
 
 int 
@@ -474,12 +475,10 @@ enet_clr_events(struct enet * enet, uint32_t bits){
 
 
 struct enet *
-enet_init(struct desc * desc, ps_io_ops_t *io_ops){
+enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     enet_regs_t* regs;
     struct enet* ret;
     struct clock* enet_clk;
-    struct desc_data ddata;
-    assert(desc);
 
     /* Map in the device */
     regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
@@ -488,7 +487,7 @@ enet_init(struct desc * desc, ps_io_ops_t *io_ops){
     }
     ret = (struct enet*)regs;
     /* Perform reset */
-    regs->ecr |= ECR_RESET;
+    regs->ecr = ECR_RESET;
     while(regs->ecr & ECR_RESET);
     regs->ecr |= ECR_DBSWP;
 
@@ -532,22 +531,23 @@ enet_init(struct desc * desc, ps_io_ops_t *io_ops){
     regs->tfwr = 0;
 #ifdef STRFWD_BYTES
     if(STRFWD_BYTES > 0){
-        regs->tfwr = STRFWD_BYTES / 64; 
+        regs->tfwr = STRFWD_BYTES / 64;
         regs->tfwr |= TFWR_STRFWD;
     }
 #endif
 
-    /* DMA descriptors */
-    ddata = desc_get_ringdata(desc);
-    regs->tdsr = ddata.tx_phys;
-    regs->rdsr = ddata.rx_phys;
-    regs->mrbr = ddata.rx_bufsize;
-    //(void)ddata.tx_bufsize;
+    /* Do not forward frames with errors */
+    regs->racc = RACC_LINEDIS;
 
-    /* Receive control - Set frame length, flow control and RGMII mode */
-    regs->rcr = RCR_MAX_FL(FRAME_LEN) | RCR_FCE | RCR_RGMII_EN | RCR_MII_MODE;
+    /* DMA descriptors */
+    regs->tdsr = desc_data.tx_phys;
+    regs->rdsr = desc_data.rx_phys;
+    regs->mrbr = desc_data.rx_bufsize;
+
+    /* Receive control - Set frame length and RGMII mode */
+    regs->rcr = RCR_MAX_FL(FRAME_LEN) | RCR_RGMII_EN | RCR_MII_MODE;
     /* Transmit control - Full duplex mode */
-    regs->tcr = TCR_FDEN; 
+    regs->tcr = TCR_FDEN;
 
     /* Setup the control path to the phy */
     return ret;
@@ -556,6 +556,19 @@ enet_init(struct desc * desc, ps_io_ops_t *io_ops){
 /****************************
  *** Debug and statistics ***
  ****************************/
+
+static void
+dump_regs(uint32_t* start, int size){
+    int i, j;
+    uint32_t *base = start;
+    for(i = 0; i < size/sizeof(*start); ){
+        printf("+0x%03x: ",((uint32_t)(start - base)) * 4);
+        for(j = 0; j < 4; j++, i++, start++){
+            printf("0x%08x ", *start);
+        }
+        printf("\n");
+    }
+}
 
 void 
 enet_dump_regs(struct enet* enet){

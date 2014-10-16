@@ -12,25 +12,30 @@
 #define ETHIF_INTEL_H
 
 #include <platsupport/io.h>
+#include <ethdrivers/raw.h>
+
+typedef struct ethif_intel_config {
+    void *bar0;
+} ethif_intel_config_t;
 
 /**
- * This function initialises the hardware
+ * This function initialises the hardware and conforms to the ethif_driver_init
+ * type in raw.h
+ * @param[out] eth_driver   Ethernet driver structure to fill out
  * @param[in] io_ops        A structure containing os specific data and
  *                          functions.
- * @param[in] bar0          Where pci bar0 has been mapped into our vspace
- * @return                  A reference to the ethernet drivers state.
+ * @param[in] config        Pointer to a ethif_intel_config struct
  */
-struct eth_driver*
-ethif_e82580_init(ps_io_ops_t io_ops, void *bar0);
+int ethif_e82580_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
 /**
- * This function initialises the hardware
+ * This function initialises the hardware and conforms to the ethif_driver_init
+ * type in raw.h
+ * @param[out] eth_driver   Ethernet driver structure to fill out
  * @param[in] io_ops        A structure containing os specific data and
  *                          functions.
- * @param[in] bar0          Where pci bar0 has been mapped into our vspace
- * @return                  A reference to the ethernet drivers state.
+ * @param[in] config        Pointer to a ethif_intel_config struct
  */
-struct eth_driver*
-ethif_e82574_init(ps_io_ops_t io_ops, void *bar0);
+int ethif_e82574_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
 #endif

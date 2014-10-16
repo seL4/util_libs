@@ -86,7 +86,7 @@ void fec_halt(struct eth_device *dev)
 	fec->rbd_index = 0;
 	fec->tbd_index = 0;
 #else
-    UNIMPLEMENTED();
+    assert(!"unimplemented");
 #endif
 }
 int fec_init(unsigned phy_mask, struct enet* enet)

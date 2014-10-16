@@ -13,9 +13,7 @@
 
 #include <stdint.h>
 
-void dump_regs(uint32_t* start, int size);
-
-#define DBG_MAP
+//#define DBG_MAP
 //#define DBG_PKT
 //#define DBG_PRINT_PAYLOAD
 //#define DBG_REG

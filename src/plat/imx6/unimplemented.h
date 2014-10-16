@@ -53,8 +53,6 @@ typedef u32 __u32;
 typedef u16 __u16;
 typedef u8  __u8;
 
-#include "debug.h"
-
 #define __bitwise /*__attribute__((bitwise))*/
 #define __force /* __attribute__((force)) */
 
