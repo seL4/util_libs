@@ -94,7 +94,9 @@ int main(int argc, char **argv) {
     struct cpio_info info = { .file_count = 0 };
     int err = cpio_info(p, &info);
 #if 0
-    https://github.inside.nicta.com.au/seL4/libcpio/issues/1
+    This is commented out due to a bug in libcpio, where `cpio_info` always
+    returns an error, even if it succeeded. Further discussion on libcpio GINCA
+    issue #1.
     if (err != 0) {
 #else
     (void)err;
