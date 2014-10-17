@@ -100,6 +100,13 @@ cp -f ${KERNEL_IMAGE} ${TEMP_DIR}/cpio/kernel.elf
 cp -f ${USER_IMAGE} ${TEMP_DIR}/cpio
 pushd "${TEMP_DIR}/cpio" &>/dev/null
 printf "kernel.elf\n$(basename ${USER_IMAGE})\n" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
+
+# Strip CPIO metadata if possible.
+which cpio-strip > /dev/null
+if [ $? -eq 0 ]; then
+    cpio-strip ${TEMP_DIR}/archive.cpio
+fi
+
 popd &>/dev/null
 
 #
