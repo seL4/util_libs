@@ -106,12 +106,12 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     /* Set direction */
     v = bank->direction;
     if(dir == GPIO_DIR_IN){
-        v &= ~(1U << pin);
+        v &= ~BIT(pin);
         DGPIO("configuring {%d,%d} for input %p => 0x%x->0x%x\n", 
             GPIOID_PORT(id), GPIOID_PIN(id),
             &bank->direction, bank->direction, v);
     }else{
-        v |= (1U << pin);
+        v |= BIT(pin);
         DGPIO("configuring {%d,%d} for output %p => 0x%x->0x%x\n", 
             GPIOID_PORT(id), GPIOID_PIN(id),
             &bank->direction, bank->direction, v);
@@ -219,19 +219,3 @@ gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
     return imx6_gpio_init_common(&io_ops->mux_sys, gpio_sys);
 }
 
-#if 0
-int gpio_new(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
-
-/// Initialise a GPIO pin
-    int (*init)(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio);
-/// Configure a GPIO pin
-    int (*config)(gpio_t* gpio, int param_list);
-/// Write to a GPIO
-    int (*write)(gpio_t* gpio, const char* data, int len);
-/// Read from a GPIO
-    int (*read)(gpio_t* gpio, char* data, int len);
-/// platform specific private data
-    void* priv;
-}
-
-#endif
