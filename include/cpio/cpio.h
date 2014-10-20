@@ -72,8 +72,7 @@ void *cpio_get_file(void *archive, const char *name, unsigned long *size);
  * Retrieves information about the provided CPIO archive
  * @param[in] archive  The location of the CPIO archive
  * @param[out] info    A CPIO info structure to populate
- * @return             Always returns an error code. info will contain the
- *                     number of files that were successfully identified.
+ * @return             Non-zero on error.
  */
 int cpio_info(void *archive, struct cpio_info *info);
 

@@ -88,7 +88,7 @@ static unsigned int cpio_strlen(const char *str) {
 /*
  * Parse the header of the given CPIO entry.
  *
- * Return non-zero if the header is not valid, or is EOF.
+ * Return -1 if the header is not valid, 1 if it is EOF.
  */
 int cpio_parse_header(struct cpio_header *archive,
         const char **filename, unsigned long *_filesize, void **data,
@@ -98,7 +98,7 @@ int cpio_parse_header(struct cpio_header *archive,
     /* Ensure magic header exists. */
     if (cpio_strncmp(archive->c_magic, CPIO_HEADER_MAGIC,
                 sizeof(archive->c_magic)) != 0)
-        return 1;
+        return -1;
 
     /* Get filename and file size. */
     filesize = parse_hex_str(archive->c_filesize, sizeof(archive->c_filesize));
@@ -190,7 +190,12 @@ int cpio_info(void *archive, struct cpio_info *info) {
     while (1) {
         error = cpio_parse_header(header, &current_filename, &size,
                 &result, &next);
-        if (error) return error;
+        if (error == -1) {
+            return error;
+        } else if (error == 1) {
+            /* EOF */
+            return 0;
+        }
         info->file_count++;
         header = next;
 
