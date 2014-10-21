@@ -18,6 +18,7 @@
 #define TYPES_COMPATIBLE(t1, t2) __builtin_types_compatible_p(t1, t2)
 #define CHOOSE_EXPR(cond, x, y) __builtin_choose_expr(cond, x, y)
 #define IS_CONSTANT(expr) __builtin_constant_p(expr)
+#define POPCOUNT(x) __builtin_popcount(x)
 #define UNREACHABLE()  __builtin_unreachable()
 
 #endif /* _UTILS_BUILTIN_H */
