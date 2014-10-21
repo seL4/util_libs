@@ -246,6 +246,14 @@ master_rxstart(struct i2c_bus_priv* dev, int slave)
     dev->regs->status |= I2CSTAT_BUSY;
 }
 
+static void
+slave_init(struct i2c_bus_priv* dev, char addr)
+{
+    dev->regs->address = addr;
+    /** Configure Master Rx mode **/
+    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_SRX;
+}
+
 int
 exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb, void* token)
 {
@@ -473,11 +481,14 @@ exynos_i2c_set_speed(i2c_bus_t* i2c_bus, long bps)
 }
 
 static int
-exynos_i2c_set_address(i2c_bus_t* i2c_bus, int addr)
+exynos_i2c_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dev->regs->address = addr & 0xfe;
+    i2c_bus->aas_cb = aas_cb;
+    i2c_bus->aas_token = aas_token;
+    slave_init(dev, addr);
+    dev->regs->line_control = BIT(2) | 0x3 ;
     return 0;
 }
 
@@ -514,6 +525,11 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     i2c->master_stop = exynos_i2c_master_stop;
     i2c->handle_irq  = exynos_i2c_handle_irq;
     i2c->priv        = (void*)dev;
+
+    i2c->cb = NULL;
+    i2c->token = NULL;
+    i2c->aas_cb = NULL;
+    i2c->aas_token = NULL;
     return 0;
 }
 

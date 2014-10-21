@@ -9,7 +9,7 @@
  */
 
 /* To extend support, provide platform specific i2c.h and gpio.h and delay.c */
-#if defined(PLAT_EXYNOS5) || defined(PLAT_EXYNOS4)
+#if defined(PLAT_EXYNOS5) || defined(PLAT_EXYNOS4) || defined(PLAT_IMX6)
 
 #include <platsupport/i2c.h>
 #include "../../services.h"
@@ -226,10 +226,13 @@ i2c_bb_handle_irq(i2c_bus_t* i2c_bus){
 }
 
 static int
-i2c_bb_set_address(i2c_bus_t* i2c_bus, int addr){
+i2c_bb_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)
+{
     struct i2c_bb* d;
     d = i2c_bus_get_priv(i2c_bus);
     (void)d;
+    (void)aas_cb;
+    (void)aas_token;
     assert(!"Not implemented");
     return -1;
 }

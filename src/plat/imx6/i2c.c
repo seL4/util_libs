@@ -267,6 +267,16 @@ master_start(struct i2c_bus_priv* dev, char addr)
     dev->regs->data = addr;
 }
 
+static void
+slave_init(struct i2c_bus_priv* dev, char addr)
+{
+    dev->regs->address = addr;
+    /* Enable the bus */
+    dev->regs->control |= I2CCON_ENABLE | I2CCON_IRQ_ENABLE;
+    while (busy(dev));
+    /* Enter slave mode TX mode */
+    dev->regs->control &= ~I2CCON_MASTER;
+}
 
 
 static void
@@ -406,12 +416,16 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
 }
 
 
+
 static int
-imx6_i2c_set_address(i2c_bus_t* i2c_bus, int addr)
+imx6_i2c_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dev->regs->address = addr & 0xfe;
+    i2c_bus->aas_cb = aas_cb;
+    i2c_bus->aas_token = aas_token;
+
+    slave_init(dev, addr);
     return 0;
 }
 

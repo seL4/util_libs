@@ -31,10 +31,20 @@ enum i2c_stat {
 /// A transfer error occurred
     I2CSTAT_ERROR,
 /// The transfer was aborted by the user
-    I2CSTAT_CANCELLED
+    I2CSTAT_CANCELLED,
+/// The transfer was interrupted by the bus
+    I2CSTAT_INTERRUPTED
+};
+
+enum i2c_mode {
+/// Receive mode
+    I2CMODE_RX,
+/// Transmitt mode
+    I2CMODE_TX
 };
 
 typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void* token);
+typedef void (*i2c_aas_callback_fn)(i2c_bus_t* bus, enum i2c_mode, void* token);
 
 struct i2c_bus {
     int (*start_read)(i2c_bus_t* bus, int slave, void* buf, size_t size, i2c_callback_fn cb, void* token);
@@ -43,10 +53,12 @@ struct i2c_bus {
     int (*write)(i2c_bus_t* bus, const void* buf, size_t size, i2c_callback_fn cb, void* token);
     long (*set_speed)(i2c_bus_t* bus, long bps);
     int (*master_stop)(i2c_bus_t* bus);
-    int (*set_address)(i2c_bus_t* bus, int addr);
+    int (*set_address)(i2c_bus_t* bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token);
     void (*handle_irq)(i2c_bus_t* bus);
     i2c_callback_fn cb;
     void* token;
+    i2c_aas_callback_fn aas_cb;
+    void* aas_token;
     void* priv;
 };
 
@@ -153,16 +165,18 @@ static inline int i2c_mwrite(i2c_bus_t* i2c_bus, int addr, const void* data, siz
 
 /**
  * Set the chip address of the bus for slave mode
- * @param[in] i2c_bus  A handle to an i2c bus driver
- * @param[in] address  The address to assign to this bus. The RW bit of
- *                     the address should be set to 0.
- * @return             0 on success
+ * @param[in] i2c_bus   A handle to an i2c bus driver
+ * @param[in] addr      The address to assign to this bus. The RW bit of
+ *                      the address should be set to 0.
+ * @param[in] aas_cb    A callback function to call when the slave is addressed
+ * @param[in] aas_token A token to pass, unmodified to the provided callback function
+ * @return              0 on success
  */
-static inline int i2c_set_address(i2c_bus_t* i2c_bus, int address)
+static inline int i2c_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)
 {
     assert(i2c_bus);
     assert(i2c_bus->set_address);
-    return i2c_bus->set_address(i2c_bus, address);
+    return i2c_bus->set_address(i2c_bus, addr, aas_cb, aas_token);
 }
 
 /**
