@@ -61,7 +61,6 @@ ifneq (${FMT},)
 else
   FMT := $(shell which cat)
 endif
-$(warning ${FMT})
 
 # Default path configuration (useful for local development)
 SEL4_LIBDIR     ?= $(STAGE_DIR)/lib
