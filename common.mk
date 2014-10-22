@@ -55,6 +55,13 @@ LD  := $(CCACHE) $(TOOLPREFIX)ld$(TOOLSUFFIX)
 AR  := $(CCACHE) $(TOOLPREFIX)ar$(TOOLSUFFIX)
 CPP := $(CCACHE) $(TOOLPREFIX)cpp$(TOOLSUFFIX)
 OBJCOPY := $(CCACHE) $(TOOLPREFIX)objcopy$(TOOLSUFFIX)
+FMT := $(shell which clang-format)
+ifneq (${FMT},)
+  FMT += --style=LLVM
+else
+  FMT := $(shell which cat)
+endif
+$(warning ${FMT})
 
 # Default path configuration (useful for local development)
 SEL4_LIBDIR     ?= $(STAGE_DIR)/lib
