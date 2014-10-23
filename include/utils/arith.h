@@ -17,6 +17,7 @@
 #include <utils/attribute.h>
 #include <utils/builtin.h>
 #include <stdint.h>
+#include <utils/verification.h>
 
 #define BIT(n) (1ul<<(n))
 
