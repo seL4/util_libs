@@ -12,6 +12,8 @@
 #define _UTILS_BUILTIN_H
 /* macros for accessing compiler builtins */
 
+#include <assert.h>
+
 #define CTZ(x) __builtin_ctz(x)
 #define CLZ(x) __builtin_clz(x)
 #define OFFSETOF(type, member) __builtin_offsetof(type, member)
@@ -19,6 +21,10 @@
 #define CHOOSE_EXPR(cond, x, y) __builtin_choose_expr(cond, x, y)
 #define IS_CONSTANT(expr) __builtin_constant_p(expr)
 #define POPCOUNT(x) __builtin_popcount(x)
-#define UNREACHABLE()  __builtin_unreachable()
+#define UNREACHABLE() \
+    do { \
+        assert(!"unreachable"); \
+        __builtin_unreachable(); \
+    } while (0)
 
 #endif /* _UTILS_BUILTIN_H */
