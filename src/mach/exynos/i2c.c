@@ -12,7 +12,7 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-//#define I2C_DEBUG
+#define I2C_DEBUG
 #ifdef I2C_DEBUG
 #define dprintf(...) printf("I2C: " __VA_ARGS__)
 #else
@@ -257,92 +257,53 @@ slave_init(struct i2c_bus_priv* dev, char addr)
 int
 exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb, void* token)
 {
-    struct i2c_bus_priv* dev;
-    char* data = (char*)vdata;
-    int count = 0;
-    uint32_t c;
-    dev = i2c_bus_get_priv(i2c_bus);
+    struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
+
+    dev->rx_buf = (char*)vdata;
+    dev->rx_len = len;
+    dev->rx_count = 0;
+    i2c_bus->cb = cb;
+    i2c_bus->token = token;
 
     dprintf("Reading %d bytes as slave 0x%x\n", len, dev->regs->address);
-    /** Configure Slave Rx mode **/
-    clear_pending(dev);
-    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_SRX;
     dev->regs->control |= I2CCON_ACK_EN;
-    /* Wait for addressed as slave */
-    dprintf("RX waiting for master\n");
-    while (!irq_pending(dev));
-    if (addressed_as_slave(dev)) {
 
-        clear_pending(dev);
-        /* Dummy read */
-        c = dev->regs->data;
-
+    if (cb == NULL) {
         /* Read bytes */
-        while (count < len && busy(dev)) {
-            /* After ACK period, IRQ is pending */
-            while (!irq_pending(dev) && busy(dev));
-            if (irq_pending(dev)) {
-                c = dev->regs->data;
-                *data++ = c;
-                clear_pending(dev);
-                count++;
-            }
+        while (dev->rx_count < dev->rx_len && busy(dev)) {
+            i2c_handle_irq(i2c_bus);
         }
-        dev->regs->control &= ~I2CCON_ACK_EN;
-        while (busy(dev)) {
-            while (!irq_pending(dev) && busy(dev));
-            clear_pending(dev);
-            c = dev->regs->data;
-        }
-        dprintf("read %d bytes\n", count);
-        dev->regs->status = ~(I2CSTAT_ENABLE | I2CSTAT_MODE_SRX);
-        return count;
+        dprintf("read %d bytes\n", dev->rx_count);
+        return dev->rx_count;
     } else {
-        dprintf("Not addressed as slave\n");
-        return -1;
+        /* Let the ISR handle it */
+        return 0;
     }
 }
 
 static int
 exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
 {
-    struct i2c_bus_priv* dev;
-    const char* data = (const char*)vdata;
-    int count = 0;
-    dev = i2c_bus_get_priv(i2c_bus);
+    struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
+
+    dev->tx_buf = (char*)vdata;
+    dev->tx_len = len;
+    dev->tx_count = 0;
+    i2c_bus->cb = cb;
+    i2c_bus->token = token;
 
     dprintf("Writing %d bytes as slave 0x%x\n", len, dev->regs->address);
-    /** Configure Master Rx mode **/
-    clear_pending(dev);
     dev->regs->control |= I2CCON_ACK_EN;
-    dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_STX;
-    /* Wait for addressed as slave */
-    dprintf("TX waiting for master\n");
-    while (!irq_pending(dev));
 
-    if (addressed_as_slave(dev)) {
-        while (count < len && busy(dev)) {
-            /* After ACK period, IRQ is pending */
-            dev->regs->data = *data++;
-            clear_pending(dev);
-            while (!irq_pending(dev) && busy(dev));
-            count++;
+    if (cb == NULL) {
+        while (dev->tx_count < dev->tx_len && busy(dev)) {
+            i2c_handle_irq(i2c_bus);
         }
-        dprintf("wrote %d bytes\n", count);
-        dev->regs->status = ~(I2CSTAT_ENABLE | I2CSTAT_MODE_SRX);
-        clear_pending(dev);
-
-        if (cb) {
-            cb(i2c_bus, I2CSTAT_COMPLETE, count, token);
-        }
-        return count;
+        dprintf("wrote %d bytes\n", dev->tx_count);
+        return dev->tx_count;
     } else {
-        dprintf("Not addressed as slave\n");
-        if (cb) {
-            cb(i2c_bus, I2CSTAT_CANCELLED, count, token);
-            return count;
-        }
-        return -1;
+        /* Let the ISR handle it */
+        return 0;
     }
 }
 
@@ -423,54 +384,140 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
 {
     struct i2c_bus_priv* dev;
     uint32_t v;
+    uint32_t status;
     dev = i2c_bus_get_priv(i2c_bus);
-    if (enabled(dev) && irq_pending(dev)) {
-        switch (dev->regs->status & I2CSTAT_MODE_MASK) {
-        case I2CSTAT_MODE_MRX:
-            if (dev->rx_count < 0) {
-                if (acked(dev)) {
-                    /* slave responded to the address */
-                    dev->rx_count = 0;
-                } else {
-                    /* No response: Abort */
-                    exynos_i2c_send_stop(i2c_bus, I2CSTAT_ERROR);
-                }
-            } else if (dev->regs->control & I2CCON_ACK_EN) {
-                /* Read from slave */
-                v = dev->regs->data;
-                *dev->rx_buf++ = v;
-                dev->rx_count++;
-                /* Don't ACK the last byte */
-                if (dev->rx_count == dev->rx_len) {
-                    dev->regs->control &= ~(I2CCON_ACK_EN);
-                }
+
+    /* AddressedAsSlave seems to be read_to_clear so cache it immediately */
+    status = dev->regs->status;
+    if (!(status & I2CSTAT_ENABLE) || !irq_pending(dev)) {
+        return;
+    }
+
+    /* Handle possible addressed as slave */
+    if (status & I2CSTAT_ADDR_SLAVE) {
+        dprintf("Addressed as slave.\n");
+        /* Call out to the handler */
+        if (i2c_bus->aas_cb) {
+            enum i2c_mode mode;
+            if ((dev->regs->status & I2CSTAT_MODE_MASK) == I2CSTAT_MODE_STX) {
+                mode = I2CMODE_TX;
             } else {
-                /* Finally, send stop */
-                exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
+                mode = I2CMODE_RX;
             }
-            break;
-        case I2CSTAT_MODE_MTX:
-            if (acked(dev)) {
-                /* Start pumping out data */
-                v = *dev->tx_buf++;
-                dev->regs->data = v;
-                dev->tx_count++;
-                if (dev->tx_count == dev->tx_len) {
-                    /* Write 0xD0 (M/T Stop) to I2CSTAT */
-                    exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
+            /* Is there a transfer in flight? */
+            if (i2c_bus->cb && (dev->tx_len || dev->rx_len)) {
+                size_t bytes;
+                if (mode == I2CMODE_TX) {
+                    bytes = dev->tx_count;
+                } else {
+                    bytes = dev->rx_count;
                 }
+                i2c_bus->cb(i2c_bus, I2CSTAT_INTERRUPTED, bytes, i2c_bus->token);
+            }
+            i2c_bus->aas_cb(i2c_bus, mode, i2c_bus->aas_token);
+            /* Dummy read of address */
+            if (mode == I2CMODE_RX) {
+                (void)dev->regs->data;
+                clear_pending(dev);
+                return;
+            } else {
+                /* Fallthrough to transfer handler to write the first byte */
+            }
+        }
+    }
+    /* Handle transfer */
+    switch (dev->regs->status & I2CSTAT_MODE_MASK) {
+    case I2CSTAT_MODE_MRX:
+        if (dev->rx_count < 0) {
+            if (acked(dev)) {
+                /* slave responded to the address */
+                dev->rx_count = 0;
             } else {
                 /* No response: Abort */
                 exynos_i2c_send_stop(i2c_bus, I2CSTAT_ERROR);
             }
-            break;
-        case I2CSTAT_MODE_STX:
-        case I2CSTAT_MODE_SRX:
-        default:
-            assert(!"Unknown I2C mode");
+        } else if (dev->regs->control & I2CCON_ACK_EN) {
+            /* Read from slave */
+            v = dev->regs->data;
+            *dev->rx_buf++ = v;
+            dev->rx_count++;
+            /* Don't ACK the last byte */
+            if (dev->rx_count == dev->rx_len) {
+                dev->regs->control &= ~(I2CCON_ACK_EN);
+            }
+        } else {
+            /* Finally, send stop */
+            exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
         }
-        clear_pending(dev);
+        break;
+    case I2CSTAT_MODE_MTX:
+        if (acked(dev)) {
+            /* Start pumping out data */
+            v = *dev->tx_buf++;
+            dev->regs->data = v;
+            dev->tx_count++;
+            if (dev->tx_count == dev->tx_len) {
+                /* Write 0xD0 (M/T Stop) to I2CSTAT */
+                exynos_i2c_send_stop(i2c_bus, I2CSTAT_COMPLETE);
+            }
+        } else {
+            /* No response: Abort */
+            exynos_i2c_send_stop(i2c_bus, I2CSTAT_ERROR);
+        }
+        break;
+    case I2CSTAT_MODE_SRX:
+        /* Read in the data */
+        *dev->rx_buf++ = dev->regs->data;
+        dev->rx_count++;
+        /* Last chance for user to supply another buffer before NACK */
+        if (i2c_bus->cb && (dev->rx_count + 1 == dev->rx_len)) {
+            i2c_bus->cb(i2c_bus, I2CSTAT_INCOMPLETE, dev->rx_count, i2c_bus->token);
+        }
+        /* If this is STILL the last byte, NACK it */
+        if (dev->rx_count + 1 == dev->rx_len) {
+            dev->regs->control &= ~I2CCON_ACK_EN;
+        } else if (dev->rx_count == dev->rx_len) {
+            dev->rx_len = 0;
+            if (i2c_bus->cb) {
+                i2c_bus->cb(i2c_bus, I2CSTAT_COMPLETE, dev->rx_count, i2c_bus->token);
+            }
+            /* Start ACKing again, ready to be addressed as slave */
+            dev->regs->control |= I2CCON_ACK_EN;
+        }
+
+        break;
+    case I2CSTAT_MODE_STX:
+        if (dev->tx_count < dev->tx_len) {
+            dev->regs->data = *dev->tx_buf++;
+            dev->tx_count++;
+        }
+        /* Last byte? */
+        if (!acked(dev)) {
+            enum i2c_stat stat;
+            if (dev->tx_len == dev->tx_count) {
+                stat = I2CSTAT_COMPLETE;
+            } else {
+                stat = I2CSTAT_INCOMPLETE;
+            }
+            /* Now we need to handle the stop. For some reason, we need to prime
+             * the data register first, but this byte will not actually be sent. */
+            dev->regs->data = 0xff;
+            dev->tx_len = 0;
+            /* Signal the application */
+            if (i2c_bus->cb) {
+                i2c_bus->cb(i2c_bus, stat, dev->tx_count, i2c_bus->token);
+            }
+        } else if (dev->tx_count == dev->tx_len) {
+            dev->tx_len = 0;
+            if (i2c_bus->cb) {
+                i2c_bus->cb(i2c_bus, I2CSTAT_COMPLETE, dev->tx_count, i2c_bus->token);
+            }
+        }
+        break;
+    default:
+        assert(!"Unknown I2C mode");
     }
+    clear_pending(dev);
 }
 
 static long
