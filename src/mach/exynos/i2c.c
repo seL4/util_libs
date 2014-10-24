@@ -497,10 +497,6 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
 
         break;
     case I2CSTAT_MODE_STX:
-        if (dev->tx_count < dev->tx_len) {
-            dev->regs->data = *dev->tx_buf++;
-            dev->tx_count++;
-        }
         /* Last byte? */
         if (!acked(dev)) {
             enum i2c_stat stat;
@@ -522,6 +518,9 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
             if (i2c_bus->cb) {
                 i2c_bus->cb(i2c_bus, I2CSTAT_COMPLETE, dev->tx_count, i2c_bus->token);
             }
+        } else if (dev->tx_count < dev->tx_len) {
+            dev->regs->data = *dev->tx_buf++;
+            dev->tx_count++;
         }
         break;
     default:
