@@ -37,6 +37,8 @@ enum i2c_stat {
 };
 
 enum i2c_mode {
+/// Idle
+    I2CMODE_IDLE,
 /// Receive mode
     I2CMODE_RX,
 /// Transmitt mode
@@ -54,7 +56,9 @@ struct i2c_bus {
     long (*set_speed)(i2c_bus_t* bus, long bps);
     int (*master_stop)(i2c_bus_t* bus);
     int (*set_address)(i2c_bus_t* bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token);
+    enum i2c_mode (*probe_aas)(i2c_bus_t* bus);
     void (*handle_irq)(i2c_bus_t* bus);
+
     i2c_callback_fn cb;
     void* token;
     i2c_aas_callback_fn aas_cb;
@@ -115,6 +119,21 @@ static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
     assert(i2c_bus);
     assert(i2c_bus->handle_irq);
     i2c_bus->handle_irq(i2c_bus);
+}
+
+/**
+ * Determine if the I2C bus received the assigned slave address
+ * This function should only be used in polling mode and should be considered to
+ * be edge triggered (mode is only reported at the beginning of a slave transfer).
+ * @param[in] i2c_bus  A handle to the bus to probe
+ * @return             The mode in which the bus was addressed, or I2CMODE_IDLE if
+ *                     the bus was not addressed in the last byte received.
+ */
+static inline enum i2c_mode i2c_probe_aas(i2c_bus_t* i2c_bus)
+{
+    assert(i2c_bus);
+    assert(i2c_bus->probe_aas);
+    return i2c_bus->probe_aas(i2c_bus);
 }
 
 /**

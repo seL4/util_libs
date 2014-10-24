@@ -379,31 +379,26 @@ exynos_i2c_send_stop(i2c_bus_t* i2c_bus, enum i2c_stat status)
     }
 }
 
-static void
-exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
+
+static enum i2c_mode
+exynos_i2c_probe_aas(i2c_bus_t* i2c_bus)
 {
     struct i2c_bus_priv* dev;
-    uint32_t v;
-    uint32_t status;
+    enum i2c_mode mode = I2CMODE_IDLE;
     dev = i2c_bus_get_priv(i2c_bus);
 
-    /* AddressedAsSlave seems to be read_to_clear so cache it immediately */
-    status = dev->regs->status;
-    if (!(status & I2CSTAT_ENABLE) || !irq_pending(dev)) {
-        return;
-    }
+    if (addressed_as_slave(dev)) {
+        if ((dev->regs->status & I2CSTAT_MODE_MASK) == I2CSTAT_MODE_STX) {
+            mode = I2CMODE_TX;
+        } else {
+            mode = I2CMODE_RX;
+        }
 
-    /* Handle possible addressed as slave */
-    if (status & I2CSTAT_ADDR_SLAVE) {
-        dprintf("Addressed as slave.\n");
-        /* Call out to the handler */
+        dprintf("Addressed as slave for %s transfer.\n",
+                (mode == I2CMODE_RX) ? "READ" : "WRITE");
+
+        /* Call out to the handler if one was registered */
         if (i2c_bus->aas_cb) {
-            enum i2c_mode mode;
-            if ((dev->regs->status & I2CSTAT_MODE_MASK) == I2CSTAT_MODE_STX) {
-                mode = I2CMODE_TX;
-            } else {
-                mode = I2CMODE_RX;
-            }
             /* Is there a transfer in flight? */
             if (i2c_bus->cb && (dev->tx_len || dev->rx_len)) {
                 size_t bytes;
@@ -415,16 +410,31 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 i2c_bus->cb(i2c_bus, I2CSTAT_INCOMPLETE, bytes, i2c_bus->token);
             }
             i2c_bus->aas_cb(i2c_bus, mode, i2c_bus->aas_token);
-            /* Dummy read of address */
-            if (mode == I2CMODE_RX) {
-                (void)dev->regs->data;
-                clear_pending(dev);
-                return;
-            } else {
-                /* Fallthrough to transfer handler to write the first byte */
-            }
+        }
+        /* In read mode, must we perform a dummy read of the received address */
+        if (mode == I2CMODE_RX) {
+            (void)dev->regs->data;
+            clear_pending(dev);
         }
     }
+    return mode;
+}
+
+static void
+exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
+{
+    struct i2c_bus_priv* dev;
+    uint32_t v;
+    dev = i2c_bus_get_priv(i2c_bus);
+
+    /* AddressedAsSlave seems to be read_to_clear so process the event immediately */
+    i2c_probe_aas(i2c_bus);
+
+    /* Anything to do? */
+    if (!enabled(dev) || !irq_pending(dev)) {
+        return;
+    }
+
     /* Handle transfer */
     switch (dev->regs->status & I2CSTAT_MODE_MASK) {
     case I2CSTAT_MODE_MRX:
@@ -569,6 +579,7 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     i2c->write       = exynos_i2c_write;
     i2c->set_speed   = exynos_i2c_set_speed;
     i2c->set_address = exynos_i2c_set_address;
+    i2c->probe_aas   = exynos_i2c_probe_aas;
     i2c->master_stop = exynos_i2c_master_stop;
     i2c->handle_irq  = exynos_i2c_handle_irq;
     i2c->priv        = (void*)dev;
