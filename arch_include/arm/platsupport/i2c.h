@@ -41,11 +41,29 @@ enum i2c_mode {
     I2CMODE_IDLE,
 /// Receive mode
     I2CMODE_RX,
-/// Transmitt mode
+/// Transmit mode
     I2CMODE_TX
 };
 
+/**
+ * This callback is called when a transfer needs attention.
+ * It will be called if the transfer is interrupted, just before the last byte is
+ * transferred, and also when the transfer has completed. The catalyse for the call
+ * to the callback is reported in i2c_stat.
+ * If the I2C buffer for the transfer is not contiguous, the I2CSTAT_LASTBYTE status
+ * can be used to replace the active transfer buffer and continue the transfer. To
+ * achieve this, simply call i2c_read or i2c_write with a new buffer when the
+ * I2CSTAT_LASTBYTE status callback is received. NOTE that in this case, the last byte
+ * of the original buffer will not take part in the transfer. The reason for this
+ * strange operation is due to the ACK policy of I2C transfers.
+ */
 typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void* token);
+
+/**
+ * This callback is called when the I2C bus is addressed as a slave. The application
+ * should respond by calling i2c_read or i2c_write with an appropriate transfer buffer
+ * depending on the reported i2c_mode.
+ */
 typedef void (*i2c_aas_callback_fn)(i2c_bus_t* bus, enum i2c_mode, void* token);
 
 struct i2c_bus {
