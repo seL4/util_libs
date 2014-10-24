@@ -412,7 +412,7 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 } else {
                     bytes = dev->rx_count;
                 }
-                i2c_bus->cb(i2c_bus, I2CSTAT_INTERRUPTED, bytes, i2c_bus->token);
+                i2c_bus->cb(i2c_bus, I2CSTAT_INCOMPLETE, bytes, i2c_bus->token);
             }
             i2c_bus->aas_cb(i2c_bus, mode, i2c_bus->aas_token);
             /* Dummy read of address */
@@ -471,7 +471,7 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
         dev->rx_count++;
         /* Last chance for user to supply another buffer before NACK */
         if (i2c_bus->cb && (dev->rx_count + 1 == dev->rx_len)) {
-            i2c_bus->cb(i2c_bus, I2CSTAT_INCOMPLETE, dev->rx_count, i2c_bus->token);
+            i2c_bus->cb(i2c_bus, I2CSTAT_LASTBYTE, dev->rx_count, i2c_bus->token);
         }
         /* If this is STILL the last byte, NACK it */
         if (dev->rx_count + 1 == dev->rx_len) {

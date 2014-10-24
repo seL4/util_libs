@@ -26,14 +26,14 @@ typedef struct i2c_bus i2c_bus_t;
 enum i2c_stat {
 /// Transfer completed successfully
     I2CSTAT_COMPLETE,
+/// The last byte is about to be transfered. Call read/write if you wish to extend it.
+    I2CSTAT_LASTBYTE,
 /// Transfer was truncated or cancelled by the remote
     I2CSTAT_INCOMPLETE,
 /// A transfer error occurred
     I2CSTAT_ERROR,
 /// The transfer was aborted by the user
-    I2CSTAT_CANCELLED,
-/// The transfer was interrupted by the bus
-    I2CSTAT_INTERRUPTED
+    I2CSTAT_CANCELLED
 };
 
 enum i2c_mode {
