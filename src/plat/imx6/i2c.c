@@ -311,15 +311,22 @@ imx6_i2c_handle_irq(i2c_bus_t* i2c_bus)
             } else {
                 /** Master RX **/
                 if (dev->rx_count < dev->rx_len) {
-                    if (dev->rx_count + 1 == dev->rx_len) {
-                        /* Second last byte to be read */
+                    if (dev->rx_count + 2 == dev->rx_len) {
+                        /* Second last byte to be read: Generate NACK */
                         dev->regs->control |= I2CCON_ACK_EN;
+                    }
+                    if (dev->rx_count + 1 == dev->rx_len) {
+                        /* Last byte to be read: Generate stop */
+                        dev->regs->control &= ~I2CCON_MASTER;
                     }
                     *dev->rx_buf++ = dev->regs->data;
                     dev->rx_count++;
+                    if (dev->rx_count == dev->rx_len) {
+                        /* Transfer complete */
+                        master_stop(dev);
+                    }
                 } else {
-                    /* Last byte to be read */
-                    master_stop(dev);
+                    printf("Master RX IRQ but RX complete!\n");
                 }
             }
         } else {
