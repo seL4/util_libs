@@ -519,6 +519,11 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 i2c_bus->cb(i2c_bus, I2CSTAT_COMPLETE, dev->tx_count, i2c_bus->token);
             }
         } else if (dev->tx_count < dev->tx_len) {
+            /* Call out to user before sending the last byte. We could call out AFTER
+             * sending the last byte, but it is nice to be consitant with RX behaviour */
+            if (i2c_bus->cb && (dev->tx_count + 1 < dev->tx_len)) {
+                i2c_bus->cb(i2c_bus, I2CSTAT_LASTBYTE, dev->tx_count, i2c_bus->token);
+            }
             dev->regs->data = *dev->tx_buf++;
             dev->tx_count++;
         }
