@@ -29,6 +29,7 @@ enum chardev_id {
     PC99_SERIAL_COM3,
     PC99_SERIAL_COM4,
     PC99_TEXT_EGA,
+    PC99_KEYBOARD_PS2,
     /* Aliases */
     PS_SERIAL0 = PC99_SERIAL_COM1,
     PS_SERIAL1 = PC99_SERIAL_COM2,
