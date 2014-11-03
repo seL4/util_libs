@@ -24,10 +24,10 @@
 #define DEFAULT_CPUFREQ 0UL
 #endif
 
-static long cpufreq_hint = DEFAULT_CPUFREQ;
+static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 
-void ps_usleep(long) __attribute__((weak, alias("ps_udelay")));
-void ps_udelay(long us) __attribute__((weak));
+void ps_usleep(unsigned long) __attribute__((weak, alias("ps_udelay")));
+void ps_udelay(unsigned long us) __attribute__((weak));
 
 static void
 ps_do_udelay(int32_t instructions_per_us)
@@ -59,7 +59,7 @@ ps_do_udelay(int32_t instructions_per_us)
 }
 
 void
-ps_udelay(long us)
+ps_udelay(unsigned long us)
 {
     if (cpufreq_hint == 0) {
         printf("%s:%d - Unable to determine CPU frequency for delay loop\n", __FILE__, __LINE__);
@@ -71,7 +71,7 @@ ps_udelay(long us)
 }
 
 void
-ps_cpufreq_hint(long hz)
+ps_cpufreq_hint(unsigned long hz)
 {
     cpufreq_hint = hz;
 }

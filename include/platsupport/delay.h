@@ -26,7 +26,7 @@
  * be an alias of ps_udelay if it is not overloaded.
  * @param[in] us  The minimum number of microseconds to delay for
  */
-void ps_usleep(long us);
+void ps_usleep(unsigned long us);
 
 /**
  * Delay execution for at least the given number of microseconds. This is
@@ -37,7 +37,7 @@ void ps_usleep(long us);
  * ps_usleep where possible.
  * @param[in] us  The minimum number of microseconds to delay for
  */
-void ps_udelay(long us);
+void ps_udelay(unsigned long us);
 
 /**
  * Provide the current CPU frequency to the libplatsupport delay module.
@@ -46,7 +46,7 @@ void ps_udelay(long us);
  *                met. If this function has not yet been called, a
  *                default frequency will be used.
  */
-void ps_cpufreq_hint(long hz);
+void ps_cpufreq_hint(unsigned long hz);
 
 
 #endif /* __PLATSUPPORT_DELAY_H__ */
