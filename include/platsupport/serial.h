@@ -45,4 +45,4 @@ int serial_configure(ps_chardevice_t* dev,
                      enum serial_parity parity,
                      int  stop_bits);
 
-#endif /* __PLATSUPPORT_UART_H__ */
+#endif /* __PLATSUPPORT_SERIAL_H__ */
