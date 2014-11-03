@@ -403,6 +403,9 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
     dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
+    if (slave == dev->regs->address) {
+        return -1;
+    }
     master_rxstart(dev, slave);
 
     dev->rx_count = -1;
