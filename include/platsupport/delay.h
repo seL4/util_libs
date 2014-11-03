@@ -11,12 +11,12 @@
 #ifndef __PLATSUPPORT_DELAY_H__
 #define __PLATSUPPORT_DELAY_H__
 
-#define ps_nsleep(ns) ps_nsleep((ns) / 1000 + 1)
+#define ps_nsleep(ns) ps_usleep((ns) / 1000 + 1)
 #define ps_msleep(ms) ps_usleep((ms) * 1000)
 #define ps_ssleep(s)  ps_msleep((s) * 1000)
 
 
-#define ps_ndelay(ns) ps_ndelay((ns) / 1000 + 1)
+#define ps_ndelay(ns) ps_udelay((ns) / 1000 + 1)
 #define ps_mdelay(ms) ps_udelay((ms) * 1000)
 #define ps_sdelay(s)  ps_mdelay((s) * 1000)
 
