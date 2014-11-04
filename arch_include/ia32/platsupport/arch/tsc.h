@@ -68,6 +68,14 @@ rdtsc_cpuid(void) {
  */
 uint64_t tsc_calculate_frequency(pstimer_t *timer);
 
+/*
+ * Get a tsc-based implementation of pstimer (acts as an up counting clock)
+ *
+ * @param timer a timeout timer to use to calculate tsc frequency.
+ * @return NULL on error.
+ */
+pstimer_t *tsc_get_timer(pstimer_t *timer);
+
 #endif /* _PLATSUPPORT_TSC_H */
 
 

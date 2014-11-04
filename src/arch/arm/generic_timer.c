@@ -18,6 +18,8 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../stubtimer.h"
+
 #ifdef CONFIG_ARCH_ARM_V7A
 #ifdef CONFIG_ARM_CORTEX_A15
 
@@ -29,47 +31,8 @@
 #define MRRC(cpreg, v)  asm volatile("mrrc  " cpreg :  "=r"(v))
 #define CNTPCT " p15, 0, %Q0, %R0, c14"
 
-static int
-start(const pstimer_t *timer)
-{
-    return 0;
-}
-
-static int
-stop(const pstimer_t *timer)
-{
-    return 0;
-}
-
-static int
-oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static int
-periodic(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static int
-oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-}
-
-
 static uint64_t
-get_time(const pstimer_t *timer)
+generic_timer_get_time(const pstimer_t *timer)
 {
     uint64_t time;
     MRRC(CNTPCT, time);
@@ -78,34 +41,21 @@ get_time(const pstimer_t *timer)
     return time / PCT_NS_PER_US * NS_IN_US;
 }
 
-static uint32_t
-get_nth_irq(const pstimer_t *timer, uint32_t n)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
 static pstimer_t singleton_timer;
 
 pstimer_t *
 generic_timer_get_timer(void)
 {
     pstimer_t *timer = &singleton_timer;
+    
+    stub_timer_get_timer(timer);
 
     timer->properties.upcounter = true;
     timer->properties.timeouts = false;
     timer->properties.bit_width = 64;
     timer->properties.irqs = 0;
 
-    timer->data = NULL;
-    timer->start = start;
-    timer->stop = stop;
-    timer->get_time = get_time;
-    timer->oneshot_absolute = oneshot_absolute;
-    timer->oneshot_relative = oneshot_relative;
-    timer->periodic = periodic;
-    timer->handle_irq = handle_irq;
-    timer->get_nth_irq = get_nth_irq;
+    timer->get_time = generic_timer_get_time;
 
     return timer;
 }

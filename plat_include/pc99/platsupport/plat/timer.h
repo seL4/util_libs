@@ -10,6 +10,7 @@
 #ifndef _PLATSUPPORT_PLAT_TIMER_H
 #define _PLATSUPPORT_PLAT_TIMER_H
 
+#include <platsupport/timer.h>
 #include <platsupport/arch/tsc.h>
 #include <platsupport/plat/pit.h>
 #include <platsupport/plat/hpet.h>
