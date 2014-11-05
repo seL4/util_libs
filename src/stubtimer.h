@@ -52,7 +52,7 @@ stub_timer_get_nth_irq(const pstimer_t *device, uint32_t n)
     return 0;
 }
 
-static void
+static inline void
 stub_timer_get_timer(pstimer_t *timer) 
 {
     timer->start = stub_timer_start;
