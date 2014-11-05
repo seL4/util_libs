@@ -66,7 +66,7 @@ ps_udelay(unsigned long us)
         cpufreq_hint = 2 * 1000 * 1000 * 1000;
     }
     while (us--) {
-        ps_cycle_delay(CYCLES_PER_US);
+        ps_do_cycle_delay(CYCLES_PER_US);
     }
 }
 
