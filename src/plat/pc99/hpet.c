@@ -227,10 +227,9 @@ hpet_handle_irq(const pstimer_t* device, uint32_t irq UNUSED)
     hpet_t *hpet = (hpet_t *) device->data;
 
     if (hpet->periodic) {
-        int error = hpet_oneshot_relative(device, hpet->period);
+        int error = hpet_periodic(device, hpet->period);
         if (error != 0) {
             fprintf(stderr, "Repeat periodic timeout failed. Period: %llu\n", hpet->period);
-            hpet->periodic = false;
             assert(error == 0);
         }
     }
