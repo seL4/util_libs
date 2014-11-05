@@ -25,12 +25,12 @@
 #endif
 
 static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
+#define CYCLES_PER_US (cpufreq_hint / 1000000)
 
-void ps_usleep(unsigned long) __attribute__((weak, alias("ps_udelay")));
-void ps_udelay(unsigned long us) __attribute__((weak));
+void ps_udelay(unsigned long us);
 
 static void
-ps_do_udelay(int32_t instructions_per_us)
+ps_do_cycle_delay(int32_t cycles)
 {
     /* Loop while the number of required instructions is +ve
      * We unfold the loop to avoid branch predictor optimisation.
@@ -66,7 +66,7 @@ ps_udelay(unsigned long us)
         cpufreq_hint = 2 * 1000 * 1000 * 1000;
     }
     while (us--) {
-        ps_do_udelay(cpufreq_hint / 1000000);
+        ps_cycle_delay(CYCLES_PER_US);
     }
 }
 

@@ -11,22 +11,9 @@
 #ifndef __PLATSUPPORT_DELAY_H__
 #define __PLATSUPPORT_DELAY_H__
 
-#define ps_nsleep(ns) ps_usleep((ns) / 1000 + 1)
-#define ps_msleep(ms) ps_usleep((ms) * 1000)
-#define ps_ssleep(s)  ps_msleep((s) * 1000)
-
-
 #define ps_ndelay(ns) ps_udelay((ns) / 1000 + 1)
 #define ps_mdelay(ms) ps_udelay((ms) * 1000)
 #define ps_sdelay(s)  ps_mdelay((s) * 1000)
-
-/**
- * Delay execution for at least the given number of microseconds. A call
- * to this function may affect scheduling behaviour. This function will
- * be an alias of ps_udelay if it is not overloaded.
- * @param[in] us  The minimum number of microseconds to delay for
- */
-void ps_usleep(unsigned long us);
 
 /**
  * Delay execution for at least the given number of microseconds. This is
@@ -34,7 +21,7 @@ void ps_usleep(unsigned long us);
  * the delay depends on the current threads remaining time slice and the
  * number and priority of other threads in the system.
  * The use of this function should be avoided and replaced with calls to
- * ps_usleep where possible.
+ * usleep(...) where possible.
  * @param[in] us  The minimum number of microseconds to delay for
  */
 void ps_udelay(unsigned long us);
