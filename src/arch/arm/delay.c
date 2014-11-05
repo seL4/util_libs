@@ -55,7 +55,7 @@ ps_do_cycle_delay(int32_t cycles)
         "    subs %0, %0, #1;"  /* 14 */
         "    subs %0, %0, #1;"  /* 15 */
         "    subs %0, %0, #1;"  /* 16 */
-        "    bpl 1b" : "+r"(instructions_per_us) );
+        "    bpl 1b" : "+r"(cycles) );
 }
 
 void
