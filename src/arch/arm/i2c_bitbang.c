@@ -12,6 +12,7 @@
 #if defined(PLAT_EXYNOS5) || defined(PLAT_EXYNOS4) || defined(PLAT_IMX6)
 
 #include <platsupport/i2c.h>
+#include <platsupport/delay.h>
 #include "../../services.h"
 
 #define DEFAULT_SPEED 100*1000
@@ -25,7 +26,7 @@ i2c_bus_get_priv(struct i2c_bus* i2c_bus)
 static inline void
 _hold(struct i2c_bb* d)
 {
-    ps_usdelay(1000000 / d->speed + 1);
+    ps_udelay(1000000 / d->speed + 1);
 }
 
 static inline void
@@ -81,7 +82,7 @@ i2c_bb_stop(struct i2c_bb* d){
     sda_l  (d);
     _hold  (d);
     scl_h  (d);
-    ps_usdelay(1000);
+    ps_udelay(1000);
     while(!sda_r(d));
     _hold  (d);
 }

@@ -10,6 +10,7 @@
 
 
 #include <platsupport/mach/pmic_rtc.h>
+#include <platsupport/delay.h>
 #include "../../services.h"
 
 #define PMICRTC_DEBUG
@@ -81,7 +82,7 @@ pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag)
         return -1;
     }
     /* Wait for completion */
-    ps_msdelay(16);
+    ps_mdelay(16);
     return 0;
 }
 
