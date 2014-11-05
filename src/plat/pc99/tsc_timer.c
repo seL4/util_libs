@@ -42,7 +42,7 @@ tsc_get_timer(pstimer_t *timeout_timer)
 
     if (singleton_data.freq == 0) {
         /* timer not initialised yet */
-        singleton_data.freq = tsc_calculate_frequency(timeout_timer);
+        singleton_data.freq = tsc_calculate_frequency(timeout_timer) / US_IN_S;
         if (singleton_data.freq == 0) {
             /* failed to find freq */
             return NULL;

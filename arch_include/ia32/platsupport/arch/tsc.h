@@ -26,7 +26,7 @@ rdtsc_pure(void) {
         : /* no clobbers */
     );
 
-    return (((uint64_t) high) << 32llu) + low;
+    return (((uint64_t) high) << 32llu) + (uint64_t) low;
 
 }
 
@@ -55,7 +55,7 @@ rdtsc_cpuid(void) {
     return ((uint64_t) high) << 32llu | (uint64_t) low;
 }
 
-#define TSC_TICKS_TO_NS(cycles_per_us) ((rdtsc_pure() / (uint64_t) cycles_per_us) * NS_IN_S)
+#define TSC_TICKS_TO_NS(cycles_per_us) ((rdtsc_pure() / (uint64_t) cycles_per_us) * NS_IN_US)
 
 /**
  * Calculates number of ticks per second of the time stamp counter
