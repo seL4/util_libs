@@ -16,9 +16,7 @@
 #include <stdint.h>
 
 /* frequency of the generic timer */
-/* this frequency is a guess and is wrong, if using PCT on this platform please update */
-#define PCT_NS_PER_US 24llu
-
+#define PCT_TICKS_PER_US 208llu
 
 /* Memory maps */
 #define RPM_TIMERS_PADDR         0x00062000

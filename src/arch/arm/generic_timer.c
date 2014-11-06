@@ -7,12 +7,13 @@
  *
  * @TAG(NICTA_BSD)
  */
-
+#include <autoconf.h>
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 
+#include <sel4/sel4.h>
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -25,31 +26,74 @@
 
 /* 
  * This timer will only work if the kernel has configured
- * CNTPCT to be read from user-level. This is done by writing 1 to CNTKCTL
+ * CNTPCT to be read from user-level. This is done by writing 1 to CNTKCTL.
+ * If CONFIG_DANGEROUS_CODE_INJECTION is available, we'll try that, 
+ * otherwise we will use a default frequency. 
+ * 
+ * If all else fails the timer will fail to initialise.
+ *  
  */
-
+#define MCR(cpreg, v)                               \
+    do {                                            \
+        uint32_t _v = v;                            \
+        asm volatile("mcr  " cpreg :: "r" (_v));    \
+    }while(0)
 #define MRRC(cpreg, v)  asm volatile("mrrc  " cpreg :  "=r"(v))
-#define CNTPCT " p15, 0, %Q0, %R0, c14"
+#define MRC(cpreg, v)  asm volatile("mrc  " cpreg :  "=r"(v))
+
+#define CNTFRQ     " p15, 0,  %0, c14,  c0, 0" /* 32-bit RW Counter Frequency register */
+#define CNTPCT     " p15, 0, %Q0, %R0, c14" /* 64-bit RO Physical Count register */
+#define CNTKCTL    " p15, 0,  %0, c14,  c1, 0" /* 32-bit RW Timer PL1 Control register */
 
 static uint64_t
 generic_timer_get_time(const pstimer_t *timer)
 {
     uint64_t time;
+    uint32_t freq = (uint32_t) timer->data;
+
     MRRC(CNTPCT, time);
 
     /* convert to ns */
-    return time / PCT_NS_PER_US * NS_IN_US;
+    return time / (uint64_t) freq * NS_IN_US;
 }
 
 static pstimer_t singleton_timer;
+
+static void 
+enable_timer(void* arg)
+{
+    MCR(CNTKCTL, 1);
+}
+
 
 pstimer_t *
 generic_timer_get_timer(void)
 {
     pstimer_t *timer = &singleton_timer;
-    
+    uint32_t freq = 0;
+
+    /* try to enable the timer */    
+#ifdef CONFIG_DANGEROUS_CODE_INJECTION
+    seL4_DebugRun(enable_timer, 0);
+#endif /* CONFIG_DANGEROUS_CODE_INJECTION */
+
+    /* try to read the frequency */
+    MRC(CNTFRQ, freq);
+
+#ifdef PCT_NS_PER_US
+    if (freq == 0) {
+        freq = PCT_TICKS_PER_US;
+    }
+#endif
+
+    if (freq == 0) {
+        /* fail init, we don't know what the frequency of the timer is */
+        return NULL;
+    }
+
     stub_timer_get_timer(timer);
 
+    timer->data = (void *) freq;
     timer->properties.upcounter = true;
     timer->properties.timeouts = false;
     timer->properties.bit_width = 64;
