@@ -80,7 +80,7 @@ generic_timer_get_timer(void)
     /* try to read the frequency */
     MRC(CNTFRQ, freq);
 
-#ifdef PCT_NS_PER_US
+#ifdef PCT_TICKS_PER_US
     if (freq == 0) {
         freq = PCT_TICKS_PER_US;
     }
