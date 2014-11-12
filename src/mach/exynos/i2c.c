@@ -561,15 +561,11 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
         return -2;
     }
     dprintf("Memory for regs mapped\n");
+
     /* Configure MUX */
-    if (mux_feature_enable(mux, dev->mux)) {
+    if (mux_sys_valid(mux) && mux_feature_enable(mux, dev->mux)) {
         dprintf("Warning: failed to configure MUX\n");
     }
-
-    /* TODO setup clocks */
-    //gate = ps_io_map(&io_ops->io_mapper, 0x1003C000, 0x1000, 0, PS_MEM_NORMAL);
-    //printf("gates: 0x%08x\n", gate[0x950/4]);
-
 
     /* I2C setup */
     dev->regs->control = I2CCON_ACK_EN | 0 * I2CCON_CLK_SRC
