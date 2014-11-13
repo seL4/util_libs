@@ -60,7 +60,7 @@ enum chardev_id {
  * @return            0 on success
  */
 int exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
-                       clock_sys_t* clock_sys, ps_chardevice_t* dev);
+                       clk_t* clk_src, ps_chardevice_t* dev);
 
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
