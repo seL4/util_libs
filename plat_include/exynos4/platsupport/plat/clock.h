@@ -35,6 +35,11 @@ enum clk_id {
     /* Muxes */
     CLK_MUXCORE,
     CLK_MUXHPM,
+    /* Peripherals */
+    CLK_UART0,
+    CLK_UART1,
+    CLK_UART2,
+    CLK_UART3,
     /* ----- */
     NCLOCKS,
     /* Aliases */

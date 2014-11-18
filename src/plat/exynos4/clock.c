@@ -371,7 +371,11 @@ clk_t* ps_clocks[] = {
     [CLK_SCLKMPLL_USERC] = &sclk_mpll_userc_clk,
     [CLK_SCLKHPM]        = &sclkhpm_clk,
     [CLK_DIVCOPY]        = &divcopy_clk,
-    [CLK_MUXHPM]         = &muxhpm_clk
+    [CLK_MUXHPM]         = &muxhpm_clk,
+    [CLK_UART0]          = NULL,
+    [CLK_UART1]          = NULL,
+    [CLK_UART2]          = NULL,
+    [CLK_UART3]          = NULL
 };
 
 
@@ -394,7 +398,10 @@ freq_t ps_freq_default[] = {
     [CLK_ACLK_COREM1]    =  167 * MHZ,
     [CLK_ACLK_CORES]     =  250 * MHZ,
     [CLK_ACLK_COREM0]    =  333 * MHZ,
-
+    [CLK_UART0]          =    0 * MHZ,
+    [CLK_UART1]          =    0 * MHZ,
+    [CLK_UART2]          =    0 * MHZ,
+    [CLK_UART3]          =    0 * MHZ,
     [CLK_SCLKAPLL]       =  500 * MHZ,
     [CLK_SCLKVPLL]       =  108 * MHZ,
     [CLK_SCLKEPLL]       =   96 * MHZ,
