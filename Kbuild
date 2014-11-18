@@ -9,6 +9,7 @@
 #
 
 libs-$(CONFIG_LIB_ETHIF) += libethdrivers
-libethdrivers: liblwip libutils libsel4 $(libc) libplatsupport common
+libethdrivers-${CONFIG_LIB_LWIP} += liblwip
+libethdrivers: ${libethdivers-y} libutils libsel4 $(libc) libplatsupport common
 
 

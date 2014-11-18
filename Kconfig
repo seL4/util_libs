@@ -10,7 +10,7 @@
 
 menuconfig LIB_ETHIF
     bool "Build ethernet interface library"
-    depends on HAVE_LIBC && LIB_LWIP && LIB_UTILS && LIB_PLATSUPPORT
+    depends on HAVE_LIBC && LIB_UTILS && LIB_PLATSUPPORT
     default y
 
 config LIB_ETHDRIVER_RX_DESC_COUNT
@@ -31,7 +31,7 @@ config LIB_ETHDRIVER_TX_DESC_COUNT
 
 config LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
     int "Number of preallocated DMA buffers"
-    depends on LIB_ETHIF
+    depends on LIB_ETHIF && LIB_LWIP
     default 512
     help
         To avoid allocating and freeing buffers continuously the driver
@@ -39,7 +39,7 @@ config LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
 
 config LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE
     int "Size of preallocated DMA buffers"
-    depends on LIB_ETHIF
+    depends on LIB_ETHIF && LIB_LWIP
     default 2048
     help
         The size of each preallocated buffer that will be used for RX and
