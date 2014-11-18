@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <platsupport/io.h>
-#include <lwip/netif.h>
 
 struct eth_driver;
 
