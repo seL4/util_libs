@@ -53,16 +53,16 @@
 #define CLK_FREQ 32000 /* TODO Check this is is correct */
 
 static void *paddrs[] = {(void *) GPT1_DEVICE_PADDR,
-                         (void *) GPT2_DEFICE_PADDR,
-                         (void *) GPT3_DEFICE_PADDR,
-                         (void *) GPT4_DEFICE_PADDR,
-                         (void *) GPT5_DEFICE_PADDR,
-                         (void *) GPT6_DEFICE_PADDR,
-                         (void *) GPT7_DEFICE_PADDR,
-                         (void *) GPT8_DEFICE_PADDR,
-                         (void *) GPT9_DEFICE_PADDR,
-                         (void *) GPT10_DEFICE_PADDR,
-                         (void *) GPT11_DEFICE_PADDR};
+                         (void *) GPT2_DEVICE_PADDR,
+                         (void *) GPT3_DEVICE_PADDR,
+                         (void *) GPT4_DEVICE_PADDR,
+                         (void *) GPT5_DEVICE_PADDR,
+                         (void *) GPT6_DEVICE_PADDR,
+                         (void *) GPT7_DEVICE_PADDR,
+                         (void *) GPT8_DEVICE_PADDR,
+                         (void *) GPT9_DEVICE_PADDR,
+                         (void *) GPT10_DEVICE_PADDR,
+                         (void *) GPT11_DEVICE_PADDR};
 
 static inline void* omap_get_gpt_paddr(int n) {
     return paddrs[n];
