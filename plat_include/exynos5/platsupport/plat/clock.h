@@ -23,6 +23,14 @@ enum clk_id {
     CLK_UART2,
     CLK_UART3,
     CLK_PWM,
+    CLK_I2C0,
+    CLK_I2C1,
+    CLK_I2C2,
+    CLK_I2C3,
+    CLK_I2C4,
+    CLK_I2C5,
+    CLK_I2C6,
+    CLK_I2C7,
     CLK_SCLKMPLL,
     CLK_SCLKBPLL,
     CLK_SCLKCPLL,
@@ -52,8 +60,23 @@ enum clock_gate {
     NCLKGATES,
 };
 
+enum clkregs {
+    CLKREGS_CPU,
+    CLKREGS_CORE,
+    CLKREGS_ACP,
+    CLKREGS_ISP,
+    CLKREGS_TOP,
+    CLKREGS_LEX,
+    CLKREGS_R0X,
+    CLKREGS_R1X,
+    CLKREGS_CDREX,
+    CLKREGS_MEM,
+    NCLKREGS
+};
+
+
 int exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
-                           void* lex, void* r0x,  void* r1x, void* cdrex,
+                           void* lex, void* r0x,  void* r1x, void* cdrex, void* mem,
                            clock_sys_t* clock_sys);
 
 #endif /* _EXYNOS5_CLOCK_H */

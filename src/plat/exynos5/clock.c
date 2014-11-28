@@ -24,6 +24,7 @@
 #define EXYNOS5_CMU_R0X_PADDR   0x10028000
 #define EXYNOS5_CMU_R1X_PADDR   0x1002C000
 #define EXYNOS5_CMU_CDREX_PADDR 0x10030000
+#define EXYNOS5_CMU_MEM_PADDR   0x10038000
 
 #define EXYNOS5_CMU_SIZE       0x1000
 #define EXYNOS5_CMU_CPU_SIZE    EXYNOS5_CMU_SIZE
@@ -35,6 +36,7 @@
 #define EXYNOS5_CMU_R0X_SIZE    EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_R1X_SIZE    EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_CDREX_SIZE  EXYNOS5_CMU_SIZE
+#define EXYNOS5_CMU_MEM_SIZE    EXYNOS5_CMU_SIZE
 
 #define OFFSET_SCLKCPLL    (0x20 / 4)
 #define OFFSET_SCLKEPLL    (0x30 / 4)
@@ -60,19 +62,6 @@
 #define CLKID_SPI2       CLKID(TOP, 21, 6)
 #define CLKID_SPI0_ISP   CLKID(TOP, 28, 0)
 #define CLKID_SPI1_ISP   CLKID(TOP, 28, 1)
-
-enum clkregs {
-    CLKREGS_CPU,
-    CLKREGS_CORE,
-    CLKREGS_ACP,
-    CLKREGS_ISP,
-    CLKREGS_TOP,
-    CLKREGS_LEX,
-    CLKREGS_R0X,
-    CLKREGS_R1X,
-    CLKREGS_CDREX,
-    NCLKREGS
-};
 
 /* Available clock sources for the peripheral block */
 static enum clk_id clk_src_peri_blk[] = {
@@ -342,7 +331,7 @@ clock_sys_common_init(clock_sys_t* clock_sys)
 
 int
 exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
-                       void* lex, void* r0x,  void* r1x, void* cdrex,
+                       void* lex, void* r0x,  void* r1x, void* cdrex, void* mem,
                        clock_sys_t* clock_sys)
 {
     if (cpu) {
@@ -371,6 +360,9 @@ exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
     }
     if (cdrex) {
         _clk_regs[CLKREGS_CDREX] = cdrex;
+    }
+    if (mem) {
+        _clk_regs[CLKREGS_MEM] = mem;
     }
     return clock_sys_common_init(clock_sys);
 }
