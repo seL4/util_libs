@@ -55,8 +55,8 @@ typedef struct {
 static inline int
 set_pit_mode(ps_io_port_ops_t *ops, uint8_t channel, uint8_t mode)
 {
-  return ps_io_port_out(ops, PIT_IOPORT_PITCR, 1, 
-          PITCR_SET_CHANNEL(PITCR_SET_OP_MODE(PITCR_SET_ACCESS_MODE(0, PITCR_ACCESS_LOHI), mode), channel));
+    return ps_io_port_out(ops, PIT_IOPORT_PITCR, 1,
+                          PITCR_SET_CHANNEL(PITCR_SET_OP_MODE(PITCR_SET_ACCESS_MODE(0, PITCR_ACCESS_LOHI), mode), channel));
 }
 
 static inline int
@@ -87,8 +87,8 @@ configure_pit(const pstimer_t *timer, uint8_t mode, uint64_t ns)
     ps_io_port_ops_t *ops = ((pit_data_t *) timer->data)->ops;
 
     /* configure correct mode */
-   error = set_pit_mode(ops, 0, mode);
-   if (error) {
+    error = set_pit_mode(ops, 0, mode);
+    if (error) {
         fprintf(stderr, "ps_io_port_out failed on channel %u\n", PIT_IOPORT_CHANNEL(0));
         return EIO;
     }
@@ -100,7 +100,7 @@ configure_pit(const pstimer_t *timer, uint8_t mode, uint64_t ns)
         return EIO;
     }
 
-    error = ps_io_port_out(ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t) (ticks >> 8) & 0xFF); 
+    error = ps_io_port_out(ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t) (ticks >> 8) & 0xFF);
     if (error) {
         fprintf(stderr, "ps_io_port_out failed on channel %u\n", PIT_IOPORT_CHANNEL(0));
         return EIO;
@@ -125,7 +125,7 @@ pit_stop(const pstimer_t* device)
 {
     /* There's no way to disable the PIT, so we set it up in mode 0 and don't
      * start it
-     */ 
+     */
     ps_io_port_ops_t *ops = ((pit_data_t *) device->data)->ops;
     return set_pit_mode(ops, 0, PITCR_MODE_ONESHOT);
 }
@@ -134,7 +134,7 @@ pit_stop(const pstimer_t* device)
 static uint64_t
 pit_get_time(const pstimer_t* device)
 {
-    ps_io_port_ops_t *ops = ((pit_data_t *) device->data)->ops; 
+    ps_io_port_ops_t *ops = ((pit_data_t *) device->data)->ops;
     int error = ps_io_port_out(ops, PIT_IOPORT_CHANNEL(3), 1, 0);
     if (error) {
         return 0;

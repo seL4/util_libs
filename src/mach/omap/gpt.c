@@ -78,7 +78,7 @@ typedef enum {
      * 0x0: Configures the pin as an output (needed when PWM mode is required)
      * 0x1: Configures the pin as an input (needed when capture mode is required)
      */
-     GPO_CFG = 14
+    GPO_CFG = 14
 } gpt_control_reg;
 
 typedef enum {
@@ -135,7 +135,7 @@ typedef enum {
      */
     ENAWAKEUP = 3
 
-    //TODO Add extra definitions
+                //TODO Add extra definitions
 
 } gpt_cfg_reg;
 
@@ -177,8 +177,8 @@ typedef struct gpt {
     uint32_t prescaler;
 } gpt_t;
 
-static int 
-gpt_timer_start(const pstimer_t *timer) 
+static int
+gpt_timer_start(const pstimer_t *timer)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
 
@@ -190,7 +190,8 @@ gpt_timer_start(const pstimer_t *timer)
 
 
 static int
-gpt_timer_stop(const pstimer_t *timer) {
+gpt_timer_stop(const pstimer_t *timer)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
     /* Disable timer. */
     gpt->gpt_map->tclr = 0;
@@ -198,7 +199,8 @@ gpt_timer_stop(const pstimer_t *timer) {
     return 0;
 }
 
-void configure_timeout(const pstimer_t *timer, uint64_t ns) {
+void configure_timeout(const pstimer_t *timer, uint64_t ns)
+{
 
     gpt_t *gpt = (gpt_t*) timer->data;
 
@@ -247,7 +249,7 @@ gpt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int 
+static int
 gpt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
@@ -260,8 +262,9 @@ gpt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static void 
-gpt_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static void
+gpt_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
 
     /* Potentially could be getting interrupts for more reasons
@@ -272,8 +275,9 @@ gpt_handle_irq(const pstimer_t *timer, uint32_t irq) {
     }
 }
 
-static uint64_t 
-gpt_get_time(const pstimer_t *timer) {
+static uint64_t
+gpt_get_time(const pstimer_t *timer)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
 
     uint32_t value = gpt->gpt_map->tcrr;
@@ -283,7 +287,7 @@ gpt_get_time(const pstimer_t *timer) {
 }
 
 static uint32_t
-gpt_get_nth_irq(const pstimer_t *timer, uint32_t n) 
+gpt_get_nth_irq(const pstimer_t *timer, uint32_t n)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
 
@@ -331,7 +335,7 @@ gpt_get_timer(gpt_config_t *config)
     /* Perform a soft reset */
     gpt->gpt_map->cfg = BIT(SOFTRESET);
 
-    while(!gpt->gpt_map->tistat); /* Wait for timer to reset */
+    while (!gpt->gpt_map->tistat); /* Wait for timer to reset */
 
     return timer;
 }

@@ -52,7 +52,8 @@ unsigned int rtc_get_century_register(acpi_t *acpi);
  * @param time_date time and date structure to fill in
  * @return returns 0 on success
  */
-static inline int rtc_get_time_date(ps_io_port_ops_t *io_port_ops, acpi_t *acpi, rtc_time_date_t *time_date) {
+static inline int rtc_get_time_date(ps_io_port_ops_t *io_port_ops, acpi_t *acpi, rtc_time_date_t *time_date)
+{
     return rtc_get_time_date_reg(io_port_ops, rtc_get_century_register(acpi), time_date);
 }
 

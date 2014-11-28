@@ -20,7 +20,8 @@
 #define CMOS_ADDRESS 0x70
 #define CMOS_DATA    0x71
 
-static inline int current_year() {
+static inline int current_year()
+{
 #ifdef __DATE__
     return atoi(__DATE__ + 7);
 #else
@@ -28,7 +29,8 @@ static inline int current_year() {
 #endif
 }
 
-static unsigned char get_RTC_register(ps_io_port_ops_t *port_ops, int reg) {
+static unsigned char get_RTC_register(ps_io_port_ops_t *port_ops, int reg)
+{
     int error;
     error = ps_io_port_out(port_ops, CMOS_ADDRESS, 1, reg);
     assert(!error);
@@ -38,7 +40,8 @@ static unsigned char get_RTC_register(ps_io_port_ops_t *port_ops, int reg) {
     return val;
 }
 
-static int get_update_in_progress_flag(ps_io_port_ops_t *port_ops) {
+static int get_update_in_progress_flag(ps_io_port_ops_t *port_ops)
+{
     return get_RTC_register(port_ops, 0x0A) & 0x80;
 }
 
@@ -53,7 +56,8 @@ typedef struct __attribute__((packed)) rtc_raw {
     unsigned char century;
 } rtc_raw_t;
 
-static void read_rtc(ps_io_port_ops_t *port_ops, unsigned int century_reg, rtc_raw_t *time_date) {
+static void read_rtc(ps_io_port_ops_t *port_ops, unsigned int century_reg, rtc_raw_t *time_date)
+{
     /* Wait until an update isn't in progress */
     while (get_update_in_progress_flag(port_ops));
 
@@ -63,18 +67,20 @@ static void read_rtc(ps_io_port_ops_t *port_ops, unsigned int century_reg, rtc_r
     time_date->day = get_RTC_register(port_ops, 0x07);
     time_date->month = get_RTC_register(port_ops, 0x08);
     time_date->year = get_RTC_register(port_ops, 0x09);
-    if(century_reg != 0) {
+    if (century_reg != 0) {
         time_date->century = get_RTC_register(port_ops, century_reg);
     } else {
         time_date->century = 0;
     }
 }
 
-static int time_cmp(rtc_raw_t a, rtc_raw_t b) {
+static int time_cmp(rtc_raw_t a, rtc_raw_t b)
+{
     return memcmp(&a, &b, sizeof(a));
 }
 
-int rtc_get_time_date_reg(ps_io_port_ops_t *io_port_ops, unsigned int century_reg, rtc_time_date_t *time_date) {
+int rtc_get_time_date_reg(ps_io_port_ops_t *io_port_ops, unsigned int century_reg, rtc_time_date_t *time_date)
+{
     /* Keep performing reads until we manage to do two reads in a row that are
      * the same */
     rtc_raw_t raw_time;
@@ -117,18 +123,19 @@ int rtc_get_time_date_reg(ps_io_port_ops_t *io_port_ops, unsigned int century_re
 
     // Calculate the full (4-digit) year
 
-    if(century_reg != 0) {
+    if (century_reg != 0) {
         time_date->year += raw_time.century * 100;
     } else {
         time_date->year += (current_year() / 100) * 100;
-        if(time_date->year < current_year()) {
+        if (time_date->year < current_year()) {
             time_date->year += 100;
         }
     }
     return 0;
 }
 
-unsigned int rtc_get_century_register(acpi_t *acpi) {
+unsigned int rtc_get_century_register(acpi_t *acpi)
+{
     acpi_header_t *header = acpi_find_region(acpi, ACPI_FADT);
     if (!header) {
         LOG_ERROR("ACPI has no FADT header. Your BIOS is broken");

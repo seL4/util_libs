@@ -22,7 +22,8 @@ struct mux_sys {
 
 #include <platsupport/io.h>
 
-static inline int mux_sys_valid(const mux_sys_t* mux_sys){
+static inline int mux_sys_valid(const mux_sys_t* mux_sys)
+{
     return mux_sys && mux_sys->priv;
 }
 
@@ -41,10 +42,11 @@ int mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux);
  * @param[in] mux_feature A SoC specific feature to enable.
  * @return                0 on success
  */
-static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature){
-    if(mux->feature_enable){
+static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
+{
+    if (mux->feature_enable) {
         return mux->feature_enable(mux, mux_feature);
-    }else{
+    } else {
         return -1;
     }
 }

@@ -140,7 +140,7 @@ acpi_dmar_first_remap(acpi_dmar_hdr_t* tbl)
 /* Retrieve the next DMAR sub header */
 static inline acpi_dmar_remap_hdr_t*
 acpi_dmar_next_remap(acpi_dmar_hdr_t* tbl,
-        acpi_dmar_remap_hdr_t* hdr)
+                     acpi_dmar_remap_hdr_t* hdr)
 {
     void* next = (uint8_t*)hdr + hdr->length;
     void* end  = (uint8_t*)tbl + tbl->header.length;
@@ -165,7 +165,7 @@ acpi_dmar_remap_at(acpi_dmar_hdr_t* tbl, int index)
 /* Retrieve the next DMAR sub header of the specified type */
 static inline acpi_dmar_remap_hdr_t*
 acpi_dmar_next_remap_type(acpi_dmar_hdr_t* tbl,
-        acpi_dmar_remap_hdr_t* hdr, int type)
+                          acpi_dmar_remap_hdr_t* hdr, int type)
 {
     do {
         hdr = acpi_dmar_next_remap(tbl, hdr);

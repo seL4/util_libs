@@ -107,10 +107,11 @@ exynos_irq_combiner_grp_pending(irq_combiner_t* combiner, int group)
 
 
 static int
-irq_combiner_init_common(irq_combiner_t* combiner){
+irq_combiner_init_common(irq_combiner_t* combiner)
+{
     if (_combiner_regs == NULL) {
         return -1;
-    }else{
+    } else {
         /* Initialise the structure */
         combiner->priv = (void*)_combiner_regs;
         combiner->is_pending  = &exynos_irq_combiner_is_pending;
@@ -124,7 +125,7 @@ irq_combiner_init_common(irq_combiner_t* combiner){
 int
 exynos_irq_combiner_init(void* base, irq_combiner_t* combiner)
 {
-    if(base){
+    if (base) {
         _combiner_regs = (volatile struct irq_combiner_map *)base;
     }
     return irq_combiner_init_common(combiner);

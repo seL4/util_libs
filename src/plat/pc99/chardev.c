@@ -26,7 +26,7 @@ static const int com2_irqs[] = {SERIAL_CONSOLE_COM2_IRQ, -1};
 static const int com3_irqs[] = {SERIAL_CONSOLE_COM3_IRQ, -1};
 static const int com4_irqs[] = {SERIAL_CONSOLE_COM4_IRQ, -1};
 
-static const int ega_irqs[] = {-1};
+static const int ega_irqs[] = { -1};
 
 #define PC99_SERIAL_DEFN(devid) {          \
     .id      = PC99_SERIAL_COM##devid,    \

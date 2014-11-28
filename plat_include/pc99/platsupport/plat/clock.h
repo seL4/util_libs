@@ -12,5 +12,5 @@
 #define _PLATSUPPORT_PC99_CLOCK_H
 
 /* place holder */
- 
+
 #endif /* _PLATSUPPORT_PC99_CLOCK_H */

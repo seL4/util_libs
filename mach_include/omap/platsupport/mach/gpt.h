@@ -27,7 +27,7 @@ typedef enum {
     GPT8 = 7,
     GPT9 = 8,
     GPT10 = 9,
-    GPT11 = 10, 
+    GPT11 = 10,
     GPT_LAST = GPT11
 } gpt_id_t;
 

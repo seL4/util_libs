@@ -51,14 +51,14 @@ ps2_read_data(ps_io_ops_t *ops)
 static void
 ps2_write_output(ps_io_ops_t *ops, uint8_t byte)
 {
-    while( (ps2_read_control_status(ops) & 0x2) != 0);
+    while ( (ps2_read_control_status(ops) & 0x2) != 0);
     ps_io_port_out(&ops->io_port_ops, PS2_IOPORT_DATA, 1, byte);
 }
 
 static uint8_t
 ps2_read_output(ps_io_ops_t *ops)
 {
-    while( (ps2_read_control_status(ops) & 0x1) == 0);
+    while ( (ps2_read_control_status(ops) & 0x1) == 0);
     return ps2_read_data(ops);
 }
 
@@ -67,7 +67,7 @@ ps2_send_keyboard_cmd(ps_io_ops_t *ops, uint8_t cmd)
 {
     do {
         ps2_write_output(ops, cmd);
-    } while(ps2_read_output(ops) != KEYBOARD_ACK);
+    } while (ps2_read_output(ops) != KEYBOARD_ACK);
 }
 
 static void
@@ -76,7 +76,7 @@ ps2_send_keyboard_cmd_param(ps_io_ops_t *ops, uint8_t cmd, uint8_t param)
     do {
         ps2_write_output(ops, cmd);
         ps2_write_output(ops, param);
-    } while(ps2_read_output(ops) != KEYBOARD_ACK);
+    } while (ps2_read_output(ops) != KEYBOARD_ACK);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -102,17 +102,17 @@ keyboard_state_push_ps2_keyevent(struct keyboard_state *s, int16_t ps2_keyevent)
 
     /* Handle release / extended mode keys. */
     switch (ps2_keyevent) {
-        case KEYBOARD_PS2_EVENTCODE_RELEASE:
-            s->state |= KEYBOARD_PS2_STATE_RELEASE_KEY;
-            return ev_none;
-        case KEYBOARD_PS2_EVENTCODE_EXTENDED:
-            s->state |= KEYBOARD_PS2_STATE_EXTENDED_MODE;
-            return ev_none;
-        case KEYBOARD_PS2_EVENTCODE_EXTENDED_PAUSE:
-            s->state = KEYBOARD_PS2_STATE_IGNORE;
-            s->num_ignore = 7; /* Ignore the next 7 characters of pause seq. */
-            keyboard_key_event_t ev = { .vkey = VK_PAUSE, .pressed = true };
-            return ev;
+    case KEYBOARD_PS2_EVENTCODE_RELEASE:
+        s->state |= KEYBOARD_PS2_STATE_RELEASE_KEY;
+        return ev_none;
+    case KEYBOARD_PS2_EVENTCODE_EXTENDED:
+        s->state |= KEYBOARD_PS2_STATE_EXTENDED_MODE;
+        return ev_none;
+    case KEYBOARD_PS2_EVENTCODE_EXTENDED_PAUSE:
+        s->state = KEYBOARD_PS2_STATE_IGNORE;
+        s->num_ignore = 7; /* Ignore the next 7 characters of pause seq. */
+        keyboard_key_event_t ev = { .vkey = VK_PAUSE, .pressed = true };
+        return ev;
     }
 
     /* Prepend 0xE0 to ps2 keycode if in extended mode. */
@@ -202,7 +202,7 @@ void
 keyboard_set_led(struct keyboard_state *state, char scroll_lock, char num_lock, char caps_lock)
 {
     ps2_send_keyboard_cmd_param(&state->ops, KEYBOARD_SET_LEDS,
-        scroll_lock | num_lock << 1 | caps_lock << 2);
+                                scroll_lock | num_lock << 1 | caps_lock << 2);
 }
 
 void

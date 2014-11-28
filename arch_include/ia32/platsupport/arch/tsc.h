@@ -14,14 +14,15 @@
 #include <platsupport/timer.h>
 
 /* just read the tsc. This may be executed out of order as it is unserialised */
-static inline uint64_t 
-rdtsc_pure(void) {
+static inline uint64_t
+rdtsc_pure(void)
+{
     uint32_t high, low;
 
     __asm__ __volatile__ (
         "rdtsc"
         : "=a" (low),
-          "=d" (high)
+        "=d" (high)
         : /* no input */
         : /* no clobbers */
     );
@@ -33,8 +34,9 @@ rdtsc_pure(void) {
 /* serialised read of the tsc. This will execute in order and no memory loads will be executed
  * beforehand */
 static inline uint64_t
-rdtsc_cpuid(void) {
-   
+rdtsc_cpuid(void)
+{
+
     uint32_t high, low;
 
     __asm__ __volatile__ (

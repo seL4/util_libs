@@ -148,8 +148,8 @@ typedef struct gpt {
     uint32_t prescaler;
 } gpt_t;
 
-static int 
-gpt_timer_start(const pstimer_t *timer) 
+static int
+gpt_timer_start(const pstimer_t *timer)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
 
@@ -161,7 +161,8 @@ gpt_timer_start(const pstimer_t *timer)
 
 
 static int
-gpt_timer_stop(const pstimer_t *timer) {
+gpt_timer_stop(const pstimer_t *timer)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
     /* Disable timer. */
     gpt->gpt_map->gptcr = 0;
@@ -182,22 +183,24 @@ gpt_periodic(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
     return ENOSYS;
 }
 
-static int 
+static int
 gpt_oneshot_relative(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
 {
     return ENOSYS;
 }
 
-static void 
-gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED) {
+static void
+gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
 
     /* clear the interrupt status register, regardless of interrupt reason. */
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 }
 
-static uint64_t 
-gpt_get_time(const pstimer_t *timer) {
+static uint64_t
+gpt_get_time(const pstimer_t *timer)
+{
     gpt_t *gpt = (gpt_t*) timer->data;
     uint64_t value;
 
@@ -207,7 +210,7 @@ gpt_get_time(const pstimer_t *timer) {
 }
 
 static uint32_t
-gpt_get_nth_irq(const pstimer_t *timer UNUSED, uint32_t n UNUSED) 
+gpt_get_nth_irq(const pstimer_t *timer UNUSED, uint32_t n UNUSED)
 {
     return GPT1_INTERRUPT;
 }

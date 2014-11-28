@@ -22,18 +22,21 @@
 
 #define XOTMR_FIN                19200000UL
 #define SLPTMR_FIN                  32768UL
-static inline uint64_t 
-get_tcxo_hz(void){
+static inline uint64_t
+get_tcxo_hz(void)
+{
     return 7 * 1000 * 1000;
 }
 
-static inline uint64_t 
-get_xo_hz(void){
+static inline uint64_t
+get_xo_hz(void)
+{
     return XOTMR_FIN;
 }
 
-static inline uint64_t 
-get_slp_hz(void){
+static inline uint64_t
+get_slp_hz(void)
+{
     return SLPTMR_FIN;
 }
 
@@ -257,7 +260,7 @@ static pstimer_t timers[NTIMERS];
 
 
 static uint32_t
-_common_get_nth_irq(const pstimer_t *timer, uint32_t n) 
+_common_get_nth_irq(const pstimer_t *timer, uint32_t n)
 {
     int id = timer - timers;
     return apq8064_timer_irqs[id];
@@ -296,8 +299,8 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     volatile uint32_t* sts = (volatile uint32_t*)sts_base;
     int id = timer - timers;
     uint64_t fin;
-    switch(timer - timers){
-    case TMR_RPM_GPT0 : 
+    switch (timer - timers) {
+    case TMR_RPM_GPT0 :
         fin = get_xo_hz() / 4;
         break;
     case TMR_RPM_GPT1:
@@ -312,22 +315,22 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
         return -1;
     }
     /* Clear the timer on match */
-    
+
     regs->en = GPTEN_CLR_ON_MTCH_EN;
-    switch(id){
-    case TMR_RPM_GPT0 : 
-        while(sts[RPMTMRSTS_OFFSET/4] & RPMTMRSTS_TMR0_WR_PEND);
+    switch (id) {
+    case TMR_RPM_GPT0 :
+        while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR0_WR_PEND);
         break;
     case TMR_RPM_GPT1:
-        while(sts[RPMTMRSTS_OFFSET/4] & RPMTMRSTS_TMR1_WR_PEND);
+        while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR1_WR_PEND);
         break;
     case TMR_KPSS_GPT0:
     case TMR_GSS_GPT0:
-        while(sts[KPSSSTAT_OFFSET/4] & KPSSGPTSTS_TMR0_WR_PEND);
+        while (sts[KPSSSTAT_OFFSET / 4] & KPSSGPTSTS_TMR0_WR_PEND);
         break;
     case TMR_KPSS_GPT1:
     case TMR_GSS_GPT1:
-        while(sts[KPSSSTAT_OFFSET/4] & KPSSGPTSTS_TMR1_WR_PEND);
+        while (sts[KPSSSTAT_OFFSET / 4] & KPSSGPTSTS_TMR1_WR_PEND);
         break;
     default:
         break;
@@ -336,21 +339,21 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     regs->clr = 0xC0FFEE;
     /* Configure match value */
     regs->mtch = (fin * ns) / (1000UL * 1000 * 1000);
-    
-    switch(id){
-    case TMR_RPM_GPT0 : 
-        while(sts[RPMTMRSTS_OFFSET/4] & RPMTMRSTS_TMR0_PEND);
+
+    switch (id) {
+    case TMR_RPM_GPT0 :
+        while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR0_PEND);
         break;
     case TMR_RPM_GPT1:
-        while(sts[RPMTMRSTS_OFFSET/4] & RPMTMRSTS_TMR1_PEND);
+        while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR1_PEND);
         break;
     case TMR_KPSS_GPT0:
     case TMR_GSS_GPT0:
-        while(sts[KPSSSTAT_OFFSET/4] & KPSSGPTSTS_TMR0_PEND);
+        while (sts[KPSSSTAT_OFFSET / 4] & KPSSGPTSTS_TMR0_PEND);
         break;
     case TMR_KPSS_GPT1:
     case TMR_GSS_GPT1:
-        while(sts[KPSSSTAT_OFFSET/4] & KPSSGPTSTS_TMR1_PEND);
+        while (sts[KPSSSTAT_OFFSET / 4] & KPSSGPTSTS_TMR1_PEND);
         break;
     default:
         break;
@@ -377,19 +380,19 @@ _gpt_handle_irq(const pstimer_t *timer, uint32_t irq)
 
 
 /* DGT timer functions */
-static int 
-_dgt_timer_start(const pstimer_t *timer) 
+static int
+_dgt_timer_start(const pstimer_t *timer)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
-    regs->en |= DGTTMR_EN_EN; 
+    regs->en |= DGTTMR_EN_EN;
     return 0;
 }
 
-static int 
-_dgt_timer_stop(const pstimer_t *timer) 
+static int
+_dgt_timer_stop(const pstimer_t *timer)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
-    regs->en &= ~DGTTMR_EN_EN; 
+    regs->en &= ~DGTTMR_EN_EN;
     return 0;
 }
 
@@ -436,16 +439,16 @@ _dgt_handle_irq(const pstimer_t *timer, uint32_t irq)
 
 
 /**** TMR ****/
-static int 
-_tmr_timer_start(const pstimer_t *timer) 
+static int
+_tmr_timer_start(const pstimer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     regs->control |= ~TMR_CTRL_EN;
     return 0;
 }
 
-static int 
-_tmr_timer_stop(const pstimer_t *timer) 
+static int
+_tmr_timer_stop(const pstimer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     regs->control &= ~TMR_CTRL_EN;
@@ -468,7 +471,7 @@ _tmr_periodic(const pstimer_t *timer, uint64_t ns)
     int id;
     /* Find input clock frequency */
     id = timer - timers;
-    switch(id){
+    switch (id) {
     case TMR_PPSS_XO_TMR0:
     case TMR_PPSS_XO_TMR1:
         fin_hz = get_tcxo_hz();
@@ -483,14 +486,14 @@ _tmr_periodic(const pstimer_t *timer, uint64_t ns)
     }
     /* Turn on the timer */
     regs->control = TMR_CTRL_ON;
-    while(regs->status & TMR_STAT_CONTROL_UPDATE);
+    while (regs->status & TMR_STAT_CONTROL_UPDATE);
     /* Reset and config */
     regs->control |= TMR_CTRL_PRESCALE_DIV4 | TMR_CTRL_MODE_PERIODIC;
     regs->clear_int = 0xC0FFEE;
     regs->clear_cnt = 0xC0FFEE;
     regs->match = (fin_hz * ns) / (4UL * 1000 * 1000 * 1000);
     /* Wait for registers to be updated */
-    while(regs->status);
+    while (regs->status);
     return 0;
 }
 
@@ -512,8 +515,8 @@ _tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
 
 
 /**** WDT ****/
-static int 
-_wdt_timer_start(const pstimer_t *timer) 
+static int
+_wdt_timer_start(const pstimer_t *timer)
 {
     wdt_regs_t* regs = (wdt_regs_t*)timer->data;
     /* Don't send a reset */
@@ -524,8 +527,8 @@ _wdt_timer_start(const pstimer_t *timer)
     return 0;
 }
 
-static int 
-_wdt_timer_stop(const pstimer_t *timer) 
+static int
+_wdt_timer_stop(const pstimer_t *timer)
 {
     assert(!"Not yet implemented");
     return 0;
@@ -551,7 +554,7 @@ _wdt_periodic(const pstimer_t *timer, uint64_t ns)
     /* Don't reset */
     regs->reset = 0;
     /* Set the counter value */
-    bark_time = (fin_hz * ns)/(1000 * 1000);
+    bark_time = (fin_hz * ns) / (1000 * 1000);
     regs->bark_time = WDTBARK_DATA(bark_time);
     assert(!"Not yet implemented");
     return 0;
@@ -575,8 +578,8 @@ _wdt_handle_irq(const pstimer_t *timer, uint32_t irq)
 
 /**** STUBS ****/
 /* Stub functions */
-static int 
-_timer_start(const pstimer_t *timer) 
+static int
+_timer_start(const pstimer_t *timer)
 {
     assert(!"Not supported");
 
@@ -584,7 +587,8 @@ _timer_start(const pstimer_t *timer)
 }
 
 static int
-_timer_stop(const pstimer_t *timer) {
+_timer_stop(const pstimer_t *timer)
+{
     assert(!"Not supported");
     return ENOSYS;
 }
@@ -603,20 +607,22 @@ _periodic(const pstimer_t *timer, uint64_t ns)
     return ENOSYS;
 }
 
-static int 
+static int
 _oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
     assert(!"Not supported");
     return ENOSYS;
 }
 
-static void 
-_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static void
+_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     assert(!"Not supported");
 }
 
-static uint64_t 
-_get_time(const pstimer_t *timer) {
+static uint64_t
+_get_time(const pstimer_t *timer)
+{
     assert(!"Not yet implemented");
     return 0;
 }
@@ -624,7 +630,7 @@ _get_time(const pstimer_t *timer) {
 pstimer_t *
 ps_get_timer(enum timer_id id, timer_config_t *config)
 {
-    if(id < 0 || id >= NTIMERS){
+    if (id < 0 || id >= NTIMERS) {
         return NULL;
     }
 
@@ -637,7 +643,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     TIMER_DEFAULT_OPS_INIT(timer);
     /* Default handlers */
-    switch(id){
+    switch (id) {
     case TMR_PPSS_XO_TMR0:
         TIMER_OPS_INIT(timer, tmr);
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSXOTMR0_OFFSET);
@@ -662,7 +668,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSWDT_OFFSET);
         timer->properties.bit_width = 14;
         break;
-    /* KPSS */
+        /* KPSS */
     case TMR_KPSS_GPT0:
         TIMER_OPS_INIT(timer, gpt);
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT0_OFFSET);
@@ -683,7 +689,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
         TIMER_OPS_INIT(timer, wdt);
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT1_OFFSET);
         break;
-    /* GSS */ 
+        /* GSS */
     case TMR_GSS_GPT0:
         TIMER_OPS_INIT(timer, gpt);
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT0_OFFSET);
@@ -704,7 +710,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
         TIMER_OPS_INIT(timer, wdt);
         timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT1_OFFSET);
         break;
-    /* RPM */
+        /* RPM */
     case TMR_RPM_GPT0:
         TIMER_OPS_INIT(timer, gpt);
         TIMER_REG(config->vaddr, RPMGPT0_CLK_CTL) = RPMGPT0_DIV4;

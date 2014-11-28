@@ -18,8 +18,7 @@
 #define DEFAULT_SPEED 100*1000
 
 static inline struct i2c_bb*
-i2c_bus_get_priv(struct i2c_bus* i2c_bus)
-{
+i2c_bus_get_priv(struct i2c_bus* i2c_bus) {
     return (struct i2c_bb*)i2c_bus->priv;
 }
 
@@ -51,15 +50,31 @@ pin_h(struct i2c_bb* d, int gpio)
     pin_r(d, gpio);
 }
 
-static inline int  sda_r (struct i2c_bb* d)  { return pin_r(d, d->sda);  }
-static inline void sda_l (struct i2c_bb* d)  { pin_l(d, d->sda); }
-static inline void sda_h (struct i2c_bb* d)  { pin_h(d, d->sda); }
+static inline int  sda_r (struct i2c_bb* d)
+{
+    return pin_r(d, d->sda);
+}
+static inline void sda_l (struct i2c_bb* d)
+{
+    pin_l(d, d->sda);
+}
+static inline void sda_h (struct i2c_bb* d)
+{
+    pin_h(d, d->sda);
+}
 
-static inline void scl_l (struct i2c_bb* d)  { pin_l(d, d->scl); }
-static inline void scl_h (struct i2c_bb* d)  { while(!pin_r(d, d->scl)); }
+static inline void scl_l (struct i2c_bb* d)
+{
+    pin_l(d, d->scl);
+}
+static inline void scl_h (struct i2c_bb* d)
+{
+    while (!pin_r(d, d->scl));
+}
 
 static inline void
-clk(struct i2c_bb* d){
+clk(struct i2c_bb* d)
+{
     _hold  (d);
     scl_h  (d);
     _hold  (d);
@@ -67,9 +82,10 @@ clk(struct i2c_bb* d){
 }
 
 static inline void
-i2c_bb_start(struct i2c_bb* d){
+i2c_bb_start(struct i2c_bb* d)
+{
     /* init */
-    while(!sda_r(d));
+    while (!sda_r(d));
     _hold  (d);
     /* Start */
     sda_l  (d);
@@ -78,22 +94,24 @@ i2c_bb_start(struct i2c_bb* d){
 }
 
 static inline void
-i2c_bb_stop(struct i2c_bb* d){
+i2c_bb_stop(struct i2c_bb* d)
+{
     sda_l  (d);
     _hold  (d);
     scl_h  (d);
     ps_udelay(1000);
-    while(!sda_r(d));
+    while (!sda_r(d));
     _hold  (d);
 }
 
 
 static inline void
-i2c_bb_sendbit(struct i2c_bb* d, int bit){
+i2c_bb_sendbit(struct i2c_bb* d, int bit)
+{
     /* Setup bit */
-    if(bit){
+    if (bit) {
         sda_h (d);
-    }else{
+    } else {
         sda_l (d);
     }
     _hold  (d);
@@ -105,7 +123,8 @@ i2c_bb_sendbit(struct i2c_bb* d, int bit){
 }
 
 static inline int
-i2c_bb_readbit(struct i2c_bb* d){
+i2c_bb_readbit(struct i2c_bb* d)
+{
     int bit;
     /* Release SDA */
     sda_r  (d);
@@ -120,10 +139,11 @@ i2c_bb_readbit(struct i2c_bb* d){
 }
 
 static int
-i2c_bb_sendbyte(struct i2c_bb* d, char b){
+i2c_bb_sendbyte(struct i2c_bb* d, char b)
+{
     int i;
     unsigned char mask = 0x80;
-    for(i = 0; i < 8; i++){
+    for (i = 0; i < 8; i++) {
         i2c_bb_sendbit(d, !!(b & mask));
         mask >>= 1;
     }
@@ -132,12 +152,13 @@ i2c_bb_sendbyte(struct i2c_bb* d, char b){
 }
 
 static int
-i2c_bb_readbyte(struct i2c_bb* d, int send_nak){
+i2c_bb_readbyte(struct i2c_bb* d, int send_nak)
+{
     int i;
     char data = 0;
-    for(i = 0; i < 8; i++){
+    for (i = 0; i < 8; i++) {
         data <<= 1;
-        data |= (i2c_bb_readbit(d))? 1 : 0;
+        data |= (i2c_bb_readbit(d)) ? 1 : 0;
     }
     i2c_bb_sendbit(d, send_nak);
     return data;
@@ -176,17 +197,17 @@ i2c_bb_start_read(i2c_bus_t* i2c_bus, int addr, void* vdata, size_t size, i2c_ca
 
     i2c_bb_start(d);
     nak = i2c_bb_sendbyte(d, addr | 1);
-    if(nak){
+    if (nak) {
         i2c_bb_stop(d);
         return -1;
     }
 
-    for(count = 0; !nak && count < size; count++){
+    for (count = 0; !nak && count < size; count++) {
         *data++ = i2c_bb_readbyte(d, count + 1 == size);
     }
 
     i2c_bb_stop(d);
-    if(cb){
+    if (cb) {
         cb(i2c_bus, I2CSTAT_COMPLETE, size, token);
     }
     return count;
@@ -203,23 +224,24 @@ i2c_bb_start_write(i2c_bus_t* i2c_bus, int addr, const void* vdata, size_t size,
 
     i2c_bb_start(d);
     nak = i2c_bb_sendbyte(d, addr & ~1);
-    if(nak){
+    if (nak) {
         return -1;
     }
 
-    for(count = 0; !nak && count < size; count++){
+    for (count = 0; !nak && count < size; count++) {
         i2c_bb_sendbyte(d, *data++);
     }
 
     i2c_bb_stop(d);
-    if(cb){
+    if (cb) {
         cb(i2c_bus, I2CSTAT_COMPLETE, size, token);
     }
     return count;
 }
 
 static void
-i2c_bb_handle_irq(i2c_bus_t* i2c_bus){
+i2c_bb_handle_irq(i2c_bus_t* i2c_bus)
+{
     struct i2c_bb* d;
     /* BB is a blocking call, but in case someone tried to poll, we ignore the call */
     d = i2c_bus_get_priv(i2c_bus);

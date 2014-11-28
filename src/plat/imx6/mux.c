@@ -37,7 +37,7 @@
 
 
 struct imx6_iomuxc_regs {
-/*** GPR ***/
+    /*** GPR ***/
     uint32_t gpr0;                              /* +0x000 */
     uint32_t gpr1;                              /* +0x004 */
     uint32_t gpr2;                              /* +0x008 */
@@ -53,7 +53,7 @@ struct imx6_iomuxc_regs {
     uint32_t gpr12;                             /* +0x030 */
     uint32_t gpr13;                             /* +0x034 */
     uint32_t res0[2];
-/*** MUX control ***/
+    /*** MUX control ***/
     uint32_t res1[3];
     uint32_t sw_mux_ctl_pad_sd2_data1;          /* +0x04C */
     uint32_t sw_mux_ctl_pad_sd2_data2;          /* +0x050 */
@@ -252,7 +252,7 @@ struct imx6_iomuxc_regs {
     uint32_t sw_mux_ctl_pad_sd2_clk;            /* +0x354 */
     uint32_t sw_mux_ctl_pad_sd2_cmd;            /* +0x358 */
     uint32_t sw_mux_ctl_pad_sd2_data3;          /* +0x35C */
-/*** Pad Control ***/
+    /*** Pad Control ***/
     uint32_t sw_pad_ctl_pad_sd2_data1;          /* +0x360 */
     uint32_t sw_pad_ctl_pad_sd2_data2;          /* +0x364 */
     uint32_t sw_pad_ctl_pad_sd2_data0;          /* +0x368 */
@@ -503,7 +503,7 @@ struct imx6_iomuxc_regs {
     uint32_t sw_pad_ctl_pad_sd2_clk;            /* +0x73C */
     uint32_t sw_pad_ctl_pad_sd2_cmd;            /* +0x740 */
     uint32_t sw_pad_ctl_pad_sd2_data3;          /* +0x744 */
-/*** Group ***/
+    /*** Group ***/
     uint32_t sw_pad_ctl_grp_b7ds;               /* +0x748 */
     uint32_t sw_pad_ctl_grp_addds;              /* +0x74C */
     uint32_t sw_pad_ctl_grp_ddrmode_ctl;        /* +0x750 */
@@ -530,7 +530,7 @@ struct imx6_iomuxc_regs {
     uint32_t sw_pad_ctl_grp_b5ds;               /* +0x7A4 */
     uint32_t sw_pad_ctl_grp_b6ds;               /* +0x7A8 */
     uint32_t sw_pad_ctl_grp_rgmii_term;         /* +0x7AC */
-/*** Select Input ***/
+    /*** Select Input ***/
     uint32_t asrc_asrck_clock_6_select_input;   /* +0x7B0 */
     uint32_t aud4_input_da_amx_select_input;    /* +0x7B4 */
     uint32_t aud4_input_db_amx_select_input;    /* +0x7B8 */
@@ -641,11 +641,12 @@ static struct imx6_mux {
     volatile struct imx6_iomuxc_regs* iomuxc;
 } _mux;
 
-static inline struct imx6_mux* get_mux_priv(mux_sys_t* mux){
+static inline struct imx6_mux* get_mux_priv(mux_sys_t* mux) {
     return (struct imx6_mux*)mux->priv;
 }
 
-static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux){
+static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux)
+{
     assert(mux != NULL);
     assert(imx6_mux != NULL);
     mux->priv = imx6_mux;
@@ -656,39 +657,39 @@ static int
 imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
     struct imx6_mux* m;
-    if(mux == NULL || mux->priv == NULL){
+    if (mux == NULL || mux->priv == NULL) {
         return -1;
     }
     m = get_mux_priv(mux);
 
     assert(((int)&m->iomuxc->usdhc1_wp_on_select_input & 0xfff) == 0x94C);
-    switch(mux_feature){
+    switch (mux_feature) {
     case MUX_I2C1:
         DMUX("Muxing for I2C1\n");
         m->iomuxc->i2c1_scl_in_select_input  = IOMUXC_IS_DAISY(0x0);
         m->iomuxc->sw_mux_ctl_pad_eim_data21 = IOMUXC_MUXCTL_MODE(6)
-                                             | IOMUXC_MUXCTL_FORCE_INPUT;
+                                               | IOMUXC_MUXCTL_FORCE_INPUT;
         m->iomuxc->i2c1_sda_in_select_input  = IOMUXC_IS_DAISY(0x0);
         m->iomuxc->sw_mux_ctl_pad_eim_data28 = IOMUXC_MUXCTL_MODE(1)
-                                             | IOMUXC_MUXCTL_FORCE_INPUT;
+                                               | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_I2C2:
         DMUX("Muxing for I2C2\n");
         m->iomuxc->i2c2_scl_in_select_input = IOMUXC_IS_DAISY(0x1);
         m->iomuxc->sw_mux_ctl_pad_key_col3  = IOMUXC_MUXCTL_MODE(4)
-                                            | IOMUXC_MUXCTL_FORCE_INPUT;
+                                              | IOMUXC_MUXCTL_FORCE_INPUT;
         m->iomuxc->i2c2_sda_in_select_input = IOMUXC_IS_DAISY(0x1);
         m->iomuxc->sw_mux_ctl_pad_key_row3  = IOMUXC_MUXCTL_MODE(4)
-                                            | IOMUXC_MUXCTL_FORCE_INPUT;
+                                              | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_I2C3:
         DMUX("Muxing for I2C3\n");
         m->iomuxc->i2c3_scl_in_select_input = IOMUXC_IS_DAISY(0x2);
         m->iomuxc->sw_mux_ctl_pad_gpio05    = IOMUXC_MUXCTL_MODE(6)
-                                            | IOMUXC_MUXCTL_FORCE_INPUT;
+                                              | IOMUXC_MUXCTL_FORCE_INPUT;
         m->iomuxc->i2c3_sda_in_select_input = IOMUXC_IS_DAISY(0x2);
         m->iomuxc->sw_mux_ctl_pad_gpio16    = IOMUXC_MUXCTL_MODE(6)
-                                            | IOMUXC_MUXCTL_FORCE_INPUT;
+                                              | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_GPIO0_CLKO1:
         DMUX("Muxing CLKO1 to MUX0\n");
@@ -700,40 +701,85 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 }
 
 int
-imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id){
+imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
+{
     static struct imx6_mux* m;
     volatile uint32_t *reg;
     assert(mux_sys);
     m = (struct imx6_mux*)mux_sys->priv;
     assert(m);
     /* Surely there is a mathematical formula for finding the register to be set? */
-    switch(gpio_id){
+    switch (gpio_id) {
 
-    case GPIOID(GPIO_BANK1,  0): reg = &m->iomuxc->sw_mux_ctl_pad_gpio00; break;
-    case GPIOID(GPIO_BANK1,  1): reg = &m->iomuxc->sw_mux_ctl_pad_gpio01; break;
-    case GPIOID(GPIO_BANK1,  2): reg = &m->iomuxc->sw_mux_ctl_pad_gpio02; break;
-    case GPIOID(GPIO_BANK1,  3): reg = &m->iomuxc->sw_mux_ctl_pad_gpio03; break;
-    case GPIOID(GPIO_BANK1,  4): reg = &m->iomuxc->sw_mux_ctl_pad_gpio04; break;
-    case GPIOID(GPIO_BANK1,  5): reg = &m->iomuxc->sw_mux_ctl_pad_gpio05; break;
-    case GPIOID(GPIO_BANK1,  6): reg = &m->iomuxc->sw_mux_ctl_pad_gpio06; break;
-    case GPIOID(GPIO_BANK1,  7): reg = &m->iomuxc->sw_mux_ctl_pad_gpio07; break;
-    case GPIOID(GPIO_BANK1,  8): reg = &m->iomuxc->sw_mux_ctl_pad_gpio08; break;
-    case GPIOID(GPIO_BANK1,  9): reg = &m->iomuxc->sw_mux_ctl_pad_gpio09; break;
+    case GPIOID(GPIO_BANK1,  0):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio00;
+        break;
+    case GPIOID(GPIO_BANK1,  1):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio01;
+        break;
+    case GPIOID(GPIO_BANK1,  2):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio02;
+        break;
+    case GPIOID(GPIO_BANK1,  3):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio03;
+        break;
+    case GPIOID(GPIO_BANK1,  4):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio04;
+        break;
+    case GPIOID(GPIO_BANK1,  5):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio05;
+        break;
+    case GPIOID(GPIO_BANK1,  6):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio06;
+        break;
+    case GPIOID(GPIO_BANK1,  7):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio07;
+        break;
+    case GPIOID(GPIO_BANK1,  8):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio08;
+        break;
+    case GPIOID(GPIO_BANK1,  9):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio09;
+        break;
 
-    case GPIOID(GPIO_BANK7, 11): reg = &m->iomuxc->sw_mux_ctl_pad_gpio16; break;
-    case GPIOID(GPIO_BANK7, 12): reg = &m->iomuxc->sw_mux_ctl_pad_gpio17; break;
-    case GPIOID(GPIO_BANK7, 13): reg = &m->iomuxc->sw_mux_ctl_pad_gpio18; break;
+    case GPIOID(GPIO_BANK7, 11):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio16;
+        break;
+    case GPIOID(GPIO_BANK7, 12):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio17;
+        break;
+    case GPIOID(GPIO_BANK7, 13):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio18;
+        break;
 
-    case GPIOID(GPIO_BANK4,  5): reg = &m->iomuxc->sw_mux_ctl_pad_gpio19; break;
+    case GPIOID(GPIO_BANK4,  5):
+        reg = &m->iomuxc->sw_mux_ctl_pad_gpio19;
+        break;
 
-    case GPIOID(GPIO_BANK2,  0): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data00; break;
-    case GPIOID(GPIO_BANK2,  1): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data01; break;
-    case GPIOID(GPIO_BANK2,  2): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data02; break;
-    case GPIOID(GPIO_BANK2,  3): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data03; break;
-    case GPIOID(GPIO_BANK2,  4): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data04; break;
-    case GPIOID(GPIO_BANK2,  5): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data05; break;
-    case GPIOID(GPIO_BANK2,  6): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data06; break;
-    case GPIOID(GPIO_BANK2,  7): reg = &m->iomuxc->sw_mux_ctl_pad_nand_data07; break;
+    case GPIOID(GPIO_BANK2,  0):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data00;
+        break;
+    case GPIOID(GPIO_BANK2,  1):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data01;
+        break;
+    case GPIOID(GPIO_BANK2,  2):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data02;
+        break;
+    case GPIOID(GPIO_BANK2,  3):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data03;
+        break;
+    case GPIOID(GPIO_BANK2,  4):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data04;
+        break;
+    case GPIOID(GPIO_BANK2,  5):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data05;
+        break;
+    case GPIOID(GPIO_BANK2,  6):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data06;
+        break;
+    case GPIOID(GPIO_BANK2,  7):
+        reg = &m->iomuxc->sw_mux_ctl_pad_nand_data07;
+        break;
 
     default:
         DMUX("Unable to mux GPIOID 0x%x\n", gpio_id);
@@ -752,10 +798,12 @@ imx6_mux_init_common(mux_sys_t* mux)
 }
 
 
-int 
+int
 imx6_mux_init(void* iomuxc, mux_sys_t* mux)
 {
-    if(iomuxc != NULL) _mux.iomuxc = iomuxc;
+    if (iomuxc != NULL) {
+        _mux.iomuxc = iomuxc;
+    }
     return imx6_mux_init_common(mux);
 }
 

@@ -333,11 +333,11 @@ enum ps2_keycode_scanmode2_enum {
 
 /* All callbacks are optional, set to NULL if don't care. */
 void keycode_init(
-        keycode_state_t *s,
-        void (*handle_keyevent_callback)(int16_t vkey, bool pressed, void *cookie),
-        void (*handle_chartyped_callback)(int c, void *cookie),
-        void (*handle_led_state_changed_callback)(void *cookie)
-    );
+    keycode_state_t *s,
+    void (*handle_keyevent_callback)(int16_t vkey, bool pressed, void *cookie),
+    void (*handle_chartyped_callback)(int c, void *cookie),
+    void (*handle_led_state_changed_callback)(void *cookie)
+);
 
 #if KEYBOARD_KEY_DEBUG
 const char* keycode_vkey_desc(uint16_t vk);
@@ -351,10 +351,10 @@ int16_t keycode_ps2_to_vkey(int32_t ps2_keycode);
 
 
 keycode_info_t *keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed,
-        void* cookie);
+                                           void* cookie);
 
 int16_t keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, bool pressed,
-        void* cookie);
+                                           void* cookie);
 
 bool keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey);
 

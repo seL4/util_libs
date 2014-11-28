@@ -60,14 +60,17 @@ static void *paddrs[] = {(void *) GPT1_DEVICE_PADDR,
                          (void *) GPT8_DEVICE_PADDR,
                          (void *) GPT9_DEVICE_PADDR,
                          (void *) GPT10_DEVICE_PADDR,
-                         (void *) GPT11_DEVICE_PADDR};
+                         (void *) GPT11_DEVICE_PADDR
+                        };
 
-static inline void* omap_get_gpt_paddr(int n) {
+static inline void* omap_get_gpt_paddr(int n)
+{
     return paddrs[n];
 }
 
 
-static inline int omap_get_gpt_irq(int n) {
+static inline int omap_get_gpt_irq(int n)
+{
     return GPT1_INTERRUPT + (n);
 }
 

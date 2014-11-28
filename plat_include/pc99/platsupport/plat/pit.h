@@ -15,7 +15,7 @@
 
 #define PIT_INTERRUPT       0
 
-/* 
+/*
  * Get the pit interface. This may only be called once.
  *
  * @param io_port_ops io port operations. This is all the pit requires.

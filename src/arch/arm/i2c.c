@@ -37,9 +37,9 @@ _fill_data(char* buf, const char* data, enum kvfmt fmt, int count)
 {
     int bytes = ABS(fmt);
     int i, j;
-    for(j = 0; j < count; j++){
-        for(i = 0; i < bytes; i++){
-            int idx = (fmt > 0)? i : (bytes - 1) - i; 
+    for (j = 0; j < count; j++) {
+        for (i = 0; i < bytes; i++) {
+            int idx = (fmt > 0) ? i : (bytes - 1) - i;
             buf[idx] = data[i];
         }
         data += bytes;
@@ -49,11 +49,12 @@ _fill_data(char* buf, const char* data, enum kvfmt fmt, int count)
 
 /* Copy reg into buf with required endianess */
 static int
-_fill_reg(char* buf, uint64_t reg, enum kvfmt fmt){
+_fill_reg(char* buf, uint64_t reg, enum kvfmt fmt)
+{
     int i;
     int bytes = ABS(fmt);
-    for(i = 0; i < bytes; i++, reg >>= 8){
-        int idx = (fmt > 0)? i : (bytes - 1) - i;
+    for (i = 0; i < bytes; i++, reg >>= 8) {
+        int idx = (fmt > 0) ? i : (bytes - 1) - i;
         buf[idx] = reg & 0xff;
     }
     return i;
@@ -70,25 +71,25 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
     dbytes = ABS(i2c_slave->data_fmt);
     assert(abytes < BUFFER_SIZE && dbytes < BUFFER_SIZE);
     /* Limit the amount of data to read to fit our buffer */
-    if(count * dbytes > BUFFER_SIZE){
+    if (count * dbytes > BUFFER_SIZE) {
         count = BUFFER_SIZE / dbytes;
     }
     /* Send the register address */
     dprintf("Seek register 0x%02llx\n", reg);
     _fill_reg(d, reg, i2c_slave->address_fmt);
     bytes = i2c_slave_write(i2c_slave, d, abytes, NULL, NULL);
-    if(bytes != abytes){
+    if (bytes != abytes) {
         dprintf("Bus error\n");
         return -1;
     }
     /* Receive the reply */
     dprintf("Read register %d\n", dbytes * count);
     bytes = i2c_slave_read(i2c_slave, d, dbytes * count, NULL, NULL);
-    if(bytes < 0){
+    if (bytes < 0) {
         dprintf("read error\n");
         return bytes;
     }
-    if(bytes != dbytes * count){
+    if (bytes != dbytes * count) {
         dprintf("short read %d/%d\n", bytes, dbytes * count);
     }
     /* Fix endianess */
@@ -99,7 +100,8 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
 
 /* Write no more than count registers from data */
 static int
-_do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count){
+_do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
+{
     int abytes, dbytes, bytes;
     char d[BUFFER_SIZE];
     assert(i2c_slave);
@@ -107,7 +109,7 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count){
     dbytes = ABS(i2c_slave->data_fmt);
     assert(abytes < BUFFER_SIZE && dbytes < BUFFER_SIZE);
     /* Limit the amount of data to fit our buffer */
-    if(count * dbytes + abytes > BUFFER_SIZE){
+    if (count * dbytes + abytes > BUFFER_SIZE) {
         count = (BUFFER_SIZE - abytes) / dbytes;
     }
     /* Set up the register address */
@@ -117,7 +119,7 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count){
     _fill_data(d + abytes, data, i2c_slave->data_fmt, count);
     /* Send the request */
     bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, NULL, NULL);
-    if(bytes <= 0){
+    if (bytes <= 0) {
         dprintf("Bus error (%d)\n", bytes);
         return bytes;
     }
@@ -126,8 +128,8 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count){
 }
 
 int
-i2c_kvslave_init(i2c_bus_t* i2c_bus, int address, 
-                 enum kvfmt afmt, enum kvfmt dfmt, 
+i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
+                 enum kvfmt afmt, enum kvfmt dfmt,
                  i2c_slave_t* i2c_slave)
 {
     assert(i2c_slave);
@@ -148,9 +150,9 @@ i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
     int this = -1;
     int remain = count;
     /* For large reads, copyin/out requires that they be split reads */
-    while(remain > 0){
+    while (remain > 0) {
         this = _do_kvread(i2c_slave, reg, data, remain);
-        if(this <= 0){
+        if (this <= 0) {
             break;
         }
         data += dbytes * this;
@@ -170,9 +172,9 @@ i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t reg, const void* vdata, int c
     int this = 0;
     int remain = count;
     /* For large reads, copyin/out requires that they be split reads */
-    while(remain > 0){
+    while (remain > 0) {
         this = _do_kvwrite(i2c_slave, reg, data, remain);
-        if(this <= 0){
+        if (this <= 0) {
             break;
         }
         data += dbytes * this;
@@ -187,7 +189,7 @@ i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb,
 {
     return i2c_mread(i2c_slave->bus, i2c_slave->address, data, size, cb, token);
 }
-        
+
 int
 i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb, void* token)
 {
@@ -202,18 +204,19 @@ i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave)
 
 
 int
-i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr){
+i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
+{
     int ret;
     int i;
     int count;
     char dummy[10];
-    for(count = 0, i = start & ~0x1; i < 0x100 && count < naddr; i+=2){
+    for (count = 0, i = start & ~0x1; i < 0x100 && count < naddr; i += 2) {
         ret = i2c_mread(i2c_bus, i, &dummy, 10, NULL, NULL);
-        if(ret == 10){
+        if (ret == 10) {
             *addr++ = i;
             count++;
-        }else if(ret < 0){
-        }else{
+        } else if (ret < 0) {
+        } else {
             printf("Invalid response\n");
         }
     }

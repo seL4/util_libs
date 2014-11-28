@@ -62,7 +62,7 @@ static struct imx6_gpio {
 } _gpio;
 
 volatile static struct imx6_gpio_regs*
-imx6_gpio_get_bank(gpio_t* gpio){
+imx6_gpio_get_bank(gpio_t* gpio) {
     struct imx6_gpio* gpio_priv;
     int port;
     assert(gpio);
@@ -76,7 +76,8 @@ imx6_gpio_get_bank(gpio_t* gpio){
 }
 
 static int
-imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
+imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
+{
     volatile struct imx6_gpio_regs* bank;
     struct imx6_gpio* gpio_priv;
     uint32_t v;
@@ -94,37 +95,38 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio){
     gpio->next = NULL;
 
     bank = imx6_gpio_get_bank(gpio);
-    DGPIO("Configuring GPIO on port %d pin %d\n", 
-            GPIOID_PORT(id), GPIOID_PIN(id));
+    DGPIO("Configuring GPIO on port %d pin %d\n",
+          GPIOID_PORT(id), GPIOID_PIN(id));
 
     /* MUX the GPIO */
-    if(imx6_mux_enable_gpio(gpio_priv->mux, id)){
+    if (imx6_mux_enable_gpio(gpio_priv->mux, id)) {
         DGPIO("Invalid GPIO\n");
         return -1;
     }
 
     /* Set direction */
     v = bank->direction;
-    if(dir == GPIO_DIR_IN){
+    if (dir == GPIO_DIR_IN) {
         v &= ~BIT(pin);
-        DGPIO("configuring {%d,%d} for input %p => 0x%x->0x%x\n", 
-            GPIOID_PORT(id), GPIOID_PIN(id),
-            &bank->direction, bank->direction, v);
-    }else{
+        DGPIO("configuring {%d,%d} for input %p => 0x%x->0x%x\n",
+              GPIOID_PORT(id), GPIOID_PIN(id),
+              &bank->direction, bank->direction, v);
+    } else {
         v |= BIT(pin);
-        DGPIO("configuring {%d,%d} for output %p => 0x%x->0x%x\n", 
-            GPIOID_PORT(id), GPIOID_PIN(id),
-            &bank->direction, bank->direction, v);
+        DGPIO("configuring {%d,%d} for output %p => 0x%x->0x%x\n",
+              GPIOID_PORT(id), GPIOID_PIN(id),
+              &bank->direction, bank->direction, v);
     }
     bank->direction = v;
 
-    return 0; 
+    return 0;
 }
 
 static int
-imx6_gpio_write(gpio_t* gpio, const char* data, int len){
+imx6_gpio_write(gpio_t* gpio, const char* data, int len)
+{
     int count;
-    for(count = 0; count < len && gpio; count++){
+    for (count = 0; count < len && gpio; count++) {
         volatile struct imx6_gpio_regs* bank;
         uint32_t v;
         int pin;
@@ -135,14 +137,14 @@ imx6_gpio_write(gpio_t* gpio, const char* data, int len){
         assert(pin >= 0);
 
         v = bank->data;
-        if(*data++){
+        if (*data++) {
             v |= (1U << pin);
-            DGPIO("data(%p) => 0x%x->0x%x\n", 
-                    &bank->data, bank->data, v);
-        }else{
+            DGPIO("data(%p) => 0x%x->0x%x\n",
+                  &bank->data, bank->data, v);
+        } else {
             v &= ~(1U << pin);
-            DGPIO("data(%p) => 0x%x->0x%x\n", 
-                    &bank->data, bank->data, v);
+            DGPIO("data(%p) => 0x%x->0x%x\n",
+                  &bank->data, bank->data, v);
         }
         bank->data = v;
         assert(bank->data == v);
@@ -153,9 +155,10 @@ imx6_gpio_write(gpio_t* gpio, const char* data, int len){
 }
 
 static int
-imx6_gpio_read(gpio_t* gpio, char* data, int len){
+imx6_gpio_read(gpio_t* gpio, char* data, int len)
+{
     int count;
-    for(count = 0; count < len && gpio; count++){
+    for (count = 0; count < len && gpio; count++) {
         volatile struct imx6_gpio_regs* bank;
         uint32_t v;
         int pin;
@@ -168,9 +171,9 @@ imx6_gpio_read(gpio_t* gpio, char* data, int len){
         v = bank->data;
 
         DGPIO("data(%p) <=> 0x%x\n",  &bank->data, v);
-        if(v & (1U << pin)){
+        if (v & (1U << pin)) {
             *data++ = 0xff;
-        }else{
+        } else {
             *data++ = 0x00;
         }
 
@@ -181,7 +184,8 @@ imx6_gpio_read(gpio_t* gpio, char* data, int len){
 
 
 int
-imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys){
+imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys)
+{
     _gpio.mux = mux;
     gpio_sys->priv = (void*)&_gpio;
     gpio_sys->read = &imx6_gpio_read;
@@ -190,19 +194,33 @@ imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys){
     return 0;
 }
 
-int 
+int
 imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
                    void* bank4, void* bank5, void* bank6,
-                   void* bank7, 
+                   void* bank7,
                    mux_sys_t* mux, gpio_sys_t* gpio_sys)
 {
-    if(bank1 != NULL) _gpio.bank[GPIO_BANK1] = bank1;
-    if(bank2 != NULL) _gpio.bank[GPIO_BANK2] = bank2;
-    if(bank3 != NULL) _gpio.bank[GPIO_BANK3] = bank3;
-    if(bank4 != NULL) _gpio.bank[GPIO_BANK4] = bank4;
-    if(bank5 != NULL) _gpio.bank[GPIO_BANK5] = bank5;
-    if(bank6 != NULL) _gpio.bank[GPIO_BANK6] = bank6;
-    if(bank7 != NULL) _gpio.bank[GPIO_BANK7] = bank7;
+    if (bank1 != NULL) {
+        _gpio.bank[GPIO_BANK1] = bank1;
+    }
+    if (bank2 != NULL) {
+        _gpio.bank[GPIO_BANK2] = bank2;
+    }
+    if (bank3 != NULL) {
+        _gpio.bank[GPIO_BANK3] = bank3;
+    }
+    if (bank4 != NULL) {
+        _gpio.bank[GPIO_BANK4] = bank4;
+    }
+    if (bank5 != NULL) {
+        _gpio.bank[GPIO_BANK5] = bank5;
+    }
+    if (bank6 != NULL) {
+        _gpio.bank[GPIO_BANK6] = bank6;
+    }
+    if (bank7 != NULL) {
+        _gpio.bank[GPIO_BANK7] = bank7;
+    }
     return imx6_gpio_init_common(mux, gpio_sys);
 }
 

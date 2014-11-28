@@ -74,7 +74,7 @@ Region_t new_region(region_type_t type, void *start, uint32_t size, int parent)
     r.start = start;
     r.size = size;
     r.parent = parent;
-    
+
     return r;
 }
 

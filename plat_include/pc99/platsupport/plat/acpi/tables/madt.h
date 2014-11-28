@@ -211,7 +211,7 @@ acpi_madt_ics_at(acpi_madt_t* tbl, int index)
 /* Retrieve the next DMAR sub header of the specified type */
 static inline acpi_madt_ics_hdr_t*
 acpi_madt_next_ics_type(acpi_madt_t* tbl,
-        acpi_madt_ics_hdr_t* hdr, int type)
+                        acpi_madt_ics_hdr_t* hdr, int type)
 {
     do {
         hdr = acpi_madt_next_ics(tbl, hdr);

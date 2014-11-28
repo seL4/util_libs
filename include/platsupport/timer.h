@@ -18,25 +18,25 @@ typedef struct pstimer pstimer_t;
 
 /* Properties of a timer */
 typedef struct {
-        /* Timers are up counters or down counters.
-         *
-         * Up counters count up from 0, down counters count down from
-         * a set value (set when a timeout is set up).
-         *
-         * Up counters roll over, down counters stop at 0 (oneshot) or reload the timer value (periodic).
-         *
-         * If the timer is not an uptimer it does not support absolute timeouts.
-         */
-        uint32_t upcounter:1;
+    /* Timers are up counters or down counters.
+     *
+     * Up counters count up from 0, down counters count down from
+     * a set value (set when a timeout is set up).
+     *
+     * Up counters roll over, down counters stop at 0 (oneshot) or reload the timer value (periodic).
+     *
+     * If the timer is not an uptimer it does not support absolute timeouts.
+     */
+    uint32_t upcounter: 1;
 
-        /* True if this timer supports setting timeouts at all */
-        uint32_t timeouts:1;
+    /* True if this timer supports setting timeouts at all */
+    uint32_t timeouts: 1;
 
-        /* when does this timer roll over? This will be 0 for down-counters (max valueue 64) */
-        uint32_t bit_width:7;
+    /* when does this timer roll over? This will be 0 for down-counters (max valueue 64) */
+    uint32_t bit_width: 7;
 
-        /* Number of irqs this timer issues */
-        uint32_t irqs;
+    /* Number of irqs this timer issues */
+    uint32_t irqs;
 } timer_properties_t;
 
 

@@ -40,7 +40,7 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
 
     /* map the first part of the page in to read the size */
     acpi_header_t *header = (acpi_header_t *) ps_io_map(&acpi->io_mapper,
-            (uintptr_t)table_paddr, sizeof(acpi_header_t), 1, PS_MEM_NORMAL);
+                                                        (uintptr_t)table_paddr, sizeof(acpi_header_t), 1, PS_MEM_NORMAL);
 
     if (header == NULL) {
         fprintf(stderr, "Failed to map paddr %p, size %u\n", table_paddr, sizeof(acpi_header_t));
@@ -170,7 +170,7 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
 
     // optimistic: remove later if the table is bad
     this_rec = add_region_size(regions, type, table_vaddr,
-               header->length, parent);
+                               header->length, parent);
     if (this_rec < 0) {
         return;    /* List full */
     }
@@ -209,11 +209,11 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
      * XSDT is the same as RSDT but with 64bit addresses
      * Don't parse this table to avoid duplicate entries
      *
-     * TODO this could actually contain unique entries, 
+     * TODO this could actually contain unique entries,
      * need to parse and sort out dups.
      */
     case ACPI_XSDT: {
-            fprintf(stderr, "Warning: skipping table ACPI XSDT\n");
+        fprintf(stderr, "Warning: skipping table ACPI XSDT\n");
 //            acpi_xsdt_t* xsdt = (acpi_xsdt_t*)table;
         break;
     }

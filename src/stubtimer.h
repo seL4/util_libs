@@ -23,7 +23,7 @@ stub_timer_start(const pstimer_t *device)
 }
 
 static int
-stub_timer_stop(const pstimer_t *device) 
+stub_timer_stop(const pstimer_t *device)
 {
     return 0;
 }
@@ -34,8 +34,8 @@ stub_timer_get_time(const pstimer_t *device)
     return 0llu;
 }
 
-static int 
-stub_timer_timeout(const pstimer_t *device, uint64_t ns) 
+static int
+stub_timer_timeout(const pstimer_t *device, uint64_t ns)
 {
     assert(!"Not implemented");
     return ENOSYS;
@@ -48,12 +48,12 @@ stub_timer_handle_irq(const pstimer_t *device, uint32_t irq)
 
 static uint32_t
 stub_timer_get_nth_irq(const pstimer_t *device, uint32_t n)
-{   
+{
     return 0;
 }
 
 static inline void
-stub_timer_get_timer(pstimer_t *timer) 
+stub_timer_get_timer(pstimer_t *timer)
 {
     timer->start = stub_timer_start;
     timer->stop = stub_timer_stop;

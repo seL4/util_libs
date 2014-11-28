@@ -94,9 +94,10 @@ ppss_intc_t* fiq;
 ppss_intc_t* irq;
 
 void
-test_intc(ps_io_ops_t* o){
+test_intc(ps_io_ops_t* o)
+{
     void* vaddr[4];
-    if(intctl[0] == NULL){
+    if (intctl[0] == NULL) {
         /* intc */
         vaddr[0] = ps_io_map(&o->io_mapper, INTCTL0, 0x1000, 0, PS_MEM_NORMAL);
         vaddr[1] = ps_io_map(&o->io_mapper, INTCTL2, 0x1000, 0, PS_MEM_NORMAL);

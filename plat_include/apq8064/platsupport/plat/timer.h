@@ -78,7 +78,7 @@ enum timer_id {
     TMR_GSS_DGT,
     TMR_GSS_WDT0,
     TMR_GSS_WDT1,
-/* More timers in Audio subsystem 0x28880000 */
+    /* More timers in Audio subsystem 0x28880000 */
     NTIMERS
 };
 #define TMR_DEFAULT TMR_KPSS_GPT0

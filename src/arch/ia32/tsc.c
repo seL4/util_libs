@@ -49,7 +49,7 @@ tsc_calculate_frequency(pstimer_t *timer)
             start_time = rdtsc_pure();
             break;
         }
-    } while(!start_time);
+    } while (!start_time);
     /* observe the timer and try and work out when enough time has elapsed.
      * this gets tricky as some timers might count overflows internally and
      * report back a monotonically increasing time, where as others might not
@@ -58,7 +58,7 @@ tsc_calculate_frequency(pstimer_t *timer)
      * If we do overflow though, we assume that we overflowed after the
      * programmed number of nanoseconds */
     time_offset = last_time = timer_get_time(timer);
-    while(total_observed + last_absolute < WAIT_NS) {
+    while (total_observed + last_absolute < WAIT_NS) {
         uint64_t current_time = timer_get_time(timer);
         if (direction) {
             /* if we are counting up and time went down, then we overflowed */

@@ -24,14 +24,14 @@
 #ifdef CONFIG_ARCH_ARM_V7A
 #ifdef CONFIG_ARM_CORTEX_A15
 
-/* 
+/*
  * This timer will only work if the kernel has configured
  * CNTPCT to be read from user-level. This is done by writing 1 to CNTKCTL.
- * If CONFIG_DANGEROUS_CODE_INJECTION is available, we'll try that, 
- * otherwise we will use a default frequency. 
- * 
+ * If CONFIG_DANGEROUS_CODE_INJECTION is available, we'll try that,
+ * otherwise we will use a default frequency.
+ *
  * If all else fails the timer will fail to initialise.
- *  
+ *
  */
 #define MCR(cpreg, v)                               \
     do {                                            \
@@ -59,7 +59,7 @@ generic_timer_get_time(const pstimer_t *timer)
 
 static pstimer_t singleton_timer;
 
-static void 
+static void
 enable_timer(void* arg)
 {
     MCR(CNTKCTL, 1);
@@ -72,7 +72,7 @@ generic_timer_get_timer(void)
     pstimer_t *timer = &singleton_timer;
     uint32_t freq = 0;
 
-    /* try to enable the timer */    
+    /* try to enable the timer */
 #ifdef CONFIG_DANGEROUS_CODE_INJECTION
     seL4_DebugRun(enable_timer, 0);
 #endif /* CONFIG_DANGEROUS_CODE_INJECTION */

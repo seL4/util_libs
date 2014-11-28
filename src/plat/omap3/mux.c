@@ -20,11 +20,12 @@ static struct omap3_mux {
     volatile struct omap3_mux_regs*    mux;
 } _mux;
 
-static inline struct omap3_mux* get_mux_priv(mux_sys_t* mux){
+static inline struct omap3_mux* get_mux_priv(mux_sys_t* mux) {
     return (struct omap3_mux*)mux->priv;
 }
 
-static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux){
+static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux)
+{
     assert(mux != NULL);
     assert(omap3_mux != NULL);
     mux->priv = omap3_mux;
@@ -35,12 +36,12 @@ static int
 omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
     struct omap3_mux* m;
-    if(mux == NULL || mux->priv == NULL){
+    if (mux == NULL || mux->priv == NULL) {
         return -1;
     }
     m = get_mux_priv(mux);
 
-    switch(mux_feature){
+    switch (mux_feature) {
     default:
         (void)m;
         return -1;
@@ -57,7 +58,7 @@ omap3_mux_init_common(mux_sys_t* mux)
 }
 
 
-int 
+int
 omap3_mux_init(void* bank1,
                mux_sys_t* mux)
 {

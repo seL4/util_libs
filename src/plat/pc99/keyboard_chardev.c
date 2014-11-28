@@ -85,7 +85,7 @@ keyboard_cdev_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chard
 
     /* Initialise keycode. */
     keycode_init(&kc_state, NULL, NULL,
-            keyboard_cdev_handle_led_changed);
+                 keyboard_cdev_handle_led_changed);
 
     /* Set initial LED state. */
     keyboard_cdev_handle_led_changed(NULL);

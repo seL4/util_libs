@@ -50,7 +50,7 @@ typedef volatile struct dm {
     uint32_t tcar2; // 58h TCAR2 Timer Capture Register
 } dm_t;
 
-static int 
+static int
 dm_stop_timer(const pstimer_t *device)
 {
     dm_t *dm = (dm_t *) timer->data;
@@ -94,14 +94,14 @@ dm_periodic(uint64_t ns)
     dm->tclr = TCLR_AUTORELOAD | TCLR_STARTTIMER;
 }
 
-static int 
+static int
 dm_oneshot_absolute(uint64_t ns)
 {
     assert(!"Not implemented");
     return ENOSYS;
 }
 
-static int 
+static int
 dm_oneshot_relative(uint64_t ns)
 {
     assert(!"Not implemented");
@@ -109,18 +109,21 @@ dm_oneshot_relative(uint64_t ns)
 }
 
 static uint64_t
-dm_get_time(const pstimer_t *timer) {
+dm_get_time(const pstimer_t *timer)
+{
     assert(!"Not implemented");
     return ENOSYS;
 }
 
 static void
-dm_handle_irq(const pstimer_t *timer) {
+dm_handle_irq(const pstimer_t *timer)
+{
     /* nothing */
 }
 
-static uint32_t 
-dm_get_nth_irq(const pstimer_t *timer, uint32_t n) {
+static uint32_t
+dm_get_nth_irq(const pstimer_t *timer, uint32_t n)
+{
     return DMTIMER2_INTTERRUPT;
 }
 

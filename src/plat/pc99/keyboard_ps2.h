@@ -29,7 +29,7 @@
 #define PS2_CONTROLLER_SELF_TEST_OK             0x55
 
 #define KEYBOARD_RESET                  0xFF
-#define KEYBOARD_RESEND                 0xFE 
+#define KEYBOARD_RESEND                 0xFE
 #define KEYBOARD_ACK                    0xFA
 #define KEYBOARD_ERROR                  0xFC
 #define KEYBOARD_DISABLE_SCAN           0xF5

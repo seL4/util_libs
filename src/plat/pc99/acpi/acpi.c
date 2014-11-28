@@ -157,7 +157,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             child = find_region(slist, 0, ACPI_RSDT);
             if (child >= 0) {
                 void* p = _acpi_copy_tables(slist, dlist,
-                          child, index);
+                                            child, index);
                 dst_tbl->rsdt_address = (uint32_t)p;
                 DPRINTF(1, "Got address %p\n", p);
             } else {
@@ -169,7 +169,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             if (child >= 0) {
                 /* PRE: RSDT must be found in dlist */
                 void* p = _acpi_copy_tables(slist, dlist,
-                          child, index);
+                                            child, index);
                 dst_tbl->xsdt_address = (uint64_t)(uint32_t)p;
                 DPRINTF(1, "Got address %p\n", p);
             } else {
@@ -355,7 +355,7 @@ acpi_init(ps_io_mapper_t io_mapper)
     /* locate the acpi root system descriptor pointer */
     printf("Searching for ACPI_SIG_RSDP\n");
     acpi->rsdp = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
-                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
+                                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
     if (acpi->rsdp == NULL) {
         fprintf(stderr, "Failed to find rsdp\n");
         free(acpi->regions);

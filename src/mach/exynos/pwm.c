@@ -26,15 +26,15 @@
 #define T4_MANUALRELOAD    BIT(21)
 #define T4_AUTORELOAD      BIT(22)
 
-     /* TCFG0 */
+/* TCFG0 */
 #define T234_PRESCALE(x)   ((x) << 8)
 #define T234_PRESCALE_MASK T234_PRESCALE(0xff)
 
-     /* TCFG1 */
+/* TCFG1 */
 #define T4_DIVISOR(x)      ((x) << 16)
 #define T4_DIVISOR_MASK    T4_DIVISOR(0xf)
 
-     /* TINT_CSTAT */
+/* TINT_CSTAT */
 #define INT_ENABLE(x)      BIT(x)
 #define INT_STAT(x)        BIT((x) + 5)
 #define INT_ENABLE_ALL     ( INT_ENABLE(0) | INT_ENABLE(1) | INT_ENABLE(2) \
@@ -67,11 +67,11 @@ typedef struct pwm {
     volatile struct pwm_map *pwm_map;
 } pwm_t;
 
-static int 
-pwm_timer_start(const pstimer_t *timer) 
+static int
+pwm_timer_start(const pstimer_t *timer)
 {
     pwm_t *pwm = (pwm_t *) timer->data;
- 
+
     /* start the timer */
     pwm->pwm_map->tcon |= T4_ENABLE;
 
@@ -80,7 +80,8 @@ pwm_timer_start(const pstimer_t *timer)
 
 
 static int
-pwm_timer_stop(const pstimer_t *timer) {
+pwm_timer_stop(const pstimer_t *timer)
+{
     pwm_t *pwm = (pwm_t*) timer->data;
 
     /* Disable timer. */
@@ -92,14 +93,15 @@ pwm_timer_stop(const pstimer_t *timer) {
 
     /* disable interrupts */
     pwm->pwm_map->tint_cstat &= ~(INT_ENABLE(4));
-            
+
     /* ack interrupt */
     pwm->pwm_map->tint_cstat |= ~(INT_STAT(4));
 
     return 0;
 }
 
-void configure_timeout(const pstimer_t *timer, uint64_t ns) {
+void configure_timeout(const pstimer_t *timer, uint64_t ns)
+{
     uint32_t v;
 
     pwm_t *pwm = (pwm_t*) timer->data;
@@ -113,28 +115,28 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns) {
     /* clear the scale */
     pwm->pwm_map->tcfg0 &= ~(T234_PRESCALE_MASK);
     pwm->pwm_map->tcfg1 &= ~(T4_DIVISOR_MASK);
-                        
+
     /* Calculate the scale and reload values. */
     uint32_t div = 0; /* Not implemented */
     uint32_t prescale = ns * ACLK_100 / 1000 / 100000000UL;
     uint32_t cnt = ns * ACLK_100 / 1000 / (prescale + 1) / (1 << div);
     assert(prescale <= 0xff); /* if this fails, we need to implement div */
     assert(div <= 0xf);
-                                            
+
     /* set scale and reload values */
     pwm->pwm_map->tcfg0 |= T234_PRESCALE(prescale);
     pwm->pwm_map->tcfg1 &= T4_DIVISOR(div);
     pwm->pwm_map->tcntB4 = cnt;
-                                             
+
     /* load tcntB4 by flushing the double buffer */
     pwm->pwm_map->tcon |= T4_MANUALRELOAD;
     pwm->pwm_map->tcon &= ~(T4_MANUALRELOAD);
-                                                              
+
     /* Clear pending overflows. */
     v = pwm->pwm_map->tint_cstat;
     v = (v & INT_ENABLE_ALL) | INT_STAT(4);
     pwm->pwm_map->tint_cstat = v;
-                                                                    
+
 
 }
 
@@ -159,7 +161,7 @@ pwm_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int 
+static int
 pwm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
     pwm_t *pwm = (pwm_t*) timer->data;
@@ -172,8 +174,9 @@ pwm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static void 
-pwm_handle_irq(const pstimer_t *timer, uint32_t irq) {
+static void
+pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
+{
     pwm_t *pwm = (pwm_t*) timer->data;
     uint32_t v;
     v = pwm->pwm_map->tint_cstat;
@@ -182,14 +185,15 @@ pwm_handle_irq(const pstimer_t *timer, uint32_t irq) {
 }
 
 
-static uint64_t 
-pwm_get_time(const pstimer_t *timer) {
+static uint64_t
+pwm_get_time(const pstimer_t *timer)
+{
     assert(!"Not yet implemented");
     return 0;
 }
 
 static uint32_t
-pwm_get_nth_irq(const pstimer_t *timer, uint32_t n) 
+pwm_get_nth_irq(const pstimer_t *timer, uint32_t n)
 {
     return PWM_T4_INTERRUPT;
 }
