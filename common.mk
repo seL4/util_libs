@@ -17,17 +17,6 @@ else
 CCACHE=
 endif
 
-### Goanna
-ifeq (${CONFIG_BUILDSYS_USE_GOANNA},y)
-GOANNA=$(shell which goannacc)
-else
-GONNA=
-endif
-ifneq (${GOANNA},)
-GOANNA += --license-server=goanna.ken.nicta.com.au --silent-profile \
-    --profile=${CONFIG_BUILDSYS_GOANNA_PROFILE}
-endif
-
 ### Verbose building
 ########################################
 
@@ -48,7 +37,7 @@ endif
 endif
 endif
 
-CC  := $(CCACHE) $(if ${GOANNA},${GOANNA},$(TOOLPREFIX)gcc$(TOOLSUFFIX))
+CC  := $(CCACHE) $(TOOLPREFIX)gcc$(TOOLSUFFIX)
 CXX := $(CCACHE) $(TOOLPREFIX)g++$(TOOLSUFFIX)
 ASM := $(CCACHE) $(TOOLPREFIX)as$(TOOLSUFFIX)
 LD  := $(CCACHE) $(TOOLPREFIX)ld$(TOOLSUFFIX)

@@ -90,22 +90,6 @@ menu "Toolchain Options"
             the same compiler and flags, the object file will be copied from the
             cache rather than compiling from source.
 
-    config BUILDSYS_USE_GOANNA
-        bool "Use Goanna for static analysis"
-        default y
-        help
-            Goanna is a static analysis tool developed internally. Select this
-            option to enable it during compilation if you have it installed.
-
-    config BUILDSYS_GOANNA_PROFILE
-        string "Goanna profile"
-        default ""
-        depends on BUILDSYS_USE_GOANNA
-        help
-            Goanna needs a profile file describing the behaviour of your
-            compiler. Set this value to the profile file that describes your
-            cross-compiler.
-
     choice
         prompt "User compiler optimisation flag"
         depends on USER_CFLAGS = ""
