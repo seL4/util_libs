@@ -50,6 +50,11 @@ ifneq (${FMT},)
 else
   FMT := $(shell which cat)
 endif
+SPONGE := $(shell which sponge)
+# If `sponge` is unavailable, emulate it.
+ifeq (${SPONGE},)
+  SPONGE := python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], "w"); f.write(data); f.close()'
+endif
 
 # Default path configuration (useful for local development)
 SEL4_LIBDIR     ?= $(STAGE_DIR)/lib
