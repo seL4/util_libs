@@ -130,6 +130,7 @@ ethif_link_output(struct netif *netif, struct pbuf *p)
     lwip_iface_t *iface = (lwip_iface_t*)netif->state;
     dma_addr_t buf;
     struct pbuf *q;
+    int status;
 
 #if ETH_PAD_SIZE
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
@@ -154,15 +155,21 @@ ethif_link_output(struct netif *netif, struct pbuf *p)
 //    PKT_DEBUG(cprintf(COL_TX, "Sending packet"));
 //    PKT_DEBUG(print_packet(COL_TX, (void*)buf.virt, p->tot_len));
 
-    unsigned int length = p->tot_len;
-    if (iface->driver.i_fn.raw_tx(&iface->driver, 1, &buf.phys, &length, orig_buf)) {
-        lwip_tx_complete(iface, orig_buf);
-        return ERR_WOULDBLOCK;
-    }
-
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
+
+    unsigned int length = p->tot_len;
+    status = iface->driver.i_fn.raw_tx(&iface->driver, 1, &buf.phys, &length, orig_buf);
+    switch(status) {
+    case ETHIF_TX_FAILED:
+        lwip_tx_complete(iface, orig_buf);
+        return ERR_WOULDBLOCK;
+    case ETHIF_TX_COMPLETE:
+        lwip_tx_complete(iface, orig_buf);
+    case ETHIF_TX_ENQUEUED:
+        break;
+    }
 
     LINK_STATS_INC(link.xmit);
 
@@ -276,6 +283,7 @@ ethif_pbuf_link_output(struct netif *netif, struct pbuf *p)
 {
     lwip_iface_t *iface = (lwip_iface_t*)netif->state;
     struct pbuf *q;
+    int status;
 
     /* grab a reference to the pbuf */
     pbuf_ref(p);
@@ -311,14 +319,20 @@ ethif_pbuf_link_output(struct netif *netif, struct pbuf *p)
         }
     }
 
-    if (iface->driver.i_fn.raw_tx(&iface->driver, num_frames, phys, lengths, p)) {
-        lwip_pbuf_tx_complete(iface, p);
-        return ERR_WOULDBLOCK;
-    }
-
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
+
+    status = iface->driver.i_fn.raw_tx(&iface->driver, num_frames, phys, lengths, p);
+    switch(status) {
+    case ETHIF_TX_FAILED:
+        lwip_pbuf_tx_complete(iface, p);
+        return ERR_WOULDBLOCK;
+    case ETHIF_TX_COMPLETE:
+        lwip_pbuf_tx_complete(iface, p);
+    case ETHIF_TX_ENQUEUED:
+        break;
+    }
 
     LINK_STATS_INC(link.xmit);
 

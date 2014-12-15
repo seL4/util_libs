@@ -799,14 +799,14 @@ static void complete_tx(struct eth_driver *driver) {
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie) {
     e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
     if (!dev->link_up) {
-        return -1;
+        return ETHIF_TX_FAILED;
     }
     /* Ensure we have room */
     if (dev->tx_remain < num) {
         /* try and complete some */
         complete_tx(driver);
         if (dev->tx_remain < num) {
-            return -1;
+            return ETHIF_TX_FAILED;
         }
     }
     unsigned int i;
@@ -830,7 +830,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     dev->tdt = (dev->tdt + num) % dev->tx_size;
     dev->tx_remain -= num;
     set_tdt(dev, dev->tdt);
-    return 0;
+    return ETHIF_TX_ENQUEUED;
 }
 
 static int fill_rx_bufs(struct eth_driver *driver) {

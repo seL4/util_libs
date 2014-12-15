@@ -17,6 +17,10 @@
 
 struct eth_driver;
 
+#define ETHIF_TX_ENQUEUED 0
+#define ETHIF_TX_FAILED -1
+#define ETHIF_TX_COMPLETE 1
+
 /**
  * Transmit a packet.
  *
@@ -28,7 +32,10 @@ struct eth_driver;
  *                  memory region
  * @param cookie    Cookie to be passed to receive complete function
  *
- * @return          0 on success
+ * @return          ETHIF_TX_ENQUEUED if buffer request is enqueued, ethif_raw_tx_complete
+                    will be called when completed. ETHIF_TX_COMPLETE if transmit completed
+                    inline and buffer can be freed. ETHIF_TX_FAILED if transmit could not
+                    be done
  */
 typedef int (*ethif_raw_tx)(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie);
 

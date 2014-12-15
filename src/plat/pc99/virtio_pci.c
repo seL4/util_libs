@@ -301,7 +301,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     if (dev->tx_remain < num + 1) {
         complete_tx(driver);
         if (dev->tx_remain < num + 1) {
-            return -1;
+            return ETHIF_TX_FAILED;
         }
     }
     /* install the header */
@@ -334,7 +334,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     /* ensure index update visible before notifying */
     asm volatile("mfence" ::: "memory");
     write_reg16(dev, VIRTIO_PCI_QUEUE_NOTIFY, TX_QUEUE);
-    return 0;
+    return ETHIF_TX_ENQUEUED;
 }
 
 static void raw_poll(struct eth_driver *driver) {

@@ -303,7 +303,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
         /* try and complete some */
         complete_tx(driver);
         if (dev->tx_remain < num) {
-            return -1;
+            return ETHIF_TX_FAILED;
         }
     }
     unsigned int i;
@@ -324,7 +324,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
         enet_tx_enable(enet);
     }
 
-    return 0;
+    return ETHIF_TX_ENQUEUED;
 }
 
 static struct raw_iface_funcs iface_fns = {
