@@ -64,6 +64,12 @@ typedef struct lwip_iface {
  */
 lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config);
 
+/**
+ * Same as ethif_new_lwip_driver except if an allocated iface
+ * and pbuf_dma is passed then malloc will not get called
+ */
+lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config, lwip_iface_t *iface);
+
 /* Wrapper function for an LWIP driver for asking the underlying
  * eth driver to handle an IRQ */
 static inline void ethif_lwip_handle_irq(lwip_iface_t *iface, int irq) {

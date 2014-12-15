@@ -367,13 +367,8 @@ ethif_init(struct netif *netif)
     return ERR_OK;
 }
 
-lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config) {
+lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config, lwip_iface_t *iface) {
     dma_addr_t *dma_bufs = NULL;
-    lwip_iface_t *iface = malloc(sizeof(*iface));
-    if (!iface) {
-        LOG_ERROR("Failed to malloc");
-        return NULL;
-    }
     memset(iface, 0, sizeof(*iface));
     iface->driver.cb_cookie = iface;
     if (pbuf_dma) {
@@ -410,11 +405,8 @@ lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, 
     iface->ethif_init = ethif_init;
     return iface;
 error:
-    if (iface) {
-        if (iface->bufs) {
-            free(iface->bufs);
-        }
-        free(iface);
+    if (iface->bufs) {
+        free(iface->bufs);
     }
     if (dma_bufs) {
         for (int i = 0; i < CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS; i++) {
@@ -425,6 +417,20 @@ error:
         free(dma_bufs);
     }
     return NULL;
+}
+
+lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config) {
+    lwip_iface_t *ret;
+    lwip_iface_t *iface = malloc(sizeof(*iface));
+    if (!iface) {
+        LOG_ERROR("Failed to malloc");
+        return NULL;
+    }
+    ret = ethif_new_lwip_driver_no_malloc(io_ops, pbuf_dma, driver, driver_config, iface);
+    if (!ret) {
+        free(iface);
+    }
+    return ret;
 }
 
 #endif /* CONFIG_LIB_LWIP */
