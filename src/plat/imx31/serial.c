@@ -123,7 +123,7 @@ uart_init(const struct dev_defn* defn,
     dev->ioops      = *ops;
 
     /*
-     * Enable interrrupts for receiver
+     * Enable interrupts for receiver
      */
     *REG_PTR(dev->vaddr, IMXUART_UCR1) |= IMXUART_LSR_RXFIFIOE;
     return 0;
