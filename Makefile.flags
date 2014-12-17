@@ -194,6 +194,11 @@ ifeq ($(CONFIG_PLAT_IMX6),y)
 	export PLAT=imx6
 endif
 
+ifeq ($(CONFIG_PLAT_ZYNQ7000),y)
+	DEFINES += PLAT_ZYNQ7000
+	export PLAT=zynq7000
+endif
+
 ifeq ($(CONFIG_PLAT_OMAP4),y)
 	DEFINES += OMAP4
 	DEFINES += TI_MSHIELD

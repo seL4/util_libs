@@ -38,7 +38,8 @@ shift 2
 # Determine ".o" file to generate.
 case "$PLAT" in
     "imx31"|"imx6"|"omap3"|"am335x"|"omap4"|\
-    "exynos4"|"exynos5"| "realview"|apq8064)
+    "exynos4"|"exynos5"|"realview"|"apq8064"|\
+    "zynq7000")
         FORMAT=elf32-littlearm
         ;;
     "pc99")
