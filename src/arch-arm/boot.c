@@ -108,7 +108,11 @@ void main(void)
 #endif
 
     /* Enter kernel. */
+#ifdef PLAT_ZYNQ7000
+    /* Our serial port is no longer accessible */
+#else
     printf("Jumping to kernel-image entry point...\n\n");
+#endif
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);
