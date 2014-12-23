@@ -11,17 +11,7 @@
 #ifndef UTILS_FORMATS_H
 #define UTILS_FORMATS_H
 
-#include <autoconf.h>
-
 #define COLOR_ERROR "\033[1;31m"
 #define COLOR_NORMAL "\033[0m"
-
-#ifdef CONFIG_X86_64
-#define DFMT    "%ld"
-#define XFMT    "%lx"
-#else
-#define DFMT    "%d"
-#define XFMT    "%x"
-#endif
 
 #endif
