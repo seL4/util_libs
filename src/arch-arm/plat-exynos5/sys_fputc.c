@@ -14,18 +14,14 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
+#include "platform.h"
+
 /*
  * Place a character to the given stream, which we always assume to be
  * 'stdout'.
  */
 extern int
 __fputc(int c, FILE *stream);
-
-#define UART0_PADDR 0x12C00000
-#define UART1_PADDR 0x12C10000
-#define UART2_PADDR 0x12C20000
-#define UART3_PADDR 0x12C30000
-#define UART_PADDR  (UART2_PADDR)
 
 #define ULCON       0x0000 /* line control */
 #define UCON        0x0004 /*control */
@@ -43,7 +39,7 @@ __fputc(int c, FILE *stream);
 #define UINTSP      0x0034 /* interrupt source pending */
 #define UINTM       0x0038 /* interrupt mask */
 
-#define UART_REG(x) ((volatile uint32_t *)(UART_PADDR + (x)))
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
 /* ULCON */
 #define WORD_LENGTH_8   (3<<0)

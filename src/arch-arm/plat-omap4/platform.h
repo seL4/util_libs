@@ -8,10 +8,11 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
-void platform_init(void)
-{
-    /* Nothing to do here */
-}
+/* OMAP3 UART 2 physical address. */
+#define UART2_PADDR 0x48020000
+#define UART_PPTR   UART2_PADDR
 
+#endif /* _PLATFORM_H_ */

@@ -14,6 +14,8 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
+#include "platform.h"
+
 /*
  * Place a character to the given stream, which we always assume to be
  * 'stdout'.
@@ -21,16 +23,6 @@
 extern int
 __fputc(int c, FILE *stream);
 
-#define SPS_UART1_DM_PADDR        0x12450000 /* Daytona_SPS */
-#define SPS_UART2_DM_PADDR        0x12490000 /* Daytona_SPS */
-#define GSBI3_UART_DM_PADDR       0x16240000 /* GSBIs */
-#define GSBI4_UART_DM_PADDR       0x16340000 /* GSBIs */
-#define GSBI6_UART_DM_PADDR       0x16540000 /* GSBIs */
-#define GSBI7_UART_DM_PADDR       0x16640000 /* GSBIs */
-#define GSBI5_UART_DM_PADDR       0x1A240000 /* GSBIs */
-#define UART_PADDR  (GSBI7_UART_DM_PADDR)
-
-#define UART_REG(x) ((volatile uint32_t *)(UART_PADDR + (x)))
 
 #define USR                   0x08
 #define UTF                   0x70
@@ -39,9 +31,7 @@ __fputc(int c, FILE *stream);
 #define USR_TXRDY             (1U << 2)
 #define USR_TXEMP             (1U << 3)
 
-
-volatile uint32_t* uart = (volatile uint32_t*)UART_PADDR;
-
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
 int
 __fputc(int c, FILE *stream)

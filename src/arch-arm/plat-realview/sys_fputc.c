@@ -14,6 +14,7 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
+#include "paltform.h"
 
 /*
  * Place a character to the given stream, which we always assume to be
@@ -22,15 +23,11 @@
 extern int
 __fputc(int c, FILE *stream);
 
-/* RealView UART 0 physical address. */
-#define UART_PADDR 0x10009000
-#define UART_PPTR UART_PADDR
-
 #define URXD  0x00 /* UART Receiver Register */
 #define URST  0x18 /* status register */
 
-#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR+(x)))
-#define BIT(x) (1 << (x))
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
+#define BIT(x) (1U << (x))
 
 int
 __fputc(int c, FILE *stream)

@@ -8,10 +8,12 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
-void platform_init(void)
-{
-    /* Nothing to do here */
-}
+#define IMX31_UART1_BASE  0x43F90000
 
+#define UART_PPTR         IMX31_UART1_BASE
+
+
+#endif /* _PLATFORM_H_ */

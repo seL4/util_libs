@@ -8,10 +8,11 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
-void platform_init(void)
-{
-    /* Nothing to do here */
-}
+/* NSLU2 UART physical address. */
+#define UART_PADDR 0xC8000000
+#define UART_PPTR  UART_PADDR
 
+#endif /* _PLATFORM_H_ */

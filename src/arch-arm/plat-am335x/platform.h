@@ -8,10 +8,12 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
-void platform_init(void)
-{
-    /* Nothing to do here */
-}
+/* AM335X UART 0 physical address. */
+#define UART0_PADDR 0x44E09000
+#define UART_PPTR   UART0_PADDR
+
+#endif /* _PLATFORM_H_ */
 

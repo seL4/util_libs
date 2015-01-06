@@ -14,6 +14,7 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
+#include "platform.h"
 
 /*
  * Place a character to the given stream, which we always assume to be
@@ -22,15 +23,11 @@
 extern int
 __fputc(int c, FILE *stream);
 
-/* AM335X UART 0 physical address. */
-#define UART0_PADDR 0x44E09000
-#define UART_PPTR UART0_PADDR
-
 #define UTHR 0x00 /* UART Transmit Holding Register */
 #define ULSR 0x14 /* UART Line Status Register */
 #define ULSR_THRE 0x20 /* Transmit Holding Register Empty */
 
-#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR+(x)))
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
 int
 __fputc(int c, FILE *stream)

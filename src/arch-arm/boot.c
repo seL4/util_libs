@@ -17,6 +17,7 @@
 
 #include "elfloader.h"
 #include "cpuid.h"
+#include <platform.h>
 
 static struct image_info kernel_info;
 static struct image_info user_info;
@@ -108,11 +109,11 @@ void main(void)
 #endif
 
     /* Enter kernel. */
-#ifdef PLAT_ZYNQ7000
-    /* Our serial port is no longer accessible */
-#else
-    printf("Jumping to kernel-image entry point...\n\n");
-#endif
+    if (UART_PPTR < kernel_info.virt_region_start) {
+        printf("Jumping to kernel-image entry point...\n\n");
+    } else {
+        /* Our serial port is no longer accessible */
+    }
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);

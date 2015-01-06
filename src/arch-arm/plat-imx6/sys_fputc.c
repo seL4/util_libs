@@ -14,20 +14,7 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
-
-/*
- * UART Hardware Constants
- *
- * (from IMX31 SoC Manual).
- */
-
-#define IMX6_UART1_BASE   0x02020000
-#define IMX6_UART2_BASE   0x021e8000
-#define IMX6_UART3_BASE   0x021ec000
-#define IMX6_UART4_BASE   0x021f0000
-#define IMX6_UART5_BASE   0x021F4000
-
-#define IMX6_UART_BASE    IMX6_UART2_BASE
+#include "platform.h"
 
 #define UART_TRANSMIT     0x40
 #define UART_CONTROL1     0x80
@@ -39,23 +26,18 @@
 #define UART_STAT2        0x98
 
 /* Transmit buffer FIFO empty. */
-#define TXFE            (1 << 14)
+#define TXFE            (1U << 14)
+
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
 int
 __fputc(int c, FILE *stream)
 {
-    volatile uint32_t *stat_reg
-        = (volatile uint32_t *)(IMX6_UART_BASE + UART_STAT2);
-    volatile uint32_t *trans_reg
-        = (volatile uint32_t *)(IMX6_UART_BASE + UART_TRANSMIT);
-
     /* Wait to be able to transmit. */
-    while ((*stat_reg & TXFE) == 0) {
-        /* spin. */
-    }
+    while (!(*UART_REG(UART_STAT2) & TXFE));
 
     /* Transmit. */
-    *trans_reg = c;
+    *UART_REG(UART_TRANSMIT) = c;
 
     /* Send '\r' after every '\n'. */
     if (c == '\n') {

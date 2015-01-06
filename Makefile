@@ -33,6 +33,8 @@ ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/mmu-v7a.
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/mmu-v7a-hyp.S)
 endif
 
+INCLUDE_DIRS += $(SOURCE_DIR)/src/arch-arm/plat-$(PLAT)/
+
 LIBS = cpio
 
 NK_CFLAGS += -ffreestanding -Wall -Werror -W

@@ -14,16 +14,11 @@
 
 #include "../stdint.h"
 #include "../stdio.h"
-
+#include "platform.h"
 
 /*
  * UART Hardware Constants
  */
-
-#define ZYNQ_UART0_BASE        0xE0000000
-#define ZYNQ_UART1_BASE        0xE0001000
-
-#define ZYNQ_UART_BASE         ZYNQ_UART1_BASE
 
 #define UART_CONTROL                 0x00
 #define UART_MODE                    0x04
@@ -44,21 +39,18 @@
 
 #define UART_INTRPT_MASK_TXEMPTY     (1U << 3)
 #define UART_CHANNEL_STS_TXEMPTY     (1U << 3)
+
+
+#define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
+
 int
 __fputc(int c, FILE *stream)
 {
-    volatile uint32_t *stat_reg
-        = (volatile uint32_t *)(ZYNQ_UART_BASE + UART_CHANNEL_STS);
-    volatile uint32_t *trans_reg
-        = (volatile uint32_t *)(ZYNQ_UART_BASE + UART_TX_RX_FIFO);
-
     /* Wait to be able to transmit. */
-    while ((*stat_reg & UART_CHANNEL_STS_TXEMPTY) == 0) {
-        /* spin. */
-    }
+    while (!(*UART_REG(UART_CHANNEL_STS) & UART_CHANNEL_STS_TXEMPTY));
 
     /* Transmit. */
-    *trans_reg = c;
+    *UART_REG(UART_TX_RX_FIFO) = c;
 
     /* Send '\r' after every '\n'. */
     if (c == '\n') {
