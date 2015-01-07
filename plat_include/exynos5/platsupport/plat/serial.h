@@ -34,6 +34,13 @@
 #error Unknown platform
 #endif
 
+/* INTP, INTSP, INTM */
+#define INT_MODEM BIT(3)
+#define INT_TX    BIT(2)
+#define INT_ERR   BIT(1)
+#define INT_RX    BIT(0)
+#define EXYNOS_UART_RX_IRQ INT_RX
+#define EXYNOS_UART_TX_IRQ INT_TX
 
 /* official device names */
 enum chardev_id {
@@ -62,6 +69,21 @@ enum chardev_id {
 int exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
                        clk_t* clk_src, ps_chardevice_t* dev);
 
+/*
+ * Handles only the receive interrupt. Allows RX and TX work to be seperated
+ */
+void exynos_handle_rx_irq(ps_chardevice_t *d);
+
+/*
+ * Handles only the transmit interrupt. Allows RX and TX work to be seperated.
+ */
+void exynos_handle_tx_irq(ps_chardevice_t *d);
+
+/*
+ * Checks which interrupts are set and returns the results as a bit field.
+ * This does NOT handle the interrupts, this must be done seperately.
+ */
+int exynos_check_irq(ps_chardevice_t *d);
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
 

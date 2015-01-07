@@ -334,6 +334,28 @@ static void uart_flush(ps_chardevice_t *d)
     while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_TX_EMPTY) );
 }
 
+int exynos_check_irq(ps_chardevice_t *d) {
+        return *REG_PTR(d->vaddr, UINTP);
+}
+
+void exynos_handle_rx_irq(ps_chardevice_t *d) {
+    uint32_t sts;
+    sts = *REG_PTR(d->vaddr, UINTP);
+    if (sts & INT_RX) {
+        sts &= ~INT_RX;
+        uart_handle_rx_irq(d);
+    }
+}
+
+void exynos_handle_tx_irq(ps_chardevice_t *d) {
+    uint32_t sts;
+    sts = *REG_PTR(d->vaddr, UINTP);
+    if (sts & INT_TX) {
+        sts &= ~INT_TX;
+        uart_handle_tx_irq(d);
+    }
+}
+
 static void
 uart_handle_irq(ps_chardevice_t *d)
 {
