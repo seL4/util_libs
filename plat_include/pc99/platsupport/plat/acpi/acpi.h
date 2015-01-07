@@ -46,8 +46,8 @@ typedef struct acpi_header {
     char         oem_id[6];
     char         oem_table_id[8];
     uint32_t     oem_revision;
-    char         creater_id[4];
-    uint32_t     creater_revision;
+    char         creator_id[4];
+    uint32_t     creator_revision;
 } acpi_header_t;
 
 
