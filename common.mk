@@ -187,7 +187,7 @@ default: $(PRIORITY_TARGETS) install-headers $(TARGETS)
 
 #
 # For each ".bin" or ".a" target, we also setup a rule to copy it into a final
-# binaries output directory.
+# binaries output directory. For binary files we want to remove the .bin suffix
 #
 default: $(patsubst %.bin,$(SEL4_BINDIR)/%,$(filter %.bin,$(TARGETS)))
 default: $(patsubst %.a,$(SEL4_LIBDIR)/%.a,$(filter %.a,$(TARGETS)))
