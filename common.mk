@@ -156,7 +156,7 @@ LDFLAGS += -e ${ENTRY_POINT}
 ASFLAGS += $(NK_ASFLAGS)
 
 # Object files
-OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(OFILES)
+OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(CXXFILES:%.cxx=%.o) $(OFILES)
 
 # Define standard crt files if are building against a C library that has them
 ifeq (${CONFIG_HAVE_CRT},y)
@@ -179,6 +179,7 @@ vpath %.a $(SEL4_LIBDIR)
 
 # Where to find the sources
 vpath %.c $(SOURCE_DIR)
+vpath %.cxx $(SOURCE_DIR)
 vpath %.S $(SOURCE_DIR)
 
 # Default is to build/install all targets
@@ -284,7 +285,7 @@ $(TARGETS): $(LIBS:%=-l%)
 # (Default is .LIBPATTERNS = lib%.so lib%.a)
 .LIBPATTERNS = lib%.a
 
-DEPS = $(patsubst %.c,%.d,$(CFILES)) $(patsubst %.S,%.d,$(ASMFILES))
+DEPS = $(patsubst %.c,%.d,$(CFILES)) $(patsubst %.cxx,%.d,$(CXXFILES)) $(patsubst %.S,%.d,$(ASMFILES))
 
 ifneq "$(MAKECMDGOALS)" "clean"
   -include ${DEPS}
