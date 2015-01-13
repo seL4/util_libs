@@ -85,7 +85,7 @@ ENDGROUP := -Wl,--end-group
 
 ifeq (${CONFIG_USER_CFLAGS},)
     CFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=gnu11
-    CXXFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=c++11
+    CXXFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=gnu++98
 
     ifeq (${CONFIG_USER_OPTIMISATION_Os},y)
         CFLAGS += -Os
