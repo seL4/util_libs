@@ -197,15 +197,23 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 {
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
 
-    if (regs->sr & UART_SR_TEMPTY) {
-        if (c == '\n') {
-            uart_putchar(d, '\r');
+    if (c == '\n') {
+        /* check if 2 bytes are free - tx trigger level is 63 and
+         * this bit is set if the fifo level is >= the trigger level
+         */
+        if (!(regs->sr & UART_SR_TTRIG)) {
+
+            regs->fifo = '\r';
+            regs->fifo = '\n';
+
+            return '\n';
         }
+    } else if (!(regs->sr & UART_SR_TFUL)) {
         regs->fifo = c;
         return c;
-    } else {
-        return -1;
     }
+
+    return -1;
 }
 
 static void
@@ -451,6 +459,11 @@ int uart_init(const struct dev_defn* defn,
 
     /* Program the receiver timeout mechanism */
     regs->rxtout &= ~UART_RXTOUT_RTO_MASK;  /* Disable the timeout mechanism */
+
+    /* set the tx trigger to 63 so it's possible to check
+     * if there are 2 bytes free in the 64 byte tx fifo
+     */
+    regs->txwm = UART_TXWM_TTRIG(63) & UART_TXWM_TTRIG_MASK;
 
     return 0;
 }
