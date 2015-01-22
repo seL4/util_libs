@@ -27,4 +27,8 @@
         __builtin_unreachable(); \
     } while (0)
 
+/* Borrowed from linux/include/linux/compiler.h */
+#define likely(x)   __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
 #endif /* _UTILS_BUILTIN_H */
