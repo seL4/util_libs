@@ -129,7 +129,7 @@ do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
     te1 = (v >> 0) & TRIM_INFO_MASK;
     te2 = (v >> 8) & TRIM_INFO_MASK;
 
-    /* Ensure the parmeters are in range */
+    /* Ensure the parameters are in range */
     if ((EFUSE_MIN_VALUE > te1) || (te1 > EFUSE_MAX_VALUE) || (te2 != 0)) {
         te1 = EFUSE_INIT_VALUE;
     }
@@ -184,8 +184,8 @@ exynos_tmu_get_temperature(tmu_t* tmu)
     regs = tmu_priv_get_regs(tmu);
 
     /* After reading temperature code from register, compensating
-     * its value and calculating celsius temperatue,
-     * get current temperatue.
+     * its value and calculating celsius temperature,
+     * get current temperature.
      */
     currTemp = regs->temperature & 0xff;
 
