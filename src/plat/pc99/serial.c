@@ -57,16 +57,20 @@ static int serial_getchar(ps_chardevice_t *device)
     return (int) res;
 }
 
+static int serial_ready(ps_chardevice_t* device) {
+    uint32_t io_port = (uint32_t) device->vaddr;
+    uint32_t res;
+    int UNUSED error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    assert(!error);
+    return res & SERIAL_LSR_TRANSMITTER_EMPTY;
+}
+
 static int serial_putchar(ps_chardevice_t* device, int c)
 {
-    uint32_t res;
     uint32_t io_port = (uint32_t) device->vaddr;
 
     /* Check if serial is ready. */
-    res = 0;
-    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
-    assert(!error);
-    if (!(res & SERIAL_LSR_TRANSMITTER_EMPTY)) {
+    if (!serial_ready(device)) {
         return -1;
     }
 
@@ -74,6 +78,9 @@ static int serial_putchar(ps_chardevice_t* device, int c)
     ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
 
     if (c == '\n') {
+        /* If we output immediately then odds are the transmit buffer
+         * will be full, so we have to wait */
+        while(!serial_ready(device));
         serial_putchar(device, '\r');
     }
 
