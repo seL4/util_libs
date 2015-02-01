@@ -324,10 +324,10 @@ uint64_t elf_getEntryPoint(void *elfFile);
  * The function assumes that the ELF file is loaded in memory at some
  * address different to the target address at which it will be loaded.
  * It also assumes direct access to the source and destination address, i.e:
- * Memory must be ale to me loaded with a simple memcpy.
+ * Memory must be able to be loaded with a simple memcpy.
  *
  * Obviously this also means that if we are loading a 64bit ELF on a 32bit
- * platform, we assume that any memory address are within the first 4GB.
+ * platform, we assume that any memory addresses are within the first 4GB.
  *
  */
 int elf_loadFile(void *elfFile, int phys);
