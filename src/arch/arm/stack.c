@@ -10,19 +10,21 @@
 
 #include <utils/stack.h>
 
-int
-utils_run_on_stack(void *stack_top, int (*func)(void))
+void *
+utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
 {
-    int ret;
+    void *ret;
     asm volatile (
         "mov r4, sp\n\t"                /* Save sp - r4 is callee saved so we don't need to save it. */
         "mov sp, %[new_stack]\n\t"      /* Switch to new stack. */
+        "mov r0, %[arg]\n\t"            /* Setup argument to func. */
         "blx %[func]\n\t"
         "mov sp, r4\n\t"
         "mov %[ret], r0\n\t"
         : [ret] "=r" (ret)
         : [new_stack] "r" (stack_top),
-          [func] "r" (func)
+          [func] "r" (func),
+          [arg] "r" (arg)
         /* r0 - r3 are caller saved, so they will be clobbered by blx.
          * blx clobbers lr
          * we clobber r4 to save the return value in it */
