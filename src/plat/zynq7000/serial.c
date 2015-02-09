@@ -460,10 +460,10 @@ int uart_init(const struct dev_defn* defn,
     /* Program the receiver timeout mechanism */
     regs->rxtout &= ~UART_RXTOUT_RTO_MASK;  /* Disable the timeout mechanism */
 
-    /* set the tx trigger to 63 so it's possible to check
-     * if there are 2 bytes free in the 64 byte tx fifo
+    /* set the tx trigger to one less than the fifo size so it's possible to check
+     * if there are 2 bytes free
      */
-    regs->txwm = UART_TXWM_TTRIG(63) & UART_TXWM_TTRIG_MASK;
+    regs->txwm = UART_TXWM_TTRIG(UART_TX_FIFO_SIZE - 1) & UART_TXWM_TTRIG_MASK;
 
     return 0;
 }
