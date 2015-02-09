@@ -16,6 +16,7 @@ menuconfig LIB_UTILS
 
 config LIB_UTILS_NO_STATIC_ASSERT
     bool "Disable _Static_assert"
+    depends on LIB_UTILS
     default n
     help
         _Static_assert is provided in recent compilers as a way of testing a
