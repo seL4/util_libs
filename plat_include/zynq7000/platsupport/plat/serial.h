@@ -17,9 +17,6 @@
 #define UART0_IRQ    59
 #define UART1_IRQ    82
 
-#define UART_TX_FIFO_SIZE 64
-#define UART_RX_FIFO_SIZE 64
-
 enum chardev_id {
     ZYNQ_UART0,
     ZYNQ_UART1,

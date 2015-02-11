@@ -136,6 +136,10 @@
 #define UART_BAUDGEN_CD_MIN     1
 #define UART_BAUDGEN_CD_MAX     65535
 
+/* Fifo size */
+#define UART_TX_FIFO_SIZE 64
+#define UART_RX_FIFO_SIZE 64
+
 struct zynq7000_uart_regs {
     uint32_t cr;            /* 0x00 Control Register */
     uint32_t mr;            /* 0x04 Mode Register */
