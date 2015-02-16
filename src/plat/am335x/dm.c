@@ -8,10 +8,13 @@
  * @TAG(NICTA_BSD)
  */
 
-#include <platsupport/timer.h>
-#include <platsupport/plat/timer.h>
 #include <stdio.h>
 #include <assert.h>
+
+#include <utils/util.h>
+
+#include <platsupport/timer.h>
+#include <platsupport/plat/timer.h>
 
 #define TIOCP_CFG_SOFTRESET BIT(0)
 
@@ -51,25 +54,28 @@ typedef volatile struct dm {
 } dm_t;
 
 static int
-dm_stop_timer(const pstimer_t *device)
+dm_timer_stop(const pstimer_t *timer)
 {
     dm_t *dm = (dm_t *) timer->data;
     /* Disable timer. */
     dm->tier = 0;
     dm->tclr = 0;
     dm->tisr = TISR_OVF_FLAG;
+    return 0;
 }
 
 static int
-dm_start_timer(const pstimer_t *device)
+dm_timer_start(const pstimer_t *timer)
 {
     /* Do nothing */
+    return 0;
 }
 
 
 static int
-dm_periodic(uint64_t ns)
+dm_periodic(const pstimer_t *timer, uint64_t ns)
 {
+    dm_t *dm = (dm_t *) timer->data;
     /* Stop time. */
     dm->tclr = 0;
 
@@ -82,6 +88,7 @@ dm_periodic(uint64_t ns)
     dm->tier = TIER_OVERFLOWENABLE;
 
     /* Set the reload value. */
+    /* XXX handle invalid arguments with an error return */
     dm->tldr = ~0UL - TIMER_INTERVAL_TICKS(ns);
 
     /* Reset the read register. */
@@ -92,17 +99,18 @@ dm_periodic(uint64_t ns)
 
     /* Set autoreload and start the timer. */
     dm->tclr = TCLR_AUTORELOAD | TCLR_STARTTIMER;
+    return 0;
 }
 
 static int
-dm_oneshot_absolute(uint64_t ns)
+dm_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
 {
     assert(!"Not implemented");
     return ENOSYS;
 }
 
 static int
-dm_oneshot_relative(uint64_t ns)
+dm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
     assert(!"Not implemented");
     return ENOSYS;
@@ -116,7 +124,7 @@ dm_get_time(const pstimer_t *timer)
 }
 
 static void
-dm_handle_irq(const pstimer_t *timer)
+dm_handle_irq(const pstimer_t *timer, uint32_t irq)
 {
     /* nothing */
 }
@@ -124,7 +132,7 @@ dm_handle_irq(const pstimer_t *timer)
 static uint32_t
 dm_get_nth_irq(const pstimer_t *timer, uint32_t n)
 {
-    return DMTIMER2_INTTERRUPT;
+    return DMTIMER2_INTERRUPT;
 }
 
 static pstimer_t singleton_timer;
@@ -135,8 +143,8 @@ dm_get_timer(void *vaddr)
     pstimer_t *timer = &singleton_timer;
 
     timer->properties.upcounter = false;
-    timer->properties.timeouts = 1;
-    timer->properties.bitwidth = 32;
+    timer->properties.timeouts = true;
+    timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 
     /* data just points to the dm itself for now */

@@ -11,7 +11,7 @@
 #define _PLATSUPPORT_PLAT_MUX_H
 
 enum mux_feature {
-    NMUX_FEATURES = 0
+    NMUX_FEATURES
 };
 
 #endif /* _PLATSUPPORT_PLAT_MUX_H */
