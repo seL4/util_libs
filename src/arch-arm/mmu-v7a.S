@@ -55,8 +55,8 @@ arm_enable_mmu:
     ldr     r0, =_boot_pd
     orr     r1, r0, #0x19
     mcr     p15, 0, r1, c2, c0, 0
-    /* Invalidate TLB */
-    mcr     p15, 0, r1, c8, c6, 0 
+    /* Invalidate entire TLB (TLBIALL) */
+    mcr     p15, 0, r1, c8, c7, 0
 
     /*
      * Setup client to only have access to domain 0, and setup
