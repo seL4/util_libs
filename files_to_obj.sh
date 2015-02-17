@@ -66,7 +66,6 @@ for i in $@; do
 done
 pushd "${TEMP_DIR}/cpio" >/dev/null
 ARCHIVE="${TEMP_DIR}/archive.cpio"
-${TOOLPREFIX}strip --strip-all * 2> /dev/null || true
 ls | cpio -o -H newc > ${ARCHIVE} 2>/dev/null
 
 # Strip CPIO metadata if possible.
