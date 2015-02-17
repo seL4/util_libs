@@ -139,7 +139,7 @@ typedef enum dma_cache_op {
  *
  * @param cookie Cookie for the dma manager
  * @param size Size in bytes of the dma memory region
- * @param align Alignemnt in bytes of the dma region
+ * @param align Alignment in bytes of the dma region
  * @param cached Whether the region should be mapped cached or not
  * @param flags Memory access flags
  *
@@ -159,7 +159,7 @@ typedef void (*ps_dma_free_fn_t)(void *cookie, void *addr, size_t size);
 /**
  * Pin a piece of memory. This ensures it is resident and has a translation until
  * it is unpinned. You should not pin a memory range that overlaps with another
- * pinned range. If pinning is successfull memory is guaranteed to be contiguous
+ * pinned range. If pinning is successful memory is guaranteed to be contiguous
  * in physical memory.
  *
  * @param cookie Cookie for the dma manager
