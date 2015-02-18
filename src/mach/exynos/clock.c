@@ -19,8 +19,6 @@
 #define PLL_PMS_MASK    PLL_PMS(0x3f, 0x1ff, 0x3)
 #define PLL_ENABLE      BIT(31)
 #define PLL_LOCKED      BIT(29)
-/* CON1 */
-#define PLL_BYPASS      BIT(22)
 
 
 
@@ -121,17 +119,18 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     int mhz = hz / (1 * MHZ);
     uint32_t pms;
     int i;
-    int clkid, c, r, o;
+    int clkid, c, r, o, pll_idx;
+    /* get clk regs address and clkid */
     clk_regs = clk_get_clk_regs(clk);
     pll_priv = exynos_clk_get_priv_pll(clk);
     clkid = pll_priv->clkid;
+    pll_idx = pll_priv->pll_offset;
     clkid_decode(clkid, &c, &r, &o);
-
+    /* prepare searching the correct frequency parameter */
     tbl = pll_priv->tbl;
     tbl_size = pll_priv->pll_tbl_size;
-    pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[r];
-
-    /* Search the table for an appropriate value */
+    pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
+    /* Search the table for an appropriate frequency value and get parameters */
     pms = tbl[tbl_size - 1].pms;
     for (i = 0; i < tbl_size; i++) {
         if (tbl[i].mhz >= mhz) {
@@ -139,11 +138,13 @@ _pll_set_freq(clk_t* clk, freq_t hz)
             break;
         }
     }
-    pll_regs->con1 |= PLL_BYPASS;
+    /* set PLL_FOUT to XXTI and bypass PLL */
+    exynos_cmu_set_src(clk_regs, clkid, 0x0);
     pll_regs->con0 = pms | PLL_ENABLE;
     while (!(pll_regs->con0 & PLL_LOCKED));
-    pll_regs->con1 &= ~PLL_BYPASS;
-    /* Can we handle this ourselves? */
+    /* PLL is configured, set PLL_FOUT to PLL */
+    exynos_cmu_set_src(clk_regs, clkid, 0x1);
+
     return clk_get_freq(clk);
 }
 
