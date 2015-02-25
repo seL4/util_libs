@@ -16,10 +16,11 @@
 #define DIV_VAL_BITS 4
 
 /* CON 0 */
-#define PLL_PMS_MASK    PLL_PMS(0x3f, 0x1ff, 0x3)
+#define PLL_MPS_MASK    (0x01ff3f07)
 #define PLL_ENABLE      BIT(31)
 #define PLL_LOCKED      BIT(29)
-
+/* CON 1*/
+#define PLL_K_MASK      (0xffff)
 
 
 /***********
@@ -91,19 +92,17 @@ _pll_get_freq(clk_t* clk)
     clkid = pll_priv->clkid;
     pll_idx = pll_priv->pll_offset;
     clkid_decode(clkid, &c, &r, &o);
-
     pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
     muxstat = exynos_cmu_get_srcstat(clk_regs, clkid);
-
-    if ((pll_regs->con1) & PLL_BYPASS || (muxstat & 0x1)) {
+    if (muxstat & 0x1) {
         /* Muxed or bypassed to FINPLL */
         return clk_get_freq(clk->parent);
     } else {
         uint32_t v, p, m, s;
-        v = pll_regs->con0 & PLL_PMS_MASK;
+        v = pll_regs->con0 & PLL_MPS_MASK;
         m = (v >> 16) & 0x1ff;
         p = (v >>  8) &  0x3f;
-        s = (v >>  0) &   0x3;
+        s = (v >>  0) &   0x7;
         return ((uint64_t)clk_get_freq(clk->parent) * m / p) >> s;
     }
 }
@@ -114,12 +113,14 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     volatile struct pll_regs* pll_regs;
     const struct pll_priv* pll_priv;
     clk_regs_io_t** clk_regs;
-    struct pms_tbl *tbl;
+    struct mpsk_tbl *tbl;
     int tbl_size;
     int mhz = hz / (1 * MHZ);
-    uint32_t pms;
+    uint32_t mps, k;
+    uint32_t con0, con1;
     int i;
     int clkid, c, r, o, pll_idx;
+
     /* get clk regs address and clkid */
     clk_regs = clk_get_clk_regs(clk);
     pll_priv = exynos_clk_get_priv_pll(clk);
@@ -131,16 +132,22 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     tbl_size = pll_priv->pll_tbl_size;
     pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
     /* Search the table for an appropriate frequency value and get parameters */
-    pms = tbl[tbl_size - 1].pms;
+    mps = tbl[tbl_size - 1].mps;
+    k   = tbl[tbl_size - 1].k;
     for (i = 0; i < tbl_size; i++) {
         if (tbl[i].mhz >= mhz) {
-            pms = tbl[i].pms;
+            mps = tbl[i].mps;
+            k = tbl[i].k;
             break;
         }
     }
     /* set PLL_FOUT to XXTI and bypass PLL */
     exynos_cmu_set_src(clk_regs, clkid, 0x0);
-    pll_regs->con0 = pms | PLL_ENABLE;
+    /* updating involved bits in con0 and con1 regs */
+    con0 = pll_regs->con0 & ~PLL_MPS_MASK;
+    con1 = pll_regs->con1 & ~PLL_K_MASK;
+    pll_regs->con1 = (con1 | k);
+    pll_regs->con0 = (con0 | mps | PLL_ENABLE);
     while (!(pll_regs->con0 & PLL_LOCKED));
     /* PLL is configured, set PLL_FOUT to PLL */
     exynos_cmu_set_src(clk_regs, clkid, 0x1);

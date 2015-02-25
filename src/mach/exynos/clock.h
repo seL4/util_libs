@@ -41,8 +41,7 @@
 #define CLK_GATE_PASS        0x1
 
 
-#define PLL_PMS(p,m,s)       (              ((m) << 16) | ((p) << 8) | ((s) << 0))
-#define PLL_PMSK(p,m,s,k)    (((k) << 24) | ((m) << 16) | ((p) << 8) | ((s) << 0))
+#define PLL_MPS(m,p,s)       (((m) << 16) | ((p) << 8) | ((s) << 0))
 
 struct pll_regs {
     uint32_t lock;
@@ -66,14 +65,15 @@ struct clk_regs {
 };
 typedef volatile struct clk_regs clk_regs_io_t;
 
-struct pms_tbl {
-    int mhz;
-    uint32_t pms;
+struct mpsk_tbl {
+    uint32_t mhz;
+    uint32_t mps;
+    uint32_t k;
 };
 
 enum pll_tbl_type {
-    PLLTYPE_PMS,
-    PLLTYPE_PMSK
+    PLLTYPE_MPS,
+    PLLTYPE_MPSK
 };
 
 struct pll_priv {
@@ -191,7 +191,7 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
     clkid_decode(clkid, &c, &r, &o);
     clkbf_set(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span, div);
     /* Wait for changes to take affect */
-    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIV_BITS, CLK_DIV_BITS));
+    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIV_BITS, 0x1));   
 }
 
 
