@@ -13,7 +13,6 @@
 
 #include <platsupport/io.h>
 
-struct ps_chardevice;
 struct ps_clk;
 typedef struct ps_chardevice ps_chardevice_t;
 
