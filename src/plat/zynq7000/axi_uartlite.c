@@ -42,7 +42,8 @@ zynq7000_axi_uartlite_get_priv(ps_chardevice_t *d)
     return (zynq7000_axi_uartlite_regs_t*)d->vaddr;
 }
 
-static int axi_uartlite_getchar(ps_chardevice_t *d) {
+static int axi_uartlite_getchar(ps_chardevice_t *d)
+{
     zynq7000_axi_uartlite_regs_t *regs =
         zynq7000_axi_uartlite_get_priv(d);
 
@@ -56,7 +57,11 @@ static int axi_uartlite_getchar(ps_chardevice_t *d) {
     return c;
 }
 
-static int axi_uartlite_putchar(ps_chardevice_t *d, int c) {
+static int axi_uartlite_putchar(ps_chardevice_t *d, int c)
+{
+
+    static int needs_newline = 0;
+
     zynq7000_axi_uartlite_regs_t *regs =
         zynq7000_axi_uartlite_get_priv(d);
 
@@ -64,7 +69,28 @@ static int axi_uartlite_putchar(ps_chardevice_t *d, int c) {
     if (regs->sr & AXI_UARTLITE_SR_TX_FIFO_FULL) {
         return -1;
     } else {
-        regs->tx_fifo = c;
+        if (needs_newline) {
+            /* if the last putchar was a '\n' and the fifo filled after
+             * only the '\r' was sent, send the remaining '\n' here */
+            regs->tx_fifo = '\n';
+            needs_newline = 0;
+            if (regs->sr & AXI_UARTLITE_SR_TX_FIFO_FULL) {
+                return -1;
+            }
+        }
+        if (c == '\n') {
+            regs->tx_fifo = '\r';
+            /* the fifo may have filled after sending the '\r' */
+            if (regs->sr & AXI_UARTLITE_SR_TX_FIFO_FULL) {
+                needs_newline = 1;
+                /* even if the '\n' didn't get sent on this call, still
+                 * return '\n', as it will still eventually be sent */
+            } else {
+                regs->tx_fifo = '\n';
+            }
+        } else {
+            regs->tx_fifo = c;
+        }
         return c;
     }
 }
@@ -98,7 +124,8 @@ static ssize_t axi_uartlite_read(ps_chardevice_t* d, void* vdata,
     return count;
 }
 
-int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev) {
+int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev)
+{
 
 
     memset(dev, 0, sizeof(*dev));
@@ -119,8 +146,8 @@ int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev) {
 }
 
 int axi_uartlite_init_defn(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+                           const ps_io_ops_t* ops,
+                           ps_chardevice_t* dev)
 {
 
     void *vaddr = chardev_map(defn, ops);
