@@ -31,6 +31,7 @@
 #define CLK_SRCSTAT_BITS     4
 #define CLK_SRCMASK_BITS     4
 #define CLK_DIV_BITS         4
+#define CLK_DIVSTAT_BIT      1
 #define CLK_DIVSTAT_BITS     4
 #define CLK_GATE_BITS        4
 
@@ -77,7 +78,7 @@ enum pll_tbl_type {
 };
 
 struct pll_priv {
-    struct pms_tbl* tbl;
+    struct mpsk_tbl* tbl;
     enum pll_tbl_type type;
     int pll_tbl_size;
     int pll_offset;
@@ -191,7 +192,8 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
     clkid_decode(clkid, &c, &r, &o);
     clkbf_set(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span, div);
     /* Wait for changes to take affect */
-    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIV_BITS, 0x1));   
+    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS,
+                 CLK_DIVSTAT_BIT));
 }
 
 

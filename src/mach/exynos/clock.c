@@ -16,11 +16,11 @@
 #define DIV_VAL_BITS 4
 
 /* CON 0 */
-#define PLL_MPS_MASK    (0x01ff3f07)
+#define PLL_MPS_MASK    PLL_MPS(0x1ff, 0x3f, 0x7)
 #define PLL_ENABLE      BIT(31)
 #define PLL_LOCKED      BIT(29)
 /* CON 1*/
-#define PLL_K_MASK      (0xffff)
+#define PLL_K_MASK      MASK(16)
 
 
 /***********
@@ -146,7 +146,9 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     /* updating involved bits in con0 and con1 regs */
     con0 = pll_regs->con0 & ~PLL_MPS_MASK;
     con1 = pll_regs->con1 & ~PLL_K_MASK;
-    pll_regs->con1 = (con1 | k);
+    if (pll_priv->type == PLLTYPE_MPSK) {
+        pll_regs->con1 = (con1 | k);
+    }
     pll_regs->con0 = (con0 | mps | PLL_ENABLE);
     while (!(pll_regs->con0 & PLL_LOCKED));
     /* PLL is configured, set PLL_FOUT to PLL */
