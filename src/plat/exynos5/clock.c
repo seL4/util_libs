@@ -83,67 +83,67 @@ volatile struct clk_regs* _clk_regs[NCLKREGS];
 static struct clock master_clk = { CLK_OPS(MASTER, default_clk, NULL) };
 
 
-static struct pms_tbl _ambcgpll_tbl[] = {
-    {  200, PLL_PMS( 3, 100, 2) },
-    {  333, PLL_PMS( 4, 222, 2) },
-    {  400, PLL_PMS( 3, 100, 1) },
-    {  533, PLL_PMS(12, 533, 1) },
-    {  600, PLL_PMS( 4, 200, 1) },
-    {  667, PLL_PMS( 7, 389, 1) },
-    {  800, PLL_PMS( 3, 100, 0) },
-    { 1000, PLL_PMS( 3, 125, 0) },
-    { 1066, PLL_PMS(12, 533, 0) },
-    { 1200, PLL_PMS( 3, 150, 0) },
-    { 1400, PLL_PMS( 3, 175, 0) },
-    { 1600, PLL_PMS( 3, 200, 0) }
+static struct mpsk_tbl _ambcgpll_tbl[] = {
+    {  200, PLL_MPS( 100,  3, 2), 0 },
+    {  333, PLL_MPS( 222,  4, 2), 0 },
+    {  400, PLL_MPS( 100,  3, 1), 0 },
+    {  533, PLL_MPS( 533, 12, 1), 0 },
+    {  600, PLL_MPS( 200,  4, 1), 0 },
+    {  667, PLL_MPS( 389,  7, 1), 0 },
+    {  800, PLL_MPS( 100,  3, 0), 0 },
+    { 1000, PLL_MPS( 125,  3, 0), 0 },
+    { 1066, PLL_MPS( 533, 12, 0), 0 },
+    { 1200, PLL_MPS( 150,  3, 0), 0 },
+    { 1400, PLL_MPS( 175,  3, 0), 0 },
+    { 1600, PLL_MPS( 200,  3, 0), 0 }
 };
 
-static struct pms_tbl _epll_tbl[] = {
-    {  33, PLL_PMSK(3, 131, 5,  4719) },
-    {  45, PLL_PMSK(3,  90, 4, 20762) },
-    {  48, PLL_PMSK(2,  64, 4,     0) },
-    {  49, PLL_PMSK(3,  98, 4, 19923) },
-    {  50, PLL_PMSK(2,  67, 4, 43691) },
-    {  68, PLL_PMSK(2,  90, 4, 20762) },
-    {  74, PLL_PMSK(2,  98, 4, 19923) },
-    {  80, PLL_PMSK(2, 107, 4, 43691) },
-    {  84, PLL_PMSK(2, 112, 4,     0) },
-    {  96, PLL_PMSK(2,  64, 3,     0) },
-    { 144, PLL_PMSK(2,  96, 3,     0) },
-    { 192, PLL_PMSK(2,  64, 2,     0) },
-    { 288, PLL_PMSK(2,  96, 2,     0) },
+static struct mpsk_tbl _epll_tbl[] = {
+    {  33, PLL_MPS( 131, 3, 5),  4719 },
+    {  45, PLL_MPS(  90, 3, 4), 20762 },
+    {  48, PLL_MPS(  64, 2, 4),     0 },
+    {  49, PLL_MPS(  98, 3, 4), 19923 },
+    {  50, PLL_MPS(  67, 2, 4), 43691 },
+    {  68, PLL_MPS(  90, 2, 4), 20762 },
+    {  74, PLL_MPS(  98, 2, 4), 19923 },
+    {  80, PLL_MPS( 107, 2, 4), 43691 },
+    {  84, PLL_MPS( 112, 2, 4),     0 },
+    {  96, PLL_MPS(  64, 2, 3),     0 },
+    { 144, PLL_MPS(  96, 2, 3),     0 },
+    { 192, PLL_MPS(  64, 2, 2),     0 },
+    { 288, PLL_MPS(  96, 2, 2),     0 },
 };
 
-static struct pms_tbl _vpll_tbl[] = {
-    {  27, PLL_PMSK(2,  72, 5,     0) },
-    {  54, PLL_PMSK(2,  72, 4,     0) },
-    {  74, PLL_PMSK(2,  99, 4,     0) },
-    { 108, PLL_PMSK(2,  72, 3,     0) },
-    { 148, PLL_PMSK(2,  99, 3, 59070) },
-    { 149, PLL_PMSK(2,  99, 3,     0) },
-    { 223, PLL_PMSK(2,  74, 2, 16384) },
-    { 300, PLL_PMSK(2, 100, 2,     0) },
-    { 320, PLL_PMSK(2, 107, 2, 43691) },
-    { 330, PLL_PMSK(2, 110, 2,     0) },
-    { 333, PLL_PMSK(2, 111, 2,     0) },
-    { 335, PLL_PMSK(2, 112, 2, 43691) },
-    { 371, PLL_PMSK(2,  62, 1, 53292) },
-    { 445, PLL_PMSK(3, 111, 1, 17285) },
-    { 446, PLL_PMSK(2,  74, 1, 16384) },
-    { 519, PLL_PMSK(3, 130, 1, 52937) },
-    { 600, PLL_PMSK(2, 100, 1,     0) },
+static struct mpsk_tbl _vpll_tbl[] = {
+    {  27, PLL_MPS(  72, 2, 5),     0 },
+    {  54, PLL_MPS(  72, 2, 4),     0 },
+    {  74, PLL_MPS(  99, 2, 4),     0 },
+    { 108, PLL_MPS(  72, 2, 3),     0 },
+    { 148, PLL_MPS(  99, 2, 3), 59070 },
+    { 149, PLL_MPS(  99, 2, 3),     0 },
+    { 223, PLL_MPS(  74, 2, 2), 16384 },
+    { 300, PLL_MPS( 100, 2, 2),     0 },
+    { 320, PLL_MPS( 107, 2, 2), 43691 },
+    { 330, PLL_MPS( 110, 2, 2),     0 },
+    { 333, PLL_MPS( 111, 2, 2),     0 },
+    { 335, PLL_MPS( 112, 2, 2), 43691 },
+    { 371, PLL_MPS(  62, 2, 1), 53292 },
+    { 445, PLL_MPS( 111, 3, 1), 17285 },
+    { 446, PLL_MPS(  74, 2, 1), 16384 },
+    { 519, PLL_MPS( 130, 3, 1), 52937 },
+    { 600, PLL_MPS( 100, 2, 1),     0 },
 };
 
 
 
 
-static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, PMS, _ambcgpll_tbl);
-static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, PMS, _ambcgpll_tbl);
-static struct pll_priv sclkcpll_priv = PLL_PRIV(SCLKCPLL, PMS, _ambcgpll_tbl);
-static struct pll_priv sclkgpll_priv = PLL_PRIV(SCLKGPLL, PMS, _ambcgpll_tbl);
+static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, MPS, _ambcgpll_tbl);
+static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, MPS, _ambcgpll_tbl);
+static struct pll_priv sclkcpll_priv = PLL_PRIV(SCLKCPLL, MPS, _ambcgpll_tbl);
+static struct pll_priv sclkgpll_priv = PLL_PRIV(SCLKGPLL, MPS, _ambcgpll_tbl);
 
-static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, PMSK, _epll_tbl);
-static struct pll_priv sclkvpll_priv = PLL_PRIV(SCLKVPLL, PMSK, _vpll_tbl);
+static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, MPSK, _epll_tbl);
+static struct pll_priv sclkvpll_priv = PLL_PRIV(SCLKVPLL, MPSK, _vpll_tbl);
 
 static struct clock sclkmpll_clk  = { CLK_OPS(SCLKMPLL, pll, &sclkmpll_priv) };
 static struct clock sclkbpll_clk  = { CLK_OPS(SCLKBPLL, pll, &sclkbpll_priv) };
