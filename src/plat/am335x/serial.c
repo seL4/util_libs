@@ -27,6 +27,10 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 {
     while (!(*REG_PTR(d->vaddr, USR1) & UART_SR1_TRDY));
     *REG_PTR(d->vaddr, UTXD) = c;
+    if (c == '\n') {
+        uart_putchar(d, '\r');
+    }
+
     return c;
 }
 
