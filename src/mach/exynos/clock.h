@@ -135,6 +135,19 @@ clkid_decode(int clkid, int* cmu, int* reg, int* off)
 }
 
 static inline int
+clkid_change_reg(int clkid, int change)
+{
+    int r;
+    /* extract reg value and apply change */
+    r = CLKID_GET_IDX(clkid) + (change);
+    /* erase old reg value out of clkid */
+    clkid &= ~(0x3f << 3);
+    /* return clkid with new reg offset value */
+    return clkid | ((r & 0x3f) << 3);
+}
+
+
+static inline int
 clkbf_get(volatile uint32_t* reg, int start_bit, int nbits)
 {
     uint32_t v;
