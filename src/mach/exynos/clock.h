@@ -29,7 +29,10 @@
 
 #define CLK_SRC_BITS         4
 #define CLK_SRCSTAT_BITS     4
+#define CLK_SRCMASK_BIT      1
 #define CLK_SRCMASK_BITS     4
+#define CLK_SRCMASK_ENABLE   1
+#define CLK_SRCMASK_DISABLE  0
 #define CLK_DIV_BITS         4
 #define CLK_DIVSTAT_BIT      1
 #define CLK_DIVSTAT_BITS     4
@@ -173,8 +176,15 @@ exynos_cmu_set_src(clk_regs_io_t** regs, int clkid, int src)
     clkid_decode(clkid, &c, &r, &o);
     /* Configure source */
     clkbf_set(&regs[c]->src[r], o * CLK_SRC_BITS, CLK_SRC_BITS, src);
-    /* Unmask the source */
-    clkbf_set(&regs[c]->srcmask[r], o * CLK_SRCMASK_BITS, CLK_SRCMASK_BITS, 1);
+}
+
+static inline void
+exynos_cmu_set_src_mask(clk_regs_io_t** regs, int clkid, int val)
+{
+    int c, r, o;
+    clkid_decode(clkid, &c, &r, &o);
+    /* Mask / unmask the clock source */
+    clkbf_set(&regs[c]->srcmask[r], o * CLK_SRCMASK_BITS, CLK_SRCMASK_BIT, val);
 }
 
 static inline int
