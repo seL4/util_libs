@@ -20,6 +20,7 @@
 #include <utils/compile_time.h>
 #include <utils/debug.h>
 #include <utils/formats.h>
+#include <utils/kconfig.h>
 #include <utils/list.h>
 #include <utils/page.h>
 #include <utils/stringify.h>
