@@ -11,12 +11,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include "serial.h"
-#include <sel4/sel4.h>
 
 #define RHR         0x00
 #define THR         0x00
+#define IER         0x04
 #define LSR         0x14
 #define RHR_MASK    MASK(8)
+#define IER_RHRIT   BIT(0)
 #define LSR_TXFIFOE BIT(5)
 #define LSR_RXFIFOE BIT(0)
 
@@ -47,7 +48,7 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
-    /* TODO */
+    /* nothing to do */
 }
 
 
@@ -101,6 +102,7 @@ int uart_init(const struct dev_defn* defn,
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
 
+    *REG_PTR(dev->vaddr, IER) = IER_RHRIT;
     return 0;
 }
 
