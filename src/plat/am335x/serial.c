@@ -11,22 +11,32 @@
 #include <string.h>
 #include <stdlib.h>
 #include "serial.h"
+#include <sel4/sel4.h>
 
-#define UART_SR1_TRDY  BIT(5)
-#define UTXD           0x00
-#define USR1           0x14
+#define RHR         0x00
+#define THR         0x00
+#define LSR         0x14
+#define RHR_MASK    MASK(8)
+#define LSR_TXFIFOE BIT(5)
+#define LSR_RXFIFOE BIT(0)
 
 #define REG_PTR(base, off)     ((volatile uint32_t *)((base) + (off)))
 
 static int uart_getchar(ps_chardevice_t *d)
 {
-    return EOF; // XXX
+    int ch = EOF;
+
+    if (*REG_PTR(d->vaddr, LSR) & LSR_RXFIFOE) {
+        ch = *REG_PTR(d->vaddr, RHR) & RHR_MASK;
+    }
+    return ch;
 }
 
 static int uart_putchar(ps_chardevice_t* d, int c)
 {
-    while (!(*REG_PTR(d->vaddr, USR1) & UART_SR1_TRDY));
-    *REG_PTR(d->vaddr, UTXD) = c;
+    while (!(*REG_PTR(d->vaddr, LSR) & LSR_TXFIFOE))
+        continue;
+    *REG_PTR(d->vaddr, THR) = c;
     if (c == '\n') {
         uart_putchar(d, '\r');
     }
