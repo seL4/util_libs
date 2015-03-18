@@ -14,6 +14,7 @@
 
 #include <string.h>
 #include <platsupport/plat/rtc.h>
+#include <utils/util.h>
 
 #define UNBCD(x) (( (x) & 0x0F) + (( (x) / 16) * 10))
 
@@ -31,7 +32,7 @@ static inline int current_year()
 
 static unsigned char get_RTC_register(ps_io_port_ops_t *port_ops, int reg)
 {
-    int error;
+    int error UNUSED;
     error = ps_io_port_out(port_ops, CMOS_ADDRESS, 1, reg);
     assert(!error);
     uint32_t val;

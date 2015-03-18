@@ -11,6 +11,7 @@
 #include "serial.h"
 #include <stdlib.h>
 #include <string.h>
+#include <utils/util.h>
 
 /*
  * Port offsets
@@ -44,7 +45,7 @@ static int serial_getchar(ps_chardevice_t *device)
     uint32_t io_port = (uint32_t) device->vaddr;
 
     /* Check if character is available. */
-    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    int error UNUSED = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
     assert(!error);
     if (!(res & SERIAL_LSR_DATA_READY)) {
         return -1;
