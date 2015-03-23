@@ -13,7 +13,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <sel4/sel4.h>
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -21,8 +20,7 @@
 
 #include "../../stubtimer.h"
 
-#ifdef CONFIG_ARCH_ARM_V7A
-#ifdef CONFIG_ARM_CORTEX_A15
+#ifdef CONFIG_EXPORT_PCNT_USER
 
 /*
  * This timer will only work if the kernel has configured
@@ -72,11 +70,6 @@ generic_timer_get_timer(void)
     pstimer_t *timer = &singleton_timer;
     uint32_t freq = 0;
 
-    /* try to enable the timer */
-#ifdef CONFIG_DANGEROUS_CODE_INJECTION
-    seL4_DebugRun(enable_timer, 0);
-#endif /* CONFIG_DANGEROUS_CODE_INJECTION */
-
     /* try to read the frequency */
     MRC(CNTFRQ, freq);
 
@@ -104,5 +97,4 @@ generic_timer_get_timer(void)
     return timer;
 }
 
-#endif /* CONFIG_ARCH_ARM_V7A */
-#endif /* CONFIG_ARM_CORTEX_A15 */
+#endif /* CONFIG_EXPORT_PCNT_USER */
