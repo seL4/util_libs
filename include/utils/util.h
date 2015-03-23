@@ -26,6 +26,7 @@
 #include <utils/stringify.h>
 #include <utils/stack.h>
 #include <utils/time.h>
+#include <utils/math.h>
 
 #define TRUE 1
 #define FALSE 0
