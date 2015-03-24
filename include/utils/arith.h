@@ -74,4 +74,32 @@
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
+/* Clamp a value between two limits. Sample usage: CLAMP(-3, 7, 4) == 4. */
+#define CLAMP(min, value, max) \
+    ({  typeof (max) _max = (max); \
+        typeof (min) _min = (min); \
+        typeof (value) _value = (value); \
+        if (_value > _max) { \
+            _value = _max; \
+        } else if (_value < _min) { \
+            _value = _min; \
+        } \
+        _value;  })
+
+/* Clamp an addition. Sample usage: CLAMP_ADD(1<<30, 1<<30, INT_MAX) == INT_MAX. */
+#define CLAMP_ADD(operand1, operand2, limit) \
+    ({  typeof (operand1) _op1 = (operand1); \
+        typeof (operand2) _op2 = (operand2); \
+        typeof (limit) _limit = (limit); \
+        _limit - _op2 < _op1 ? _limit : _op1 + _op2;  })
+
+/* Clamp a subtraction. Sample usage:
+ *   CLAMP_SUB(-1 * (1<<30), -1 * (1<<30), INT_MIN) == INT_MIN.
+ */
+#define CLAMP_SUB(operand1, operand2, limit) \
+    ({  typeof (operand1) _op1 = (operand1); \
+        typeof (operand2) _op2 = (operand2); \
+        typeof (limit) _limit = (limit); \
+        _limit + _op2 > _op1 ? _limit : _op1 - _op2;  })
+
 #endif /* _UTILS_ARITH_H */
