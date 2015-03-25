@@ -33,6 +33,8 @@ tsc_calculate_frequency(pstimer_t *timer)
     if (!timer->properties.timeouts) {
         return 0;
     }
+    /* make the timer count */
+    timer_start(timer);
     do {
         switch (timer_periodic(timer, wait_ns)) {
         case ENOSYS:
@@ -82,6 +84,8 @@ tsc_calculate_frequency(pstimer_t *timer)
         last_time = current_time;
     }
     uint64_t end_time = rdtsc_pure();
+    /* we're done with the timer */
+    timer_stop(timer);
     /* well that was a fucking trial. Now hopefully we got something sane */
     return (end_time - start_time) / WAIT_SECONDS;
 }
