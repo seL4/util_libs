@@ -58,7 +58,7 @@ exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func)
     v |= func << BITFIELD_SHIFT(pin, 4);
     DMUX("con.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
     cfg->con = v;
-    cfg->conpdn = 0x3;
+    cfg->conpdn |= 0x3 << BITFIELD_SHIFT(pin, 2);
 }
 
 static void

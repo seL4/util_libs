@@ -29,7 +29,10 @@
 
 #define CLK_SRC_BITS         4
 #define CLK_SRCSTAT_BITS     4
+#define CLK_SRCMASK_BIT      1
 #define CLK_SRCMASK_BITS     4
+#define CLK_SRCMASK_ENABLE   1
+#define CLK_SRCMASK_DISABLE  0
 #define CLK_DIV_BITS         4
 #define CLK_DIVSTAT_BIT      1
 #define CLK_DIVSTAT_BITS     4
@@ -132,6 +135,19 @@ clkid_decode(int clkid, int* cmu, int* reg, int* off)
 }
 
 static inline int
+clkid_change_reg(int clkid, int change)
+{
+    int r;
+    /* extract reg value and apply change */
+    r = CLKID_GET_IDX(clkid) + (change);
+    /* erase old reg value out of clkid */
+    clkid &= ~(0x3f << 3);
+    /* return clkid with new reg offset value */
+    return clkid | ((r & 0x3f) << 3);
+}
+
+
+static inline int
 clkbf_get(volatile uint32_t* reg, int start_bit, int nbits)
 {
     uint32_t v;
@@ -173,8 +189,15 @@ exynos_cmu_set_src(clk_regs_io_t** regs, int clkid, int src)
     clkid_decode(clkid, &c, &r, &o);
     /* Configure source */
     clkbf_set(&regs[c]->src[r], o * CLK_SRC_BITS, CLK_SRC_BITS, src);
-    /* Unmask the source */
-    clkbf_set(&regs[c]->srcmask[r], o * CLK_SRCMASK_BITS, CLK_SRCMASK_BITS, 1);
+}
+
+static inline void
+exynos_cmu_set_src_mask(clk_regs_io_t** regs, int clkid, int val)
+{
+    int c, r, o;
+    clkid_decode(clkid, &c, &r, &o);
+    /* Mask / unmask the clock source */
+    clkbf_set(&regs[c]->srcmask[r], o * CLK_SRCMASK_BITS, CLK_SRCMASK_BIT, val);
 }
 
 static inline int
@@ -190,7 +213,7 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
-    clkbf_set(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span, div);
+    clkbf_set(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span, --div);
     /* Wait for changes to take affect */
     while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS,
                  CLK_DIVSTAT_BIT));
