@@ -58,8 +58,11 @@ libpci_device_t* libpci_find_device(uint16_t vendor_id, uint16_t device_id);
  * be of at least size PCI_MAX_DEVICES to be safe. */
 int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device_t** out);
 
-/* Return the first device matching the bus, dev, and fun of given device struct. */
+/* Return the first device matching the bus, dev, fun, vendor and device id of given device struct. */
 libpci_device_t* libpci_find_device_matching(libpci_device_t *device);
+
+/* Return a device, if one exists, on the given bus, dev and fun */
+libpci_device_t* libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun);
 
 /* Scan the entire PCI space, find every device and popular device structures. */
 void libpci_scan(ps_io_port_ops_t port_ops);

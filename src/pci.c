@@ -77,6 +77,17 @@ libpci_device_t* libpci_find_device_matching(libpci_device_t *device) {
     return NULL;
 }
 
+libpci_device_t* libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun) {
+    for (uint32_t i = 0; i < libpci_num_devices; i++) {
+        if (libpci_device_list[i].bus == bus &&
+            libpci_device_list[i].dev == dev &&
+            libpci_device_list[i].fun == fun) {
+            return &libpci_device_list[i];
+        }
+    }
+    return NULL;
+}
+
 static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     uint16_t vendor_id = libpci_read_reg16(bus, dev, fun, PCI_VENDOR_ID);
 
