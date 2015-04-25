@@ -209,7 +209,7 @@ install-headers:
 		mkdir -p $(SEL4_INCLUDEDIR) ; \
 		echo " [HEADERS]"; \
 		for file in $(HDRFILES); do \
-			echo -n " [STAGE] "; echo -n `basename $$file`; \
+			printf " [STAGE] "; printf `basename $$file`; \
 			if [ -d $$file ]; then echo "/*"; else echo; fi; \
 			cp -aL $$file $(SEL4_INCLUDEDIR) ; \
 		done; \
@@ -222,7 +222,7 @@ install-headers:
 			dest=$(SEL4_INCLUDEDIR)/`echo "$$hdrfile" | sed 's/^.*[ \t]\([^ \t]*\)$$/\1/'` ; \
 			mkdir -p $$dest; \
 			cp -a $$source $$dest ; \
-			echo -n " [STAGE]"; basename $$dest; \
+			printf " [STAGE]"; basename $$dest; \
 		done ; \
 	fi
 

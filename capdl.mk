@@ -57,14 +57,14 @@ specs: $(SEL4_SPECS) $(SEL4_MODULE_SPECS)
 
 $(SEL4_SPECS): $(CAPDL_SPECS)
 	$(Q) file=$@ ;\
-	echo -n "[STAGE/SPEC] "; echo -n "/$${file#$(SEL4_SPECDIR)/}"; \
+	printf "[STAGE/SPEC] "; printf "/$${file#$(SEL4_SPECDIR)/}"; \
 	if [ -d $${file#$(STAGE_BASE)/} ]; then echo "/*"; else echo ""; fi; \
 	mkdir -p `dirname $$file`; \
 	cp -a ${CAPDL_SPECDIR}/$${file#${SEL4_SPECDIR}/} `dirname $$file`  ;
 
 ${SEL4_SPECDIR}/modules/%/module.spec: ${SEL4_MODULES_PATH}/%/module.spec
 	$(Q) file=$@; \
-	echo -n "[STAGE/SPEC] "; echo "$${file#${SEL4_SPECDIR}/modules/}"; \
+	printf "[STAGE/SPEC] "; echo "$${file#${SEL4_SPECDIR}/modules/}"; \
 	mkdir -p `dirname $$file` ; \
 	cp -a ${SEL4_MODULES_PATH}/$${file#${SEL4_SPECDIR}/modules/} $$file ;
 
@@ -87,7 +87,7 @@ $(SEL4_SYSTEM_CAPDL): specs dm
 	@echo "[GEN_CAPDL_SPEC] done."
 $(BUILD_BASE)/capDL-loader/archive.o: export TOOLPREFIX=$(CONFIG_CROSS_COMPILER_PREFIX:"%"=%)
 $(BUILD_BASE)/capDL-loader/archive.o: $(SEL4_SYSTEM_CAPDL)
-	@echo -n "[CPIO ARCHIVE]"
+	@printf "[CPIO ARCHIVE]"
 	$(Q)mkdir -p $(dir $@)
 	@echo -e $(patsubst %,"\\n   [CPIO] % ",$(filter-out capDL-loader,$(modules)))
 	$(Q)${COMMON_PATH}/files_to_obj.sh $@ _capdl_archive $(patsubst %,$(STAGE_BASE)/bin/%,$(notdir $(filter-out capDL-loader, $(modules))));

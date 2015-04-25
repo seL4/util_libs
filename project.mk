@@ -239,7 +239,7 @@ all: .config kernel_elf
 
 cp_if_changed = \
 	@set -e; $(echo-cmd)  \
-	cmp -s $(1) $(2) || (cp $(1) $(2) && echo -n ' '; echo -n '[STAGE] '; basename $(2);)
+	cmp -s $(1) $(2) || (cp $(1) $(2) && printf ' '; printf '[STAGE] '; basename $(2);)
 
 $(KBUILD_ROOT)/.config: .config
 	$(Q)mkdir -p $(KBUILD_ROOT)
