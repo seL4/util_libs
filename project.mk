@@ -19,7 +19,6 @@ KERNEL_ROOT_PATH := ${PWD}/kernel
 COMMON_PATH := ${PWD}/tools/common
 SEL4_LIBS_PATH = ${PWD}/libs
 SEL4_APPS_PATH = ${PWD}/apps
-SEL4_MODULES_PATH = ${PWD}/modules
 DATA_PATH = ${PWD}/data
 KMAKE_FLAGS = $(COMMON_PATH)/Makefile.flags
 AUTOCONF_H_FILE := include/generated/autoconf.h
@@ -29,7 +28,7 @@ ifeq ($(lib-dirs),)
     old-kbuild-hack:=1
 endif
 
-export KERNEL_ROOT_PATH COMMON_PATH SEL4_LIBS_PATH SEL4_APPS_PATH SEL4_MODULES_PATH DATA_PATH
+export KERNEL_ROOT_PATH COMMON_PATH SEL4_LIBS_PATH SEL4_APPS_PATH DATA_PATH
 
 export BUILD_ROOT=${PWD}/build
 
@@ -114,10 +113,8 @@ KERNEL_ROOT_PATH = $(srctree)/kernel
 COMMON_PATH = $(srctree)/tools/common
 TOOLS_ROOT = $(srctree)/tools
 APPS_ROOT = $(srctree)/apps
-MODULES_ROOT = $(srctree)/modules
 SEL4_LIBS_PATH = $(srctree)/libs
 SEL4_APPS_PATH = $(srctree)/apps
-SEL4_MODULES_PATH = $(srctree)/modules
 KMAKE_FLAGS = $(COMMON_PATH)/Makefile.flags
 
 export COMMON_PATH
@@ -211,18 +208,6 @@ ifeq ($(old-kbuild-hack), 1)
     include $(SEL4_LIBS_PATH)/Kbuild
 else
     include Kbuild
-endif
-#
-# If 'capDL loader boot' is selected then we are
-# building a system using the driver framework.
-#
-ifdef CONFIG_CAPDL_LOADER_BOOT
-include $(SEL4_MODULES_PATH)/Kbuild
-modules = $(modules-y)
-include $(COMMON_PATH)/capdl.mk
-endif
-ifeq ($(old-kbuild-hack), 1)
-    include $(SEL4_APPS_PATH)/Kbuild
 endif
 
 libs = $(libs-y)
