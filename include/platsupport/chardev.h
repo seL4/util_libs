@@ -63,6 +63,8 @@ struct ps_chardevice {
     struct ps_clk* clk;
     /* OS specific memory operations */
     ps_io_ops_t ioops;
+    /* Device specific flags */
+    int flags;
 };
 
 /*
@@ -187,6 +189,16 @@ static inline int ps_cdev_produces_irq(const ps_chardevice_t* d, int irq)
         }
     }
     return 0;
+}
+
+/**
+ * Set the device specific flags.
+ * @param[in] d     The character device to set the flags to
+ * @param[in] flags The flags to set
+ */
+static inline void ps_cdev_set_flags(ps_chardevice_t* d, int flags)
+{
+    d->flags = flags;
 }
 
 #endif /* __PLATSUPPORT_CHARDEV_H__ */
