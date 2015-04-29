@@ -42,6 +42,8 @@ enum mux_feature {
     MUX_UART2_FLOW,
     MUX_UART3,
     MUX_UART3_FLOW,
+    MUX_SROM,
+    MUX_EBI,
     NMUX_FEATURES
 };
 

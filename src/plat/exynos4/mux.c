@@ -123,6 +123,68 @@ static struct mux_feature_data uart3_flow_data[] = {
     { .port = GPIOPORT_NONE }
 };
 
+/* EBI */
+static struct mux_feature_data srom_data[] = {
+    /* SROM_CSn[3:0] */
+    { .port = GPY0, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY0, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY0, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY0, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* SROM_WAITn */
+    { .port = GPY1, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* Terminate the list */
+    { .port = GPIOPORT_NONE }
+};
+
+static struct mux_feature_data ebi_data[] = {
+    /* EBI_OEn */
+    { .port = GPY0, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* EBI_WEn */
+    { .port = GPY0, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* EBI_BE[1:0] */
+    { .port = GPY1, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY1, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* EBI_ADDR[15:0] */
+    { .port = GPY3, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY3, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY4, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* EBI_DATA[15:0] */
+    { .port = GPY5, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY5, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 0, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 1, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 2, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 3, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 4, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 5, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 6, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    { .port = GPY6, .pin = 7, .value = MUXVALUE_CPD(2, PUD_PULLUP, DRV3X)},
+    /* Terminate the list */
+    { .port = GPIOPORT_NONE }
+};
+
+
+
+
 struct mux_feature_data* feature_data[] = {
     [MUX_I2C0]       = i2c0_data,
     [MUX_I2C1]       = i2c1_data,
@@ -143,6 +205,8 @@ struct mux_feature_data* feature_data[] = {
     [MUX_UART1_FLOW] = uart1_flow_data,
     [MUX_UART2_FLOW] = uart2_flow_data,
     [MUX_UART3_FLOW] = uart3_flow_data,
+    [MUX_EBI]        = ebi_data,
+    [MUX_SROM]       = srom_data,
 };
 
 
