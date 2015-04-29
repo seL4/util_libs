@@ -201,7 +201,7 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 {
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
 
-    if (c == '\n') {
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         /* check if 2 bytes are free - tx trigger level is 63 and
          * this bit is set if the fifo level is >= the trigger level
          */
@@ -431,6 +431,7 @@ int uart_init(const struct dev_defn* defn,
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
+    dev->flags      = SERIAL_AUTO_CR;
 
     regs = zynq7000_uart_get_priv(dev);
 
