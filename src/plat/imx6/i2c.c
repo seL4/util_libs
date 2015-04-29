@@ -16,7 +16,7 @@
 
 #include <string.h>
 
-//#define I2C_DEBUG
+#define I2C_DEBUG
 #ifdef I2C_DEBUG
 #define dprintf(...) printf("I2C: " __VA_ARGS__)
 #else
@@ -291,12 +291,12 @@ imx6_i2c_handle_irq(i2c_bus_t* i2c_bus)
         if (dev->regs->control & I2CCON_MASTER) {
             if (dev->regs->control & I2CCON_TXEN) {
                 /** Master TX **/
-                if (dev->mode_tx && dev->tx_count == dev->tx_len) {
-                    /* Last byte transmitted */
-                    master_stop(dev);
-                } else if (!acked(dev)) {
+                if (!acked(dev)) {
                     /* RXAK != 0 */
                     dprintf("NACK from slave\n");
+                    master_stop(dev);
+                } else if (dev->mode_tx && dev->tx_count == dev->tx_len) {
+                    /* Last byte transmitted successfully */
                     master_stop(dev);
                 } else if (!dev->mode_tx) {
                     /* End of address cycle for master RX */

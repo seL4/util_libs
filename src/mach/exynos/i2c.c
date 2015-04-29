@@ -479,20 +479,16 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
         /* Read in the data */
         *dev->rx_buf++ = dev->regs->data;
         dev->rx_count++;
-        /* Last chance for user to supply another buffer before NACK */
-        if (i2c_bus->cb && (dev->rx_count + 1 == dev->rx_len)) {
+        /* Last chance for user to supply another buffer */
+        if (i2c_bus->cb && (dev->rx_count == dev->rx_len)) {
             i2c_bus->cb(i2c_bus, I2CSTAT_LASTBYTE, dev->rx_count, i2c_bus->token);
         }
-        /* If this is STILL the last byte, NACK it */
-        if (dev->rx_count + 1 == dev->rx_len) {
-            dev->regs->control &= ~I2CCON_ACK_EN;
-        } else if (dev->rx_count == dev->rx_len) {
+        /* If this is STILL the last byte, finish up */
+        if (dev->rx_count == dev->rx_len) {
             dev->rx_len = 0;
             if (i2c_bus->cb) {
                 i2c_bus->cb(i2c_bus, I2CSTAT_COMPLETE, dev->rx_count, i2c_bus->token);
             }
-            /* Start ACKing again, ready to be addressed as slave */
-            dev->regs->control |= I2CCON_ACK_EN;
         }
 
         break;
