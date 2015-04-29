@@ -99,7 +99,7 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
-        if (c == '\n') {
+        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
             uart_putchar(d, '\r');
         }
         regs->txd = c;
@@ -232,6 +232,7 @@ int uart_init(const struct dev_defn* defn,
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
+    dev->flags      = SERIAL_AUTO_CR;
 
     regs = imx6_uart_get_priv(dev);
 

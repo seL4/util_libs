@@ -78,7 +78,7 @@ static int serial_putchar(ps_chardevice_t* device, int c)
     /* Write out the next character. */
     ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
 
-    if (c == '\n') {
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         /* If we output immediately then odds are the transmit buffer
          * will be full, so we have to wait */
         while(!serial_ready(device));
@@ -136,6 +136,7 @@ serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t
     dev->handle_irq = &serial_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
+    dev->flags      = SERIAL_AUTO_CR;
 
     /* Initialise the device. */
     uint32_t io_port = (uint32_t) dev->vaddr;
