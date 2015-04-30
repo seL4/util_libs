@@ -38,7 +38,7 @@ void non_boot_main(void)
 {
 #ifdef CONFIG_SMP_ARM_MPCORE
     int cpu_mode;
-    /* Spin until the first CPU has finished intialisation. */
+    /* Spin until the first CPU has finished initialisation. */
     while (!non_boot_lock) {
         cpu_idle();
     }

@@ -30,7 +30,7 @@ arm_enable_mmu:
 	
 	mov r0, #0
 
-	# disable and invalidte the icache
+	# disable and invalidate the icache
 	mrc p15, 0, r0, c1, c0, 0
 	bic r1, r0, #(1 << 12)
 	mcr p15, 0, r1, c1, c0, 0
@@ -42,7 +42,7 @@ arm_enable_mmu:
 	nop
 	nop
 	
-	# draine write-buffer
+	# drain write-buffer
 	mcr p15, 0, r1, c7, c10, 0
 
 	# clean icache

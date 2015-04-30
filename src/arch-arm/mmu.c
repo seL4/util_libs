@@ -54,8 +54,8 @@ void init_boot_pd(struct image_info *kernel_info)
 
 /**
  * Performs the same operation as init_boot_pd, but initialises
- * the LPAE page table. In this case, 3 L2 tables are concatinated.
- * PGD entries point to the approprite L2 table.
+ * the LPAE page table. In this case, 3 L2 tables are concatenated.
+ * PGD entries point to the appropriate L2 table.
  */
 void init_lpae_boot_pd(struct image_info *kernel_info)
 {
