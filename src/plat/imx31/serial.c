@@ -53,7 +53,7 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 {
     if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
         *REG_PTR(d->vaddr, IMXUART_THR) = c;
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        if (c == '\n') {
             uart_putchar(d, '\r');
         }
         return c;
@@ -121,7 +121,6 @@ uart_init(const struct dev_defn* defn,
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
-    dev->flags      = SERIAL_AUTO_CR;
 
     /*
      * Enable interrupts for receiver

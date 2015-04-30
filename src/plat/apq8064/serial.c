@@ -38,7 +38,7 @@ static int uart_putchar(ps_chardevice_t* d, int c)
 
     *UART_REG(d->vaddr, UNTX) = 1;
     *UART_REG(d->vaddr, UTF) = c & 0xff;
-    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+    if (c == '\n') {
         uart_putchar(d, '\r');
     }
     return 0;
@@ -99,7 +99,6 @@ int uart_init(const struct dev_defn* defn,
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
-    dev->flags      = SERIAL_AUTO_CR;
 
     return 0;
 }

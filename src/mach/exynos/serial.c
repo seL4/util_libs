@@ -166,12 +166,12 @@ uart_putchar(ps_chardevice_t *d, int c)
     } else {
         /* Write out the next character. */
         *REG_PTR(d->vaddr, UTXH) = c;
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        if (c == '\n') {
             /* In this case, We should have checked that we had two free bytes in
              * the FIFO before we submitted the first char, however, the fifo size
              * would need to be considered and this differs between UARTs.
              * To keep things simple, we recognise that it is rare for a '\n' to
-             * be sent when there is insufficient FIFO space and accept the
+             * be sent when there is insufficent FIFO space and accept the
              * inefficiencies of spinning, waiting for space.
              */
             while (uart_putchar(d, '\r') < 0);
@@ -494,7 +494,6 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = &uart_irqs[id][0];
-    dev->flags      = SERIAL_AUTO_CR;
 
     /* TODO */
     dev->clk        = NULL;
