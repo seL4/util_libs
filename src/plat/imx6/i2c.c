@@ -16,7 +16,7 @@
 
 #include <string.h>
 
-#define I2C_DEBUG
+//#define I2C_DEBUG
 #ifdef I2C_DEBUG
 #define dprintf(...) printf("I2C: " __VA_ARGS__)
 #else
