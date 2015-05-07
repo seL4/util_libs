@@ -137,8 +137,12 @@ enum clkregs {
 volatile struct clk_regs* _clk_regs[NCLKREGS];
 
 static struct clock finpll_clk = { CLK_OPS_DEFAULT(MASTER) };
-
-
+/* --- Implement Me --- */
+static struct clock uart0_clk = { CLK_OPS_DEFAULT(UART0) };
+static struct clock uart1_clk = { CLK_OPS_DEFAULT(UART1) };
+static struct clock uart2_clk = { CLK_OPS_DEFAULT(UART2) };
+static struct clock uart3_clk = { CLK_OPS_DEFAULT(UART3) };
+/* -------------------- */
 
 static struct pll_priv moutapll_priv = PLL_PRIV(MOUTAPLL, MPS, _ampll_tbl);
 static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, MPS, _ampll_tbl);
@@ -334,10 +338,10 @@ clk_t* ps_clocks[] = {
     [CLK_SCLKHPM]        = &sclkhpm_clk,
     [CLK_DIVCOPY]        = &divcopy_clk,
     [CLK_MUXHPM]         = &muxhpm_clk,
-    [CLK_UART0]          = NULL,
-    [CLK_UART1]          = NULL,
-    [CLK_UART2]          = NULL,
-    [CLK_UART3]          = NULL
+    [CLK_UART0]          = &uart0_clk,
+    [CLK_UART1]          = &uart1_clk,
+    [CLK_UART2]          = &uart2_clk,
+    [CLK_UART3]          = &uart3_clk
 };
 
 
