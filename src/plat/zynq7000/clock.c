@@ -271,12 +271,15 @@ struct zynq7000_clk_regs {
     uint32_t ddr_pll_ctrl;      /* 0x104 DDR PLL Control */
     uint32_t io_pll_ctrl;       /* 0x108 IO PLL Control */
     uint32_t pll_status;        /* 0x10C PLL Status */
+
     uint32_t arm_pll_cfg;       /* 0x110 ARM PLL Configuration */
     uint32_t ddr_pll_cfg;       /* 0x114 DDR PLL Configuration */
     uint32_t io_pll_cfg;        /* 0x118 IO PLL Configuration */
+
     uint32_t arm_clk_ctrl;      /* 0x120 CPU Clock Control */
     uint32_t ddr_clk_ctrl;      /* 0x124 DDR Clock Control */
     uint32_t dci_clk_ctrl;      /* 0x128 DCI Clock Control */
+
     uint32_t aper_clk_ctrl;     /* 0x12C AMBDA Peripheral Clock Control */
     uint32_t usb0_clk_ctrl;     /* 0x130 USB 0 ULPI Clock Control */
     uint32_t usb1_clk_ctrl;     /* 0x134 USB 1 ULPI Clock Control */
@@ -397,41 +400,57 @@ zynq7000_even_divisor(uint8_t divisor)
 /* PS_CLK */
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
+static uint32_t
+_decode_pll(clk_t* clk, volatile uint32_t** ctrl, volatile uint32_t** cfg)
+{
+    switch (clk->id) {
+    case CLK_ARM_PLL:
+        *ctrl = &clk_regs->arm_pll_ctrl;
+        *cfg = &clk_regs->arm_pll_cfg;
+        return PLL_STATUS_ARM_PLL_LOCK;
+    case CLK_DDR_PLL:
+        *ctrl = &clk_regs->ddr_pll_ctrl;
+        *cfg = &clk_regs->ddr_pll_cfg;
+        return PLL_STATUS_DDR_PLL_LOCK;
+    case CLK_IO_PLL:
+        *ctrl = &clk_regs->io_pll_ctrl;
+        *cfg = &clk_regs->io_pll_cfg;
+        return PLL_STATUS_IO_PLL_LOCK;
+    default:
+        assert(!"Invalid clock");
+        return 0;
+    }
+}
 
 /* PLLs */
 static freq_t
 _pll_get_freq(clk_t* clk)
 {
+    volatile uint32_t* ctrl_reg;
+    volatile uint32_t* cfg_reg;
+    uint32_t status_mask;
     uint8_t fdiv;
     uint32_t fin, fout;
-    uint32_t pll_ctrl;
 
-    /* Get the <pll>_PLL_CTRL register */
-    switch (clk->id) {
-    case CLK_ARM_PLL:
-        pll_ctrl = clk_regs->arm_pll_ctrl;
-        break;
-    case CLK_DDR_PLL:
-        pll_ctrl = clk_regs->ddr_pll_ctrl;
-        break;
-    case CLK_IO_PLL:
-        pll_ctrl = clk_regs->io_pll_ctrl;
-        break;
-    default:
-        assert(!"Invalid clock");
-        return -1;
+    status_mask = _decode_pll(clk, &ctrl_reg, &cfg_reg);
+    if (status_mask == 0) {
+        return 0;
     }
 
     fin = clk_get_freq(clk->parent);
-    fdiv = (pll_ctrl & PLL_CTRL_FDIV_MASK) >> PLL_CTRL_FDIV_SHIFT;
+    fdiv = (*ctrl_reg & PLL_CTRL_FDIV_MASK) >> PLL_CTRL_FDIV_SHIFT;
     fout = fin * fdiv;
 
     return fout;
 }
 
+
 static freq_t
 _pll_set_freq(clk_t* clk, freq_t hz)
 {
+    volatile uint32_t* ctrl_reg;
+    volatile uint32_t* cfg_reg;
+    uint32_t status_mask;
     uint32_t fin;
     uint8_t fdiv;
 
@@ -439,71 +458,28 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     fdiv = fin / hz;
     fdiv = INRANGE(PLL_CTRL_FDIV_MIN, fdiv, PLL_CTRL_FDIV_MAX);
 
-    switch (clk->id) {
-    case CLK_ARM_PLL:
-        /* Program the feedback divider value and the configuration register */
-        clk_regs->arm_pll_ctrl &= ~(PLL_CTRL_FDIV_MASK);
-        clk_regs->arm_pll_ctrl |= PLL_CTRL_FDIV(fdiv);
-        clk_regs->arm_pll_cfg = pll_cfg_tbl[fdiv - PLL_CTRL_FDIV_MIN].pll_cfg;
-
-        /* Force the PLL into bypass mode */
-        clk_regs->arm_pll_ctrl |= PLL_CTRL_BYPASS_FORCE;
-
-        /* Assert and de-assert the PLL reset */
-        clk_regs->arm_pll_ctrl |= PLL_CTRL_RESET;
-        clk_regs->arm_pll_ctrl &= ~(PLL_CTRL_RESET);
-
-        /* Verify that the PLL is locked */
-        while (!(clk_regs->pll_status & PLL_STATUS_ARM_PLL_LOCK));
-
-        /* Disable the PLL bypass mode */
-        clk_regs->arm_pll_ctrl &= ~(PLL_CTRL_BYPASS_FORCE);
-
-        break;
-    case CLK_DDR_PLL:
-        /* Program the feedback divider value and the configuration register */
-        clk_regs->ddr_pll_ctrl &= ~(PLL_CTRL_FDIV_MASK);
-        clk_regs->ddr_pll_ctrl |= PLL_CTRL_FDIV(fdiv);
-        clk_regs->ddr_pll_cfg = pll_cfg_tbl[fdiv - PLL_CTRL_FDIV_MIN].pll_cfg;
-
-        /* Force the PLL into bypass mode */
-        clk_regs->ddr_pll_ctrl |= PLL_CTRL_BYPASS_FORCE;
-
-        /* Assert and de-assert the PLL reset */
-        clk_regs->ddr_pll_ctrl |= PLL_CTRL_RESET;
-        clk_regs->ddr_pll_ctrl &= ~(PLL_CTRL_RESET);
-
-        /* Verify that the PLL is locked */
-        while (!(clk_regs->pll_status & PLL_STATUS_DDR_PLL_LOCK));
-
-        /* Disable the PLL bypass mode */
-        clk_regs->ddr_pll_ctrl &= ~(PLL_CTRL_BYPASS_FORCE);
-
-        break;
-    case CLK_IO_PLL:
-        /* Program the feedback divider value and the configuration register */
-        clk_regs->io_pll_ctrl &= ~(PLL_CTRL_FDIV_MASK);
-        clk_regs->io_pll_ctrl |= PLL_CTRL_FDIV(fdiv);
-        clk_regs->io_pll_cfg = pll_cfg_tbl[fdiv - PLL_CTRL_FDIV_MIN].pll_cfg;
-
-        /* Force the PLL into bypass mode */
-        clk_regs->io_pll_ctrl |= PLL_CTRL_BYPASS_FORCE;
-
-        /* Assert and de-assert the PLL reset */
-        clk_regs->io_pll_ctrl |= PLL_CTRL_RESET;
-        clk_regs->io_pll_ctrl &= ~(PLL_CTRL_RESET);
-
-        /* Verify that the PLL is locked */
-        while (!(clk_regs->pll_status & PLL_STATUS_IO_PLL_LOCK));
-
-        /* Disable the PLL bypass mode */
-        clk_regs->io_pll_ctrl &= ~(PLL_CTRL_BYPASS_FORCE);
-
-        break;
-    default:
-        assert(!"Invalid clock");
-        return -1;
+    status_mask = _decode_pll(clk, &ctrl_reg, &cfg_reg);
+    if (status_mask == 0) {
+        return 0;
     }
+
+    /* Program the feedback divider value and the configuration register */
+    *ctrl_reg &= ~(PLL_CTRL_FDIV_MASK);
+    *ctrl_reg |= PLL_CTRL_FDIV(fdiv);
+    *cfg_reg = pll_cfg_tbl[fdiv - PLL_CTRL_FDIV_MIN].pll_cfg;
+
+    /* Force the PLL into bypass mode */
+    *ctrl_reg |= PLL_CTRL_BYPASS_FORCE;
+
+    /* Assert and de-assert the PLL reset */
+    *ctrl_reg |= PLL_CTRL_RESET;
+    *ctrl_reg &= ~(PLL_CTRL_RESET);
+
+    /* Verify that the PLL is locked */
+    while (!(clk_regs->pll_status & status_mask));
+
+    /* Disable the PLL bypass mode */
+    *ctrl_reg &= ~(PLL_CTRL_BYPASS_FORCE);
 
     return clk_get_freq(clk);
 }
