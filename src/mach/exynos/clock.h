@@ -215,8 +215,7 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
     clkid_decode(clkid, &c, &r, &o);
     clkbf_set(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span, --div);
     /* Wait for changes to take affect */
-    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS,
-                 CLK_DIVSTAT_BIT));
+    while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS, CLK_DIVSTAT_BIT));
 }
 
 

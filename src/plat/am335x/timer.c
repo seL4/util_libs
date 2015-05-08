@@ -96,8 +96,9 @@ dm_set_timeo(const pstimer_t *timer, uint64_t ns, int tclrFlags)
     /* XXX handle invalid arguments with an error return */
 
     uint32_t ticks = TIMER_INTERVAL_TICKS(ns);
-    if (ticks < 2)
+    if (ticks < 2) {
         return EINVAL;
+    }
     //printf("timer %lld ns = %x ticks (cntr %x)\n", ns, ticks, (uint32_t)(~0UL - ticks));
     dmt->hw->tldr = ~0UL - ticks;   /* reload value */
     dmt->hw->tcrr = ~0UL - ticks;   /* counter */
@@ -157,8 +158,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     pstimer_t *timer;
     dmt_t *dmt;
 
-    if(id >= NTIMERS)
+    if (id >= NTIMERS) {
         return NULL;
+    }
     timer = &timers[id];
     dmt = &dmts[id];
 

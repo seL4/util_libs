@@ -36,8 +36,9 @@ static int uart_getchar(ps_chardevice_t *d)
 
 static int uart_putchar(ps_chardevice_t* d, int c)
 {
-    while (!(*REG_PTR(d->vaddr, LSR) & LSR_TXFIFOE))
+    while (!(*REG_PTR(d->vaddr, LSR) & LSR_TXFIFOE)) {
         continue;
+    }
     *REG_PTR(d->vaddr, THR) = c;
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         uart_putchar(d, '\r');

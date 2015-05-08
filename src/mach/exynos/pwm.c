@@ -89,12 +89,18 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
     pwm_t *pwm = (pwm_t*) timer->data;
 
     /* Disable timer. */
-    if (timer_number == 4) pwm->pwm_map->tcon &= ~(T4_ENABLE);
-    else pwm->pwm_map->tcon &= ~(T0_ENABLE);
+    if (timer_number == 4) {
+        pwm->pwm_map->tcon &= ~(T4_ENABLE);
+    } else {
+        pwm->pwm_map->tcon &= ~(T0_ENABLE);
+    }
 
     /* Enable interrupt on overflow. */
-    if(timer_number == 4) pwm->pwm_map->tint_cstat |= INT_ENABLE(4);
-    else pwm->pwm_map->tint_cstat |= INT_ENABLE(0);
+    if (timer_number == 4) {
+        pwm->pwm_map->tint_cstat |= INT_ENABLE(4);
+    } else {
+        pwm->pwm_map->tint_cstat |= INT_ENABLE(0);
+    }
 
     /* clear the scale */
     if (timer_number == 4) {
@@ -135,8 +141,11 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
 
     /* Clear pending overflows. */
     v = pwm->pwm_map->tint_cstat;
-    if (timer_number == 4) v = (v & INT_ENABLE_ALL) | INT_STAT(4);
-    else v = (v & INT_ENABLE_ALL) | INT_STAT(0);
+    if (timer_number == 4) {
+        v = (v & INT_ENABLE_ALL) | INT_STAT(4);
+    } else {
+        v = (v & INT_ENABLE_ALL) | INT_STAT(0);
+    }
     pwm->pwm_map->tint_cstat = v;
 }
 
@@ -225,7 +234,7 @@ pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
             ++time_h;
             v = (v & INT_ENABLE_ALL) | INT_STAT(0);
         }
-    } else if (irq == PWM_TIMER4) { 
+    } else if (irq == PWM_TIMER4) {
         if (v & INT_STAT(4)) {
             v = (v & INT_ENABLE_ALL) | INT_STAT(4);
         }
