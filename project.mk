@@ -251,7 +251,10 @@ setup: $(AUTOCONF_H_FILE)
 
 PHONY += common
 common: setup
-	$(Q)cp -ur $(TOOLS_ROOT)/$@ $(STAGE_BASE)
+# Copy only the non-hidden contents of tools/common, since some cp
+# invocations can't overwrite the symlinks in .git.
+	$(Q)mkdir -p $(STAGE_BASE)/$@
+	$(Q)cp -R $(TOOLS_ROOT)/$@/* $(STAGE_BASE)/$@
 
 export SEL4_COMMON=$(STAGE_BASE)/common
 
