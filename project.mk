@@ -312,7 +312,7 @@ clean:
 # if the only files in include are the Kconfig ones, then this should work silently
 # otherwise it should fail
 	@if [ -d include ]; then echo " [INCLUDE] $(PWD)/include"; \
-		rmdir --ignore-fail-on-non-empty include > /dev/null 2>&1; fi
+		rmdir include > /dev/null 2>&1 || true; fi
 
 PHONY += clobber
 clobber: clean
