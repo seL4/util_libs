@@ -26,11 +26,10 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Get the absolute path of $1. Unfortunately realpath, which seems the most
-# portable option here, only works on existing files.
-touch "$1"
-OUTPUT_FILE=$(realpath "$1")
-rm "$1"
+# Get the absolute path of $1. Unfortunately realpath, which seems the
+# cleanest, most portable option here, doesn't yet ship with all
+# systems.
+OUTPUT_FILE="$(cd "$(dirname "$1")"; pwd -P)/$1"
 
 SYMBOL=$2
 shift 2
