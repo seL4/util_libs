@@ -374,7 +374,7 @@ ethif_init(struct netif *netif)
         LINK_SPEED_OF_YOUR_NETIF_IN_BPS);
 
     netif -> flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | 
-            NETIF_FLAG_LINK_UP;
+            NETIF_FLAG_LINK_UP | NETIF_FLAG_IGMP;
 
     iface->netif = netif;
     return ERR_OK;
