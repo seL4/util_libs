@@ -272,7 +272,6 @@ static void lwip_pbuf_rx_complete(void *iface, unsigned int num_bufs, void **coo
     break;
 
     default:
-        LOG_INFO("Unknown packet type\n");
         pbuf_free(p);
     break;
     }
