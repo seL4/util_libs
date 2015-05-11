@@ -29,7 +29,7 @@ fi
 # Get the absolute path of $1. Unfortunately realpath, which seems the
 # cleanest, most portable option here, doesn't yet ship with all
 # systems.
-OUTPUT_FILE="$(cd "$(dirname "$1")"; pwd -P)/$1"
+OUTPUT_FILE="$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
 
 SYMBOL=$2
 shift 2
