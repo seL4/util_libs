@@ -13,6 +13,31 @@
 #include <assert.h>
 #include "../../services.h"
 
+/* Fixed clocks */
+static freq_t
+_fixed_clk_get_freq(clk_t* clk)
+{
+    return clk->req_freq;
+}
+
+static freq_t
+_fixed_clk_set_freq(clk_t* clk, freq_t hz UNUSED)
+{
+    return clk_get_freq(clk);
+}
+
+void
+_fixed_clk_recal(clk_t* clk UNUSED)
+{
+    assert(0);
+}
+
+clk_t*
+_fixed_clk_init(clk_t* clk)
+{
+    return clk;
+}
+
 /* Default clocks. Simply report the recorded default frequency */
 freq_t
 _default_clk_get_freq(clk_t* clk)
@@ -161,5 +186,13 @@ clk_register_child(clk_t* parent, clk_t* child)
                child->parent->name);
         assert(!"Changing parents not supported yet");
     }
+}
+
+clk_t
+clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
+{
+    clk_t ret = { _CLK_OPS(id, "Fixed clock", fixed_clk, NULL) };
+    ret.req_freq = frequency;
+    return ret;
 }
 

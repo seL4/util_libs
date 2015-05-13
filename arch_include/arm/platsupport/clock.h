@@ -188,5 +188,12 @@ static inline freq_t clk_get_freq(clk_t* clk)
  */
 void clk_register_child(clk_t* parent, clk_t* child);
 
+/**
+ * Initialise a clock structure which reports a fixed frequency
+ * @param[in] id    The ID for the clock
+ * @param[in] freq  The frequency of the fixed clock
+ * @return          A populated clk_t structure ready for use
+ */
+clk_t clk_generate_fixed_clk(enum clk_id id, freq_t frequency);
 
 #endif /* _PLATSUPPORT_CLOCK_H_ */
