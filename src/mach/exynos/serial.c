@@ -516,7 +516,7 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     }
 
     /* Set character encoding */
-    assert(!serial_configure(dev, 115200UL, 8, PARITY_NONE, 1));
+    serial_configure(dev, 115200UL, 8, PARITY_NONE, 1);
     /* Set FIFO trigger levels */
     v = FIFO_EN;
     v |= FIFO_RXLVL(FIFO_RXLVL_VAL);
