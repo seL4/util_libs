@@ -36,6 +36,8 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = PS_SERIAL1
 };
 
+#include <platsupport/mach/serial.h>
+
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
 
 
