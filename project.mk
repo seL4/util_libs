@@ -127,12 +127,12 @@ IMAGE_ROOT = $(objtree)/images
 STAGE_BASE = $(STAGE_ROOT)/$(ARCH)/$(PLAT)
 BUILD_BASE = $(BUILD_ROOT)/$(ARCH)/$(PLAT)
 
+-include .config
 
 # Linux expects CROSS_COMPILE to contain the cross compiler prefix
 CROSS_COMPILE ?=
 ifeq ($(CROSS_COMPILE),)
-CROSS_COMPILE := $(shell grep ^CONFIG_CROSS_COMPILER_PREFIX .config 2>/dev/null)
-CROSS_COMPILE := $(subst CONFIG_CROSS_COMPILER_PREFIX=,,$(CROSS_COMPILE))
+CROSS_COMPILE := $(CONFIG_CROSS_COMPILER_PREFIX)
 CROSS_COMPILE := $(subst ",,$(CROSS_COMPILE))
 #")
 export CROSS_COMPILE
@@ -198,8 +198,6 @@ config: gen_makefile scripts_basic
 	$(Q)mkdir -p include
 	$(Q)mkdir -p include/config
 	$(Q)$(MAKE) $(MAKE_SILENT) $(build)=$(KBUILD_SCRIPTS)/kconfig $@
-
--include .config
 
 .config: ;
 
