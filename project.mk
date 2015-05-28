@@ -260,7 +260,7 @@ ifeq ($(ARCH),arm)
 include $(COMMON_PATH)/project-arm.mk
 endif
 
-ifeq ($(ARCH),ia32)
+ifeq ($(ARCH),x86)
 include $(COMMON_PATH)/project-ia32.mk
 endif
 
