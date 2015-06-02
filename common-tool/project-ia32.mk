@@ -39,7 +39,7 @@ endif
 
 %-image: % kernel_elf common FORCE
 	@echo "[GEN_IMAGE] $@"
-	$(Q)cp -f "$(STAGE_BASE)/kernel.elf" "$(IMAGE_ROOT)/kernel-$(ARCH_NAME)-$(PLAT)"
+	$(Q)objcopy -O elf32-i386 "$(STAGE_BASE)/kernel.elf" "$(IMAGE_ROOT)/kernel-$(ARCH_NAME)-$(PLAT)"
 	$(Q)cp -f "$(STAGE_BASE)/bin/$<" "$(IMAGE_ROOT)/$@-$(ARCH_NAME)-$(PLAT)"
 
 #New target to make using capDL-loader

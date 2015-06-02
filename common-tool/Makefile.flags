@@ -28,17 +28,19 @@ ldflags-y += $(call cc-ldoption, -Wl$(comma)--build-id=none)
 
 ifeq ($(CONFIG_ARCH_X86),y)
 	ccflags-y += $(call cc-option,-fno-stack-protector)
-	ccflags-y += $(call cc-option,-mno-sse)
-	ccflags-y += $(call cc-option,-mno-sse2)
-	ccflags-y += $(call cc-option,-mno-mmx)
-	ccflags-y += $(call cc-option,-mno-3dnow)
+	CCFLAGS += -mno-sse -mno-sse2 -mno-mmx -mno-3dnow
 	export ARCH = x86
+	DEFINES += ARCH_X86
+	export ARCH_X86
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
 	ccflags-y += $(call cc-option,-marm)
 	DEFINES += ARCH_ARM
+	DEFINES += __KERNEL_32__
 	export ARCH = arm
+	export KERNEL_32 = y
+	export SEL4_ARCH = arm
 endif
 
 ifeq ($(CONFIG_ARCH_IA32),y)
@@ -49,36 +51,29 @@ ifeq ($(CONFIG_ARCH_IA32),y)
 
 	DEFINES += IA32
 	DEFINES += ARCH_IA32
+	DEFINES += __KERNEL_32__
+	DEFINES += X86_32
 	export __X86_32__ = y
+	export KERNEL_32 = y
+	export SEL4_ARCH = ia32
 endif
 
-ifeq ($(CONFIG_X86_64),y)
-# reset first
-	cflags-y =
-	LDFLAGS =
-	ASFLAGS =
-	NK_LDFLAGS =
-	NK_CFLAGS = -mno-red-zone
-	NK_ASFLAGS =
-	DEFINES =
+ifeq ($(CONFIG_ARCH_X86_64),y)
 	cflags-y += $(call cc-option,-m64)
 	cflags-y += $(call cc-option,-mno-red-zone)
-	cflags-y += $(call cc-option,-mcmodel=large,-mcmodel=large)
-	cflags-y += $(call cc-option,-nostdlib,)
-	cflags-y += $(call cc-option,-nostdinc,)
-	cflags-y += $(call cc-option, -std=gnu99,)
-	LDFLAGS += -m elf_x86_64 -nodefaultlibs
-	ASFLAGS  += --64 
+	cflags-y += $(call cc-option,-mcmodel=kernel,-mcmodel=kernel)
+	cflags-y += $(call cc-option, -fno-asynchronous-unwind-tables,)
+	ldflags-y  += -Wl,-m -Wl,elf_x86_64
+	asflags-y  += -Wa,--64
 	NK_LDFLAGS += -Wl,-m -Wl,elf_x86_64
 	NK_CFLAGS  += -m64
-	NK_ASFLAGS += --64 
-	DEFINES += ARCH_IA32
+	NK_CFLAGS  += -mno-red-zone
+	NK_ASFLAGS += -Wa,--64
 	DEFINES += X86_64
-	DEFINES += CONFIG_X86_64
 	DEFINES += __KERNEL_64__
 	export __X86_64__ = y
-	export CONFIG_X86_64 = y 
 	export KERNEL_64 = y
+	export SEL4_ARCH = x86_64
 endif
 
 ifeq ($(CONFIG_ARM1136JF_S),y)

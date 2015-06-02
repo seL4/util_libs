@@ -42,7 +42,12 @@ case "$PLAT" in
         FORMAT=elf32-littlearm
         ;;
     "pc99")
-        FORMAT=elf32-i386
+        if [ "$SEL4_ARCH" == "x86_64" ]
+        then
+            FORMAT=elf64-x86-64
+        else
+            FORMAT=elf32-i386
+        fi
         ;;
     *)
         echo "$0: Unknown platform \"$PLAT\""
