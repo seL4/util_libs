@@ -41,6 +41,7 @@ ifeq ($(CONFIG_ARCH_X86),y)
 	ccflags-y += $(call cc-option,-mno-sse2)
 	ccflags-y += $(call cc-option,-mno-mmx)
 	ccflags-y += $(call cc-option,-mno-3dnow)
+	export ARCH = x86
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
@@ -57,7 +58,7 @@ ifeq ($(CONFIG_ARCH_IA32),y)
 
 	DEFINES += IA32
 	DEFINES += ARCH_IA32
-	export ARCH = x86
+	export __X86_32__ = y
 endif
 
 ifeq ($(CONFIG_X86_64),y)
