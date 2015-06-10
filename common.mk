@@ -287,9 +287,6 @@ $(TARGETS): $(LIBS:%=-l%)
 
 DEPS = $(patsubst %.c,%.d,$(CFILES)) $(patsubst %.cxx,%.d,$(CXXFILES)) $(patsubst %.S,%.d,$(ASMFILES))
 
-# Disable removal of intermediate artefacts.
-.SECONDARY:
-
 ifneq "$(MAKECMDGOALS)" "clean"
   -include ${DEPS}
 endif
