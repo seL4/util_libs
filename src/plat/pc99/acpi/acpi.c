@@ -334,6 +334,10 @@ acpi_t *
 acpi_init(ps_io_mapper_t io_mapper)
 {
 
+#ifndef CONFIG_KERNEL_STABLE
+    LOG_ERROR("Warning: acpi tables are not exported on the master kernel\n");
+#endif
+
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
         fprintf(stderr, "Failed to allocate memory of size %u\n", sizeof(acpi));
