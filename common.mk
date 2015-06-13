@@ -143,6 +143,8 @@ LDFLAGS += $(NK_LDFLAGS) \
 		   $(CFLAGS) \
 		   -static -nostdlib
 
+ARCHIVES += $(LIBS:%=lib%.a)
+
 ENTRY_POINT ?= _start
 
 # Force start symbol to be linked in if need be - the user may already have it in a
@@ -268,11 +270,12 @@ endif
 %.bin: %.elf
 	$(call cp_file,$<,$@)
 
-%.elf: $(CRTOBJFILES) $(FINOBJFILES)
-%.elf: $(OBJFILES)
+# Note: below the CC line does not have ARCHIVES because
+# LDFLAGS already includes the "-l" version of ARCHIVES
+%.elf: $(CRTOBJFILES) $(FINOBJFILES) $(OBJFILES) $(ARCHIVES)
 	@echo " [LINK] $@"
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(CC) $(CRTOBJFILES) $^ $(FINOBJFILES) $(LDFLAGS) -o $@
+	$(Q)$(CC) $(CRTOBJFILES) $(OBJFILES) $(FINOBJFILES) $(LDFLAGS) -o $@
 
 %.img: %.bin $(COBBLER) $(SEL4_KERNEL)
 	@echo " [IMG] $@"
