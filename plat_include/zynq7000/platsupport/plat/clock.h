@@ -28,9 +28,6 @@ enum clk_id {
     /* ----- */
     CLK_DCI,
     /* I/O Peripheral Clocks */
-    CLK_DMA,
-    CLK_USB0,
-    CLK_USB1,
     CLK_GEM0,
     CLK_GEM1,
     CLK_SDIO0,
@@ -39,11 +36,8 @@ enum clk_id {
     CLK_SPI1,
     CLK_CAN0,
     CLK_CAN1,
-    CLK_I2C0,
-    CLK_I2C1,
     CLK_UART0,
     CLK_UART1,
-    CLK_GPIO,
     CLK_LQSPI,
     CLK_SMC,
     /* FPGA Programmable Logic Clocks */

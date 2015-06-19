@@ -179,8 +179,8 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
 #define CLK_SRC_ARM_PLL     0x02
 #define CLK_SRC_DDR_PLL     0x03
 
-#define CLK_SRCSEL(x)       ((x) * BIT(4))
-#define CLK_SRCSEL_MASK     CLK_SRCSEL(0x3)
+#define CLK_SRCSEL(x)       ((x) << 4)
+#define CLK_GET_SRCSEL(x)   (((x) >> 4) & 0x3)
 
 /* Each clock uses a 6-bit divisor */
 #define CLK_DIVISOR_MIN     1
@@ -253,7 +253,7 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
  **************************/
 
 /* Programmable Logic (PL) - i.e. FPGA - clock registers */
-typedef struct {
+typedef volatile struct {
     uint32_t clk_ctrl;  /* PL Clock x Output Control */
     uint32_t thr_ctrl;  /* PL Clock x Throttle Control */
     uint32_t thr_cnt;   /* PL Clock x Throttle Count */
@@ -275,7 +275,7 @@ struct zynq7000_clk_regs {
     uint32_t arm_pll_cfg;       /* 0x110 ARM PLL Configuration */
     uint32_t ddr_pll_cfg;       /* 0x114 DDR PLL Configuration */
     uint32_t io_pll_cfg;        /* 0x118 IO PLL Configuration */
-
+    uint32_t res0[1];
     uint32_t arm_clk_ctrl;      /* 0x120 CPU Clock Control */
     uint32_t ddr_clk_ctrl;      /* 0x124 DDR Clock Control */
     uint32_t dci_clk_ctrl;      /* 0x128 DCI Clock Control */
@@ -297,10 +297,7 @@ struct zynq7000_clk_regs {
     uint32_t dbg_clk_ctrl;      /* 0x164 SoC Debug Clock Control */
     uint32_t pcap_clk_ctrl;     /* 0x168 PCAP Clock Control */
     uint32_t topsw_clk_ctrl;    /* 0x16C Central Interconnect Clock Control */
-    pl_clk_regs_t fpga0_clk;    /* 0x170 PL Clock 0 */
-    pl_clk_regs_t fpga1_clk;    /* 0x180 PL Clock 1 */
-    pl_clk_regs_t fpga2_clk;    /* 0x190 PL Clock 2 */
-    pl_clk_regs_t fpga3_clk;    /* 0x1A0 PL Clock 3 */
+    pl_clk_regs_t fpga_clk[4];  /* 0x170 PL Clock 0 */
     uint32_t pad1[5];
     uint32_t clk_621_true;      /* 0x1C4 CPU Clock Ratio Mode Select */
     uint32_t pad2[79];
@@ -436,6 +433,7 @@ _pll_get_freq(clk_t* clk)
     if (status_mask == 0) {
         return 0;
     }
+    assert(!(*ctrl_reg & (BIT(4) | BIT(1) | BIT(0))));
 
     fin = clk_get_freq(clk->parent);
     fdiv = (*ctrl_reg & PLL_CTRL_FDIV_MASK) >> PLL_CTRL_FDIV_SHIFT;
@@ -737,8 +735,11 @@ _aper_get_freq(clk_t* clk)
     }
 
     fin = clk_get_freq(clk->parent);
-    fout = fin / (divisor0 * divisor1);
-
+    if (divisor0 == 0 || divisor1 == 0) {
+        fout = 0;
+    } else {
+        fout = fin / (divisor0 * divisor1);
+    }
     return fout;
 }
 
@@ -833,19 +834,47 @@ static struct clock can0_clk  = { CLK_OPS(CAN0,  aper, NULL) };
 static struct clock can1_clk  = { CLK_OPS(CAN1,  aper, NULL) };
 
 
+static inline pl_clk_regs_t*
+get_pl_clk_regs(clk_t* clk)
+{
+    switch (clk->id) {
+    case CLK_FPGA_PL0:
+        return &clk_regs->fpga_clk[0];
+    case CLK_FPGA_PL1:
+        return &clk_regs->fpga_clk[1];
+    case CLK_FPGA_PL2:
+        return &clk_regs->fpga_clk[2];
+    case CLK_FPGA_PL3:
+        return &clk_regs->fpga_clk[3];
+    default:
+        return NULL;
+    }
+}
+
 /* FPGA PL Clocks */
 static freq_t
 _fpga_get_freq(clk_t* clk)
 {
-    // TODO
-    return -1;
+    pl_clk_regs_t* regs = (pl_clk_regs_t*)clk->priv;
+    uint8_t div0, div1;
+    freq_t fin;
+    div0 = CLK_GET_DIVISOR(0, regs->clk_ctrl);
+    div1 = CLK_GET_DIVISOR(1, regs->clk_ctrl);
+    fin = clk_get_freq(clk->parent);
+    return fin / div0 / div1;
 }
 
 static freq_t
 _fpga_set_freq(clk_t* clk, freq_t hz)
 {
-    // TODO
-    return -1;
+    pl_clk_regs_t* regs = (pl_clk_regs_t*)clk->priv;
+    uint8_t div0, div1;
+    freq_t fin;
+    fin = clk_get_freq(clk->parent);
+    zynq7000_clk_calc_divs(hz, fin, &div0, &div1);
+    CLK_SET_DIVISOR(0, regs->clk_ctrl, div0);
+    CLK_SET_DIVISOR(1, regs->clk_ctrl, div1);
+    return clk_get_freq(clk);
 }
 
 static void
@@ -858,10 +887,23 @@ static clk_t*
 _fpga_init(clk_t* clk)
 {
     if (clk->priv == NULL) {
+        pl_clk_regs_t* regs;
         clk_t* parent;
-        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_IO_PLL);
+        enum clk_id parent_id;
+        regs = get_pl_clk_regs(clk);
+        switch (CLK_GET_SRCSEL(regs->clk_ctrl)) {
+        case 0b10:
+            parent_id = CLK_ARM_PLL;
+            break;
+        case 0b11:
+            parent_id = CLK_DDR_PLL;
+            break;
+        default:
+            parent_id = CLK_IO_PLL;
+        }
+        parent = clk_get_clock(clk_get_clock_sys(clk), parent_id);
         clk_register_child(parent, clk);
-        clk->priv = (void*)clk_regs;
+        clk->priv = (void*)regs;
     }
 
     return clk;
@@ -872,6 +914,9 @@ static struct clock fpga_pl1_clk = { CLK_OPS(FPGA_PL1, fpga, NULL) };
 static struct clock fpga_pl2_clk = { CLK_OPS(FPGA_PL2, fpga, NULL) };
 static struct clock fpga_pl3_clk = { CLK_OPS(FPGA_PL3, fpga, NULL) };
 
+/*** These clocks yet to be implemented ***/
+static struct clock pcap_clk = { CLK_OPS_DEFAULT(PCAP) };
+static struct clock dbg_clk  = { CLK_OPS_DEFAULT(DBG ) };
 
 static int
 zynq7000_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
@@ -897,6 +942,7 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
     clock_sys->priv = (void*)clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &zynq7000_gate_enable;
+    assert(sizeof(struct zynq7000_clk_regs) == 0x308);
     return 0;
 }
 
@@ -932,6 +978,8 @@ clk_t* ps_clocks[] = {
     [CLK_SPI1]      = &spi1_clk,
     [CLK_CAN0]      = &can0_clk,
     [CLK_CAN1]      = &can1_clk,
+    [CLK_DBG]       = &dbg_clk,
+    [CLK_PCAP]      = &pcap_clk,
     [CLK_FPGA_PL0]  = &fpga_pl0_clk,
     [CLK_FPGA_PL1]  = &fpga_pl1_clk,
     [CLK_FPGA_PL2]  = &fpga_pl2_clk,
