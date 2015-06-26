@@ -10,8 +10,6 @@
 #ifndef PLAT_SRC_H
 #define PLAT_SRC_H
 
-#include <platsupport/io.h>
-
 enum src_id {
     SRC1,
     /* ---- */
@@ -30,6 +28,8 @@ enum src_rst_id {
     SRCRST_SW_IPU1,
     SRCRST_SW_VPU,
     SRCRST_SW_GPU,
+    /* ---- */
+    NSRCRST
 };
 
 #endif /* PLAT_SRC_H */
