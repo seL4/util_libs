@@ -7,19 +7,12 @@
  *
  * @TAG(NICTA_BSD)
  */
-
+#include "src.h"
 #include "../../arch/arm/clock.h"
 #include "../../services.h"
 #include <assert.h>
 #include <string.h>
 #include <utils/util.h>
-
-/* System Level Control Registers */
-#define SLCR_PADDR                  0xF8000000  /* System Level Control Registers */
-#define SLCR_SIZE                   0x1000
-
-#define SLCR_CLK_OFFSET             0x100       /* Offset of clock registers */
-
 
 /****************
  ****  PLLs  ****
@@ -303,7 +296,6 @@ struct zynq7000_clk_regs {
     uint32_t wdt_clk_sel;       /* 0x304 SWDT Clock Source Select */
 };
 
-static volatile void* slcr_regs;
 static volatile struct zynq7000_clk_regs* clk_regs = NULL;
 
 /*
@@ -941,17 +933,21 @@ zynq7000_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_ga
 int
 clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
-    MAP_IF_NULL(o, SLCR, slcr_regs);
-    clk_regs = (volatile struct zynq7000_clk_regs*)(slcr_regs + SLCR_CLK_OFFSET);
+    src_dev_t slcr;
+    int err;
+    assert(sizeof(struct zynq7000_clk_regs) == 0x308);
+    /* Grab a handle to the clock registers */
+    err = reset_controller_init(SLCR, o, &slcr);
+    if (err) {
+        return err;
+    }
+    clk_regs = (volatile struct zynq7000_clk_regs*)reset_controller_get_clock_regs(&slcr);
+    assert(clk_regs);
+
+    /* Initialise the clock subsystem structure */
     clock_sys->priv = (void*)clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &zynq7000_gate_enable;
-    assert(sizeof(struct zynq7000_clk_regs) == 0x308);
-    {
-        /* Unlock registers TODO move this into slcr code */
-        volatile uint32_t* r = (volatile uint32_t*)slcr_regs;
-        r[2] = 0xDF0D;
-    }
     return 0;
 }
 
