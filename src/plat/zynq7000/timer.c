@@ -219,3 +219,29 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 }
 
 
+pstimer_t*
+ps_init_timer(int _id, ps_io_ops_t* io_ops)
+{
+    enum timer_id id = (enum timer_id)_id;
+    timer_config_t tc;
+    pstimer_t *timer;
+    uintptr_t paddr;
+
+    /* Find the physical address */
+    if (id < 0 || id >= NTIMERS) {
+        return NULL;
+    }
+    paddr = zynq_timer_paddrs[id];
+    /* Map in the timer */
+    tc.vaddr = ps_io_map(&io_ops->io_mapper, paddr, TTC_TIMER_SIZE, 0, PS_MEM_NORMAL);
+    if (tc.vaddr == NULL) {
+        return NULL;
+    }
+    /* Initialise the timer */
+    timer = ps_get_timer(id, &tc);
+    if (timer == NULL) {
+        return NULL;
+    }
+    return timer;
+}
+

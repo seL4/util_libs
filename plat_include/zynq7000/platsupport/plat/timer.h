@@ -63,5 +63,4 @@ typedef struct {
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
 
-
 #endif /* _PLATSUPPORT_PLAT_TIMER_H */

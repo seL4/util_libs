@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include <errno.h>
 
+#include <platsupport/io.h>
+
 typedef struct pstimer pstimer_t;
 
 /* Properties of a timer */
@@ -165,6 +167,11 @@ timer_get_nth_irq(const pstimer_t *device, uint32_t n)
     return device->get_nth_irq(device, n);
 }
 
-
+/**
+ * Initialise a timer
+ * @param  id  The ID of the timer to initialise
+ * @return     A handle to the initialise timer or NULL on error
+ */
+pstimer_t *ps_init_timer(int id, ps_io_ops_t* io_ops);
 
 #endif /* __PLATSUPPORT_TIMER_H__ */
