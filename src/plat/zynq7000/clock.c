@@ -16,10 +16,9 @@
 
 /* System Level Control Registers */
 #define SLCR_PADDR                  0xF8000000  /* System Level Control Registers */
+#define SLCR_SIZE                   0x1000
+
 #define SLCR_CLK_OFFSET             0x100       /* Offset of clock registers */
-#define SLCR_CLK_PADDR              \
-    (SLCR_PADDR + SLCR_CLK_OFFSET)              /* Base address of clock registers */
-#define SLCR_CLK_SIZE               0x100
 
 
 /****************
@@ -304,8 +303,8 @@ struct zynq7000_clk_regs {
     uint32_t wdt_clk_sel;       /* 0x304 SWDT Clock Source Select */
 };
 
+static volatile void* slcr_regs;
 static volatile struct zynq7000_clk_regs* clk_regs = NULL;
-
 
 /*
  * Calculate the clock rate divisors
@@ -870,10 +869,12 @@ _fpga_set_freq(clk_t* clk, freq_t hz)
     pl_clk_regs_t* regs = (pl_clk_regs_t*)clk->priv;
     uint8_t div0, div1;
     freq_t fin;
+
     fin = clk_get_freq(clk->parent);
     zynq7000_clk_calc_divs(hz, fin, &div0, &div1);
     CLK_SET_DIVISOR(0, regs->clk_ctrl, div0);
     CLK_SET_DIVISOR(1, regs->clk_ctrl, div1);
+
     return clk_get_freq(clk);
 }
 
@@ -904,6 +905,8 @@ _fpga_init(clk_t* clk)
         parent = clk_get_clock(clk_get_clock_sys(clk), parent_id);
         clk_register_child(parent, clk);
         clk->priv = (void*)regs;
+        /* Continuous clock */
+        regs->thr_ctrl = 0;
     }
 
     return clk;
@@ -938,11 +941,17 @@ zynq7000_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_ga
 int
 clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
-    MAP_IF_NULL(o, SLCR_CLK, clk_regs);
+    MAP_IF_NULL(o, SLCR, slcr_regs);
+    clk_regs = (volatile struct zynq7000_clk_regs*)(slcr_regs + SLCR_CLK_OFFSET);
     clock_sys->priv = (void*)clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &zynq7000_gate_enable;
     assert(sizeof(struct zynq7000_clk_regs) == 0x308);
+    {
+        /* Unlock registers TODO move this into slcr code */
+        volatile uint32_t* r = (volatile uint32_t*)slcr_regs;
+        r[2] = 0xDF0D;
+    }
     return 0;
 }
 
