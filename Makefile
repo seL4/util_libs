@@ -22,7 +22,10 @@ INCLUDE_DIRS += $(SOURCE_DIR)/plat_include/$(PLAT)
 # Header files/directories this library provides
 HDRFILES := $(wildcard ${SOURCE_DIR}/include/*) \
             $(wildcard ${SOURCE_DIR}/plat_include/$(PLAT)/*) \
-            $(wildcard ${SOURCE_DIR}/arch_include/$(ARCH)/*) \
-            $(wildcard ${SOURCE_DIR}/mach_include/$(MACH)/*) 
+            $(wildcard ${SOURCE_DIR}/arch_include/$(ARCH)/*)
+
+ifneq ($(MACH),)
+HDRFILES += $(wildcard ${SOURCE_DIR}/mach_include/$(MACH)/*)
+endif
 
 include $(SEL4_COMMON)/common.mk
