@@ -10,6 +10,8 @@
 #ifndef _PLATSUPPORT_PLAT_TIMER_H
 #define _PLATSUPPORT_PLAT_TIMER_H
 
+#include <platsupport/clock.h>
+
 /* Memory maps */
 #define TTC0_PADDR               0xF8001000
 #define TTC1_PADDR               0xF8002000
@@ -59,6 +61,7 @@ static const int zynq_timer_irqs[] = {
 typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;
+    clk_t* clk_src;
 } timer_config_t;
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
