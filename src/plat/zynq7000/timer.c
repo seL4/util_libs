@@ -329,9 +329,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     /* Configure clock source */
     clk = &timer_data->clk;
     if (config->clk_src) {
-        clk_register_child(config->clk_src, &timer_data->clk);
+        clk_register_child(config->clk_src, clk);
     }
-    timer_data->freq = clk_get_freq(&timer_data->clk);
+    timer_data->freq = clk_get_freq(clk);
 
     timer->properties.upcounter = true;
     timer->properties.timeouts = true;
