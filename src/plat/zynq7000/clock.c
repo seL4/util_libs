@@ -296,6 +296,25 @@ struct zynq7000_clk_regs {
     uint32_t wdt_clk_sel;       /* 0x304 SWDT Clock Source Select */
 };
 
+static const enum clk_id cpu_clk_src[] = {
+                                             CLK_ARM_PLL,
+                                             CLK_ARM_PLL,
+                                             CLK_DDR_PLL,
+                                             CLK_IO_PLL
+                                         };
+
+static const enum clk_id generic_clk_src[] = {
+                                                 CLK_IO_PLL,
+                                                 CLK_IO_PLL,
+                                                 CLK_ARM_PLL,
+                                                 CLK_DDR_PLL
+                                             };
+
+#define fpga_clk_src generic_clk_src
+#define can_clk_src generic_clk_src
+#define pcap_clk_src generic_clk_src
+
+
 static volatile struct zynq7000_clk_regs* clk_regs = NULL;
 
 /*
@@ -516,10 +535,10 @@ _cpu_get_freq(clk_t* clk)
         divisor = divisor0 * 2;
         break;
     case CLK_CPU_2X:
-        divisor = divisor0 * (2 + clk_621_true);
+        divisor = divisor0 * ((clk_621_true) ? 3 : 2);
         break;
     case CLK_CPU_1X:
-        divisor = divisor0 * (4 + 2 * clk_621_true);
+        divisor = divisor0 * ((clk_621_true) ? 6 : 4);
         break;
     default:
         assert(!"Invalid clock");
@@ -568,7 +587,9 @@ _cpu_init(clk_t* clk)
 {
     if (clk->priv == NULL) {
         clk_t* parent;
-        parent = clk_get_clock(clk_get_clock_sys(clk), CLK_ARM_PLL);
+        enum clk_id parent_id;
+        parent_id = cpu_clk_src[CLK_GET_SRCSEL(clk_regs->arm_clk_ctrl)];
+        parent = clk_get_clock(clk_get_clock_sys(clk), parent_id);
         clk_register_child(parent, clk);
         clk->priv = (void*)clk_regs;
     }
@@ -884,16 +905,7 @@ _fpga_init(clk_t* clk)
         clk_t* parent;
         enum clk_id parent_id;
         regs = get_pl_clk_regs(clk);
-        switch (CLK_GET_SRCSEL(regs->clk_ctrl)) {
-        case 0b10:
-            parent_id = CLK_ARM_PLL;
-            break;
-        case 0b11:
-            parent_id = CLK_DDR_PLL;
-            break;
-        default:
-            parent_id = CLK_IO_PLL;
-        }
+        parent_id = fpga_clk_src[CLK_GET_SRCSEL(regs->clk_ctrl)];
         parent = clk_get_clock(clk_get_clock_sys(clk), parent_id);
         clk_register_child(parent, clk);
         clk->priv = (void*)regs;
