@@ -52,7 +52,6 @@
 #define NS_IN_SEC (1000000000)
 static uint64_t time_h = 0;
 static uint32_t prescale0;
-static void (*triggered_cb)(void);
 
 /* Memory map for pwm */
 struct pwm_map {
@@ -248,7 +247,7 @@ pwm_get_time(const pstimer_t *timer)
 {
     pwm_handle_irq(timer, 0); // Ensure the time is up to date
     pwm_t *pwm = (pwm_t*) timer->data;
-    uint64_t time_l = (pwm->pwm_map->tcntO0 / (ACLK_66 / 1000)); // Clk is in MHz
+    uint64_t time_l = (pwm->pwm_map->tcntO0 / (ACLK_66 / 1000.0)); // Clk is in MHz
     return time_h * NS_IN_SEC + (NS_IN_SEC - time_l);
 }
 

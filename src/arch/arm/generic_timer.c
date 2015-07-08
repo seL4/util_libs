@@ -57,13 +57,6 @@ generic_timer_get_time(const pstimer_t *timer)
 
 static pstimer_t singleton_timer;
 
-static void
-enable_timer(void* arg)
-{
-    MCR(CNTKCTL, 1);
-}
-
-
 pstimer_t *
 generic_timer_get_timer(void)
 {
