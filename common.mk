@@ -8,15 +8,6 @@
 # @TAG(NICTA_BSD)
 #
 
-### CCACHE
-########################################
-# if ccache is in our path, use it!
-ifeq ($(CONFIG_BUILDSYS_USE_CCACHE),y)
-CCACHE=$(shell which ccache)
-else
-CCACHE=
-endif
-
 ### Verbose building
 ########################################
 

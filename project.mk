@@ -129,6 +129,16 @@ BUILD_BASE = $(BUILD_ROOT)/$(ARCH)/$(PLAT)
 
 -include .config
 
+### CCACHE
+########################################
+# if ccache is in our path, use it!
+ifeq ($(CONFIG_BUILDSYS_USE_CCACHE),y)
+CCACHE=$(shell which ccache)
+else
+CCACHE=
+endif
+export CCACHE
+
 # Linux expects CROSS_COMPILE to contain the cross compiler prefix
 CROSS_COMPILE ?=
 ifeq ($(CROSS_COMPILE),)
