@@ -39,11 +39,11 @@ endif
 
 CC  := $(CCACHE) $(TOOLPREFIX)gcc
 CXX := $(CCACHE) $(TOOLPREFIX)g++
-ASM := $(CCACHE) $(TOOLPREFIX)as
-LD  := $(CCACHE) $(TOOLPREFIX)ld
-AR  := $(CCACHE) $(TOOLPREFIX)ar
-CPP := $(CCACHE) $(TOOLPREFIX)cpp
-OBJCOPY := $(CCACHE) $(TOOLPREFIX)objcopy
+ASM := $(TOOLPREFIX)as
+LD  := $(TOOLPREFIX)ld
+AR  := $(TOOLPREFIX)ar
+CPP := $(TOOLPREFIX)cpp
+OBJCOPY := $(TOOLPREFIX)objcopy
 FMT := $(shell which clang-format)
 ifneq (${FMT},)
   FMT += --style=LLVM
