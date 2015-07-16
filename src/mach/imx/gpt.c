@@ -205,7 +205,7 @@ gpt_get_time(const pstimer_t *timer)
     uint64_t value;
 
     value = gpt->gpt_map->gptcnt;
-    uint64_t ns = (value / (uint64_t)IPG_FREQ) * 1000llu;
+    uint64_t ns = (value / (uint64_t)IPG_FREQ) * NS_IN_US * (gpt->prescaler + 1);
     return ns;
 }
 

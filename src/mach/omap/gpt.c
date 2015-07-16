@@ -282,7 +282,7 @@ gpt_get_time(const pstimer_t *timer)
 
     uint32_t value = gpt->gpt_map->tcrr;
 
-    uint64_t ns = ((uint64_t) value / (uint64_t)CLK_FREQ) * 1000llu;
+    uint64_t ns = ((uint64_t) value / (uint64_t)CLK_FREQ) * NS_IN_US * (gpt->prescaler + 1);
     return ns;
 }
 

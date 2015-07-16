@@ -216,7 +216,7 @@ epit_get_time(const pstimer_t *timer)
 
     /* read the epit */
     value = epit->epit_map->epitcnt;
-    uint64_t ns = (value / (uint64_t)IPG_FREQ) * 1000llu;
+    uint64_t ns = (value / (uint64_t)IPG_FREQ) * NS_IN_US * (epit->prescaler + 1);
 
     return epit->counter_start - ns;
 }
