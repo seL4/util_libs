@@ -254,16 +254,23 @@ endif
 	$(Q)$(CC) $(ASFLAGS) $(CPPFLAGS) -c $< -o $@
 
 %.a: $(OBJFILES)
-	@echo " [AR] $@"
+	@echo " [AR] $@ objs:$(OBJFILES)"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(AR) r $@ $(OBJFILES) > /dev/null 2>&1
 
 %.bin: %.elf
 	$(call cp_file,$<,$@)
 
+# Note: Create a separate rule ARCHIVES to clearly indicate they
+# the ARCHIVES must be built before doing any other steps. Previously
+# when ARCHIVES was a prerequisite on the line below make thought
+# it was local to this directory and would make the archives using
+# src/main.obj.
+%.elf: $(ARCHIVES)
+
 # Note: below the CC line does not have ARCHIVES because
 # LDFLAGS already includes the "-l" version of ARCHIVES
-%.elf: $(CRTOBJFILES) $(FINOBJFILES) $(OBJFILES) $(ARCHIVES)
+%.elf: $(CRTOBJFILES) $(FINOBJFILES) $(OBJFILES)
 	@echo " [LINK] $@"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) $(CRTOBJFILES) $(OBJFILES) $(FINOBJFILES) $(LDFLAGS) -o $@
