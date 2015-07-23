@@ -158,7 +158,6 @@ pwm_timer_start(const pstimer_t *timer)
 
     /* Start timer0 for get_time */
     configure_timeout(timer, NS_IN_SEC, 0);
-    printf("New timer driver\n");
     /* Set autoreload and start the timer. */
     pwm->pwm_map->tcon |= T0_AUTORELOAD | T0_ENABLE;
 
