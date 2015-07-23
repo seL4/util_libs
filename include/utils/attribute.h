@@ -37,21 +37,21 @@
  * unavailable.
  */
 #ifndef __has_attribute
-  #define __has_attribute(x) 0
+#define __has_attribute(x) 0
 #endif
 
 /* alloc_align was added to GCC in 4.9 */
 #if __has_attribute(alloc_align) || (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)))
-  #define ALLOC_ALIGN(arg) __attribute__((alloc_align(arg)))
+#define ALLOC_ALIGN(arg) __attribute__((alloc_align(arg)))
 #else
-  #define ALLOC_ALIGN(arg) /* ignored */
+#define ALLOC_ALIGN(arg) /* ignored */
 #endif
 
 /* returns_nonnull was added to GCC in 4.9 */
 #if __has_attribute(returns_nonnull) || (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)))
-  #define RETURNS_NONNULL __attribute__((returns_nonnull))
+#define RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
-  #define RETURNS_NONNULL /* ignored */
+#define RETURNS_NONNULL /* ignored */
 #endif
 
 /* A special case for libsel4 so we can avoid depending on this library.
@@ -59,7 +59,7 @@
 #ifndef __LIBSEL4_MACROS_H
 #define PURE         __attribute__((__pure__))
 #define CONST        __attribute__((__const__))
-#endif /* __LIBSEL4_MACROS_H */ 
+#endif /* __LIBSEL4_MACROS_H */
 
 #endif /* _UTILS_ATTRIBUTE_H */
 

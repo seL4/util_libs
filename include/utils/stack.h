@@ -19,6 +19,6 @@
  * @param arg to pass to new function.
  * @ret   the return value of func.
  */
-void *utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg);
+void *utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg);
 
 #endif /* __UTILS_STACK_H */

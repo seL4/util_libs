@@ -35,7 +35,7 @@ static inline uint64_t muldivu64(uint64_t a, uint64_t b, uint64_t c)
     uint64_t cur_remainder = b % c;
     /* we will iterate through all the bits of a from least to most
      * significant, we can stop early once there are no set bits though */
-    while(a) {
+    while (a) {
         /* If this bit is set then the power of two is part of the
          * construction of a */
         if (a & 1) {

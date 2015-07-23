@@ -12,7 +12,7 @@
 #include <utils/stack.h>
 
 void *
-utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
+utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
 {
 
 #ifdef CONFIG_X86_64
@@ -27,8 +27,8 @@ utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
         "pop    %%rsp\n\t"
         : [ret] "=a" (ret)
         : [new_stack] "r" (stack_top),
-          [func] "r" (func),
-          [arg] "r" (arg)
+        [func] "r" (func),
+        [arg] "r" (arg)
         : "rcx", "rbx", "rdi"
     );
 #else
@@ -43,8 +43,8 @@ utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
         "popl %%esp\n\t"                /* Switch back! */
         : [ret] "=a" (ret)
         : [new_stack] "r" (stack_top),
-          [func] "r" (func),
-          [arg] "r" (arg)
+        [func] "r" (func),
+        [arg] "r" (arg)
         : "ecx", "ebx");
 #endif /* CONFIG_X86_64 */
     return ret;

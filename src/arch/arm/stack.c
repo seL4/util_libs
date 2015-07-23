@@ -11,7 +11,7 @@
 #include <utils/stack.h>
 
 void *
-utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
+utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
 {
     void *ret;
     asm volatile (
@@ -23,8 +23,8 @@ utils_run_on_stack(void *stack_top, void *(*func)(void *arg), void *arg)
         "mov %[ret], r0\n\t"
         : [ret] "=r" (ret)
         : [new_stack] "r" (stack_top),
-          [func] "r" (func),
-          [arg] "r" (arg)
+        [func] "r" (func),
+        [arg] "r" (arg)
         /* r0 - r3 are caller saved, so they will be clobbered by blx.
          * blx clobbers lr
          * we clobber r4 to save the return value in it */
