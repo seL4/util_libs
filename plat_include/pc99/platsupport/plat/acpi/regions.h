@@ -39,7 +39,6 @@
 #define ACPI_SIG_DMAR           "DMAR"      /* DMA remapping table */
 #define ACPI_SIG_ASF            "ASF!"      /* Alert Standard Format table */
 #define ACPI_SIG_HEST           "HEST"      /* Hardware Error Source Table */
-#define ACPI_SIG_ERST           "ERST"      /* Error Record Serialisation Table */
 #define ACPI_SIG_MCFG           "MCFG"      /* PCI Memory mapped ConFiGuration */
 
 
