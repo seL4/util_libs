@@ -44,23 +44,29 @@ enum clock_gate {
     /* -- CCGR0 -- */
     /* -- CCGR1 -- */
     /* -- CCGR2 -- */
-    ocotp_ctrl  = CLK_GATE(2, 6),
-    i2c3_serial = CLK_GATE(2, 5),
-    i2c2_serial = CLK_GATE(2, 4),
-    i2c1_serial = CLK_GATE(2, 3),
+    ocotp_ctrl   = CLK_GATE(2, 6),
+    i2c3_serial  = CLK_GATE(2, 5),
+    i2c2_serial  = CLK_GATE(2, 4),
+    i2c1_serial  = CLK_GATE(2, 3),
     /* -- CCGR3 -- */
+    ipu1_ipu     = CLK_GATE(3, 0),
+    ipu1_ipu_di0 = CLK_GATE(3, 1),
+    ipu1_ipu_di1 = CLK_GATE(3, 2),
+    ipu2_ipu     = CLK_GATE(3, 3),
+    ipu2_ipu_di0 = CLK_GATE(3, 4),
+    ipu2_ipu_di1 = CLK_GATE(3, 5),
     /* -- CCGR4 -- */
     /* -- CCGR5 -- */
 
     /* -- CCGR6 -- */
-    usboh3      = CLK_GATE(6, 0),
-    usdhc1      = CLK_GATE(6, 1),
-    usdhc2      = CLK_GATE(6, 2),
-    usdhc3      = CLK_GATE(6, 3),
-    usdhc4      = CLK_GATE(6, 4),
-    eim_slow    = CLK_GATE(6, 5),
-    vdoaxiclk   = CLK_GATE(6, 6),
-    vpu         = CLK_GATE(6, 7),
+    usboh3       = CLK_GATE(6, 0),
+    usdhc1       = CLK_GATE(6, 1),
+    usdhc2       = CLK_GATE(6, 2),
+    usdhc3       = CLK_GATE(6, 3),
+    usdhc4       = CLK_GATE(6, 4),
+    eim_slow     = CLK_GATE(6, 5),
+    vdoaxiclk    = CLK_GATE(6, 6),
+    vpu          = CLK_GATE(6, 7),
     NCLKGATES
 };
 
