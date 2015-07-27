@@ -12,6 +12,10 @@
 #define _UTILS_ATTRIBUTE_H
 /* macros for compile time attributes */
 
+#ifndef __has_attribute
+  #define __has_attribute(attrib) 0
+#endif
+
 #define ALIGN(n)     __attribute__((__aligned__(n)))
 #define ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
 #define ASSUME_ALIGNED(args...) __attribute__((assume_aligned(args)))
