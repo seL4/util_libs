@@ -34,7 +34,11 @@
 #define SENTINEL_LAST __attribute__((sentinel))
 #define UNUSED       __attribute__((__unused__))
 #define USED         __attribute__((__used__))
-#define VISIBLE      __attribute__((__externally_visible__))
+#if __clang__ && !__has_attribute(externally_visible)
+  #define VISIBLE /* ignored */
+#else
+  #define VISIBLE __attribute__((__externally_visible__))
+#endif
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #define WEAK         __attribute__((weak))
