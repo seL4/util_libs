@@ -37,6 +37,7 @@
 #define VISIBLE      __attribute__((__externally_visible__))
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#define WEAK         __attribute__((weak))
 
 /* Stub out __has_attribute on GCC and friends where this feature macro is
  * unavailable.
