@@ -14,6 +14,7 @@
 #define __LIB_PCI_SUPPORT_LIBRARY_PCI_CONFIG_H__
 
 #include <pci/helper.h>
+#include <stdbool.h>
 
 // ref: http://www.acm.uiuc.edu/sigops/roll_your_own/7.c.0.html
 //      PCI System Architecture, rev 4
