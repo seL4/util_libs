@@ -16,6 +16,7 @@
   #define __has_attribute(attrib) 0
 #endif
 
+#define ALIAS(sym)   __attribute__((alias(#sym)))
 #define ALIGN(n)     __attribute__((__aligned__(n)))
 #define ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
 #define ASSUME_ALIGNED(args...) __attribute__((assume_aligned(args)))
