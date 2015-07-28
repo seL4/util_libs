@@ -25,6 +25,8 @@
  *  - modified time
  */
 
+#define _XOPEN_SOURCE 700
+
 /* We deliberately use seL4's CPIO library rather than libarchive or similar so
  * we have the same interpretation of CPIO files as seL4. This isn't strictly
  * essential, but it's nice for testing the robustness of this library.
