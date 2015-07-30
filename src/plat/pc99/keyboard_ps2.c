@@ -82,13 +82,9 @@ ps2_send_keyboard_cmd_param(ps_io_ops_t *ops, uint8_t cmd, uint8_t param)
 /* ---------------------------------------------------------------------------------------------- */
 
 static keyboard_key_event_t
-keyboard_state_push_ps2_keyevent(struct keyboard_state *s, int16_t ps2_keyevent)
+keyboard_state_push_ps2_keyevent(struct keyboard_state *s, uint16_t ps2_keyevent)
 {
     keyboard_key_event_t ev_none = { .vkey = -1, .pressed = false };
-
-    if (ps2_keyevent <= -1) {
-        return ev_none;
-    }
 
     if (s->state == KEYBOARD_PS2_STATE_IGNORE) {
         s->num_ignore--;
