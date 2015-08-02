@@ -69,7 +69,7 @@ ls | cpio -o -H newc > ${ARCHIVE} 2>/dev/null
 
 # Strip CPIO metadata if possible.
 set +e
-which cpio-strip > /dev/null
+which cpio-strip >/dev/null 2>/dev/null
 result=$?
 set -e
 if [ $result -eq 0 ]; then
