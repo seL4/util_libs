@@ -20,10 +20,58 @@
 #include <lwip/stats.h>
 #include "debug.h"
 
+static void initialize_free_bufs(lwip_iface_t *iface) {
+    dma_addr_t *dma_bufs = NULL;
+    dma_bufs = malloc(sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
+    if (!dma_bufs) {
+        goto error;
+    }
+    memset(dma_bufs, 0, sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
+    iface->bufs = malloc(sizeof(dma_addr_t*) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
+    if (!iface->bufs) {
+        goto error;
+    }
+    for (int i = 0; i < CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS; i++) {
+        dma_bufs[i] = dma_alloc_pin(&iface->dma_man, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE, 1, iface->driver.dma_alignment);
+        if (!dma_bufs[i].phys) {
+            goto error;
+        }
+        ps_dma_cache_clean_invalidate(&iface->dma_man, dma_bufs[i].virt, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
+        iface->bufs[i] = &dma_bufs[i];
+    }
+    iface->num_free_bufs = CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS;
+    return;
+error:
+    if (iface->bufs) {
+        free(iface->bufs);
+    }
+    if (dma_bufs) {
+        for (int i = 0; i < CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS; i++) {
+            if (dma_bufs[i].virt) {
+                dma_unpin_free(&iface->dma_man, dma_bufs[i].virt, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
+            }
+        }
+        free(dma_bufs);
+    }
+    iface->bufs = NULL;
+}
+
 static uintptr_t lwip_allocate_rx_buf(void *iface, size_t buf_size, void **cookie) {
     lwip_iface_t *lwip_iface = (lwip_iface_t*)iface;
-    if (lwip_iface->num_free_bufs == 0 || buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
+    if (buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
+        LOG_ERROR("Requested RX buffer of size %d which can never be fullfilled by preallocated buffers of size %d", buf_size, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
         return 0;
+    }
+    if (lwip_iface->num_free_bufs == 0) {
+        if (!lwip_iface->bufs) {
+            initialize_free_bufs(lwip_iface);
+            if (!lwip_iface->bufs) {
+                LOG_ERROR("Failed lazy initialization of preallocated free buffers");
+                return 0;
+            }
+        } else {
+            return 0;
+        }
     }
     lwip_iface->num_free_bufs--;
     dma_addr_t *buf = lwip_iface->bufs[lwip_iface->num_free_bufs];
@@ -381,7 +429,6 @@ ethif_init(struct netif *netif)
 }
 
 lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config, lwip_iface_t *iface) {
-    dma_addr_t *dma_bufs = NULL;
     memset(iface, 0, sizeof(*iface));
     iface->driver.cb_cookie = iface;
     if (pbuf_dma) {
@@ -390,45 +437,17 @@ lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *
     } else {
         iface->driver.i_cb = lwip_prealloc_callbacks;
         iface->dma_man = io_ops.dma_manager;
-
-        dma_bufs = malloc(sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
-        if (!dma_bufs) {
-            goto error;
-        }
-        memset(dma_bufs, 0, sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
-        iface->bufs = malloc(sizeof(dma_addr_t*) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
-        if (!iface->bufs) {
-            goto error;
-        }
-        for (int i = 0; i < CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS; i++) {
-            dma_bufs[i] = dma_alloc_pin(&iface->dma_man, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE, 1, iface->driver.dma_alignment);
-            if (!dma_bufs[i].phys) {
-                goto error;
-            }
-            ps_dma_cache_clean_invalidate(&iface->dma_man, dma_bufs[i].virt, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
-            iface->bufs[i] = &dma_bufs[i];
-        }
-        iface->num_free_bufs = CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS;
     }
     int err;
     err = driver(&iface->driver, io_ops, driver_config);
     if (err) {
         goto error;
     }
+    /* if the driver did not already cause it to happen, allocate the preallocated buffers */
+    initialize_free_bufs(iface);
     iface->ethif_init = ethif_init;
     return iface;
 error:
-    if (iface->bufs) {
-        free(iface->bufs);
-    }
-    if (dma_bufs) {
-        for (int i = 0; i < CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS; i++) {
-            if (dma_bufs[i].virt) {
-                dma_unpin_free(&iface->dma_man, dma_bufs[i].virt, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
-            }
-        }
-        free(dma_bufs);
-    }
     return NULL;
 }
 
