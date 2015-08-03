@@ -126,9 +126,11 @@ enum spi_cs_state {
 struct spi_bus {
     volatile struct spi_regs* regs;
     enum mux_feature mux;
+    enum clk_id clkid;
     int mode: 1;              //0 -- Master, 1 -- Slave
     int high_speed: 1;        //High speed operation in slave mode.
     int cs_auto: 1;           //Auto chip selection.
+    clk_t *clk;               //Clock for changing the bus speed.
 
     /* Transfer management */
     const char *txbuf;
@@ -140,12 +142,12 @@ struct spi_bus {
 };
 
 static spi_bus_t _spi[NSPI] = {
-    { .regs = NULL, .mux = MUX_SPI0  },
-    { .regs = NULL, .mux = MUX_SPI1  },
-    { .regs = NULL, .mux = MUX_SPI2  },
+    { .regs = NULL, .mux = MUX_SPI0, .clkid = CLK_SPI0 },
+    { .regs = NULL, .mux = MUX_SPI1, .clkid = CLK_SPI1 },
+    { .regs = NULL, .mux = MUX_SPI2, .clkid = CLK_SPI2 },
 #if defined(PLAT_EXYNOS5)
-    { .regs = NULL, .mux = MUX_SPI0_ISP },
-    { .regs = NULL, .mux = MUX_SPI1_ISP },
+    { .regs = NULL, .mux = MUX_SPI0_ISP, .clkid = CLK_SPI0_ISP },
+    { .regs = NULL, .mux = MUX_SPI1_ISP, .clkid = CLK_SPI1_ISP },
 #endif /* EXYNOSX */
 };
 
@@ -260,9 +262,10 @@ spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
     }
 
     if (clock_sys && clock_sys_valid(clock_sys)) {
-//        LOG_INFO("SPI: Assuming default clock frequent (Implement me)\n");
+        spi_bus->clk = clk_get_clock(clock_sys, spi_bus->clkid);
     } else {
 //        LOG_INFO("SPI: Assuming default clock frequency as no clock subsystem was provided\n");
+        spi_bus->clk = NULL;
     }
 
     spi_bus->mode = 0;
@@ -387,6 +390,19 @@ spi_set_speed(spi_bus_t* spi_bus, long bps)
     return 0;
 }
 
+void
+spi_prepare_transfer(spi_bus_t* spi_bus, spi_slave_config_t* cfg)
+{
+    if (spi_bus->clk && clk_get_freq(spi_bus->clk) != cfg->speed_hz) {
+        clk_set_freq(spi_bus->clk, cfg->speed_hz);
+    }
+
+    /* Set feedback clock, only when SPI runs at a high frequency */
+    if (cfg->speed_hz >= 1 * MHZ) {
+        spi_bus->regs->fb_clk_sel = (cfg->fb_delay << FB_CLK_SEL_SHF);
+    }
+}
+
 int
 exynos_spi_init(enum spi_id id, void* base,
                 mux_sys_t* mux_sys, clock_sys_t* clock_sys,
@@ -430,6 +446,7 @@ spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** ret_spi_bus)
     default:
         return -1;
     }
+
     return spi_init_common(spi_bus, &io_ops->mux_sys, &io_ops->clock_sys);
 }
 
