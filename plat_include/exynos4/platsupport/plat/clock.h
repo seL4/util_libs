@@ -40,6 +40,12 @@ enum clk_id {
     CLK_UART1,
     CLK_UART2,
     CLK_UART3,
+
+    CLK_SPI0,
+    CLK_SPI1,
+    CLK_SPI2,
+    CLK_SPI0_ISP,
+    CLK_SPI1_ISP,
     /* ----- */
     NCLOCKS,
     /* Aliases */
