@@ -12,8 +12,20 @@
 #define _PLATSUPPORT_SPI_H_
 
 #include <platsupport/io.h>
+#include <platsupport/clock.h>
+#include <platsupport/gpio.h>
 
 typedef struct spi_bus spi_bus_t;
+typedef struct spi_slave_config spi_slave_config_t;
+
+struct spi_slave_config {
+    /// Device operation speed
+    freq_t   speed_hz;
+    /// Slave selection signal delay in microseconds
+    uint32_t nss_udelay;
+    /// Feedback/propagation delay in clock phases
+    uint32_t fb_delay;
+};
 
 #include <platsupport/plat/spi.h>
 
@@ -44,8 +56,14 @@ long spi_set_speed(spi_bus_t* spi_bus, long bps);
  */
 void spi_handle_irq(spi_bus_t* dev);
 
+/**
+ * Configure the SPI bus to meet the slave device's requirement
+ * @param[in] spi_bus  A handle to an SPI bus
+ * @param[in] cfg      Slave configuration
+ */
+void spi_prepare_transfer(spi_bus_t* spi_bus, spi_slave_config_t* cfg);
 
-/*
+/**
  * Write and read data to and from the SPI bus.
  * txdata will be sent from byte position 0 until txcnt bytes have been sent.
  * rxdata will be read once txcnt bytes have been sent and until rxcnt bytes have
