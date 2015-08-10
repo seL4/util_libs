@@ -477,7 +477,11 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
         break;
     case I2CSTAT_MODE_SRX:
         /* Read in the data */
-        *dev->rx_buf++ = dev->regs->data;
+        if (dev->rx_buf) {
+            *dev->rx_buf++ = dev->regs->data;
+        } else {
+            (void)dev->regs->data;
+        }
         dev->rx_count++;
         /* Last chance for user to supply another buffer */
         if (i2c_bus->cb && (dev->rx_count == dev->rx_len)) {
@@ -520,7 +524,11 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
             if (i2c_bus->cb && (dev->tx_count + 1 < dev->tx_len)) {
                 i2c_bus->cb(i2c_bus, I2CSTAT_LASTBYTE, dev->tx_count, i2c_bus->token);
             }
-            dev->regs->data = *dev->tx_buf++;
+            if (dev->tx_buf) {
+                dev->regs->data = *dev->tx_buf++;
+            } else {
+                dev->regs->data = 0x00;
+            }
             dev->tx_count++;
         }
         break;
