@@ -10,7 +10,6 @@
  */
 
 #include <autoconf.h>
-#include <stdint.h>
 #include "../scu.h"
 #include "../stdio.h"
 
@@ -25,7 +24,7 @@
 #define BP_SRC_SCR_CORE1_RST        14
 #define BP_SRC_SCR_CORE1_ENABLE     22
 
-#define REG(base,offset) (*(volatile uint32_t*)(((uint32_t)(base))+(offset)))
+#define REG(base,offset) (*(volatile unsigned int*)(((unsigned int)(base))+(offset)))
 
 void imx_non_boot(void);
 
@@ -38,7 +37,7 @@ static void *get_scu_base(void)
 
 static void src_init(void)
 {
-    uint32_t val;
+    unsigned int val;
     val = REG(SRC_BASE, SRC_SCR);
     val &= ~(1 << BP_SRC_SCR_WARM_RESET_ENABLE);
     REG(SRC_BASE, SRC_SCR) = val;
@@ -46,7 +45,7 @@ static void src_init(void)
 
 static void src_enable_cpu(int cpu)
 {
-    uint32_t mask, val;
+    unsigned int mask, val;
 
     mask = 1 << (BP_SRC_SCR_CORE1_ENABLE + cpu - 1);
     val = REG(SRC_BASE, SRC_SCR);
@@ -56,7 +55,7 @@ static void src_enable_cpu(int cpu)
 
 static void src_set_cpu_jump(int cpu, void *jump_addr)
 {
-    REG(SRC_BASE, SRC_GPR1 + cpu * 8) = (uint32_t)jump_addr;
+    REG(SRC_BASE, SRC_GPR1 + cpu * 8) = (unsigned int)jump_addr;
 }
 
 
