@@ -62,7 +62,7 @@ void *memset(void *s, int c, size_t n)
     return s;
 }
 
-void *memcpy(void *restrict dest, void *restrict src, size_t n)
+void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 {
     unsigned char *d = (unsigned char *)dest;
     const unsigned char *s = (const unsigned char *)src;
