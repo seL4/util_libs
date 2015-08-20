@@ -55,11 +55,13 @@ non_boot_core:
     ldreq     sp, =_bootstack_top_core3
     b       non_boot_main
 
-.align 4
+.align 8
 .space 1024
 _bootstack_top_core1:
+.align 8
 .space 1024
 _bootstack_top_core2:
+.align 8
 .space 1024
 _bootstack_top_core3:
 
