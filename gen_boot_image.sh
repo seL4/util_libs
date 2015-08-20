@@ -42,7 +42,7 @@ case "$PLAT" in
         FORMAT=elf32-littlearm
         ;;
     "zynq7000")
-        ENTRY_ADDR=0x20000000;
+        ENTRY_ADDR=0x10000000;
         FORMAT=elf32-littlearm
         ;;
     "apq8064")
