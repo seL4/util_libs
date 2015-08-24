@@ -16,15 +16,6 @@ CXXFLAGS :=
 # CCFLAGS represent flags that will later get included into both CFLAGS and CXXFLAGS
 CCFLAGS :=
 
-ifeq ($(NK_BUILD),y)
-
-ifeq ($(objtree),)
-	objtree := $(KBUILD_DIR)
-endif
-
-include $(PWD)/tools/kbuild/Kbuild.include
-endif
-
 # NON-KERNEL BUILD CFLAGS used by common.mk
 NK_CFLAGS =
 NK_CXXFLAGS =
@@ -278,31 +269,26 @@ NK_CXXFLAGS += ${ccflags-y} ${cxxflags-y} ${NK_CCFLAGS}
 NK_LDFLAGS += ${ldflags-y}
 NK_ASFLAGS += ${asflags-y}
 
-ifeq ($(NK_BUILD),y)
-	export NK_CFLAGS NK_LDFLAGS NK_ASFLAGS NK_CXXFLAGS
-else
-	export CFLAGS LDFLAGS ASFLAGS CPPFLAGS CXXFLAGS NK_CFLAGS NK_LDFLAGS NK_ASFLAGS NK_CXXFLAGS
-	# Export KBuild variables so the kernel's Makefile can access them.
-	export \
-		CONFIG_OPTIMISATION_Os \
-		CONFIG_OPTIMISATION_O0 \
-		CONFIG_OPTIMISATION_O1 \
-		CONFIG_OPTIMISATION_O2 \
-		CONFIG_OPTIMISATION_O3
-	export \
-		CONFIG_KERNEL_COMPILER \
-		CONFIG_KERNEL_CFLAGS \
-		CONFIG_KERNEL_EXTRA_CPPFLAGS
-	export \
-	    CONFIG_WHOLE_PROGRAM_OPTIMISATIONS_KERNEL
+export CFLAGS LDFLAGS ASFLAGS CPPFLAGS CXXFLAGS NK_CFLAGS NK_LDFLAGS NK_ASFLAGS NK_CXXFLAGS
+# Export KBuild variables so the kernel's Makefile can access them.
+export \
+    CONFIG_OPTIMISATION_Os \
+    CONFIG_OPTIMISATION_O0 \
+    CONFIG_OPTIMISATION_O1 \
+    CONFIG_OPTIMISATION_O2 \
+    CONFIG_OPTIMISATION_O3
+export \
+    CONFIG_KERNEL_COMPILER \
+    CONFIG_KERNEL_CFLAGS \
+    CONFIG_KERNEL_EXTRA_CPPFLAGS
+export \
+    CONFIG_WHOLE_PROGRAM_OPTIMISATIONS_KERNEL
 ifeq (${CONFIG_FASTPATH},y)
 export FASTPATH=1
 endif
 
 ifeq ($(CONFIG_SMP_ARM_MPCORE),y)
 export CONFIG_SMP_ARM_MPCORE
-endif
-
 endif
 
 # Allow a project to add additional project-specific flags.
