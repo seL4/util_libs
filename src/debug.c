@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <utils/arith.h>
 #include <utils/util.h>
+#include <utils/zf_log.h>
 #include <string.h>
+
 
 #define MD_BYTES_PER_LINE (sizeof(uint32_t) * 4)
 #define MD_GROUPING       4
