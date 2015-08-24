@@ -9,9 +9,9 @@
  */
 
 #include "keyboard_chardev.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sel4/sel4.h>
 #include <assert.h>
 
 static struct keyboard_state kb_state;

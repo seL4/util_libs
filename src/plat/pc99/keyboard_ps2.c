@@ -10,9 +10,10 @@
 
 #include "keyboard_ps2.h"
 #include "keyboard_vkey.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sel4/sel4.h>
 #include <assert.h>
 
 static void
