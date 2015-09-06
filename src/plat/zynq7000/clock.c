@@ -516,6 +516,38 @@ static struct clock ddr_pll_clk = { CLK_OPS(DDR_PLL, pll, NULL) };
 static struct clock io_pll_clk  = { CLK_OPS(IO_PLL,  pll, NULL) };
 
 
+static int
+_cpu_set_621(clk_t* clk, int v)
+{
+    switch (clk->id) {
+    case CLK_CPU_6OR4X:
+    case CLK_CPU_3OR2X:
+    case CLK_CPU_2X:
+    case CLK_CPU_1X:
+        if (v) {
+            clk_regs->clk_621_true |= CPU_CLK_621_TRUE;
+        } else {
+            clk_regs->clk_621_true &= ~CPU_CLK_621_TRUE;
+        }
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int
+clk_cpu_clk_select_621(clk_t* clk)
+{
+    return _cpu_set_621(clk, 1);
+}
+
+int
+clk_cpu_clk_select_421(clk_t* clk)
+{
+    return _cpu_set_621(clk, 0);
+}
+
+
 /* CPU Clocks */
 static freq_t
 _cpu_get_freq(clk_t* clk)

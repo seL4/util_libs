@@ -78,4 +78,19 @@ enum clock_gate {
 };
 
 
+/**
+ * Select 621 CPU clock ratio
+ * @param[in] cpu_clk  One of the CPU clocks
+ * @return             0 on success
+ */
+int clk_cpu_clk_select_621(clk_t* cpu_clk);
+
+/**
+ * Select 421 CPU clock ratio
+ * @param[in] cpu_clk  One of the CPU clocks
+ * @return             0 on success
+ */
+int clk_cpu_clk_select_421(clk_t* cpu_clk);
+
+
 #endif /* _PLATSUPPORT_PLAT_CLOCK_H_ */
