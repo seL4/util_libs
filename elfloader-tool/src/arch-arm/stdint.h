@@ -26,5 +26,4 @@ typedef uint32_t size_t;
 
 #define UINT64_MAX (18446744073709551615ULL)
 
-#define __PTR_SIZE 32
 #endif
