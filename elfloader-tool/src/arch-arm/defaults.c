@@ -21,22 +21,3 @@ __attribute__((weak)) abort(void)
 
     while (1);
 }
-
-#ifdef THREAD_SAFE
-
-#include <mutex/mutex.h>
-
-void
-__attribute__((weak)) mutex_count_lock(struct mutex *m)
-{
-    return;
-}
-
-void
-__attribute__((weak)) mutex_count_unlock(struct mutex *m)
-{
-    return;
-}
-
-#endif /* THREAD_SAFE */
-
