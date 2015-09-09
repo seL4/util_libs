@@ -108,7 +108,7 @@ pushd "${TEMP_DIR}/cpio" &>/dev/null
 printf "kernel.elf\n$(basename ${USER_IMAGE})\n" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
 
 # Strip CPIO metadata if possible.
-which cpio-strip > /dev/null
+which cpio-strip >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
     cpio-strip ${TEMP_DIR}/archive.cpio
 fi
