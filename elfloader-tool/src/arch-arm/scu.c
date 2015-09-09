@@ -18,9 +18,7 @@
 #include <stdint.h>
 
 #include "cpuid.h"
-
-
-void flush_dcache(void);
+#include "elfloader.h"
 
 #define SCU_CTRL 0
 #define SCU_CONFIG 1
