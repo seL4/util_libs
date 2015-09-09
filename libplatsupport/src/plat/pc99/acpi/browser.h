@@ -20,7 +20,7 @@
  * User input required to traverse the tree
  */
 void
-acpi_browse_tables(const acpi_rsdp_t* rsdp, uint32_t offset);
+acpi_browse_tables(const acpi_rsdp_t* rsdp, size_t offset);
 
 /*
  * interactively browse the tables given in the region list
@@ -30,7 +30,7 @@ acpi_browse_regions(const RegionList_t* regions);
 
 #else
 static inline void
-acpi_browse_tables(const acpi_rsdp_t* rsdp, uint32_t offset)
+acpi_browse_tables(const acpi_rsdp_t* rsdp, size_t offset)
 {
     (void)rsdp;
     (void)offset;

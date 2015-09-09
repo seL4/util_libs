@@ -42,7 +42,7 @@
 static int serial_getchar(ps_chardevice_t *device)
 {
     uint32_t res;
-    uint32_t io_port = (uint32_t) device->vaddr;
+    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
 
     /* Check if character is available. */
     int error UNUSED = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
@@ -60,7 +60,7 @@ static int serial_getchar(ps_chardevice_t *device)
 
 static int serial_ready(ps_chardevice_t* device)
 {
-    uint32_t io_port = (uint32_t) device->vaddr;
+    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
     uint32_t res;
     int UNUSED error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
     assert(!error);
@@ -69,7 +69,7 @@ static int serial_ready(ps_chardevice_t* device)
 
 static int serial_putchar(ps_chardevice_t* device, int c)
 {
-    uint32_t io_port = (uint32_t) device->vaddr;
+    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
 
     /* Check if serial is ready. */
     if (!serial_ready(device)) {
@@ -139,7 +139,7 @@ serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t
     dev->ioops      = *ops;
 
     /* Initialise the device. */
-    uint32_t io_port = (uint32_t) dev->vaddr;
+    uint32_t io_port = (uint32_t) (uintptr_t)dev->vaddr;
 
     /* clear DLAB - Divisor Latch Access Bit */
     ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 & ~SERIAL_DLAB);

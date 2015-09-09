@@ -21,7 +21,7 @@
 #include <string.h>
 
 static int
-_browse_tables(void* table, uint32_t offset)
+_browse_tables(void* table, size_t offset)
 {
     /*
      * NOTE: offset added to address JUST BEFORE moving
@@ -44,7 +44,7 @@ _browse_tables(void* table, uint32_t offset)
             acpi_print_table(table);
             acpi_rsdp_t* rsdp = (acpi_rsdp_t*)table;
             vector[0] = (void*)rsdp->rsdt_address;
-            vector[1] = (void*)(unsigned int)rsdp->xsdt_address;
+            vector[1] = (void*)(uintptr_t)rsdp->xsdt_address;
             printf("\n");
             printf("a - RSDT at %p\n", vector[0]);
             printf("b - XSDT at %p\n", vector[1]);
@@ -78,7 +78,7 @@ _browse_tables(void* table, uint32_t offset)
             while (entry != NULL) {
                 char sig[5];
                 sig[4] = '\0';
-                char* _e = (char*)(uint32_t)(*entry);
+                char* _e = (char*)(uintptr_t)(*entry);
                 memcpy(sig, _e, 4);
                 vector[i] = _e;
                 printf("%c - %s table at %p\n", i + 'a', sig, vector[i]);
@@ -93,8 +93,8 @@ _browse_tables(void* table, uint32_t offset)
             acpi_fadt_t* fadt = (acpi_fadt_t*)table;
             vector[0] = (void*)fadt->facs_address;
             vector[1] = (void*)fadt->dsdt_address;
-            vector[2] = (void*)(unsigned int)fadt->x_facs_address;
-            vector[3] = (void*)(unsigned int)fadt->x_dsdt_address;
+            vector[2] = (void*)(uintptr_t)fadt->x_facs_address;
+            vector[3] = (void*)(uintptr_t)fadt->x_dsdt_address;
             printf("\n");
             printf("a -  FACS at %p\n", vector[0]);
             printf("b -  DSDT at %p\n", vector[1]);
@@ -107,7 +107,7 @@ _browse_tables(void* table, uint32_t offset)
             acpi_print_table(table);
             acpi_facs_t* facs = (acpi_facs_t*)table;
             vector[0] = (void*)facs->firmware_walking_vector;
-            vector[3] = (void*)(unsigned int)facs->x_firmware_walking_vector;
+            vector[3] = (void*)(uintptr_t)facs->x_firmware_walking_vector;
             printf("\n");
             printf("a - Firware Walking vector at %p\n", vector[0]);
             printf("b - X Firware walking vector at %p\n", vector[1]);
@@ -218,7 +218,7 @@ _browse_tables(void* table, uint32_t offset)
 }
 
 void
-acpi_browse_tables(const acpi_rsdp_t* rsdp, uint32_t offset)
+acpi_browse_tables(const acpi_rsdp_t* rsdp, size_t offset)
 {
     _browse_tables((void*)rsdp, offset);
 }

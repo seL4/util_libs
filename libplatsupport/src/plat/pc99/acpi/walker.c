@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #define _GNU_SOURCE /* for getpagesize() */
 #include <unistd.h>
 
@@ -43,12 +44,12 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
                                                         (uintptr_t)table_paddr, sizeof(acpi_header_t), 1, PS_MEM_NORMAL);
 
     if (header == NULL) {
-        fprintf(stderr, "Failed to map paddr %p, size %u\n", table_paddr, sizeof(acpi_header_t));
+        fprintf(stderr, "Failed to map paddr %p, size %lu\n", table_paddr, sizeof(acpi_header_t));
         assert(header != NULL);
         return NULL;
     }
 
-    uint32_t length = acpi_table_length(header);
+    size_t length = acpi_table_length(header);
     if (length == 0xffffffff) {
         fprintf(stderr, "Skipping table %s, unknown\n", header->signature);
         return NULL;
@@ -60,7 +61,7 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
         header = ps_io_map(&acpi->io_mapper, (uintptr_t)table_paddr, length, 1, PS_MEM_NORMAL);
 
         if (header == NULL) {
-            fprintf(stderr, "Failed tomap paddr %p, size %u\n", table_paddr, header->length);
+            fprintf(stderr, "Failed tomap paddr %p, size %"PRIu32"\n", table_paddr, header->length);
             assert(header != NULL);
             return NULL;
         }
@@ -104,7 +105,7 @@ acpi_sig_search(acpi_t *acpi, const char* sig, int sig_len, void* start, void* e
     }
 
     /* return the physical address of sig */
-    return (void *) start + ((uint32_t)found % getpagesize());
+    return (void*)((uintptr_t) start + ((uintptr_t)found % getpagesize()));
 }
 
 static acpi_header_t*
@@ -118,10 +119,10 @@ acpi_parse_table(acpi_t *acpi, void *table_paddr)
     }
 
     /* now create a copy of the table for us to keep */
-    uint32_t length = acpi_table_length(header_vaddr);
+    size_t length = acpi_table_length(header_vaddr);
     acpi_header_t *copy = (acpi_header_t *) malloc(length);
     if (copy == NULL) {
-        fprintf(stderr, "Failed to malloc object size %u\n", length);
+        fprintf(stderr, "Failed to malloc object size %zu\n", length);
         assert(copy != NULL);
         return NULL;
     }
@@ -188,9 +189,9 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
         regions->regions[this_rec].size = rsdp->length;
 
         /* parse sub tables */
-        _acpi_parse_tables(acpi, (void*)rsdp->rsdt_address,
+        _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->rsdt_address,
                            regions, this_rec);
-        _acpi_parse_tables(acpi, (void*)(uint32_t)rsdp->xsdt_address,
+        _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->xsdt_address,
                            regions, this_rec);
         break;
     }
@@ -198,7 +199,7 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
         acpi_rsdt_t* rsdt = (acpi_rsdt_t*) table_vaddr;
         uint32_t* subtbl = acpi_rsdt_first(rsdt);
         while (subtbl != NULL) {
-            _acpi_parse_tables(acpi, (void*)*subtbl,
+            _acpi_parse_tables(acpi, (void*)(uintptr_t)*subtbl,
                                regions, this_rec);
             subtbl = acpi_rsdt_next(rsdt, subtbl);
         }
@@ -220,9 +221,9 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
 
     case ACPI_FADT: {
         acpi_fadt_t* fadt = (acpi_fadt_t*)table_vaddr;
-        _acpi_parse_tables(acpi, (void*)fadt->facs_address,
+        _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->facs_address,
                            regions, this_rec);
-        _acpi_parse_tables(acpi, (void*)fadt->dsdt_address,
+        _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->dsdt_address,
                            regions, this_rec);
         break;
     }

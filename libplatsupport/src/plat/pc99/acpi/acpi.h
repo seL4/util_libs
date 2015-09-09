@@ -69,7 +69,7 @@ acpi_calc_checksum(const char* start, int length);
  * return the length of any table
  * returns -1 if the table is not recognised
  */
-uint32_t
+size_t
 acpi_table_length(const void* tbl);
 
 /*

@@ -263,7 +263,7 @@ print_xsdt(acpi_xsdt_t* xsdt)
     int i = 0;
     while (next != NULL) {
         printf("%d/%d -> %p\n", i++, entries,
-               (void*)(uint32_t)*next);
+               (void*)(uintptr_t)*next);
         next = acpi_xsdt_next(xsdt, next);
     }
     printf("\n");
@@ -274,7 +274,7 @@ print_rsdp(acpi_rsdp_t* rsdp)
 {
     acpi_print_table_raw(rsdp, rsdp->length);
     printf("RSDT->%p\n", (void*)rsdp->rsdt_address);
-    printf("XSDT->%p\n", (void*)(uint32_t)rsdp->xsdt_address);
+    printf("XSDT->%p\n", (void*)(uintptr_t)rsdp->xsdt_address);
     printf("\n");
 }
 

@@ -25,7 +25,7 @@
 typedef struct Region {
     region_type_t type;
     void* start;
-    uint32_t size;
+    size_t size;
     int parent;
 } Region_t;
 
@@ -36,7 +36,7 @@ typedef struct RegionList {
      * This offset is added to region start addresses when
      * traversing/updating links within regions.
      */
-    uint32_t offset;
+    size_t offset;
 } RegionList_t;
 
 
@@ -67,7 +67,7 @@ int
 add_region(RegionList_t* region_list, const Region_t r);
 
 static inline
-Region_t new_region(region_type_t type, void *start, uint32_t size, int parent)
+Region_t new_region(region_type_t type, void *start, size_t size, int parent)
 {
     Region_t r;
     r.type = type;
@@ -81,7 +81,7 @@ Region_t new_region(region_type_t type, void *start, uint32_t size, int parent)
 
 static inline int
 add_region_size(RegionList_t* region_list, region_type_t type,
-                void* start, uint32_t size, int parent)
+                void* start, size_t size, int parent)
 {
     return add_region(region_list, new_region(type, start, size, parent));
 }
@@ -113,7 +113,7 @@ remove_region_last(RegionList_t* region_list)
  *
  */
 int
-find_space(const RegionList_t* region_list, uint32_t size,
+find_space(const RegionList_t* region_list, size_t size,
            region_type_t type);
 
 /*
@@ -130,7 +130,7 @@ find_region(const RegionList_t* rlist, int start_index,
  * Returns the index of the new region or -1 on error
  */
 int
-split_region(RegionList_t* region_list, int index, uint32_t size);
+split_region(RegionList_t* region_list, int index, size_t size);
 
 #endif /* __REGIONS_INTERAL_H__ */
 

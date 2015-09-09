@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <utils/attribute.h>
 #include <utils/util.h>
@@ -229,7 +230,7 @@ hpet_handle_irq(const pstimer_t* device, uint32_t irq UNUSED)
     if (hpet->periodic) {
         int error = hpet_periodic(device, hpet->period);
         if (error != 0) {
-            fprintf(stderr, "Repeat periodic timeout failed. Period: %llu\n", hpet->period);
+            fprintf(stderr, "Repeat periodic timeout failed. Period: %"PRIu64"\n", hpet->period);
             assert(error == 0);
         }
     }

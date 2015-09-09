@@ -44,11 +44,11 @@ acpi_calc_checksum(const char* start, int length)
 
 
 
-uint32_t
+size_t
 acpi_table_length(const void* tbl)
 {
     const char* table = (const char*)tbl;
-    uint32_t length;
+    size_t length;
 
     if (HAS_GENERIC_HEADER(table)) {
         length = ((acpi_header_t*)table)->length;
@@ -76,11 +76,11 @@ acpi_table_length(const void* tbl)
  * region, the root pointer region will be used
  */
 static int
-split_available(RegionList_t* dst, uint32_t size, int force_ptr)
+split_available(RegionList_t* dst, size_t size, int force_ptr)
 {
     /* default: no region found */
     int index = -1;
-    DPRINTF(1, "Region 0/%d: size = %d/%d\n", dst->region_count, dst->regions[0].size, size);
+    DPRINTF(1, "Region 0/%d: size = %zu/%zu\n", dst->region_count, dst->regions[0].size, size);
     /* Find region to split */
     if (!force_ptr) { /* first preference if permitted */
         index = find_space(dst, size, ACPI_AVAILABLE);
@@ -158,7 +158,8 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             if (child >= 0) {
                 void* p = _acpi_copy_tables(slist, dlist,
                                             child, index);
-                dst_tbl->rsdt_address = (uint32_t)p;
+                /* This downcast is correct as an RSDP is defined as being in the bottom 4G of memory */
+                dst_tbl->rsdt_address = (uint32_t)(uintptr_t)p;
                 DPRINTF(1, "Got address %p\n", p);
             } else {
                 DPRINTF(1, "err: unable to find rsdt\n");
@@ -170,7 +171,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
                 /* PRE: RSDT must be found in dlist */
                 void* p = _acpi_copy_tables(slist, dlist,
                                             child, index);
-                dst_tbl->xsdt_address = (uint64_t)(uint32_t)p;
+                dst_tbl->xsdt_address = (uint64_t)(uintptr_t)p;
                 DPRINTF(1, "Got address %p\n", p);
             } else {
                 DPRINTF(1, "err: unable to find xsdt\n");
@@ -226,7 +227,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
                      */
                     sub_size -= sizeof(uint32_t);
                 } else {
-                    *subtables++ = (uint32_t)p;
+                    *subtables++ = (uint32_t)(uintptr_t)p;
                 }
             }
 
@@ -338,7 +339,7 @@ acpi_init(ps_io_mapper_t io_mapper)
 
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
-        fprintf(stderr, "Failed to allocate memory of size %u\n", sizeof(acpi));
+        fprintf(stderr, "Failed to allocate memory of size %lu\n", sizeof(acpi));
         assert(acpi != NULL);
         return NULL;
     }
@@ -346,7 +347,7 @@ acpi_init(ps_io_mapper_t io_mapper)
     acpi->regions = (RegionList_t *) malloc(sizeof(RegionList_t));
 
     if (acpi->regions == NULL) {
-        fprintf(stderr, "Failed to allocate memory of size %u\n", sizeof(acpi));
+        fprintf(stderr, "Failed to allocate memory of size %lu\n", sizeof(acpi));
         assert(acpi->regions != NULL);
         free(acpi);
         return NULL;

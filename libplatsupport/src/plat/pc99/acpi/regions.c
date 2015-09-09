@@ -175,7 +175,7 @@ remove_region(RegionList_t* region_list, int index)
 
 
 int
-find_space(const RegionList_t* rlist, uint32_t size,
+find_space(const RegionList_t* rlist, size_t size,
            region_type_t type)
 {
 
@@ -198,7 +198,7 @@ find_space(const RegionList_t* rlist, uint32_t size,
 }
 
 int
-split_region(RegionList_t* rlist, int index, uint32_t size)
+split_region(RegionList_t* rlist, int index, size_t size)
 {
     int ret;
     Region_t* r = &rlist->regions[index];
