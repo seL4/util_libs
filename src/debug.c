@@ -4,6 +4,7 @@
 #include <utils/util.h>
 #include <utils/zf_log.h>
 #include <string.h>
+#include <inttypes.h>
 
 
 #define MD_BYTES_PER_LINE (sizeof(uint32_t) * 4)
@@ -42,7 +43,7 @@ md_print_line(void* address, int word_size)
         }
         case 8: {
             uint64_t temp = *(volatile uint64_t*)(address + object_offset);
-            printf("0x%016llx ", temp);
+            printf("0x%016"PRIx64" ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
@@ -68,7 +69,7 @@ utils_memory_dump(void* address, size_t bytes, int word_size)
         /* Notify the caller if 'bytes' is not a multple of MD_BYTES_PER_LINE */
         if (bytes % MD_BYTES_PER_LINE) {
             int extra_bytes = MD_BYTES_PER_LINE - (bytes % MD_BYTES_PER_LINE);
-            LOG_INFO("Rounding displayed bytes from %d up to %d", bytes, bytes + extra_bytes);
+            LOG_INFO("Rounding displayed bytes from %lu up to %lu", bytes, bytes + extra_bytes);
             bytes += extra_bytes;
         }
         /* Print each line */
