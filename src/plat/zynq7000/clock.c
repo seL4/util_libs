@@ -979,7 +979,7 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     src_dev_t slcr;
     int err;
-    assert(sizeof(struct zynq7000_clk_regs) == 0x308);
+    assert(sizeof(struct zynq7000_clk_regs) == 0x208);
     /* Grab a handle to the clock registers */
     err = reset_controller_init(SLCR, o, &slcr);
     if (err) {
