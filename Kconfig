@@ -9,8 +9,12 @@
 #
 
 config LIB_ELF
-    bool "ELF manipulation library"
+    bool "libelf"
     depends on HAVE_LIBC
+    select HAVE_LIB_ELF
     default y
     help
         ELF parsing library
+
+config HAVE_LIB_ELF
+    bool
