@@ -9,8 +9,11 @@
 #
 
 config LIB_CPIO
-    bool "CPIO library"
+    bool "libcpio"
     default y
+    select HAVE_LIB_CPIO
     help
         Library for parsing ".cpio" file headers.
 
+config HAVE_LIB_CPIO
+    bool
