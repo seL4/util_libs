@@ -9,10 +9,11 @@
 #
 
 menuconfig LIB_UTILS
-    bool "OS independent util library."
+    bool "libutils"
     default y
+    select HAVE_LIB_UTILS
     help
-        Build libutils.
+        OS independent util library
 
 config LIB_UTILS_NO_STATIC_ASSERT
     bool "Disable _Static_assert"
@@ -25,3 +26,6 @@ config LIB_UTILS_NO_STATIC_ASSERT
         Sometimes you want to force the latter behaviour if the tool consuming
         your C code does not understand _Static_assert (e.g. the verification
         C parser). This option forces the analogue to be used.
+
+config HAVE_LIB_UTILS
+    bool 
