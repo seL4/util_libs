@@ -9,9 +9,10 @@
 #
 
 menuconfig LIB_PLATSUPPORT
-    bool "OS independent platform support library"
+    bool "libplatsupport"
     default y
-    depends on LIB_UTILS
+    depends on HAVE_LIB_UTILS
+    select HAVE_LIB_PLATSUPPORT
     help
         Build an OS independent platform support library. The only 
         prerequisite is that a function to map physical device memory 
@@ -35,4 +36,5 @@ choice
        bool "80x25 text mode EGA screen"
 endchoice
 
-
+config HAVE_LIB_PLATSUPPORT
+    bool
