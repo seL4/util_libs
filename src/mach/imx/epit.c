@@ -143,6 +143,7 @@ configure_epit(const pstimer_t *timer, uint64_t ns)
      * overflow as fast. */
     uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
     if (counterValue >= (1ULL << 32)) {
+        ZF_LOGE("ns too high %llu\n", ns);
         /* Counter too large to be stored in 32 bits. */
         return EINVAL;
     }
