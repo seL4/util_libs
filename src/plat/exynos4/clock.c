@@ -277,6 +277,44 @@ static struct clock sclk_mpll_userc_clk = { CLK_OPS(SCLKMPLL_USERC, mux, NULL) }
 static struct clock muxcore_clk = { CLK_OPS(MUXCORE, mux, NULL) };
 static struct clock muxhpm_clk = { CLK_OPS(MUXHPM, mux, NULL) };
 
+
+
+/***************
+ ****  SPI  ****
+ ***************/
+static freq_t
+_spi_get_freq(clk_t* clk)
+{
+    return 0;
+}
+
+static freq_t
+_spi_set_freq(clk_t* clk, freq_t hz)
+{
+    (void)hz;
+    return clk_get_freq(clk);
+}
+
+static void
+_spi_recal(clk_t* clk)
+{
+    assert(0);
+}
+
+static clk_t*
+_spi_init(clk_t* clk)
+{
+    return clk;
+}
+
+static struct clock spi0_clk = { CLK_OPS(SPI0, spi, NULL) };
+static struct clock spi1_clk = { CLK_OPS(SPI1, spi, NULL) };
+static struct clock spi2_clk = { CLK_OPS(SPI2, spi, NULL) };
+static struct clock spi0_isp_clk = { CLK_OPS(SPI0_ISP, spi, NULL) };
+static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, NULL) };
+
+/*******************************************/
+
 static int
 exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
 {
@@ -341,7 +379,12 @@ clk_t* ps_clocks[] = {
     [CLK_UART0]          = &uart0_clk,
     [CLK_UART1]          = &uart1_clk,
     [CLK_UART2]          = &uart2_clk,
-    [CLK_UART3]          = &uart3_clk
+    [CLK_UART3]          = &uart3_clk,
+    [CLK_SPI0]           = &spi0_clk,
+    [CLK_SPI1]           = &spi1_clk,
+    [CLK_SPI2]           = &spi2_clk,
+    [CLK_SPI0_ISP]       = &spi0_isp_clk,
+    [CLK_SPI1_ISP]       = &spi1_isp_clk,
 };
 
 
@@ -373,5 +416,11 @@ freq_t ps_freq_default[] = {
     [CLK_SCLKEPLL]       =   96 * MHZ,
     [CLK_SCLKMPLL]       =  800 * MHZ,
     [CLK_SCLKMPLL_USERC] =  800 * MHZ,
+    /* Placeholders */
+    [CLK_SPI0]           =    0 * MHZ,
+    [CLK_SPI1]           =    0 * MHZ,
+    [CLK_SPI2]           =    0 * MHZ,
+    [CLK_SPI0_ISP]       =    0 * MHZ,
+    [CLK_SPI1_ISP]       =    0 * MHZ,
 };
 
