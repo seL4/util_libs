@@ -30,6 +30,8 @@
 #define NONNULL_ALL  __attribute__((__nonnull__))
 #define NORETURN     __attribute__((__noreturn__))
 #define PACKED       __attribute__((__packed__))
+#define FORMAT(archetype, string_index, first_to_check) \
+    __attribute__((format(archetype, string_index, first_to_check)))
 #define SENTINEL(param) __attribute__((sentinel(param)))
 #define SENTINEL_LAST __attribute__((sentinel))
 #define UNUSED       __attribute__((__unused__))
