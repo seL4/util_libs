@@ -12,7 +12,8 @@
 TARGETS := libutils.a
 
 # Header files/directories this library provides
-HDRFILES := $(wildcard ${SOURCE_DIR}/include/*) 
+HDRFILES := $(wildcard ${SOURCE_DIR}/include/*) \
+	        $(wildcard ${SOURCE_DIR}/arch_include/${ARCH}/*)
 
 CFILES := \
   $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c)) \
