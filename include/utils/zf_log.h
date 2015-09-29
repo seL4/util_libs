@@ -18,6 +18,8 @@
 #ifndef _ZF_LOG_H_
 #define _ZF_LOG_H_
 
+#include <utils/attribute.h>
+
 /* To detect incompatible changes you can define ZF_LOG_VERSION_REQUIRED to
  * the current value of ZF_LOG_VERSION before including this file (or via
  * compiler command line):
@@ -246,11 +248,7 @@ void zf_log_set_output_callback(const zf_log_output_cb cb);
 #define ZF_LOG_OUTPUT_ERROR ZF_LOG_OUTPUT(ZF_LOG_ERROR)
 #define ZF_LOG_OUTPUT_FATAL ZF_LOG_OUTPUT(ZF_LOG_FATAL)
 
-#ifdef __printflike
-	#define _ZF_LOG_PRINTFLIKE(a, b) __printflike(a, b)
-#else
-	#define _ZF_LOG_PRINTFLIKE(a, b)
-#endif
+#define _ZF_LOG_PRINTFLIKE(a, b) FORMAT(printf, a, b)
 
 #ifdef __cplusplus
 extern "C" {
