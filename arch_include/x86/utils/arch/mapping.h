@@ -13,7 +13,7 @@
 #include <autoconf.h>
 
 /* ordered list of page sizes for this architecture */
-static UNUSED size_t utils_page_sizes[] = {
+static const UNUSED size_t utils_page_sizes[] = {
     12, 
     22, 
 };

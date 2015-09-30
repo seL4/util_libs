@@ -11,8 +11,11 @@
 #define _UTILS_PAGE_H
 /* macros on page sizes */
 
+#include <assert.h>
+
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include <utils/arch/mapping.h>
 #include <utils/arith.h>
@@ -39,7 +42,9 @@ utils_valid_size_bits(size_t size_bits)
 {
     for (int i = 0; i < UTILS_NUM_PAGE_SIZES && size_bits <= utils_page_sizes[i]; i++) {
         /* sanity check, utils_page_sizes should be ordered */
-        assert(i > 0 || (utils_page_sizes[i] < utils_page_sizes[i+1]));
+        if (i > 0) {
+            assert(utils_page_sizes[i] < utils_page_sizes[i+1]);
+        }
         if (size_bits == utils_page_sizes[i]) {
             return true;
         }
