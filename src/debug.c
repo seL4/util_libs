@@ -69,7 +69,7 @@ utils_memory_dump(void* address, size_t bytes, int word_size)
         /* Notify the caller if 'bytes' is not a multple of MD_BYTES_PER_LINE */
         if (bytes % MD_BYTES_PER_LINE) {
             int extra_bytes = MD_BYTES_PER_LINE - (bytes % MD_BYTES_PER_LINE);
-            LOG_INFO("Rounding displayed bytes from %lu up to %lu", bytes, bytes + extra_bytes);
+            LOG_INFO("Rounding displayed bytes from %u up to %u", bytes, bytes + extra_bytes);
             bytes += extra_bytes;
         }
         /* Print each line */
