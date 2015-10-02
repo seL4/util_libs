@@ -11,6 +11,8 @@
 #define _ARCH_MAPPING_H
 
 #include <autoconf.h>
+#include <utils/attribute.h>
+
 /* ordered list of page sizes for this architecture */
 static const UNUSED size_t utils_page_sizes[] = {
     12, 
