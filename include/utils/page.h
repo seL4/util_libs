@@ -40,7 +40,7 @@
 static inline bool
 utils_valid_size_bits(size_t size_bits) 
 {
-    for (int i = 0; i < UTILS_NUM_PAGE_SIZES && size_bits <= utils_page_sizes[i]; i++) {
+    for (int i = 0; i < UTILS_NUM_PAGE_SIZES && size_bits >= utils_page_sizes[i]; i++) {
         /* sanity check, utils_page_sizes should be ordered */
         if (i > 0) {
             assert(utils_page_sizes[i] < utils_page_sizes[i+1]);
