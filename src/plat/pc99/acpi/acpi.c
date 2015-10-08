@@ -363,8 +363,8 @@ acpi_init(ps_io_mapper_t io_mapper)
     if (acpi->rsdp == NULL) {
         fprintf(stderr, "Failed to find rsdp\n");
         free(acpi->regions);
-        free(acpi);
         assert(acpi->rsdp != NULL);
+        free(acpi);
         return NULL;
     }
 
