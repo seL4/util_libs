@@ -229,13 +229,13 @@ else
 	@echo " [CC] $@"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(call make-depend,$<,$@,$(patsubst %.o,%.d,$@))
-	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 endif
 %.o: %.cxx $(HFILES) | install-headers
 	@echo " [CXX] $@"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(call make-cxx-depend,$<,$@,$(patsubst %.o,%.d,$@))
-	$(Q)$(CXX) -x c++ $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(Q)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 .PRECIOUS: %.c_pp
 %.c_pp: %.c $(HFILES) | install-headers
