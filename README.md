@@ -25,3 +25,4 @@ Collection of OS independent utility libs:
   * zf_log_config.h - provides zf_log config.
   * zf_log.h - an open source logging library.
 
+See `LICENSE_BSD2.txt` for license details.
