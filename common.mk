@@ -57,10 +57,6 @@ SEL4_KERNEL     ?= $(STAGE_DIR)/kernel/kernel.elf
 INCLUDE_PATH := $(SEL4_INCLUDEDIR) $(INCLUDE_DIRS)
 WARNINGS     := all
 
-# the NK_BUILD is used in the Makefile.flags file to distinguish
-# kernel build vs non-kernel build compiler options
-export NK_BUILD=y
-
 CPPFLAGS += $(INCLUDE_PATH:%=-I%)
 
 # Strip enclosing quotes.
