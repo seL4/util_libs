@@ -1,0 +1,40 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+menuconfig LIB_PLATSUPPORT
+    bool "libplatsupport"
+    default y
+    depends on HAVE_LIB_UTILS
+    select HAVE_LIB_PLATSUPPORT
+    help
+        Build an OS independent platform support library. The only 
+        prerequisite is that a function to map physical device memory 
+        be provided.
+
+choice
+    prompt "X86 console device"
+    depends on LIB_PLATSUPPORT && PLAT_PC99
+    default LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
+    help
+        The serial port that libplatsupport will use for communication
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1
+       bool "0x3f8 COM1"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM2
+       bool "0x2f8 COM2"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM3
+       bool "0x3e8 COM3"
+    config LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM4
+       bool "0x2e8 COM4"
+    config LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA
+       bool "80x25 text mode EGA screen"
+endchoice
+
+config HAVE_LIB_PLATSUPPORT
+    bool

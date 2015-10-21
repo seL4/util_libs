@@ -1,0 +1,43 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+This is a generic, OS independent acpi library.
+
+INITIALISATION
+
+#include <acpi/acpi.h>
+#include <acpi/regions.h>
+
+The function acpi_init will parse the acpi tables and bring them into
+virtual memory. It requires two functions from the user:
+
+    * acpi_map_paddr to map a physical area of memory (to any virtual
+    address).  
+    * acpi_unmap_vaddr to unmap an area mapped with the
+    previous function.
+
+The parsing works by mapping in all of the acpi tables one by one and
+copying them to memory allocated with malloc. The mapped table will then
+be unmapped. This avoids requiring all of physical memory to be mapped
+at a constant offset (which isn't an option really, as on x86 this could
+be our entire address range).
+
+FINDING ACPI TABLES
+
+Once acpi_init has been called, use acpi_find_region with the constants
+in acpi/regions.h to find the table you are looking for.
+
+CAUTION
+
+Not all tables are implemented. If you can't find the table you are
+looking for, dig into the source. Sorry.
+
+There are debugging functions in src/printer* and src/browser*. These have
+not been tested recently, but are left in case they are required in future. 
