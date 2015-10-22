@@ -16,7 +16,7 @@ endif
 
 elfloader: export STAGE_DIR=$(STAGE_BASE)
 elfloader: export BUILD_DIR=$(BUILD_BASE)/$@
-elfloader: export SOURCE_DIR=${COMMON_PATH}/../elfloader
+elfloader: export SOURCE_DIR=${TOOLS_ROOT}/elfloader
 elfloader: libcpio common FORCE
 	@echo "[elfloader] building..."
 	$(Q)mkdir -p $(BUILD_DIR)
