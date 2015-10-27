@@ -28,7 +28,13 @@ endif
 endif
 endif
 
-CC  := $(CCACHE) $(TOOLPREFIX)gcc
+CONFIG_USER_COMPILER:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_USER_COMPILER}))
+#")") Help syntax-highlighting editors.
+ifeq (${CONFIG_USER_COMPILER},)
+  CC := $(CCACHE) $(TOOLPREFIX)gcc
+else
+  CC := $(CCACHE) ${CONFIG_USER_COMPILER}
+endif
 CXX := $(CCACHE) $(TOOLPREFIX)g++
 ASM := $(TOOLPREFIX)as
 LD  := $(TOOLPREFIX)ld

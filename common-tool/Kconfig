@@ -56,6 +56,14 @@ menu "Toolchain Options"
             compiling the kernel. Note these will not be applied during
             user-space pre-processing.
 
+    config USER_COMPILER
+    string "Path to a different compiler to use for userspace"
+    default ""
+    help
+        If you set this option to a non-empty string, this compiler will be
+        used for building userspace components. Note that this option does not
+        affect the compiler used for the kernel.
+
     config USER_DEBUG_INFO
         bool "Emit debugging information"
         default n
