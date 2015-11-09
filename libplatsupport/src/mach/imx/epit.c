@@ -166,7 +166,7 @@ configure_epit(const pstimer_t *timer, uint64_t ns)
 static int
 epit_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
 {
-    /* epit is a cound-down timer, can't set relative timeouts */
+    /* epit is a count-down timer, can't set relative timeouts */
     return ENOSYS;
 }
 
