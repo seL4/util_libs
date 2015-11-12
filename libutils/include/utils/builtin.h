@@ -16,6 +16,8 @@
 
 #define CTZ(x) __builtin_ctz(x)
 #define CLZ(x) __builtin_clz(x)
+#define CTZL(x) __builtin_ctzl(x)
+#define CLZL(x) __builtin_clzl(x)
 #define OFFSETOF(type, member) __builtin_offsetof(type, member)
 #define TYPES_COMPATIBLE(t1, t2) __builtin_types_compatible_p(t1, t2)
 #define CHOOSE_EXPR(cond, x, y) __builtin_choose_expr(cond, x, y)
