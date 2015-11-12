@@ -14,13 +14,23 @@
 void *
 utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
 {
-
+/*
+ * Note that x86-64 ABI requires that at least SSE and
+ * SSE2 are supported, and thus the API uses xmm registers
+ * for passing floating point parameters. The GCC compiler
+ * may use the movaps instruction to store the context
+ * xmm regsiters on stack, and these store operations
+ * require that the stack addresses are 16-byte
+ * aligned, so we push oen more dummy number to the stack
+ * for alignment purpose.
+ */
 #ifdef CONFIG_X86_64
     void *ret;
     asm volatile (
         "movq   %%rsp, %%rcx\n\t"
         "movq   %[new_stack], %%rsp\n\t"
         "push   %%rcx\n\t"
+        "pushq  $0\n\t"             /* dummy number for stack alignment */
         "movq   %[arg], %%rdi\n\t"
         "call   *%[func]\n\t"
         "add    $0x8, %%rsp\n\t"
