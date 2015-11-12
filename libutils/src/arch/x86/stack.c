@@ -24,7 +24,7 @@ utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
  * aligned, so we push oen more dummy number to the stack
  * for alignment purpose.
  */
-#ifdef CONFIG_X86_64
+#ifdef CONFIG_ARCH_X86_64
     void *ret;
     asm volatile (
         "movq   %%rsp, %%rcx\n\t"
@@ -56,6 +56,6 @@ utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
         [func] "r" (func),
         [arg] "r" (arg)
         : "ecx", "ebx");
-#endif /* CONFIG_X86_64 */
+#endif /* CONFIG_ARCH_X86_64 */
     return ret;
 }
