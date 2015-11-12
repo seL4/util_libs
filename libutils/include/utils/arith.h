@@ -23,7 +23,7 @@
 
 #define MASK_UNSAFE(x) ((BIT(x) - 1ul))
 
-#define MASK(n) ({(void)assert((n) <= 31); MASK_UNSAFE(n); })
+#define MASK(n) ({(void)assert((n) <= (sizeof(unsigned long) * 8 - 1)); MASK_UNSAFE(n); })
 
 #define IS_ALIGNED(n, b) (!((n) & MASK(b)))
 
