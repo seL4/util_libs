@@ -23,10 +23,17 @@
 
 #define MASK_UNSAFE(x) ((BIT(x) - 1ul))
 
+/* The MASK operation involves using BIT that performs a left shift, this
+ * shift is only defined by the C standard if shifting by 1 less than the
+ * number of bits in a word */
 #define MASK(n) ({(void)assert((n) <= (sizeof(unsigned long) * 8 - 1)); MASK_UNSAFE(n); })
 
 #define IS_ALIGNED(n, b) (!((n) & MASK(b)))
 
+/* Calculate the log2 by finding the most significant bit that is set.
+ * We have CLZL, which tells us how many places from the 'left' it is,
+ * and by subtracting that from the number of bits in the word (minus 1)
+ * we learn how many bits from the 'right' it is. */
 #define LOG_BASE_2(n) \
     ({ (sizeof(typeof (n)) * 8) - CLZL((n)) - 1;})
 
