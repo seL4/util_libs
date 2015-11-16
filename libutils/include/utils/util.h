@@ -34,11 +34,7 @@
 #define FALSE 0
 
 #ifndef ZF_LOG_LEVEL
-#ifdef CONFIG_USER_DEBUG_BUILD
-#define ZF_LOG_LEVEL ZF_LOG_DEBUG
-#else
-#define ZF_LOG_LEVEL ZF_LOG_FATAL
-#endif
+#define ZF_LOG_LEVEL ZF_LOG_ERROR
 #endif /* ZF_LOG_LEVEL */
 
 #include <utils/zf_log.h>
