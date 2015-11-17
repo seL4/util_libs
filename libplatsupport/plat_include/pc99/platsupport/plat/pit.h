@@ -10,10 +10,15 @@
 #ifndef _PLATSUPPORT_PIT_H
 #define _PLATSUPPORT_PIT_H
 
+#include <autoconf.h>
 #include <platsupport/timer.h>
 #include <platsupport/io.h>
 
+#ifdef CONFIG_IRQ_PIC
 #define PIT_INTERRUPT       0
+#else
+#define PIT_INTERRUPT       2
+#endif
 
 /*
  * Get the pit interface. This may only be called once.
