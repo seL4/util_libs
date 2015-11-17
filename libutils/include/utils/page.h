@@ -17,7 +17,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <utils/arch/mapping.h>
 #include <utils/arith.h>
 
 #define SIZE_BITS_TO_BYTES(size_bits) (BIT(size_bits))
@@ -37,23 +36,5 @@
 
 #define SAME_PAGE_4K(a, b) \
     ((((uintptr_t)(a)) & ~PAGE_MASK_4K) == (((uintptr_t)(b)) & ~PAGE_MASK_4K))
-
-#define UTILS_NUM_PAGE_SIZES ((int) ARRAY_SIZE(utils_page_sizes))
-
-static inline bool
-utils_valid_size_bits(size_t size_bits) 
-{
-    for (int i = 0; i < UTILS_NUM_PAGE_SIZES && size_bits >= utils_page_sizes[i]; i++) {
-        /* sanity check, utils_page_sizes should be ordered */
-        if (i > 0) {
-            assert(utils_page_sizes[i] < utils_page_sizes[i+1]);
-        }
-        if (size_bits == utils_page_sizes[i]) {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 #endif /* _UTILS_PAGE_H */
