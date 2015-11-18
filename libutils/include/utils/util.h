@@ -29,6 +29,7 @@
 #include <utils/time.h>
 #include <utils/math.h>
 #include <utils/ansi.h>
+#include <utils/xml.h>
 
 #define TRUE 1
 #define FALSE 0
