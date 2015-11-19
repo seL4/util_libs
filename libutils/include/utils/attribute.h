@@ -32,6 +32,7 @@
 #define PACKED       __attribute__((__packed__))
 #define FORMAT(archetype, string_index, first_to_check) \
     __attribute__((format(archetype, string_index, first_to_check)))
+#define SECTION(sect) __attribute__((section(sect)))
 #define SENTINEL(param) __attribute__((sentinel(param)))
 #define SENTINEL_LAST __attribute__((sentinel))
 #define UNUSED       __attribute__((__unused__))
