@@ -11,9 +11,17 @@
 #include "string.h"
 
 /* Both memset and memcpy need a custom type that allows us to use a word
- * that has the aliasing properties of a char. This is only available
- * on GNU tool chains */
+ * that has the aliasing properties of a char.
+ */
 #ifdef __GNUC__
+  #define HAS_MAY_ALIAS
+#elif defined(__clang__)
+  #if __has_attribute(may_alias)
+    #define HAS_MAY_ALIAS
+  #endif
+#endif
+
+#ifdef HAS_MAY_ALIAS
 typedef uint32_t __attribute__((__may_alias__)) u32_alias;
 #endif
 
@@ -35,7 +43,7 @@ void *memset(void *s, int c, size_t n)
 {
     char *mem = (char *)s;
 
-#ifdef __GNUC__
+#ifdef HAS_MAY_ALIAS
     /* fill byte by byte until 32-bit aligned */
     for (; (uintptr_t)mem % 4 != 0 && n > 0; mem++, n--) {
         *mem = c;
@@ -67,7 +75,7 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     unsigned char *d = (unsigned char *)dest;
     const unsigned char *s = (const unsigned char *)src;
 
-#ifdef __GNUC__
+#ifdef HAS_MAY_ALIAS
     /* copy byte by byte until 32-bit aligned */
     for (; (uintptr_t)d % 4 != 0 && n > 0; d++, s++, n--) {
         *d = *s;
