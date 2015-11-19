@@ -13,6 +13,7 @@
 
 #include <assert.h>
 #include <autoconf.h>
+#include <stdbool.h>
 
 #include <utils/arith.h>
 #include <utils/assume.h>
@@ -29,9 +30,6 @@
 #include <utils/time.h>
 #include <utils/math.h>
 #include <utils/ansi.h>
-
-#define TRUE 1
-#define FALSE 0
 
 #ifndef ZF_LOG_LEVEL
 #define ZF_LOG_LEVEL ZF_LOG_ERROR
