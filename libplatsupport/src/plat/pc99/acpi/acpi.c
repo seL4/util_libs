@@ -193,8 +193,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
         int child[MAX_REGIONS];
         int children = 0;
 
-        int i;
-        for (i = 0; i < slist->region_count; i++) {
+        for (int i = 0; i < slist->region_count; i++) {
             if (slist->regions[i].parent == table_index) {
                 child[children++] = i;
                 sub_size += sizeof(uint32_t);
@@ -206,7 +205,6 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
         if (index >= 0) {
             acpi_rsdt_t *dst_tbl;
             uint32_t *subtables;
-            int i;
             Region_t* dst = &dlist->regions[index];
             dst->type = src->type;
             dst->parent = parent;
@@ -217,7 +215,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
 
             /* copy subtable */
             subtables = acpi_rsdt_first(dst_tbl);
-            for (i = 0; i < children; i++) {
+            for (int i = 0; i < children; i++) {
                 void* p;
                 p = _acpi_copy_tables(slist, dlist, child[i], index);
                 DPRINTF(1, "Got address %p\n", p);
