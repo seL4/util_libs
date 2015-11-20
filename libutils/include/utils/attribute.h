@@ -12,6 +12,7 @@
 #define _UTILS_ATTRIBUTE_H
 /* macros for compile time attributes */
 
+/* Stub out Clang feature macros for GCC. */
 #ifndef __has_attribute
   #define __has_attribute(attrib) 0
 #endif
@@ -58,13 +59,6 @@
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #define WEAK         __attribute__((weak))
-
-/* Stub out __has_attribute on GCC and friends where this feature macro is
- * unavailable.
- */
-#ifndef __has_attribute
-#define __has_attribute(x) 0
-#endif
 
 /* alloc_align was added to GCC in 4.9 */
 #if __has_attribute(alloc_align) || (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)))
