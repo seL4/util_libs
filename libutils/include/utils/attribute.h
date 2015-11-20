@@ -18,6 +18,9 @@
 #ifndef __has_extension
   #define __has_extension(ext) 0
 #endif
+#ifndef __has_feature
+  #define __has_feature(feature) 0
+#endif
 
 #define ALIAS(sym)   __attribute__((alias(#sym)))
 #define ALIGN(n)     __attribute__((__aligned__(n)))
