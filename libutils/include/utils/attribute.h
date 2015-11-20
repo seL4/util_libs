@@ -27,7 +27,14 @@
 #define ALWAYS_INLINE __attribute__((always_inline))
 #define CLEANUP(fn)  __attribute__((cleanup(fn)))
 #define DEPRECATED(msg) __attribute__((deprecated(msg)))
-#define ERROR(msg)   __attribute__((error(msg)))
+#if defined(__clang__) && __has_extension(attribute_unavailable_with_message)
+  #define ERROR(msg)   __attribute__((unavailable(msg)))
+#elif defined(__GNUC__)
+  #define ERROR(msg)   __attribute__((error(msg)))
+#else
+  /* No good compile-time error feature. Just emit garbage that will force an unclean error. */
+  #define ERROR(msg)  __COMPILE_TIME_ERROR_SUPPORT_UNAVAILABLE(msg)
+#endif
 #define MALLOC       __attribute__((malloc))
 #define NONNULL(args...) __attribute__((__nonnull__(args)))
 #define NONNULL_ALL  __attribute__((__nonnull__))
