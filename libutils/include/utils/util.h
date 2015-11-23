@@ -30,6 +30,7 @@
 #include <utils/time.h>
 #include <utils/math.h>
 #include <utils/ansi.h>
+#include <utils/xml.h>
 
 #ifndef ZF_LOG_LEVEL
 #define ZF_LOG_LEVEL ZF_LOG_ERROR
