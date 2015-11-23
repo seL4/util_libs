@@ -24,6 +24,7 @@
 #include <utils/formats.h>
 #include <utils/list.h>
 #include <utils/page.h>
+#include <utils/print.h>
 #include <utils/sglib.h>
 #include <utils/stringify.h>
 #include <utils/stack.h>
