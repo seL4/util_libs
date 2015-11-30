@@ -11,6 +11,7 @@
 #ifndef __PLATSUPPORT_TIMERDEV_H__
 #define __PLATSUPPORT_TIMERDEV_H__
 
+#include <autoconf.h>
 #include <errno.h>
 
 #include <platsupport/timer.h>
@@ -171,8 +172,8 @@ hpet_get_time(const pstimer_t* device)
 
     do {
         time = *hpet->main_counter_reg;
-        /* race condition: check the bottom 32 bits didn't overflow */
-    } while (((uint32_t) (time >> 32llu)) != ((uint32_t *) hpet->main_counter_reg)[1]);
+        /* race condition on 32-bit systems: check the bottom 32 bits didn't overflow */
+    } while (CONFIG_WORD_SIZE == 32 && ((uint32_t) (time >> 32llu)) != ((uint32_t *) hpet->main_counter_reg)[1]);
 
     return time * hpet->period_ns;
 }
