@@ -78,6 +78,14 @@ uint64_t tsc_calculate_frequency(pstimer_t *timer);
  */
 pstimer_t *tsc_get_timer(pstimer_t *timer);
 
+/*
+ * Get a tsc-based implementation of pstimer with a previously established freqency.
+ *
+ * @return NULL on error.
+ */
+pstimer_t *
+tsc_get_timer_with_freq(uint64_t freq);
+
 #endif /* _PLATSUPPORT_TSC_H */
 
 

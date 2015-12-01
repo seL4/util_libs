@@ -14,6 +14,9 @@
 
 #include <utils/time.h>
 
+#define ZF_LOG_LEVEL ZF_LOG_ERROR
+#include <utils/zf_log.h>
+
 #include <stdbool.h>
 
 #include "../../stubtimer.h"
@@ -34,6 +37,22 @@ tsc_get_time(const pstimer_t* device)
 static pstimer_t singleton_timer;
 static tsc_data_t singleton_data = {0};
 
+pstimer_t *
+tsc_get_timer_with_freq(uint64_t freq)
+{
+    pstimer_t *tsc_timer = &singleton_timer;
+    singleton_data.freq = freq;
+    stub_timer_get_timer(tsc_timer);
+    tsc_timer->get_time = tsc_get_time;
+    tsc_timer->data = (void *) &singleton_data;
+    tsc_timer->properties.upcounter = true;
+    tsc_timer->properties.timeouts = false;
+    tsc_timer->properties.bit_width = 64;
+    tsc_timer->properties.irqs = 0;
+
+    return tsc_timer;
+}
+
 /* initialisation function */
 pstimer_t *
 tsc_get_timer(pstimer_t *timeout_timer)
@@ -42,20 +61,15 @@ tsc_get_timer(pstimer_t *timeout_timer)
 
     if (singleton_data.freq == 0) {
         /* timer not initialised yet */
-        singleton_data.freq = tsc_calculate_frequency(timeout_timer) / US_IN_S;
-        if (singleton_data.freq == 0) {
+        uint64_t freq = tsc_calculate_frequency(timeout_timer) / US_IN_S;
+        if (freq == 0) {
             /* failed to find freq */
+            ZF_LOGE("Failed to find tsc freq");
             return NULL;
         }
-
-        stub_timer_get_timer(tsc_timer);
-        tsc_timer->get_time = tsc_get_time;
-        tsc_timer->data = (void *) &singleton_data;
-        tsc_timer->properties.upcounter = true;
-        tsc_timer->properties.timeouts = false;
-        tsc_timer->properties.bit_width = 64;
-        tsc_timer->properties.irqs = 0;
-    }
+        
+        tsc_get_timer_with_freq(freq);
+   }
 
     return tsc_timer;
 }
