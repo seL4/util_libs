@@ -40,7 +40,13 @@ ifeq ($(CONFIG_ARCH_ARM),y)
 	DEFINES += __KERNEL_32__
 	export ARCH = arm
 	export KERNEL_32 = y
-	export SEL4_ARCH = arm
+    ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
+        export SEL4_ARCH = arm_hyp
+        export ARM_HYP = 1
+        DEFINES += ARM_HYP
+    else
+        export SEL4_ARCH = arm
+    endif
 endif
 
 ifeq ($(CONFIG_ARCH_IA32),y)
@@ -231,11 +237,6 @@ endif
 
 ifeq ($(CONFIG_FASTPATH),y)
 	DEFINES += FASTPATH
-endif
-
-ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
-	DEFINES += ARM_HYP
-	export ARM_HYP=1
 endif
 
 # beware, the CPPFLAGS is also used during compiling, so we don't need to
