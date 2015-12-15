@@ -277,10 +277,6 @@ endif
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) $(CRTOBJFILES) $(OBJFILES) $(FINOBJFILES) $(LDFLAGS) -o $@
 
-%.img: %.bin $(COBBLER) $(SEL4_KERNEL)
-	@echo " [IMG] $@"
-	$(Q)$(COBBLER) -k $(SEL4_KERNEL) -o $@ $<
-
 $(TARGETS): $(LIBS:%=-l%)
 
 # Avoid inadvertently passing local shared libraries with the same names as ours to the
