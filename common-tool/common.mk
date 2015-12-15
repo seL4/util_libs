@@ -8,6 +8,9 @@
 # @TAG(NICTA_BSD)
 #
 
+# Import Kbuild helper functions.
+include tools/kbuild/Kbuild.include
+
 ### Verbose building
 ########################################
 
