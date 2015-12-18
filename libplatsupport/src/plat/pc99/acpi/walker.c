@@ -44,7 +44,7 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
                                                         (uintptr_t)table_paddr, sizeof(acpi_header_t), 1, PS_MEM_NORMAL);
 
     if (header == NULL) {
-        fprintf(stderr, "Failed to map paddr %p, size %lu\n", table_paddr, sizeof(acpi_header_t));
+        fprintf(stderr, "Failed to map paddr %p, size %zu\n", table_paddr, sizeof(acpi_header_t));
         assert(header != NULL);
         return NULL;
     }
