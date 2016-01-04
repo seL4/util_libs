@@ -38,12 +38,7 @@ int json_print_null(void);
 int json_print_int(int v);
 int json_print_uint(unsigned int v);
 int json_print_pointer(void *v);
-
-/* Print a string. The safe version prints a human-readable version and assumes
- * there are no control characters in the argument.
- */
 int json_print_string(char *s);
-int json_print_safe_string(char *s);
 
 /* Print an array. The caller is expected to provide a callback that determines
  * how to print an item of the array.
@@ -52,12 +47,8 @@ int json_print_safe_string(char *s);
 int json_print_array(void **array, size_t size, int (*printer)(void *item));
 
 /* Print an object. The caller is expected to provide an array of keys (fields)
- * and a callback for printing any particular field. The safe version prints
- * human-readable fields and assumes there are no control characters in the
- * keys.
+ * and a callback for printing any particular field.
  */
-int json_print_safe_object(void *object, char **keys, size_t keys_sz,
-    int (*printer)(void *object, char *key));
 int json_print_object(void *object, char **keys, size_t keys_sz,
     int (*printer)(void *object, char *key));
 
@@ -75,9 +66,9 @@ json_t *json_new_bool(bool value);
 json_t *json_new_int(int value);
 json_t *json_new_uint(unsigned int value);
 json_t *json_new_pointer(void *value);
-json_t *json_new_string(char *value, bool safe);
-json_t *json_new_object(bool safe);
-json_t *json_new_array(bool safe);
+json_t *json_new_string(char *value);
+json_t *json_new_object(void);
+json_t *json_new_array(void);
 
 /* Set the value of a JSON artefact. The type of the artefact must correspond
  * to the function you are using to operate on it.

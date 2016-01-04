@@ -91,44 +91,6 @@ int json_print_string(char *s) {
     return printed;
 }
 
-int json_print_safe_string(char *s) {
-    int printed = 0;
-    printed += printf("\"");
-    while (*s != '\0') {
-        switch (*s) {
-            case '"':
-                printed += printf("\\\"");
-                break;
-            case '\\':
-                printed += printf("\\\\");
-                break;
-            case '/':
-                printed += printf("\\/");
-                break;
-            case '\b':
-                printed += printf("\\b");
-                break;
-            case '\f':
-                printed += printf("\\f");
-                break;
-            case '\n':
-                printed += printf("\\n");
-                break;
-            case '\r':
-                printed += printf("\\r");
-                break;
-            case '\t':
-                printed += printf("\\t");
-                break;
-            default:
-                printed += printf("%c", *s);
-        }
-        s++;
-    }
-    printed += printf("\"");
-    return printed;
-}
-
 int json_print_array(void **array, size_t size, int (*printer)(void *item)) {
     int printed = 0;
     printf("[");
@@ -145,7 +107,7 @@ int json_print_array(void **array, size_t size, int (*printer)(void *item)) {
     return printed;
 }
 
-static int print_object(void *object, char **keys, size_t keys_sz, int (*printer)(void *object, char *key), bool safe) {
+static int print_object(void *object, char **keys, size_t keys_sz, int (*printer)(void *object, char *key)) {
     int printed = 0;
     printed += printf("{");
 
@@ -154,11 +116,7 @@ static int print_object(void *object, char **keys, size_t keys_sz, int (*printer
             printed += printf(",");
         }
 
-        if (safe) {
-            printed += json_print_safe_string(keys[i]);
-        } else {
-            printed += json_print_string(keys[i]);
-        }
+        printed += json_print_string(keys[i]);
 
         printed += printf(":");
 
@@ -168,14 +126,9 @@ static int print_object(void *object, char **keys, size_t keys_sz, int (*printer
     return printed;
 }
 
-int json_print_safe_object(void *object, char **keys, size_t keys_sz,
-        int (*printer)(void *object, char *key)) {
-    return print_object(object, keys, keys_sz, printer, true);
-}
-
 int json_print_object(void *object, char **keys, size_t keys_sz,
         int (*printer)(void *object, char *key)) {
-    return print_object(object, keys, keys_sz, printer, false);
+    return print_object(object, keys, keys_sz, printer);
 }
 
 #ifdef JSON_TESTCASE
@@ -244,7 +197,7 @@ JSON_TESTCASE(hex_pointer) {
 JSON_TESTCASE(string) {
     char buffer[100];
     printf("[");
-    json_print_safe_string("hello world");
+    json_print_string("hello world");
     printf("]");
     sprintf(buffer, "[\"%s\"]", "hello world");
     expected(buffer);

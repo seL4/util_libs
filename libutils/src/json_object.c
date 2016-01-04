@@ -45,22 +45,20 @@ struct json {
         field_t *object;
         item_t *array;
     };
-    bool safe_strings;
 };
 
-static json_t *new(int type, bool safe) {
+static json_t *new(int type) {
     json_t *j = calloc(1, sizeof(*j));
     if (j == NULL) {
         return NULL;
     }
 
     j->type = type;
-    j->safe_strings = safe;
     return j;
 }
 
 json_t *json_new_bool(bool value) {
-    json_t *j = new(BOOL, true);
+    json_t *j = new(BOOL);
     if (j != NULL) {
         j->bool_value = value;
     }
@@ -68,7 +66,7 @@ json_t *json_new_bool(bool value) {
 }
 
 json_t *json_new_int(int value) {
-    json_t *j = new(INT, true);
+    json_t *j = new(INT);
     if (j != NULL) {
         j->int_value = value;
     }
@@ -76,7 +74,7 @@ json_t *json_new_int(int value) {
 }
 
 json_t *json_new_uint(unsigned int value) {
-    json_t *j = new(UINT, true);
+    json_t *j = new(UINT);
     if (j != NULL) {
         j->uint_value = value;
     }
@@ -84,27 +82,27 @@ json_t *json_new_uint(unsigned int value) {
 }
 
 json_t *json_new_pointer(void *value) {
-    json_t *j = new(POINTER, true);
+    json_t *j = new(POINTER);
     if (j != NULL) {
         j->pointer = value;
     }
     return j;
 }
 
-json_t *json_new_string(char *value, bool safe) {
-    json_t *j = new(STRING, safe);
+json_t *json_new_string(char *value) {
+    json_t *j = new(STRING);
     if (j != NULL) {
         j->string = value;
     }
     return j;
 }
 
-json_t *json_new_object(bool safe) {
-    return new(OBJECT, safe);
+json_t *json_new_object(void) {
+    return new(OBJECT);
 }
 
-json_t *json_new_array(bool safe) {
-    return new(ARRAY, safe);
+json_t *json_new_array(void) {
+    return new(ARRAY);
 }
 
 int json_set_bool(json_t *j, bool value) {
@@ -178,11 +176,7 @@ int json_print(json_t *j) {
         case UINT:
             return json_print_uint(j->uint_value);
         case STRING:
-            if (j->safe_strings) {
-                return json_print_safe_string(j->string);
-            } else {
-                return json_print_string(j->string);
-            }
+            return json_print_string(j->string);
         case OBJECT: {
             int printed = 0;
             printed += printf("{");
