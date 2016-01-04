@@ -107,7 +107,7 @@ int json_print_array(void **array, size_t size, int (*printer)(void *item)) {
     return printed;
 }
 
-static int print_object(void *object, const char **keys, size_t keys_sz, int (*printer)(void *object, const char *key)) {
+int json_print_object(void *object, const char **keys, size_t keys_sz, int (*printer)(void *object, const char *key)) {
     int printed = 0;
     printed += printf("{");
 
@@ -124,11 +124,6 @@ static int print_object(void *object, const char **keys, size_t keys_sz, int (*p
     }
     printed += printf("}");
     return printed;
-}
-
-int json_print_object(void *object, const char **keys, size_t keys_sz,
-        int (*printer)(void *object, const char *key)) {
-    return print_object(object, keys, keys_sz, printer);
 }
 
 #ifdef JSON_TESTCASE
