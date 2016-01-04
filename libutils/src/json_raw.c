@@ -60,7 +60,31 @@ int json_print_string(char *s) {
         /* Assume we are reading a narrow string (i.e. that each character is 1
          * byte.
          */
-        printed += printf("\\u%04u", (unsigned int)(*s));
+        switch (*s) {
+
+            case '"':
+            case '\\':
+            case '/':
+            case '\b':
+            case '\f':
+            case '\n':
+            case '\r':
+            case '\t':
+                printed += printf("\\%c", *s);
+                break;
+
+            /* Directly printable ASCII characters: */
+            case ' ':
+            case '!':
+            case '#' ... '.':
+            case '0' ... '[':
+            case ']' ... '~':
+                printed += printf("%c", *s);
+                break;
+
+            default:
+                printed += printf("\\u%04u", (unsigned int)(*s));
+        }
         s++;
     }
     printed += printf("\"");
