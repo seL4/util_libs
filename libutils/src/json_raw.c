@@ -53,7 +53,7 @@ int json_print_pointer(void *v) {
     return json_print_uint((uintptr_t)v);
 }
 
-int json_print_string(char *s) {
+int json_print_string(const char *s) {
     int printed = 0;
     printed += printf("\"");
     while (*s != '\0') {
@@ -107,7 +107,7 @@ int json_print_array(void **array, size_t size, int (*printer)(void *item)) {
     return printed;
 }
 
-static int print_object(void *object, char **keys, size_t keys_sz, int (*printer)(void *object, char *key)) {
+static int print_object(void *object, const char **keys, size_t keys_sz, int (*printer)(void *object, const char *key)) {
     int printed = 0;
     printed += printf("{");
 
@@ -126,8 +126,8 @@ static int print_object(void *object, char **keys, size_t keys_sz, int (*printer
     return printed;
 }
 
-int json_print_object(void *object, char **keys, size_t keys_sz,
-        int (*printer)(void *object, char *key)) {
+int json_print_object(void *object, const char **keys, size_t keys_sz,
+        int (*printer)(void *object, const char *key)) {
     return print_object(object, keys, keys_sz, printer);
 }
 

@@ -38,7 +38,7 @@ int json_print_null(void);
 int json_print_int(int v);
 int json_print_uint(unsigned int v);
 int json_print_pointer(void *v);
-int json_print_string(char *s);
+int json_print_string(const char *s);
 
 /* Print an array. The caller is expected to provide a callback that determines
  * how to print an item of the array.
@@ -49,8 +49,8 @@ int json_print_array(void **array, size_t size, int (*printer)(void *item));
 /* Print an object. The caller is expected to provide an array of keys (fields)
  * and a callback for printing any particular field.
  */
-int json_print_object(void *object, char **keys, size_t keys_sz,
-    int (*printer)(void *object, char *key));
+int json_print_object(void *object, const char **keys, size_t keys_sz,
+    int (*printer)(void *object, const char *key));
 
 /*****
  * High level interface. The following functions allow you to construct JSON
