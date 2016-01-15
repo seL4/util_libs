@@ -36,17 +36,9 @@ endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
 	ccflags-y += $(call cc-option,-marm)
-	DEFINES += ARCH_ARM
-	DEFINES += __KERNEL_32__
 	export ARCH = arm
-	export KERNEL_32 = y
-    ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
-        export SEL4_ARCH = arm_hyp
-        export ARM_HYP = 1
-        DEFINES += ARM_HYP
-    else
-        export SEL4_ARCH = arm
-    endif
+	DEFINES += ARCH_ARM
+	export ARCH_ARM
 endif
 
 ifeq ($(CONFIG_ARCH_IA32),y)
@@ -80,6 +72,20 @@ ifeq ($(CONFIG_ARCH_X86_64),y)
 	export __X86_64__ = y
 	export KERNEL_64 = y
 	export SEL4_ARCH = x86_64
+endif
+
+ifeq ($(CONFIG_ARCH_AARCH32),y)
+	DEFINES += AARCH32
+	DEFINES += __KERNEL_32__
+	export __ARM_32__ = y
+	export KERNEL_32 = y
+    ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
+        export SEL4_ARCH = arm_hyp
+        export ARM_HYP = 1
+        DEFINES += ARM_HYP
+    else
+        export SEL4_ARCH = aarch32
+    endif
 endif
 
 ifeq ($(CONFIG_ARM1136JF_S),y)
