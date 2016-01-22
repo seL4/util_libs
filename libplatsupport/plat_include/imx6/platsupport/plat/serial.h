@@ -37,7 +37,13 @@ enum chardev_id {
     PS_SERIAL3 = IMX6_UART4,
     PS_SERIAL4 = IMX6_UART5,
     /* defaults */
+#if defined(CONFIG_PLAT_SABRE)
     PS_SERIAL_DEFAULT = IMX6_UART2
+#elif defined(CONFIG_PLAT_WANDQ)
+    PS_SERIAL_DEFAULT = IMX6_UART1
+#else
+#error "unknown imx6 platform selected!"
+#endif
 };
 
 
