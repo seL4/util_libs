@@ -107,7 +107,7 @@ endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A8),y)
 	ccflags-y += $(call cc-option, -mcpu=cortex-a8,-march=armv7-a)
-	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a8, -Wa$(comma)-march-armv7-a)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a8, -Wa$(comma)-march=armv7-a)
 	DEFINES += ARMV7_A
 	DEFINES += ARM_CORTEX_A8
 	export ARMV=armv7-a

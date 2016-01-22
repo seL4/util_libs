@@ -11,10 +11,12 @@
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
+#include <autoconf.h>
+
 /*
  * UART Hardware Constants
  *
- * (from IMX31 SoC Manual).
+ * (from IMX6 SoC Manual).
  */
 
 #define IMX6_UART1_PADDR   0x02020000
@@ -23,6 +25,12 @@
 #define IMX6_UART4_PADDR   0x021f0000
 #define IMX6_UART5_PADDR   0x021F4000
 
+#ifdef CONFIG_PLAT_SABRE
 #define UART_PPTR          IMX6_UART2_PADDR
+#elif CONFIG_PLAT_WANDQ
+#define UART_PPTR          IMX6_UART1_PADDR
+#else
+#error "unknown imx6 platform selected!"
+#endif
 
 #endif /* _PLATFORM_H_ */
