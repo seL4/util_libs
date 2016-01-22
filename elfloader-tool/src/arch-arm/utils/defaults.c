@@ -12,7 +12,7 @@
  * plat-* if there is a more appropriate implementation for a given platform.
  */
 
-#include "stdio.h"
+#include "../stdio.h"
 
 void
 __attribute__((weak)) abort(void)

@@ -37,15 +37,13 @@ extern uint32_t booting_cpu_id;
 void non_boot_main(void)
 {
 #ifdef CONFIG_SMP_ARM_MPCORE
-    int cpu_mode;
     /* Spin until the first CPU has finished initialisation. */
     while (!non_boot_lock) {
         cpu_idle();
     }
 
     /* Enable the MMU, and enter the kernel. */
-    cpu_mode = read_cpsr() & CPSR_MODE_MASK;
-    if(cpu_mode == CPSR_MODE_HYPERVISOR){
+    if(is_hyp_mode()){
         arm_enable_hyp_mmu();
     }else{
         arm_enable_mmu();
@@ -55,6 +53,7 @@ void non_boot_main(void)
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);
+
 #endif
 }
 
@@ -66,7 +65,6 @@ void non_boot_main(void)
 void main(void)
 {
     int num_apps;
-    int cpu_mode;
 
 #ifdef CONFIG_SMP_ARM_MPCORE
     /* If not the boot strap processor then go to non boot main */
@@ -90,16 +88,16 @@ void main(void)
     }
 
     /* Setup MMU. */
-    cpu_mode = read_cpsr() & CPSR_MODE_MASK;
-    if(cpu_mode == CPSR_MODE_HYPERVISOR){
+    if(is_hyp_mode()){
         printf("Enabling hypervisor MMU and paging\n");
-        init_lpae_boot_pd(&kernel_info);
+        init_hyp_boot_vspace(&kernel_info);
         arm_enable_hyp_mmu();
     }
+
     /* If we are in HYP mode, we enable the SV MMU and paging
      * just in case the kernel does not support hyp mode. */
     printf("Enabling MMU and paging\n");
-    init_boot_pd(&kernel_info);
+    init_boot_vspace(&kernel_info);
     arm_enable_mmu();
 
 #ifdef CONFIG_SMP_ARM_MPCORE
@@ -114,6 +112,7 @@ void main(void)
     } else {
         /* Our serial port is no longer accessible */
     }
+
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);

@@ -13,41 +13,18 @@
 
 #include "stdint.h"
 
-#define CPSR_MODE_MASK 0x1f
-#define CPSR_MODE_SUPERVISOR 0x13
-#define CPSR_MODE_HYPERVISOR 0x1a
-
 /* read ID register from CPUID */
-static inline uint32_t read_cpuid_id(void)
-{
-    uint32_t val;
-    asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (val) :: "cc");
-    return val;
-}
+uint32_t read_cpuid_id(void);
 
 /* read MP ID register from CPUID */
-static inline uint32_t read_cpuid_mpidr(void)
-{
-    uint32_t val;
-    asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (val) :: "cc");
-    return val;
-}
+uint32_t read_cpuid_mpidr(void);
 
-static inline uint32_t read_cpsr(void)
-{
-    uint32_t val;
-    asm volatile("mrs %0, cpsr" : "=r" (val) :: "cc");
-    return val;
-}
+word_t is_hyp_mode(void);
 
-/**
- * Pretty print CPUID information
- */
+/* Pretty print CPUID information */
 void print_cpuid(void);
 
-/**
- * Returns the Cortex-Ax part number, or -1
- */
+/* Returns the Cortex-Ax part number, or -1 */
 int get_cortex_a_part(void);
 
 #endif /* _CPUID_H_ */

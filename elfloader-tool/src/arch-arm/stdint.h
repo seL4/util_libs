@@ -21,9 +21,14 @@ typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 
+#if defined(__KERNEL_32__)
 typedef uint32_t uintptr_t;
 typedef uint32_t size_t;
+typedef uint32_t word_t;
+#define BYTE_PER_WORD   4
+#endif
 
-#define UINT64_MAX (18446744073709551615ULL)
+#define UINT32_MAX    (0xffffffff)
+#define UINT64_MAX    (0xffffffffffffffffull)
 
 #endif

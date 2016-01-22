@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "string.h"
+#include "../string.h"
 
 /* Both memset and memcpy need a custom type that allows us to use a word
  * that has the aliasing properties of a char.

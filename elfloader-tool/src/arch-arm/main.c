@@ -17,12 +17,9 @@
 
 #include <cpio/cpio.h>
 
-#define MIN(a, b) (((a)<(b))?(a):(b))
-
 /* Determine if two intervals overlap. */
-static int
-regions_overlap(uint32_t startA, uint32_t endA,
-                uint32_t startB, uint32_t endB)
+static int regions_overlap(uintptr_t startA, uintptr_t endA,
+                           uintptr_t startB, uintptr_t endB)
 {
     if (endA < startB) {
         return 0;
@@ -42,8 +39,7 @@ regions_overlap(uint32_t startA, uint32_t endA,
 static void ensure_phys_range_valid(paddr_t paddr_min, paddr_t paddr_max)
 {
     /* Ensure that the kernel physical load address doesn't overwrite us. */
-    if (regions_overlap(paddr_min, paddr_max - 1,
-                        (uint32_t)_start, (uint32_t)_end - 1)) {
+    if (regions_overlap(paddr_min, paddr_max - 1, (word_t)_start, (word_t)_end - 1)) {
         printf("Kernel load address would overlap ELF-loader!\n");
         abort();
     }
@@ -54,15 +50,16 @@ static void ensure_phys_range_valid(paddr_t paddr_min, paddr_t paddr_max)
  */
 static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
 {
+    uint16_t i;
     uint64_t min_vaddr, max_vaddr;
-    uint32_t image_size;
-    uint32_t phys_virt_offset;
-    int i;
+    size_t image_size;
+    
+    word_t phys_virt_offset;
 
     /* Get size of the image. */
     elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
-    image_size = (uint32_t)(max_vaddr - min_vaddr);
-    phys_virt_offset = (uint32_t)dest_paddr - (uint32_t)min_vaddr;
+    image_size = (size_t)(max_vaddr - min_vaddr);
+    phys_virt_offset = dest_paddr - (paddr_t)min_vaddr;
 
     /* Zero out all memory in the region, as the ELF file may be sparse. */
     memset((char *)dest_paddr, 0, image_size);
@@ -70,10 +67,10 @@ static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
     /* Load each segment in the ELF file. */
     for (i = 0; i < elf_getNumProgramHeaders(elf); i++) {
         vaddr_t dest_vaddr;
-        uint32_t data_size, data_offset;
+        size_t data_size, data_offset;
 
         /* Skip segments that are not marked as being loadable. */
-        if (elf32_getProgramHeaderType(elf, i) != PT_LOAD) {
+        if (elf_getProgramHeaderType(elf, i) != PT_LOAD) {
             continue;
         }
 
@@ -97,12 +94,12 @@ static paddr_t load_elf(const char *name, void *elf,
                         paddr_t dest_paddr, struct image_info *info)
 {
     uint64_t min_vaddr, max_vaddr;
-    uint32_t image_size;
+    size_t image_size;
 
     /* Fetch image info. */
     elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
     max_vaddr = ROUND_UP(max_vaddr, PAGE_BITS);
-    image_size = (uint32_t)(max_vaddr - min_vaddr);
+    image_size = (size_t)(max_vaddr - min_vaddr);
 
     /* Ensure our starting physical address is aligned. */
     if (!IS_ALIGNED(dest_paddr, PAGE_BITS)) {
@@ -119,9 +116,9 @@ static paddr_t load_elf(const char *name, void *elf,
 
     /* Print diagnostics. */
     printf("ELF-loading image '%s'\n", name);
-    printf("  paddr=[%x..%x]\n", dest_paddr, dest_paddr + image_size - 1);
-    printf("  vaddr=[%x..%x]\n", (uint32_t)min_vaddr, (uint32_t)max_vaddr - 1);
-    printf("  virt_entry=%x\n", (uint32_t)elf_getEntryPoint(elf));
+    printf("  paddr=[%lx..%lx]\n", dest_paddr, dest_paddr + image_size - 1);
+    printf("  vaddr=[%lx..%lx]\n", (vaddr_t)min_vaddr, (vaddr_t)max_vaddr - 1);
+    printf("  virt_entry=%lx\n", (vaddr_t)elf_getEntryPoint(elf));
 
     /* Ensure the ELF file is valid. */
     if (elf_checkFile(elf) != 0) {
@@ -147,7 +144,7 @@ static paddr_t load_elf(const char *name, void *elf,
     info->virt_region_start = (vaddr_t)min_vaddr;
     info->virt_region_end = (vaddr_t)max_vaddr;
     info->virt_entry = (vaddr_t)elf_getEntryPoint(elf);
-    info->phys_virt_offset = (uint32_t)dest_paddr - (uint32_t)min_vaddr;
+    info->phys_virt_offset = dest_paddr - (vaddr_t)min_vaddr;
 
     /* Return address of next free physical frame. */
     return ROUND_UP(dest_paddr + image_size, PAGE_BITS);
@@ -200,8 +197,8 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
         printf("Kernel image not a valid ELF file!\n");
         abort();
     }
-    elf_getMemoryBounds(kernel_elf, 1,
-                        &kernel_phys_start, &kernel_phys_end);
+
+    elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
     next_phys_addr = load_elf("kernel", kernel_elf,
                               (paddr_t)kernel_phys_start, kernel_info);
 

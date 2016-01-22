@@ -8,9 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "stdint.h"
-#include "stdarg.h"
-#include "stdio.h"
+#include "../stdint.h"
+#include "../stdarg.h"
+#include "../stdio.h"
 
 /*
  * Maximum space needed to print an integer in any base.

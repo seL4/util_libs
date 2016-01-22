@@ -16,12 +16,13 @@
 typedef uintptr_t paddr_t;
 typedef uintptr_t vaddr_t;
 
-#define PAGE_BITS  12
+#define PAGE_BITS           12
 
-#define BIT(x) (1 << (x))
-#define MASK(n) (BIT(n)-1)
-#define IS_ALIGNED(n, b) (!((n) & MASK(b)))
-#define ROUND_UP(n, b) (((((n) - 1) >> (b)) + 1) << (b))
+#define BIT(x)              (1 << (x))
+#define MASK(n)             (BIT(n) - 1)
+#define MIN(a, b)           (((a) < (b)) ? (a) : (b))
+#define IS_ALIGNED(n, b)    (!((n) & MASK(b)))
+#define ROUND_UP(n, b)      (((((n) - 1) >> (b)) + 1) << (b))
 
 /*
  * Information about an image we are loading.
@@ -65,9 +66,9 @@ extern uint64_t _lpae_boot_pmd[];
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
                  int max_user_images, int *num_images);
 
-/* Setup boot PD. */
-void init_boot_pd(struct image_info *kernel_info);
-void init_lpae_boot_pd(struct image_info *kernel_info);
+/* Setup boot VSpace. */
+void init_boot_vspace(struct image_info *kernel_info);
+void init_hyp_boot_vspace(struct image_info *kernel_info);
 
 /* Assembly functions. */
 extern void flush_dcache(void);

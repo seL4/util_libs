@@ -8,9 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "stdint.h"
-#include "elfloader.h"
-#include "stdio.h"
+#include "../stdint.h"
+#include "../elfloader.h"
+#include "../stdio.h"
 
 /* Short descriptor */
 #define ARM_SECTION_BITS 20
@@ -23,7 +23,7 @@
  * the kernel's first vaddr, and a virtual-to-physical mapping above the
  * kernel's first vaddr.
  */
-void init_boot_pd(struct image_info *kernel_info)
+void init_boot_vspace(struct image_info *kernel_info)
 {
     uint32_t i;
     vaddr_t first_vaddr = kernel_info->virt_region_start;
@@ -57,7 +57,7 @@ void init_boot_pd(struct image_info *kernel_info)
  * the LPAE page table. In this case, 3 L2 tables are concatenated.
  * PGD entries point to the appropriate L2 table.
  */
-void init_lpae_boot_pd(struct image_info *kernel_info)
+void init_hyp_boot_vspace(struct image_info *kernel_info)
 {
     uint32_t i, k;
     vaddr_t first_vaddr = kernel_info->virt_region_start;
