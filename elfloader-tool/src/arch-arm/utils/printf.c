@@ -40,7 +40,7 @@ static void write_string(write_char_fn write_char, void *payload, const char *st
  * We only support bases up to 16.
  */
 static void write_num(write_char_fn write_char, void *payload,
-                      int base, unsigned int n)
+                      int base, unsigned long n)
 {
     static const char hex[] = "0123456789abcdef";
     char buff[MAX_INT_BUFF_SIZE];
@@ -74,6 +74,7 @@ static void vxprintf(write_char_fn write_char, void *payload,
 {
     int d, i;
     char c, *s;
+    unsigned long p, ul;
     int escape_mode = 0;
 
     /* Iterate over the format list. */
@@ -110,7 +111,6 @@ static void vxprintf(write_char_fn write_char, void *payload,
         case '7':
         case '8':
         case '9':
-        case 'l':
         case '-':
         case '.':
             break;
@@ -122,8 +122,14 @@ static void vxprintf(write_char_fn write_char, void *payload,
             escape_mode = 0;
             break;
 
-            /* Hex number. */
+            /* Pointers. */
         case 'p':
+            p = va_arg(args, unsigned long);
+            write_num(write_char, payload, 16, p);
+            escape_mode = 0;
+            break;
+
+            /* Hex number. */
         case 'x':
             d = va_arg(args, int);
             write_num(write_char, payload, 16, d);
@@ -142,6 +148,25 @@ static void vxprintf(write_char_fn write_char, void *payload,
         case 'c':
             c = va_arg(args, int);
             write_char(payload, c);
+            escape_mode = 0;
+            break;
+
+            /* Long number. */
+        case 'l':
+            switch (format[++i]) {
+                case 'u':
+                    ul = va_arg(args, unsigned long);
+                    write_num(write_char, payload, 10, ul);
+                    break;
+
+                case 'x':
+                    ul = va_arg(args, unsigned long);
+                    write_num(write_char, payload, 16, ul);
+                    break;
+
+                default:
+                    write_char(payload, '?');
+            }
             escape_mode = 0;
             break;
 

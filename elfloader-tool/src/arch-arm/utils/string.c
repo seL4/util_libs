@@ -9,6 +9,7 @@
  */
 
 #include "../string.h"
+#include "../stdint.h"
 
 /* Both memset and memcpy need a custom type that allows us to use a word
  * that has the aliasing properties of a char.
@@ -22,7 +23,7 @@
 #endif
 
 #ifdef HAS_MAY_ALIAS
-typedef uint32_t __attribute__((__may_alias__)) u32_alias;
+typedef word_t __attribute__((__may_alias__)) u_alias;
 #endif
 
 int strcmp(const char *a, const char *b)
@@ -44,15 +45,15 @@ void *memset(void *s, int c, size_t n)
     char *mem = (char *)s;
 
 #ifdef HAS_MAY_ALIAS
-    /* fill byte by byte until 32-bit aligned */
-    for (; (uintptr_t)mem % 4 != 0 && n > 0; mem++, n--) {
+    /* fill byte by byte until word aligned */
+    for (; (uintptr_t)mem % BYTE_PER_WORD != 0 && n > 0; mem++, n--) {
         *mem = c;
     }
-    /* construct 32-bit filler */
-    u32_alias fill = ((u32_alias)-1 / 255) * (unsigned char)c;
+    /* construct word filler */
+    u_alias fill = ((u_alias)-1 / 255) * (unsigned char)c;
     /* do as many word writes as we can */
-    for (; n > 3; n-=4, mem+=4) {
-        *(u32_alias*)mem = fill;
+    for (; n > BYTE_PER_WORD - 1; n -= BYTE_PER_WORD, mem += BYTE_PER_WORD) {
+        *(u_alias *)mem = fill;
     }
     /* fill byte by byte for any remainder */
     for (; n > 0; n--, mem++) {
@@ -76,13 +77,13 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     const unsigned char *s = (const unsigned char *)src;
 
 #ifdef HAS_MAY_ALIAS
-    /* copy byte by byte until 32-bit aligned */
-    for (; (uintptr_t)d % 4 != 0 && n > 0; d++, s++, n--) {
+    /* copy byte by byte until word aligned */
+    for (; (uintptr_t)d % BYTE_PER_WORD != 0 && n > 0; d++, s++, n--) {
         *d = *s;
     }
     /* copy word by word as long as we can */
-    for (; n > 3; n-=4, s+=4, d+=4) {
-        *(u32_alias*)d = *(const u32_alias*)s;
+    for (; n > BYTE_PER_WORD - 1; n -= BYTE_PER_WORD, s += BYTE_PER_WORD, d += BYTE_PER_WORD) {
+        *(u_alias *)d = *(const u_alias *)s;
     }
     /* copy any remainder byte by byte */
     for (; n > 0; d++, s++, n--) {

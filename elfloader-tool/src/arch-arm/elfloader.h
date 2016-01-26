@@ -24,6 +24,9 @@ typedef uintptr_t vaddr_t;
 #define IS_ALIGNED(n, b)    (!((n) & MASK(b)))
 #define ROUND_UP(n, b)      (((((n) - 1) >> (b)) + 1) << (b))
 
+#define ALIGN(n)            __attribute__((__aligned__(n)))
+
+
 /*
  * Information about an image we are loading.
  */
@@ -58,9 +61,6 @@ extern char _start[];
 extern char _end[];
 extern char _archive_start[];
 extern char _archive_end[];
-extern uint32_t _boot_pd[];
-extern uint64_t _lpae_boot_pgd[];
-extern uint64_t _lpae_boot_pmd[];
 
 /* Load images. */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,

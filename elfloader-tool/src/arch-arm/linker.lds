@@ -10,6 +10,15 @@
 
 ENTRY(_start)
 
+PECOFF_FILE_ALIGNMENT = 0x200;
+
+#ifdef EFI
+#define PECOFF_EDATA_PADDING    \
+    .pecoff_edata_padding : { BYTE(0); . = ALIGN(PECOFF_FILE_ALIGNMENT); }
+#else
+#define PECOFF_EDATA_PADDING
+#endif
+
 SECTIONS
 {
     .text :
@@ -31,17 +40,20 @@ SECTIONS
     .data :
     {
         *(.data)
-        . = ALIGN(8);
+    }
+
+    PECOFF_EDATA_PADDING
+    _edata = .;
+
+    .bss :
+    {
+        *(.bss)
+
         _bootstack_bottom = .;
         . = . + 4K;
         . = ALIGN(16K);
         _bootstack_top = .;
-        _boot_pd = .;
-        . = . + 16K;
-        _lpae_boot_pmd = .;
-        . = . + 16K;
-        _lpae_boot_pgd = .;
-        . = . + 32;
     }
+
     _end = .;
 }

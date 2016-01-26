@@ -14,6 +14,24 @@ menuconfig LIB_ELFLOADER
     depends on ARCH_ARM
     select LIB_CPIO
 
+choice
+    prompt "Boot image type"
+    depends on LIB_ELFLOADER
+    help
+        Select ELF or EFI boot image type
+        
+    config IMAGE_ELF
+        bool "ELF Boot Image"
+        help
+            Generate ELF boot image
+
+    config IMAGE_EFI 
+        bool "EFI Boot Image"
+        depends on ARCH_AARCH64
+        help
+            Generate EFI boot image
+endchoice
+
 config ARM_ERRATA_764369
     bool "Workaround for ARM errata 764369"
     depends on LIB_ELFLOADER

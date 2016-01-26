@@ -12,11 +12,7 @@
 #include "../elfloader.h"
 #include "../stdio.h"
 
-/* Short descriptor */
-#define ARM_SECTION_BITS 20
-/* Long descriptor */
-#define ARM_1GB_BLOCK_BITS 30
-#define ARM_2MB_BLOCK_BITS 21
+#include "structures.h"
 
 /*
  * Create a "boot" page directory, which contains a 1:1 mapping below

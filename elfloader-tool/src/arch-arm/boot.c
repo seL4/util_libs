@@ -14,6 +14,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "efi/efi.h"
 
 #include "elfloader.h"
 #include "cpuid.h"
@@ -65,6 +66,13 @@ void non_boot_main(void)
 void main(void)
 {
     int num_apps;
+
+#ifdef CONFIG_IMAGE_EFI
+    if (efi_exit_boot_services() != EFI_SUCCESS) {
+        printf("Unable to exit UEFI boot services!\n");
+        abort();
+    }
+#endif
 
 #ifdef CONFIG_SMP_ARM_MPCORE
     /* If not the boot strap processor then go to non boot main */

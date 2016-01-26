@@ -53,6 +53,10 @@ case "$PLAT" in
         ENTRY_ADDR=0x82000000
         FORMAT=elf32-littlearm
         ;;
+    "hikey")
+        ENTRY_ADDR=0x0
+        FORMAT=elf64-littleaarch64
+        ;;
     *)
         echo "$0: Invalid platform \"$PLAT\""
         exit -1
@@ -128,14 +132,29 @@ ${TOOLPREFIX}ld -T "${SCRIPT_DIR}/archive.bin.lds" \
 popd >/dev/null
 
 #
+# Clearup the linker script for target platform.
+#
+${TOOLPREFIX}gcc ${CPPFLAGS} -P -E \
+        -o "${SCRIPT_DIR}/linker.lds_pp" \
+        -x c "${SCRIPT_DIR}/linker.lds"
+
+#
 # Link everything together to produce the final ELF image.
 #
-${TOOLPREFIX}ld -T "${SCRIPT_DIR}/linker.lds" \
+${TOOLPREFIX}ld -T "${SCRIPT_DIR}/linker.lds_pp" \
         --oformat ${FORMAT} \
         "${SCRIPT_DIR}/elfloader.o" "${TEMP_DIR}/archive.o" \
         -Ttext=${ENTRY_ADDR} -o "${OUTPUT_FILE}" \
         || fail
 ${TOOLPREFIX}strip --strip-all ${OUTPUT_FILE}
+
+#
+# Remove ELF stuff to have an PE32+/COFF executable file.
+#
+if [ "${__EFI__}" == "y" ]; then
+    ${TOOLPREFIX}objcopy -O binary ${OUTPUT_FILE} ${OUTPUT_FILE}.efi
+    rm -f ${OUTPUT_FILE}
+fi
 
 # Done
 rm -rf ${TEMP_DIR}

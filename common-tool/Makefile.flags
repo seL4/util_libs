@@ -88,6 +88,14 @@ ifeq ($(CONFIG_ARCH_AARCH32),y)
     endif
 endif
 
+ifeq ($(CONFIG_ARCH_AARCH64),y)
+	DEFINES += AARCH64
+	DEFINES += __KERNEL_64__
+	export __ARM_64__ = y
+	export KERNEL_64 = y
+	export SEL4_ARCH = aarch64
+endif
+
 ifeq ($(CONFIG_ARM1136JF_S),y)
 	ccflags-y += $(call cc-option,-mcpu=arm1136jf-s,-march=armv6)
 	asflags-y += $(call as-option, -Wa$(comma)-mcpu=arm1136jf-s, -Wa$(comma)-march=armv6)
@@ -125,6 +133,17 @@ ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 	DEFINES += ARM_CORTEX_A15
 	export ARMV=armv7-a
 	export CPU=cortex-a15
+endif
+
+ifeq ($(CONFIG_ARM_CORTEX_A57),y)
+	ccflags-y += $(call cc-option, -mtune=cortex-a57, -march=armv8-a)
+	asflags-y += $(call as-option, -Wa$(comma)-mtune=cortex-a57)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a57)
+	asflags-y += $(call as-option, -Wa$(comma)-march=armv8-a)
+	DEFINES += ARMV8_A
+	DEFINES += ARM_CORTEX_A57
+	export ARMV=armv8-a
+	export CPU=cortex-a57
 endif
 
 ifeq ($(CONFIG_PLAT_KZM),y)
@@ -199,6 +218,16 @@ ifeq ($(CONFIG_PLAT_OMAP4),y)
 	DEFINES += OMAP4
 	DEFINES += TI_MSHIELD
 	export PLAT=omap4
+endif
+
+ifeq ($(CONFIG_PLAT_HIKEY),y)
+	DEFINES += HIKEY
+	export PLAT=hikey
+endif
+
+ifeq ($(CONFIG_IMAGE_EFI),y)
+	DEFINES += EFI
+	export __EFI__ = y
 endif
 
 ifeq ($(CONFIG_SMP_ARM_MPCORE),y)

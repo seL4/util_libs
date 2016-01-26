@@ -26,6 +26,11 @@ typedef uint32_t uintptr_t;
 typedef uint32_t size_t;
 typedef uint32_t word_t;
 #define BYTE_PER_WORD   4
+#elif defined(__KERNEL_64__)
+typedef uint64_t uintptr_t;
+typedef uint64_t size_t;
+typedef uint64_t word_t;
+#define BYTE_PER_WORD   8
 #endif
 
 #define UINT32_MAX    (0xffffffff)

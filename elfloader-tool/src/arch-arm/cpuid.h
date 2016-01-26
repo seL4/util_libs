@@ -19,6 +19,7 @@ uint32_t read_cpuid_id(void);
 /* read MP ID register from CPUID */
 uint32_t read_cpuid_mpidr(void);
 
+/* check if CPU is in HYP/EL2 mode */
 word_t is_hyp_mode(void);
 
 /* Pretty print CPUID information */
