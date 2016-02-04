@@ -22,7 +22,6 @@
 
 static void initialize_free_bufs(lwip_iface_t *iface) {
     dma_addr_t *dma_bufs = NULL;
-    printf("Malloc dma bufs\n");
     dma_bufs = malloc(sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
     if (!dma_bufs) {
         goto error;
