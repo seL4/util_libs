@@ -22,6 +22,7 @@
 
 static void initialize_free_bufs(lwip_iface_t *iface) {
     dma_addr_t *dma_bufs = NULL;
+    printf("Malloc dma bufs\n");
     dma_bufs = malloc(sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
     if (!dma_bufs) {
         goto error;
@@ -159,7 +160,7 @@ static void lwip_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
     case ETHTYPE_PPPOE:
 #endif /* PPPOE_SUPPORT */
     /* full packet send to tcpip_thread to process */
-        if (lwip_iface->netif->input(p, lwip_iface->netif) != ERR_OK) { 
+        if (lwip_iface->netif->input(p, lwip_iface->netif) != ERR_OK) {
             LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
             pbuf_free(p);
             p = NULL;
@@ -312,7 +313,7 @@ static void lwip_pbuf_rx_complete(void *iface, unsigned int num_bufs, void **coo
     case ETHTYPE_PPPOE:
 #endif /* PPPOE_SUPPORT */
     /* full packet send to tcpip_thread to process */
-        if (lwip_iface->netif->input(p, lwip_iface->netif) != ERR_OK) { 
+        if (lwip_iface->netif->input(p, lwip_iface->netif) != ERR_OK) {
             LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
             LOG_INFO("failed to input\n");
             pbuf_free(p);
@@ -399,7 +400,7 @@ static struct raw_iface_callbacks lwip_pbuf_callbacks = {
 };
 
 static err_t
-ethif_init(struct netif *netif) 
+ethif_init(struct netif *netif)
 {
     if (netif -> state == NULL) {
         return ERR_ARG;
@@ -418,10 +419,10 @@ ethif_init(struct netif *netif)
         netif->linkoutput = ethif_link_output;
     }
 
-    NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, 
+    NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd,
         LINK_SPEED_OF_YOUR_NETIF_IN_BPS);
 
-    netif -> flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | 
+    netif -> flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP |
             NETIF_FLAG_LINK_UP | NETIF_FLAG_IGMP;
 
     iface->netif = netif;
@@ -444,7 +445,9 @@ lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *
         goto error;
     }
     /* if the driver did not already cause it to happen, allocate the preallocated buffers */
-    initialize_free_bufs(iface);
+    if (!pbuf_dma && !iface->bufs) {
+        initialize_free_bufs(iface);
+    }
     iface->ethif_init = ethif_init;
     return iface;
 error:
