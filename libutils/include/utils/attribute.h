@@ -44,6 +44,11 @@
   /* No good compile-time error feature. Just emit garbage that will force an unclean error. */
   #define ERROR(msg)  __COMPILE_TIME_ERROR_SUPPORT_UNAVAILABLE(msg)
 #endif
+#if (defined(__clang__) && __has_attribute(hot)) || (!defined(__clang__) && defined(__GNUC__))
+  #define HOT        __attribute__((hot))
+#else
+  #define HOT        /* ignored */
+#endif
 #define MALLOC       __attribute__((malloc))
 #define NONNULL(args...) __attribute__((__nonnull__(args)))
 #define NONNULL_ALL  __attribute__((__nonnull__))
