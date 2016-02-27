@@ -1,0 +1,30 @@
+{
+    "arch": "${RUST_ARCH}",
+    "vendor":"unknown",
+    "os": "linux",
+    "env":"${RUST_ENV}",
+    "llvm-target": "${RUST_LLVM_TRIPLE}",
+
+    "cpu" : "${RUST_CPU}",
+    "target-endian": "${RUST_ENDIAN}",
+    "target-pointer-width": "${RUST_POINTER_WIDTH}",
+
+    "features": "${RUST_ARCH_FEATURES}",
+
+    "pre-link-args" : [
+      "${RUST_PRE_LINK_ARGS}"
+    ],
+    "post-link-args" : [
+        "-lgcc", "-lgcc_eh", "-lnosys", "-lm"
+    ],
+    "linker": "${LD}",
+    "ar" :"${AR}",
+    "disable-redzone": false,
+    "executables": true,
+    "morestack": false,
+    "relocation-model": "pic",
+    "no-compiler-rt": true,
+    "has-elf-tls": false,
+    "linker-is-gnu": true
+
+}

@@ -21,6 +21,43 @@ menu "Toolchain Options"
             path of the compiler in the prefix, such as
             /opt/toolchains/gcc4/arm-linux-gnueabi-
 
+    menuconfig USE_RUST
+        bool "Rust compilation support"
+        default n
+        help
+            Enable compilation of rust files using cargo.  Currently arm
+            is supported.  Ensure that you have the nightly rust sources
+            installed (Multirust is a good tool for this).  Also the third
+            party cargo command sysroot which simplifies cross compilation.
+            If cargo is installed, sysroot will be installed if not already.
+
+    config RUST_VERSION
+        string "Rust version"
+        default ""
+        depends on USE_RUST
+        help
+            Set the rust version.  Options: nightly, stable, beta,
+            nightly-2014-12-18, 1.0.0
+    config RUST_COMPILE_RELEASE
+        bool "--release"
+        default n
+        depends on USE_RUST
+        help
+            Use release flag when compiling rust code using
+            cargo.
+    config RUST_COMPILE_QUIET
+        bool "--quiet"
+        default n
+        depends on USE_RUST
+        help
+            Run cargo with --quiet.
+    config RUST_COMPILE_VERBOSE
+        bool "--verbose"
+        default n
+        depends on USE_RUST
+        help
+            Run cargo with --verbose.
+
     config KERNEL_COMPILER
         string "Path to a different compiler to use for the kernel"
     default ""
@@ -196,4 +233,3 @@ menu "Toolchain Options"
             directives.
 
 endmenu
-

@@ -1,0 +1,6 @@
+
+[target.${RUST_CUSTOM_TARGET}]
+crates = ["std"]
+
+[dependencies.libc]
+default-features = false

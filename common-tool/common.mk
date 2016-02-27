@@ -155,7 +155,7 @@ LDFLAGS += -e ${ENTRY_POINT}
 ASFLAGS += $(NK_ASFLAGS)
 
 # Object files
-OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(CXXFILES:%.cxx=%.o) $(OFILES)
+OBJFILES = $(ASMFILES:%.S=%.o) $(CFILES:%.c=%.o) $(CXXFILES:%.cxx=%.o) $(OFILES) $(RUST_TARGET)
 
 # Define standard crt files if are building against a C library that has them
 ifeq (${CONFIG_HAVE_CRT},y)
@@ -180,6 +180,8 @@ vpath %.a $(SEL4_LIBDIR)
 vpath %.c $(SOURCE_DIR)
 vpath %.cxx $(SOURCE_DIR)
 vpath %.S $(SOURCE_DIR)
+
+PRIORITY_TARGETS += $(RUST_TARGET:%=rust)
 
 # Default is to build/install all targets
 default: $(PRIORITY_TARGETS) install-headers $(TARGETS)
@@ -224,6 +226,13 @@ install-headers:
 			printf " [STAGE]"; basename $$dest; \
 		done ; \
 	fi
+
+.PHONY: rust
+rust:
+	@echo " [RS] $(RUST_TARGET)"
+	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ RUSTFLAGS='--sysroot=${RUST_LIBDIR}/${RUST_RELEASE_MODE}' \
+	cargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(SOURCE_DIR)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(Q) cp $(SOURCE_DIR)/target/${RUST_CUSTOM_TARGET}/$(RUST_RELEASE_MODE)/$(RUST_TARGET) ${STAGE_DIR}/lib/$(RUST_TARGET)
 
 ifeq (${CONFIG_BUILDSYS_CPP_SEPARATE},y)
 %.o: %.c_pp

@@ -31,6 +31,8 @@ ifeq ($(CONFIG_ARCH_X86),y)
 	export ARCH = x86
 	DEFINES += ARCH_X86
 	export ARCH_X86
+	export RUST_ENDIAN = little
+	export RUST_ENV = gnu
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
@@ -38,6 +40,8 @@ ifeq ($(CONFIG_ARCH_ARM),y)
 	export ARCH = arm
 	DEFINES += ARCH_ARM
 	export ARCH_ARM
+	export RUST_ENDIAN = little
+	export RUST_ENV = gnueabi
 endif
 
 ifeq ($(CONFIG_ARCH_IA32),y)
@@ -50,6 +54,10 @@ ifeq ($(CONFIG_ARCH_IA32),y)
 	DEFINES += ARCH_IA32
 	DEFINES += __KERNEL_32__
 	DEFINES += X86_32
+	export RUST_ARCH = x86
+	export RUST_POINTER_WIDTH = 32
+	export RUST_CPU = i686
+	export RUST_PRE_LINK_ARGS = -m32
 	export __X86_32__ = y
 	export KERNEL_32 = y
 	export SEL4_ARCH = ia32
@@ -68,6 +76,9 @@ ifeq ($(CONFIG_ARCH_X86_64),y)
 	DEFINES += __KERNEL_64__
 	export __X86_64__ = y
 	export KERNEL_64 = y
+	export RUST_ARCH = x86_64
+	export RUST_POINTER_WIDTH = 64
+	export RUST_PRE_LINK_ARGS = -m64
 	export SEL4_ARCH = x86_64
 endif
 
@@ -76,6 +87,8 @@ ifeq ($(CONFIG_ARCH_AARCH32),y)
 	DEFINES += __KERNEL_32__
 	export __ARM_32__ = y
 	export KERNEL_32 = y
+	export RUST_ARCH = arm
+	export RUST_POINTER_WIDTH = 32
     ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
         export SEL4_ARCH = arm_hyp
         export ARM_HYP = 1
@@ -98,6 +111,8 @@ ifeq ($(CONFIG_ARM1136JF_S),y)
 	asflags-y += $(call as-option, -Wa$(comma)-mcpu=arm1136jf-s, -Wa$(comma)-march=armv6)
 	DEFINES += ARMV6
 	DEFINES += ARM1136J_S
+	export RUST_CPU = arm1136jf-s
+	export RUST_ARCH_FEATURES += +v6
 	export ARMV=armv6
 	export CPU=arm1136jf-s
 endif
@@ -119,6 +134,8 @@ ifeq ($(CONFIG_ARM_CORTEX_A8),y)
 	DEFINES += ARM_CORTEX_A8
 	export ARMV=armv7-a
 	export CPU=cortex-a8
+	export RUST_CPU = cortex-a8
+	export RUST_ARCH_FEATURES += +v7
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A9),y)
@@ -128,6 +145,8 @@ ifeq ($(CONFIG_ARM_CORTEX_A9),y)
 	DEFINES += ARM_CORTEX_A9
 	export ARMV=armv7-a
 	export CPU=cortex-a9
+	export RUST_CPU = cortex-a9
+	export RUST_ARCH_FEATURES += +v7
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A15),y)
@@ -140,6 +159,8 @@ ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 	DEFINES += ARM_CORTEX_A15
 	export ARMV=armv7-a
 	export CPU=cortex-a15
+	export RUST_CPU = cortex-a15
+	export RUST_ARCH_FEATURES += +v7
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A57),y)
@@ -151,6 +172,9 @@ ifeq ($(CONFIG_ARM_CORTEX_A57),y)
 	DEFINES += ARM_CORTEX_A57
 	export ARMV=armv8-a
 	export CPU=cortex-a57
+	export RUST_CPU = cortex-a57
+	export RUST_ARCH_FEATURES += +v8
+
 endif
 
 ifeq ($(CONFIG_PLAT_KZM),y)
@@ -339,6 +363,27 @@ endif
 
 ifeq ($(CONFIG_SMP_ARM_MPCORE),y)
 export CONFIG_SMP_ARM_MPCORE
+endif
+
+ifeq ($(CONFIG_RUST_COMPILE_RELEASE), y)
+export RUST_RELEASE_MODE := release
+else
+export RUST_RELEASE_MODE := debug
+endif
+
+RUST_CARGO_FLAGS := $(CONFIG_RUST_COMPILE_RELEASE:y=--release )
+RUST_CARGO_FLAGS += $(CONFIG_RUST_COMPILE_QUIET:y=--quiet )
+RUST_CARGO_FLAGS += $(CONFIG_RUST_COMPILE_VERBOSE:y=--verbose )
+export RUST_CARGO_FLAGS
+
+export RUST_CUSTOM_TARGET = ${RUST_ARCH}-sel4-linux-${RUST_ENV}
+export RUST_LIBDIR = $(STAGE_BASE)/rlib/
+export RUST_TARGET_FILE := $(STAGE_BASE)/common/$(RUST_CUSTOM_TARGET).json
+
+ifeq ($(RUST_ARCH), arm)
+export RUST_LLVM_TRIPLE := ${RUST_ARCH}-unknown-linux-${RUST_ENV}
+else
+export RUST_LLVM_TRIPLE := ${RUST_CPU}-unknown-linux-${RUST_ENV}
 endif
 
 # Allow a project to add additional project-specific flags.
