@@ -28,7 +28,6 @@ ldflags-y += $(call cc-ldoption, -Wl$(comma)--build-id=none)
 
 ifeq ($(CONFIG_ARCH_X86),y)
 	ccflags-y += $(call cc-option,-fno-stack-protector)
-	CCFLAGS += -mno-sse -mno-sse2 -mno-mmx -mno-3dnow
 	export ARCH = x86
 	DEFINES += ARCH_X86
 	export ARCH_X86
@@ -58,8 +57,6 @@ endif
 
 ifeq ($(CONFIG_ARCH_X86_64),y)
 	cflags-y += $(call cc-option,-m64)
-	cflags-y += $(call cc-option,-mno-red-zone)
-	cflags-y += $(call cc-option,-mcmodel=kernel,-mcmodel=kernel)
 	cflags-y += $(call cc-option, -fno-asynchronous-unwind-tables,)
 	ldflags-y  += -Wl,-m -Wl,elf_x86_64
 	asflags-y  += -Wa,--64
