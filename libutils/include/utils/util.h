@@ -18,6 +18,7 @@
 #include <utils/arith.h>
 #include <utils/assume.h>
 #include <utils/attribute.h>
+#include <utils/auto.h>
 #include <utils/builtin.h>
 #include <utils/compile_time.h>
 #include <utils/debug.h>
