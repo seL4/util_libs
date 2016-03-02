@@ -19,7 +19,7 @@ typedef unsigned int kelvin_t;
 typedef millikelvin_t temperature_t;
 
 /* Temperature Conversions */
-#define MILLIKELVIN_OFFSET 237150
+#define MILLIKELVIN_OFFSET 273150
 
 #define MILLIKELVIN_IN_KELVIN      1000
 #define MILLICELCIUS_IN_CELCIUS    1000
