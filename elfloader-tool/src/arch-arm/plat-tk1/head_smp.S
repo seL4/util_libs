@@ -13,8 +13,8 @@
 
 .extern non_boot_core
 
-.global imx_non_boot
-imx_non_boot:
+.global tk1_non_boot
+tk1_non_boot:
     /* Our caches are in an unknown state. We need to perform an INVALIDATE
        to ensure we do not ship random data to memory in future cache cleans */
     bl invalidate_l1
