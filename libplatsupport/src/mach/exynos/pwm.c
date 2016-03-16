@@ -20,6 +20,8 @@
 #include <platsupport/mach/pwm.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../stubtimer.h"
+
 #define ACLK_66 66 /* MHz */
 
 #define T4_ENABLE          BIT(20)
@@ -188,14 +190,6 @@ pwm_timer_stop(const pstimer_t *timer)
 }
 
 static int
-pwm_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-
-static int
 pwm_periodic(const pstimer_t *timer, uint64_t ns)
 {
     pwm_t *pwm = (pwm_t*) timer->data;
@@ -277,7 +271,7 @@ pwm_get_timer(pwm_config_t *config)
     timer->start = pwm_timer_start;
     timer->stop = pwm_timer_stop;
     timer->get_time = pwm_get_time;
-    timer->oneshot_absolute = pwm_oneshot_absolute;
+    timer->oneshot_absolute = stub_timer_timeout;
     timer->oneshot_relative = pwm_oneshot_relative;
     timer->periodic = pwm_periodic;
     timer->handle_irq = pwm_handle_irq;

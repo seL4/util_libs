@@ -24,6 +24,8 @@
 #include <utils/util.h>
 #include <utils/util.h>
 
+#include "../../stubtimer.h"
+
 #define PIT_IOPORT_CHANNEL(x) (0x40 + x) /* valid channels are 0, 1, 2. we'll be using 0 exclusively, though */
 #define PIT_IOPORT_COMMAND  0x43
 #define PIT_IOPORT_PITCR    PIT_IOPORT_COMMAND
@@ -158,14 +160,6 @@ pit_get_time(const pstimer_t* device)
     return ((high << 8) + low) * NS_IN_S / TICKS_PER_SECOND;
 }
 
-int
-pit_oneshot_absolute(const pstimer_t *device, uint64_t absolute_ns)
-{
-    /* pit cannot do absolute timeouts */
-    return ENOSYS;
-}
-
-
 static int
 pit_oneshot_relative(const pstimer_t* device, uint64_t relative_ns)
 {
@@ -212,7 +206,7 @@ static pstimer_t pit_timer = {
     .start = pit_start,
     .stop = pit_stop,
     .get_time = pit_get_time,
-    .oneshot_absolute = pit_oneshot_absolute,
+    .oneshot_absolute = stub_timer_timeout,
     .oneshot_relative = pit_oneshot_relative,
     .periodic = pit_periodic,
     .handle_irq = pit_handle_irq,

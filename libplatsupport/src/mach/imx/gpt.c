@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "../../stubtimer.h"
 
 #include <utils/util.h>
 
@@ -168,25 +169,6 @@ gpt_timer_stop(const pstimer_t *timer)
     gpt->gpt_map->gptcr = 0;
 
     return 0;
-}
-
-static int
-gpt_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
-}
-
-
-static int
-gpt_periodic(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
-}
-
-static int
-gpt_oneshot_relative(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
 }
 
 static void

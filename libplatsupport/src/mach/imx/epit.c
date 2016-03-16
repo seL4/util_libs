@@ -20,6 +20,8 @@
 #include <platsupport/mach/epit.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../stubtimer.h"
+
 /* EPIT CONTROL REGISTER BITS */
 typedef enum {
     /*
@@ -164,14 +166,6 @@ configure_epit(const pstimer_t *timer, uint64_t ns)
 }
 
 static int
-epit_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    /* epit is a count-down timer, can't set relative timeouts */
-    return ENOSYS;
-}
-
-
-static int
 epit_periodic(const pstimer_t *timer, uint64_t ns)
 {
     epit_t *epit = (epit_t*) timer->data;
@@ -264,7 +258,7 @@ epit_get_timer(epit_config_t *config)
     timer->start = epit_timer_start;
     timer->stop = epit_timer_stop;
     timer->get_time = epit_get_time;
-    timer->oneshot_absolute = epit_oneshot_absolute;
+    timer->oneshot_absolute = stub_timer_timeout;
     timer->oneshot_relative = epit_oneshot_relative;
     timer->periodic = epit_periodic;
     timer->handle_irq = epit_handle_irq;
