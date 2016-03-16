@@ -638,6 +638,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     timer->properties.upcounter = true;
     timer->properties.timeouts = true;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.relative_timeouts = false;
+    timer->properties.periodic_timeouts = true;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 

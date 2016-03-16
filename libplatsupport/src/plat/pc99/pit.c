@@ -203,6 +203,9 @@ static pstimer_t pit_timer = {
     .properties = {
         .upcounter = false,
         .timeouts = true,
+        .relative_timeouts = true,
+        .periodic_timeouts = true,
+        .absolute_timeouts = false,
         .bit_width = 16,
         .irqs = 1
     },

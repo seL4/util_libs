@@ -269,6 +269,9 @@ pwm_get_timer(pwm_config_t *config)
     timer->properties.timeouts = true;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.relative_timeouts = true;
+    timer->properties.periodic_timeouts = true;
 
     timer->data = (void *) pwm;
     timer->start = pwm_timer_start;
