@@ -254,6 +254,9 @@ epit_get_timer(epit_config_t *config)
 
     timer->properties.upcounter = false;
     timer->properties.timeouts = true;
+    timer->properties.relative_timeouts = true;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.periodic_timeouts = true;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 
