@@ -15,6 +15,7 @@
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
+#include "../../stubtimer.h"
 
 #define TIOCP_CFG_SOFTRESET BIT(0)
 
@@ -114,12 +115,6 @@ dm_periodic(const pstimer_t *timer, uint64_t ns)
 }
 
 static int
-dm_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    return ENOSYS;      /* not available for downcounters */
-}
-
-static int
 dm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
     return dm_set_timeo(timer, ns, 0);
@@ -166,6 +161,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     timer->properties.upcounter = false;
     timer->properties.timeouts = true;
+    timer->properties.relative_timeouts = true;
+    timer->properties.periodic_timeouts = true;
+    timer->properties.absolute_timeouts = false;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 
@@ -173,7 +171,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     timer->start = dm_timer_start;
     timer->stop = dm_timer_stop;
     timer->get_time = dm_get_time;
-    timer->oneshot_absolute = dm_oneshot_absolute;
+    timer->oneshot_absolute = stub_timer_timeout;
     timer->oneshot_relative = dm_oneshot_relative;
     timer->periodic = dm_periodic;
     timer->handle_irq = dm_handle_irq;

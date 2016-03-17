@@ -273,9 +273,12 @@ hpet_get_timer(hpet_config_t *config)
 
     timer->properties = (timer_properties_t) {
         .upcounter = true,
-         .timeouts = true,
-          .bit_width = 64,
-           .irqs = 1
+        .timeouts = true,
+        .periodic_timeouts = true,
+        .relative_timeouts = true,
+        .absolute_timeouts = true,
+        .bit_width = 64,
+        .irqs = 1
     };
 
     hpet->general_cap_id_reg = (uint64_t*) config->vaddr;

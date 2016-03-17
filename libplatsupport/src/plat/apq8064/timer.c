@@ -20,6 +20,8 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../stubtimer.h"
+
 #define XOTMR_FIN                19200000UL
 #define SLPTMR_FIN                  32768UL
 static inline uint64_t
@@ -186,7 +188,7 @@ get_slp_hz(void)
         timer->handle_irq       = _##prefix##_handle_irq;       \
         timer->stop             = _##prefix##_timer_stop;       \
         timer->get_time         = _##prefix##_get_time;         \
-        timer->oneshot_absolute = _oneshot_absolute;            \
+        timer->oneshot_absolute = stub_timer_timeout; \
         timer->oneshot_relative = _##prefix##_oneshot_relative; \
         timer->get_nth_irq      = _common_get_nth_irq;          \
     }while(0)
@@ -197,7 +199,7 @@ get_slp_hz(void)
         timer->periodic         = _periodic;                    \
         timer->handle_irq       = _handle_irq;                  \
         timer->stop             = _timer_stop;                  \
-        timer->oneshot_absolute = _oneshot_absolute;            \
+        timer->oneshot_absolute = stub_timer_timeout;            \
         timer->oneshot_relative = _oneshot_relative;            \
         timer->get_time         = _get_time;                    \
         timer->get_nth_irq      = _common_get_nth_irq;          \
@@ -594,13 +596,6 @@ _timer_stop(const pstimer_t *timer)
 }
 
 static int
-_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static int
 _periodic(const pstimer_t *timer, uint64_t ns)
 {
     assert(!"Not supported");
@@ -638,6 +633,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     timer->properties.upcounter = true;
     timer->properties.timeouts = true;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.relative_timeouts = false;
+    timer->properties.periodic_timeouts = true;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 

@@ -12,9 +12,8 @@
 #define __PLAT_SUPPORT_GPT_H
 
 #include <platsupport/timer.h>
-#include <platsupport/plat/gpt_constants.h>
-
 #include <stdint.h>
+
 typedef enum {
     GPT_FIRST = 0,
     GPT1 = 0,
@@ -31,13 +30,23 @@ typedef enum {
     GPT_LAST = GPT11
 } gpt_id_t;
 
+#include <platsupport/plat/gpt_constants.h>
+
 typedef struct {
-    /* vaddr gpt is mapped to */
+    /* which gpt */
+    gpt_id_t id;
+    /* vaddr gpt frame is mapped to */
     void *vaddr;
     /* prescaler to scale time by. 0 = divide by 1. 1 = divide by 2. ...*/
     uint32_t prescaler;
 } gpt_config_t;
 
-pstimer_t *gpt_get_timer(gpt_config_t *config);
+pstimer_t *rel_gpt_get_timer(gpt_config_t *config);
+pstimer_t *abs_gpt_get_timer(gpt_config_t *config);
+
+static inline DEPRECATED("user rel_gpt_get_timer") pstimer_t *
+gpt_get_timer(gpt_config_t *config) {
+    return rel_gpt_get_timer(config);
+}
 
 #endif /* __PLAT_SUPPORT_GPT_H */
