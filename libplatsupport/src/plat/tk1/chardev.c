@@ -1,0 +1,53 @@
+/*
+ * Copyright 2016, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+/**
+ * Contains the definition for all character devices on this platform.
+ * Currently this is just a simple patch.
+ */
+
+#include "../../chardev.h"
+#include "../../common.h"
+#include <utils/util.h>
+
+#include "serial.h"
+
+static const int uartA_irqs[] = {UARTA_IRQ, -1};
+static const int uartB_irqs[] = {UARTB_IRQ, -1};
+static const int uartC_irqs[] = {UARTC_IRQ, -1};
+static const int uartD_irqs[] = {UARTD_IRQ, -1};
+
+
+#define UART_DEFN(devid) {          \
+    .id      = TK1_UART##devid,    \
+    .paddr   = UART##devid##_PADDR, \
+    .size    = BIT(12),             \
+    .irqs    = uart##devid##_irqs,  \
+    .init_fn = &uart_init           \
+}
+
+
+static const struct dev_defn dev_defn[] = {
+    UART_DEFN(A),
+    UART_DEFN(B),
+    UART_DEFN(C),
+    UART_DEFN(D),
+};
+
+struct ps_chardevice*
+ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, struct ps_chardevice* d) {
+    unsigned int i;
+    for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
+        if (dev_defn[i].id == id) {
+            return (dev_defn[i].init_fn(dev_defn + i, o, d)) ? NULL : d;
+        }
+    }
+    return NULL;
+}
