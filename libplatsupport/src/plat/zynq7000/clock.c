@@ -189,8 +189,9 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
 #define CLK_DIVISOR_MASK(div)               CLK_DIVISOR(div, CLK_DIVISOR_MAX)
 #define CLK_SET_DIVISOR(div, reg, val)      \
     do {                                    \
-        reg &= ~(CLK_DIVISOR_MASK(div));    \
-        reg |= CLK_DIVISOR(div, val);       \
+        uint32_t v;                         \
+        v = reg & ~(CLK_DIVISOR_MASK(div)); \
+        reg = v | CLK_DIVISOR(div, val);    \
     } while (0)
 #define CLK_GET_DIVISOR(div, reg)           \
     ((reg & CLK_DIVISOR_MASK(div)) >> CLK_DIVISOR##div##_SHIFT)
