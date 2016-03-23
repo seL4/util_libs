@@ -32,6 +32,7 @@
 #include <utils/math.h>
 #include <utils/ansi.h>
 #include <utils/xml.h>
+#include <utils/config.h>
 
 #ifndef ZF_LOG_LEVEL
 #define ZF_LOG_LEVEL ZF_LOG_ERROR
