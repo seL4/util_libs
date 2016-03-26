@@ -526,6 +526,10 @@ _usb_init(clk_t* clk)
         clk_register_child(parent, clk);
         clk->priv = (void*)&clk_regs;
     }
+    if (clk_regs.alg == NULL) {
+        ZF_LOGF("clk_regs.alg is NULL: Clocks likely not initialised properly");
+        return NULL;
+    }
     /* While we are here, gate the clocks */
     pll_usb = clk_regs.alg->pll_usb;
     if (clk->id == CLK_USB2) {
@@ -706,5 +710,3 @@ freq_t ps_freq_default[] = {
     [CLK_CLKO1]    =  66 * MHZ,
     [CLK_CLKO2]    = 528 * MHZ,
 };
-
-
