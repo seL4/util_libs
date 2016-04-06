@@ -11,12 +11,9 @@
 #ifndef _PLATSUPPORT_CLOCK_H_
 #define _PLATSUPPORT_CLOCK_H_
 
-#define KHZ (1000)
-#define MHZ (1000 * KHZ)
-#define GHZ (1000 * MHZ)
-
 #include <stdint.h>
 #include <assert.h>
+#include <utils/util.h>
 
 struct clock;
 struct clock_sys;
@@ -25,8 +22,6 @@ typedef struct clock clk_t;
 typedef struct clock_sys clock_sys_t;
 
 #include <platsupport/plat/clock.h>
-
-typedef uint64_t freq_t;
 
 enum clock_gate_mode {
     CLKGATE_ON,
