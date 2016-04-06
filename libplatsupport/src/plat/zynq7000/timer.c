@@ -62,6 +62,11 @@
         .priv = (void*)&_timers[id]     \
     }
 
+/* Byte offsets into a field of ttc_tmr_regs_t for each timer */
+#define TTCX_TIMER1_OFFSET 0x0
+#define TTCX_TIMER2_OFFSET 0x4
+#define TTCX_TIMER3_OFFSET 0x8
+
 struct ttc_tmr_regs {
     uint32_t clk_ctrl[3];   /* +0x00 */
     uint32_t cnt_ctrl[3];   /* +0x0C */
@@ -303,19 +308,24 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     struct ttc_data *timer_data;
     void* vaddr;
 
+    /* This sets the base of the ttc_tmr_regs_t pointer to
+     * an offset into the timer's mmio region such that
+     * ((ttc_tmr_regs_t*)vaddr)->clk_ctrl
+     * (and all other registers) refers to the address of the
+     * register relevant for the specified timer device. */
     vaddr = config->vaddr;
     switch (id) {
     case TTC0_TIMER1:
     case TTC1_TIMER1:
-        vaddr += 0;
+        vaddr += TTCX_TIMER1_OFFSET;
         break;
     case TTC0_TIMER2:
     case TTC1_TIMER2:
-        vaddr += 4;
+        vaddr += TTCX_TIMER2_OFFSET;
         break;
     case TTC0_TIMER3:
     case TTC1_TIMER3:
-        vaddr += 8;
+        vaddr += TTCX_TIMER3_OFFSET;
         break;
     default:
         return NULL;
