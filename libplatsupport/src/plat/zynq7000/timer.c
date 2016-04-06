@@ -281,7 +281,7 @@ static void
 _ttc_handle_irq(const pstimer_t *timer, uint32_t irq)
 {
     ttc_tmr_regs_t* regs = timer_get_regs(timer);
-    (void)*regs->int_sts; /* Clear on read */
+    FORCE_READ(regs->int_sts); /* Clear on read */
 }
 
 static uint64_t
@@ -359,7 +359,7 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     regs = timer_get_regs(timer);
     *regs->int_en = 0;
-    (void)*regs->int_sts; /* Clear on read */
+    FORCE_READ(regs->int_sts); /* Clear on read */
     *regs->cnt_ctrl = CNTCTRL_RST | CNTCTRL_STOP | CNTCTRL_INT;
     *regs->clk_ctrl = 0;
     *regs->int_en = INT_INTERVAL;
