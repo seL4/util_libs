@@ -48,6 +48,9 @@
 #define PRESCALE_MAX       0xf
 #define PCLK_FREQ          111110000U
 
+#define CNT_WIDTH 16
+#define CNT_MAX (BIT(CNT_WIDTH) - 1)
+
 #define TTC_CLK_DATA(id) {              \
         .name = #id,                    \
         .req_freq = 0,                  \
@@ -211,28 +214,49 @@ _ttc_set_freq(const pstimer_t* timer, freq_t hz)
 
 /********************************************/
 
-static inline int _ttc_set_interval(const pstimer_t *timer, uint64_t ns)
+/* Computes the optimal clock frequency for interrupting after
+ * a given period of time. This will be the highest frequency
+ * such that starting from 0, the timer counter will reach its
+ * maximum value in AT MOST the specified time.
+ *
+ * If no such frequency is supported by the clock (ie. the
+ * requested time is too high) this returns ETIME. Returns 0
+ * on success.
+ *
+ * If a frequency is found, the clock is reprogrammed to run
+ * at that frequency. The number of ticks it will take for the
+ * requested time to pass (ie. the interval) is computed and
+ * returned via an argument (interval). */
+static inline int
+_ttc_set_freq_for_ns(const pstimer_t *timer, uint64_t ns, uint64_t *interval)
 {
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
-    uint64_t interval;
     freq_t fin, f;
+    uint64_t interval_value;
 
     /* Set the clock source frequency
      * 1 / (fin / max_cnt) > interval
      * fin < max_cnt / interval */
-    f = BIT(16) * 1e9 / ns;
+    f = freq_cycles_and_ns_to_hz(CNT_MAX, ns);
     fin = _ttc_set_freq(timer, f);
     if (fin > f) {
-        return -1;
+        /* This happens when the requested time is so long that the clock can't
+         * run slow enough. In this case, the clock driver reported the minimum
+         * rate it can run at, and we can use that to calculate a maximum time.
+         */
+        ZF_LOGE("Timeout too big for timer, max %llu, got %llu\n",
+                            freq_cycles_and_hz_to_ns(CNT_MAX, fin), ns);
+
+        return ETIME;
     }
 
-    /* Choose a match value */
-    interval = (uint64_t)ns * fin / 1e9;
-    if (interval >= BIT(16)) {
-        return -1;
+    interval_value = freq_ns_and_hz_to_cycles(ns, fin);
+
+    assert(interval_value <= CNT_MAX);
+
+    if (interval) {
+        *interval = interval_value;
     }
-    /* Configure the timer */
-    *regs->interval = interval;
+
     return 0;
 }
 
@@ -262,25 +286,53 @@ _ttc_timer_stop(const pstimer_t *timer)
 static int
 _ttc_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
 {
-    /* Interval mode: dont reset counter when interval is reached */
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
-    *regs->cnt_ctrl &= ~CNTCTRL_INT;
-    return _ttc_set_interval(timer, ns);
+    /* As this is a 16 bit timer, it overflows too frequently
+     * for setting absolute timeouts to be useful. */
+    return ENOSYS;
 }
 
+/* Set up the timer to fire an interrupt every ns nanoseconds.
+ * The first such interrupt may arrive before ns nanoseconds
+ * have passed since calling. */
 static int
 _ttc_periodic(const pstimer_t *timer, uint64_t ns)
 {
+    uint64_t interval;
+
+    /* Program the clock and compute the interval value */
+    int error = _ttc_set_freq_for_ns(timer, ns, &interval);
+    if (error) {
+        return error;
+    }
+
+
     ttc_tmr_regs_t* regs = timer_get_regs(timer);
-    /* Interval mode: reset counter when interval is reached */
+
+    *regs->interval = interval;
+
+    /* Interval mode: Continuously count from 0 to value in interval register,
+     * triggering an interval interrupt and resetting the counter to 0
+     * whenever the counter passes through 0. */
     *regs->cnt_ctrl |= CNTCTRL_INT;
-    return _ttc_set_interval(timer, ns);
+
+    /* The INTERVAL interrupt is used in periodic mode. The only source of
+     * interrupts will be when the counter passes through 0 after reaching
+     * the value in the interval register. */
+    *regs->int_en = INT_INTERVAL;
+
+    return 0;
 }
 
 static void
 _ttc_handle_irq(const pstimer_t *timer, uint32_t irq)
 {
     ttc_tmr_regs_t* regs = timer_get_regs(timer);
+
+    /* The MATCH0 interrupt is used in oneshot mode. It is enabled when a
+     * oneshot function is called, and disabled here so only one interrupt
+     * is triggered per call. */
+    *regs->int_en &= ~INT_MATCH0;
+
     FORCE_READ(regs->int_sts); /* Clear on read */
 }
 
@@ -290,13 +342,43 @@ _ttc_get_time(const pstimer_t *timer)
     ttc_tmr_regs_t* regs = timer_get_regs(timer);
     uint32_t cnt = *regs->cnt_val;
     uint32_t fin = _ttc_get_freq(timer);
-    return (1e9 * cnt) / fin;
+    return freq_cycles_and_hz_to_ns(cnt, fin);
 }
 
+/* Set up the timer to fire an interrupt ns nanoseconds after this
+ * function is called. */
 static int
 _ttc_oneshot_relative(const pstimer_t *timer, uint64_t ns)
 {
-    return _ttc_oneshot_absolute(timer, _ttc_get_time(timer) + ns);
+    uint64_t interval;
+
+    /* Program the clock and compute the interval value */
+    int error = _ttc_set_freq_for_ns(timer, ns, &interval);
+    if (error) {
+        return error;
+    }
+
+    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+
+    /* In overflow mode the timer will continuously count up to 0xffff and reset to 0.
+     * The timer will be programmed to interrupt when the counter reaches
+     * current_time + interval, allowing the addition to wrap around (16 bits).
+     */
+
+    *regs->match[0] = (interval + *regs->cnt_val) % BIT(CNT_WIDTH);
+
+    /* Overflow mode: Continuously count from 0 to 0xffff (this is a 16 bit timer).
+     * In this mode no interrval interrupts. A match interrupt (MATCH0) will be used
+     * in this mode. */
+    *regs->cnt_ctrl &= ~CNTCTRL_INT;
+
+    /* The MATCH0 interrupt is used in oneshot mode. The only source of interrupts
+     * will be when the counter passes through the value in the match[0] register.
+     * This interrupt is disabled in the irq handler so it is only triggered once.
+     */
+    *regs->int_en = INT_MATCH0;
+
+    return 0;
 }
 
 pstimer_t *
@@ -347,6 +429,9 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     timer->properties.timeouts = true;
     timer->properties.bit_width = 16;
     timer->properties.irqs = 1;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.relative_timeouts = true;
+    timer->properties.periodic_timeouts = true;
 
     timer->start = _ttc_timer_start;
     timer->stop = _ttc_timer_stop;
@@ -360,10 +445,10 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     regs = timer_get_regs(timer);
     *regs->int_en = 0;
     FORCE_READ(regs->int_sts); /* Clear on read */
-    *regs->cnt_ctrl = CNTCTRL_RST | CNTCTRL_STOP | CNTCTRL_INT;
+    *regs->cnt_ctrl = CNTCTRL_RST | CNTCTRL_STOP | CNTCTRL_INT | CNTCTRL_MATCH;
     *regs->clk_ctrl = 0;
     *regs->int_en = INT_INTERVAL;
-    *regs->interval = 0xffff;
+    *regs->interval = CNT_MAX;
 
     return timer;
 }
