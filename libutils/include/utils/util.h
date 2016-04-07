@@ -21,7 +21,9 @@
 #include <utils/builtin.h>
 #include <utils/compile_time.h>
 #include <utils/debug.h>
+#include <utils/force.h>
 #include <utils/formats.h>
+#include <utils/frequency.h>
 #include <utils/list.h>
 #include <utils/page.h>
 #include <utils/print.h>
