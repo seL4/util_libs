@@ -132,6 +132,7 @@ endif
 
 LDFLAGS += $(NK_LDFLAGS) \
 		   $(SEL4_LIBDIR:%=-L%) \
+		   $(LIBDIRS:%=-L%) \
 		   $(STARTGROUP) \
 		   $(LIBS:%=-l%) \
 		   $(LIBGCC) \
