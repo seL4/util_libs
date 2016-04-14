@@ -32,6 +32,43 @@ choice
             Generate EFI boot image
 endchoice
 
+choice
+    prompt "seL4 mode"
+    default ARM_MONITOR_MODE
+    depends on PLAT_TK1
+    help
+        Select the mode to load the seL4 kernel.
+
+config ARM_NS_SUPERVISOR_MODE
+    bool "Load the seL4 kernel in non-secure supervisor mode"
+    help
+        The default mode for seL4 is non-secure supervisor mode
+
+config ARM_MONITOR_MODE
+    bool "Load the seL4 kernel in monitor mode"
+    help
+        The elfloader loads the seL4 kernel in monitor mode.
+
+config ARM_HYPERVISOR_MODE
+    bool "Load the seL4 kernel in hypervisor mode (NS)"
+    help
+        The elfloader loads seL4 kernel in hypvisor mode.
+
+endchoice
+
+config ARM_MONITOR_HOOK
+    bool "Install hooks in monitor mode"
+    default n 
+    depends on PLAT_TK1
+    help
+       Install SMC call handlers in monitor mode.
+
+config GPT_PTIMER_NS_PL1_ACCESS
+    bool" Enable GPT physical timer access for NS PL1"
+    depends on ARM_NS_SUPERVISOR_MODE
+    help
+        Enalbe the GPT physical timer access for NS PL1
+
 config ARM_ERRATA_764369
     bool "Workaround for ARM errata 764369"
     depends on LIB_ELFLOADER

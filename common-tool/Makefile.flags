@@ -238,6 +238,12 @@ ifeq ($(CONFIG_PLAT_HIKEY),y)
 	export PLAT=hikey
 endif
 
+ifeq ($(CONFIG_PLAT_TK1),y)
+	DEFINES += TK1
+	DEFINES += PLAT_TK1
+	export PLAT=tk1
+endif
+
 ifeq ($(CONFIG_IMAGE_EFI),y)
 	DEFINES += EFI
 	export __EFI__ = y

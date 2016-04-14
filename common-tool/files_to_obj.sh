@@ -38,7 +38,7 @@ shift 2
 case "$PLAT" in
     "imx31"|"imx6"|"imx7"|"omap3"|"am335x"|"omap4"|\
     "exynos4"|"exynos5"|"realview"|"apq8064"|\
-    "zynq7000")
+    "zynq7000"|"tk1")
         FORMAT=elf32-littlearm
         ;;
     "pc99")
