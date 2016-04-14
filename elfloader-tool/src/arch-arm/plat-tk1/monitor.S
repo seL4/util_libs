@@ -53,7 +53,7 @@ smc_stack:
 .word   STACK_TOP
 
 /* r0: the start physical address for the code that the
- * caller want to execute in monitor mode. I know, a huge
+ * caller wants to execute in monitor mode. I know, a huge
  * security hole. WARNING: the code to be executed should
  * not reference memory locations !!!
  */

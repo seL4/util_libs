@@ -34,6 +34,7 @@ endchoice
 
 choice
     prompt "seL4 mode"
+    default ARM_MONITOR_MODE
     depends on PLAT_TK1
     help
         Select the mode to load the seL4 kernel.
@@ -46,8 +47,7 @@ config ARM_NS_SUPERVISOR_MODE
 config ARM_MONITOR_MODE
     bool "Load the seL4 kernel in monitor mode"
     help
-        The elfloader switches to monitor mode
-        and loads the seL4 kernel in that mode.
+        The elfloader loads the seL4 kernel in monitor mode.
 
 config ARM_HYPERVISOR_MODE
     bool "Load the seL4 kernel in hypervisor mode (NS)"
@@ -58,6 +58,7 @@ endchoice
 
 config ARM_MONITOR_HOOK
     bool "Install hooks in monitor mode"
+    default n 
     depends on PLAT_TK1
     help
        Install SMC call handlers in monitor mode.
