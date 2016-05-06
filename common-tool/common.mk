@@ -136,6 +136,7 @@ LDFLAGS += $(NK_LDFLAGS) \
 		   $(STARTGROUP) \
 		   $(LIBS:%=-l%) \
 		   $(LIBGCC) \
+		   $(RUST_TARGET:%=-lcompiler-rt) \
 		   $(ENDGROUP) \
 		   $(CFLAGS) \
 		   -static -nostdlib
