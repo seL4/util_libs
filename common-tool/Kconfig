@@ -30,11 +30,14 @@ menu "Toolchain Options"
             installed (Multirust is a good tool for this).  Also the third
             party cargo command sysroot which simplifies cross compilation.
             If cargo is installed, sysroot will be installed if not already.
-
+    config MULTIRUST
+        bool "Multirust support"
+        default y
+        depends on USE_RUST
     config RUST_VERSION
         string "Rust version"
         default ""
-        depends on USE_RUST
+        depends on MULTIRUST
         help
             Set the rust version.  Options: nightly, stable, beta,
             nightly-2014-12-18, 1.0.0
