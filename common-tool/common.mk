@@ -231,8 +231,8 @@ install-headers:
 .PHONY: rust
 rust:
 	@echo " [RS] $(RUST_TARGET)"
-	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ RUSTFLAGS='--sysroot=${RUST_LIBDIR}/${RUST_RELEASE_MODE}' \
-	cargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(SOURCE_DIR)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/  \
+	xargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(SOURCE_DIR)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
 	$(Q) cp $(SOURCE_DIR)/target/${RUST_CUSTOM_TARGET}/$(RUST_RELEASE_MODE)/$(RUST_TARGET) ${STAGE_DIR}/lib/$(RUST_TARGET)
 
 ifeq (${CONFIG_BUILDSYS_CPP_SEPARATE},y)

@@ -229,16 +229,16 @@ $(AUTOCONF_H_FILE): .config
 
 RUNONCE = $(STAGE_BASE)/runonce
 
-$(RUNONCE): .config
+$(RUNONCE): .config | setup
 ifeq ($(CONFIG_USE_RUST),y)
 ifeq ($(CONFIG_RUST_VERSION), "")
 else
 	@echo "[RUST] Setting toolchain override"
 	$(Q)multirust override $(CONFIG_RUST_VERSION)
 endif #($(CONFIG_RUST_VERSION), "")
-	@echo "[RUST] Updating cargo-sysroot"
-	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo uninstall cargo-sysroot || true
-	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo install --path tools/cargo-sysroot
+	@echo "[RUST] Updating xargo "
+	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo uninstall xargo || true
+	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo install --path tools/xargo
 endif #($(CONFIG_USE_RUST),y)
 	$(Q)touch $(RUNONCE)
 
@@ -273,20 +273,19 @@ setup: $(AUTOCONF_H_FILE)
 	$(Q)mkdir -p ${IMAGE_ROOT}
 
 PHONY += common
-common: setup $(RUNONCE)
+common: setup
 # Copy only the non-hidden contents of tools/common, since some cp
 # invocations can't overwrite the symlinks in .git.
 	$(Q)mkdir -p $(STAGE_BASE)/$@
 	$(Q)cp -R $(TOOLS_ROOT)/$@/* $(STAGE_BASE)/$@
-#If rust tooling is enabled, set up the rust target configuration, and crosscompile the rust std libraries
-ifeq ($(CONFIG_USE_RUST),y)
+
+PHONY += rust_sysroot
+rust_sysroot: common $(libc) $(RUNONCE)
 	@echo "[RUST] Building std libs"
 	$(Q)cat $(STAGE_BASE)/common/custom-target.json | envsubst > ${RUST_TARGET_FILE}
 	$(Q)cat $(TOOLS_ROOT)/common/sysroot.toml | envsubst > $(STAGE_BASE)/common/sysroot.toml
-
-	$(Q)cd $(STAGE_BASE)/common/ && \
-	cargo sysroot $(RUST_CARGO_FLAGS)--sysroot-dir=$(STAGE_BASE) --target=${RUST_CUSTOM_TARGET}.json ${RUST_LIBDIR}
-endif
+	$(Q)cd $(STAGE_BASE)/common/ && RUST_TARGET_PATH=${STAGE_BASE}/common/ \
+	xargo sysroot $(RUST_CARGO_FLAGS) --target=${RUST_CUSTOM_TARGET}
 
 export SEL4_COMMON=$(STAGE_BASE)/common
 
