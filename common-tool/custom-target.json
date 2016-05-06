@@ -4,7 +4,7 @@
     "os": "linux",
     "env":"${RUST_ENV}",
     "llvm-target": "${RUST_LLVM_TRIPLE}",
-
+    "data-layout": "${RUST_DATA_LAYOUT}",
     "cpu" : "${RUST_CPU}",
     "target-endian": "${RUST_ENDIAN}",
     "target-pointer-width": "${RUST_POINTER_WIDTH}",

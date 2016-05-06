@@ -57,6 +57,7 @@ ifeq ($(CONFIG_ARCH_IA32),y)
 	export RUST_ARCH = x86
 	export RUST_POINTER_WIDTH = 32
 	export RUST_CPU = i686
+	export RUST_DATA_LAYOUT = e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128
 	export RUST_PRE_LINK_ARGS = -m32
 	export __X86_32__ = y
 	export KERNEL_32 = y
@@ -89,6 +90,8 @@ ifeq ($(CONFIG_ARCH_AARCH32),y)
 	export KERNEL_32 = y
 	export RUST_ARCH = arm
 	export RUST_POINTER_WIDTH = 32
+	export RUST_DATA_LAYOUT = e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64
+
     ifeq ($(CONFIG_ARM_HYPERVISOR_SUPPORT),y)
         export SEL4_ARCH = arm_hyp
         export ARM_HYP = 1
