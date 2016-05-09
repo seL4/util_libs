@@ -64,7 +64,7 @@ config ARM_MONITOR_HOOK
        Install SMC call handlers in monitor mode.
 
 config GPT_PTIMER_NS_PL1_ACCESS
-    bool" Enable GPT physical timer access for NS PL1"
+    bool "Enable GPT physical timer access for NS PL1"
     depends on ARM_NS_SUPERVISOR_MODE
     help
         Enalbe the GPT physical timer access for NS PL1
