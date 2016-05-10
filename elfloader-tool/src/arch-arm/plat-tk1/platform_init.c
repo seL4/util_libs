@@ -58,7 +58,11 @@
  * we let the seL4 handle interrupts/exceptions.
  */
 
-#if defined(CONFIG_ARM_MONITOR_MODE) || defined(CONFIG_ARM_MONITOR_HOOK)
+
+#define MONITOR_MODE        (0x16)
+#define SUPERVISOR_MODE     (0x13)
+#define HYPERVISOR_MODE     (0x1a)
+
 
 void
 arm_halt(void)
@@ -114,7 +118,6 @@ switch_to_mon_mode(void)
     }
 }
 
-#endif
 
 
 #ifdef CONFIG_ARM_MONITOR_HOOK
@@ -142,9 +145,11 @@ install_monitor_hook(void)
 static void
 switch_to_hyp_mode(void)
 {
-    uint32_t scr = 0;
+    register uint32_t scr asm("r1") = 0;
     asm volatile ("mov r0, sp");
     asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
+    scr |= BIT(SCR_HCE);
+    scr &= ~BIT(SCR_SCD);
     scr |= BIT(SCR_NS);
     asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
     asm volatile ("cps %0\n\t"
@@ -157,7 +162,6 @@ switch_to_hyp_mode(void)
 #endif
 
 #ifdef CONFIG_ARM_NS_SUPERVISOR_MODE
-
 static void
 switch_to_ns_svc_mode(void)
 {
@@ -170,6 +174,7 @@ switch_to_ns_svc_mode(void)
     asm volatile ("mov r0, sp");
     asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
     scr |= BIT(SCR_NS);
+
     asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
     asm volatile ("mov sp, r0");
     
@@ -178,10 +183,72 @@ switch_to_ns_svc_mode(void)
 #endif
 
 extern void arm_monitor_vector(void);
+
+#ifdef CONFIG_ARM_HYPERVISOR_MODE
+/* tk1 uses GIC v2 */
+struct gicd_map {
+    uint32_t enable;
+    uint32_t ic_type;
+    uint32_t dist_ident;
+    uint32_t res1[29];
+    uint32_t security[32];
+    uint32_t enable_set[32];
+    uint32_t enable_clr[32];
+    uint32_t pending_set[32];
+    uint32_t pending_clr[32];
+    uint32_t active[32];
+    uint32_t res2[32];
+    uint32_t priority[255];
+};
+
+struct gicc_map {
+    uint32_t ctrl;
+    uint32_t pri_mask;
+    uint32_t pb_c;
+    uint32_t int_ack;
+    uint32_t eoi;
+};
+
+volatile struct gicd_map *gicd = (volatile struct gicd_map *)(0x50041000);
+volatile struct gicc_map *gicc = (volatile struct gicc_map *)(0x50042000);
+
+static void
+route_irqs_to_nonsecure(void)
+{
+    int i = 0;
+    int nirqs = 32 * ((gicd->ic_type & 0x1f) + 1);
+    printf("Number of IRQs: %d\n", nirqs);
+    gicd->enable = 0;
+
+
+    /* note: the security and priority initialisations in
+     * non-secure mode will not work, but use the values
+     * set by secure mode.
+     */
+
+    /* set all irqs to group 1 - nonsecure */
+    for (i = 0; i < nirqs; i += 32) {
+        gicd->security[i >> 5] = 0xffffffff;
+    }
+
+    /* assign the irqs in a single priority group: no preemptions */
+    for (i = 0; i < nirqs; i += 4) {
+        gicd->priority[i >> 2] = 0x80808080;
+    }
+
+    gicc->ctrl = 0;
+
+    /* writing 255 always set the largest (lowest) priority value.
+     * missing this hurts health */
+    gicc->pri_mask = 0xff;
+}
+#endif
+
 void platform_init(void)
 {
     /* Nothing to do here */
     /* not really!        */
+
 #ifdef CONFIG_ARM_MONITOR_HOOK
     install_monitor_hook();
 #endif
@@ -191,6 +258,8 @@ void platform_init(void)
 #endif
 
 #ifdef CONFIG_ARM_HYPERVISOR_MODE
+    switch_to_mon_mode();
+    route_irqs_to_nonsecure();
     switch_to_hyp_mode();
 #endif
 
@@ -199,5 +268,4 @@ void platform_init(void)
 #endif
 
 }
-
 
