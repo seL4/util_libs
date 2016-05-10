@@ -18,6 +18,8 @@
 
 /* use the UARTD */
 #define TK1_UART1_PADDR   0x70006300
+#define TK1_GICD_PADDR    0x50041000
+#define TK1_GICC_PADDR    0x50042000
 
 #define UART_PPTR          TK1_UART1_PADDR
 

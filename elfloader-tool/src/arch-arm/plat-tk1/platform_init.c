@@ -11,6 +11,7 @@
 #include <autoconf.h>
 #include "../elfloader.h"
 #include "../stdio.h"
+#include "platform.h"
 
 /* non-secure bit: 0 secure; 1 nonsecure */
 #define SCR_NS      (0)
@@ -209,8 +210,8 @@ struct gicc_map {
     uint32_t eoi;
 };
 
-volatile struct gicd_map *gicd = (volatile struct gicd_map *)(0x50041000);
-volatile struct gicc_map *gicc = (volatile struct gicc_map *)(0x50042000);
+volatile struct gicd_map *gicd = (volatile struct gicd_map *)(TK1_GICD_PADDR);
+volatile struct gicc_map *gicc = (volatile struct gicc_map *)(TK1_GICC_PADDR);
 
 static void
 route_irqs_to_nonsecure(void)
