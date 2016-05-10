@@ -37,6 +37,7 @@ endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
 	ccflags-y += $(call cc-option,-marm)
+	ccflags-y += $(call cc-option,-Wtrampolines)
 	export ARCH = arm
 	DEFINES += ARCH_ARM
 	export ARCH_ARM
