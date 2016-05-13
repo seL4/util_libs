@@ -25,7 +25,7 @@
  *     }
  */
 static inline void autofree_(void *p) {
-    void **q = p;
+    void **q = (void**)p;
     free(*q);
 }
 #define AUTOFREE __attribute__((cleanup(autofree_)))
