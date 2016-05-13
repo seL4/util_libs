@@ -271,4 +271,49 @@ struct ps_io_ops {
 #endif
 };
 
+
+
+/**
+ * In place reads/writes of device register bitfields
+ *
+ * eg, where var = 0x12345678
+ *
+ * read_masked(&var, 0x0000FFFF) ==> 0x00005678
+ * write_masked(&var, 0x0000FFFF, 0x000000CC) ==> var = 0x123400CC
+ * read_bits(&var, 8, 4) ==> 0x6
+ * write_bits(&var, 8, 4, 0xC) ==> var = 0x12345C78
+ */
+static inline uint32_t
+read_masked(volatile uint32_t* addr, uint32_t mask)
+{
+    assert(addr);
+    return *addr & mask;
+}
+
+static inline void
+write_masked(volatile uint32_t* addr, uint32_t mask, uint32_t value)
+{
+    assert(addr);
+    assert((value & mask) == value);
+    *addr = read_masked(addr, ~mask) | value;
+}
+
+static inline uint32_t
+read_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits)
+{
+    assert(addr);
+    assert(first_bit < 32);
+    assert(nbits <= 32 - first_bit);
+    return (*addr >> first_bit) & MASK(nbits);
+}
+
+static inline void
+write_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits, uint32_t value)
+{
+    assert(addr);
+    assert(first_bit < 32);
+    assert(nbits <= 32 - first_bit);
+    write_masked(addr, MASK(nbits) << first_bit, value << first_bit);
+}
+
 #endif /* __PLATSUPPORT_IO_H__ */

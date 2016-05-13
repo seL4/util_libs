@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "../../stubtimer.h"
 
 #include <utils/util.h>
 
@@ -170,25 +171,6 @@ gpt_timer_stop(const pstimer_t *timer)
     return 0;
 }
 
-static int
-gpt_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
-}
-
-
-static int
-gpt_periodic(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
-}
-
-static int
-gpt_oneshot_relative(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
-{
-    return ENOSYS;
-}
-
 static void
 gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED)
 {
@@ -229,6 +211,9 @@ gpt_get_timer(gpt_config_t *config)
      * but this driver can only count up
      */
     timer->properties.timeouts = false;
+    timer->properties.absolute_timeouts = false;
+    timer->properties.relative_timeouts = false;
+    timer->properties.periodic_timeouts = false;
     timer->properties.bit_width = 32;
     timer->properties.irqs = 1;
 
@@ -236,9 +221,9 @@ gpt_get_timer(gpt_config_t *config)
     timer->start = gpt_timer_start;
     timer->stop = gpt_timer_stop;
     timer->get_time = gpt_get_time;
-    timer->oneshot_absolute = gpt_oneshot_absolute;
-    timer->oneshot_relative = gpt_oneshot_relative;
-    timer->periodic = gpt_periodic;
+    timer->oneshot_absolute = stub_timer_timeout;
+    timer->oneshot_relative = stub_timer_timeout;
+    timer->periodic = stub_timer_timeout;
     timer->handle_irq = gpt_handle_irq;
     timer->get_nth_irq = gpt_get_nth_irq;
 

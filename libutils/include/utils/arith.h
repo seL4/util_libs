@@ -19,6 +19,7 @@
 #include <utils/builtin.h>
 #include <stdint.h>
 #include <utils/verification.h>
+#include <utils/stringify.h>
 
 #define BIT(n) (1ul<<(n))
 
@@ -56,7 +57,7 @@
 #define ROUND_UP(n, b) \
     ({ typeof (n) _n = (n); \
        typeof (b) _b = (b); \
-       (_n + (_n % b == 0 ? 0 : (_b - (_n % _b)))); \
+       (_n + (_n % _b == 0 ? 0 : (_b - (_n % _b)))); \
     })
 
 #define MIN(a,b) \
@@ -109,5 +110,24 @@
         typeof (operand2) _op2 = (operand2); \
         typeof (limit) _limit = (limit); \
         _limit + _op2 > _op1 ? _limit : _op1 - _op2;  })
+
+/* Expands to a struct field declaration suitable for padding structs where each
+ * field must have a specific offset (such as in device drivers). E.g.:
+ * struct device_registers {
+ *      uint32_t reg1; // 0x00
+ *      uint32_t reg2; // 0x04
+ *      PAD_BETWEEN(0x04, 0x10, uint32_t); // expands to: uint8_t __padding4[8];
+ *      uint32_t reg3; // 0x10
+ * } PACKED;
+ *
+ * Using this macro in a struct requires that struct to be defined with
+ * the "packed" attribute.
+ *
+ * @param before    offset of struct field before padding
+ * @param after     offset of struct field after padding
+ * @param type      type of field before padding
+ */
+#define PAD_STRUCT_BETWEEN(before, after, type) \
+        uint8_t JOIN(__padding, __COUNTER__)[(after) - (before) - sizeof(type)]
 
 #endif /* _UTILS_ARITH_H */

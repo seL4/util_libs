@@ -63,18 +63,22 @@ static void *paddrs[] = {(void *) GPT1_DEVICE_PADDR,
                          (void *) GPT11_DEVICE_PADDR
                         };
 
-static inline void* omap_get_gpt_paddr(int n)
+static inline void*
+omap_get_gpt_paddr(int n)
 {
+    assert(n <= GPT_LAST);
     return paddrs[n];
 }
 
 
 static inline int omap_get_gpt_irq(int n)
 {
+    assert(n <= GPT_LAST);
     return GPT1_INTERRUPT + (n);
 }
 
-#define CLK_FREQ 13000000 /* TODO Check this is correct */
-
-#endif /* __PLAT_SUPPORT_IMX31_H */
+/* confiugured by uboot. This is only correct for GPT1-9 */
+#define CLK_HZ 13000000llu 
+#define CLK_MHZ (CLK_HZ / US_IN_S)
+#endif /* __PLAT_SUPPORT_OMAP3_H */
 

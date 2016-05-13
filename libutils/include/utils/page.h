@@ -11,11 +11,7 @@
 #define _UTILS_PAGE_H
 /* macros on page sizes */
 
-#include <assert.h>
-
 #include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
 
 #include <utils/arith.h>
 
