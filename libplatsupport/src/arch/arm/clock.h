@@ -72,7 +72,7 @@ clk_recal(clk_t* clk)
  * @param[in] clk     The root of the tree
  * @param[in] prefix  A string prefix to print before each line
  */
-void clk_print_tree(clk_t* clk, char* prefix);
+void clk_print_tree(clk_t* clk, const char* prefix);
 
 
 /* Default clocks - Frequency must be defined in freq_default */

@@ -126,7 +126,7 @@ ps_get_clock(clock_sys_t* sys, enum clk_id id)
 }
 
 void
-clk_print_tree(clk_t* clk, char* prefix)
+clk_print_tree(clk_t* clk, const char* prefix)
 {
     int depth = strlen(prefix);
     char new_prefix[depth + 2];
