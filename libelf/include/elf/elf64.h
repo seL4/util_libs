@@ -188,7 +188,7 @@ char * elf64_getSectionName(void *elfFile, int i);
 uint64_t elf64_getSectionSize(void *elfFile, int i);
 uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
 void * elf64_getSection(void *elfFile, int i);
-void * elf64_getSectionNamed(void *elfFile, char *str);
+void * elf64_getSectionNamed(void *elfFile, const char *str);
 int elf64_getSegmentType (void *elfFile, int segment);
 void elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr, 
 			  uint64_t *p_paddr, uint64_t *p_filesz, 

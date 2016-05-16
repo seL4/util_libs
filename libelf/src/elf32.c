@@ -164,7 +164,7 @@ elf32_getSection(struct Elf32_Header *elfFile, int i)
 }
 
 void *
-elf32_getSectionNamed(struct Elf32_Header *elfFile, char *str)
+elf32_getSectionNamed(struct Elf32_Header *elfFile, const char *str)
 {
 	int numSections = elf32_getNumSections(elfFile);
 	int i;

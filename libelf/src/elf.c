@@ -239,7 +239,7 @@ elf_getSection(void *elfFile, int i)
 }
 
 void *
-elf_getSectionNamed(void *elfFile, char *_str)
+elf_getSectionNamed(void *elfFile, const char *_str)
 {
 	return ISELF32 (elfFile)
 		? elf32_getSectionNamed(elfFile, _str)
