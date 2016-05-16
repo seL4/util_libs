@@ -61,7 +61,7 @@ void spi_handle_irq(spi_bus_t* dev);
  * @param[in] spi_bus  A handle to an SPI bus
  * @param[in] cfg      Slave configuration
  */
-void spi_prepare_transfer(spi_bus_t* spi_bus, spi_slave_config_t* cfg);
+void spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg);
 
 /**
  * Write and read data to and from the SPI bus.

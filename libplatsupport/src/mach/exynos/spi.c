@@ -391,7 +391,7 @@ spi_set_speed(spi_bus_t* spi_bus, long bps)
 }
 
 void
-spi_prepare_transfer(spi_bus_t* spi_bus, spi_slave_config_t* cfg)
+spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
 {
     if (spi_bus->clk && clk_get_freq(spi_bus->clk) != cfg->speed_hz) {
         clk_set_freq(spi_bus->clk, cfg->speed_hz);
