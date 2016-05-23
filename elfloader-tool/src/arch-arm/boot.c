@@ -56,6 +56,9 @@ void non_boot_main(void)
                                             user_info.virt_entry);
 
 #endif
+
+    printf("AP Kernel returned back to the elf-loader.\n");
+    abort();
 }
 
 /*
