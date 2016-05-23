@@ -100,22 +100,25 @@ void main(void)
 
     /* Setup MMU. */
     if(is_hyp_mode()){
-        printf("Enabling hypervisor MMU and paging\n");
         init_hyp_boot_vspace(&kernel_info);
-        arm_enable_hyp_mmu();
     }
-
     /* If we are in HYP mode, we enable the SV MMU and paging
      * just in case the kernel does not support hyp mode. */
-    printf("Enabling MMU and paging\n");
     init_boot_vspace(&kernel_info);
-    arm_enable_mmu();
 
 #ifdef CONFIG_SMP_ARM_MPCORE
-    /* Bring up any other CPUs */
+    /* Bring up any other CPUs before switching PD in case
+     * required device memory exists in the kernel window. */
     init_cpus();
     non_boot_lock = 1;
 #endif
+
+    if(is_hyp_mode()){
+        printf("Enabling hypervisor MMU and paging\n");
+        arm_enable_hyp_mmu();
+    }
+    printf("Enabling MMU and paging\n");
+    arm_enable_mmu();
 
     /* Enter kernel. */
     if (UART_PPTR < kernel_info.virt_region_start) {
