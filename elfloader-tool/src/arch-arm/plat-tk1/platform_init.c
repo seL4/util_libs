@@ -152,6 +152,7 @@ switch_to_hyp_mode(void)
     scr |= BIT(SCR_HCE);
     scr &= ~BIT(SCR_SCD);
     scr |= BIT(SCR_NS);
+    scr &= ~BIT(SCR_SIF);
     asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
     asm volatile ("cps %0\n\t"
                   "isb\n"
