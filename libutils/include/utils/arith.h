@@ -36,8 +36,7 @@
  * We have CLZL, which tells us how many places from the 'left' it is,
  * and by subtracting that from the number of bits in the word (minus 1)
  * we learn how many bits from the 'right' it is. */
-#define LOG_BASE_2(n) \
-    ({ (sizeof(unsigned long) * CHAR_BIT) - CLZL(n) - 1;})
+#define LOG_BASE_2(n) (sizeof(unsigned long) * CHAR_BIT - CLZL(n) - 1)
 
 #define IS_POWER_OF_2_OR_ZERO(x) (0 == ((x) & ((x) - 1)))
 #define IS_POWER_OF_2(x) (((x) != 0) && IS_POWER_OF_2_OR_ZERO(x))
