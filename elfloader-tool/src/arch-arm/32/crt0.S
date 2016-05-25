@@ -16,7 +16,7 @@
 .global _start
 _start:
 #ifdef CONFIG_SMP_ARM_MPCORE
-    bl      _asm_get_cpuid
+    bl      _asm_get_mpidr
     ldr     r2, =booting_cpu_id
     ldrex   r1, [r2] 
     cmp     r1, #0xff
@@ -29,7 +29,7 @@ _start:
     ldr sp, =_bootstack_top
     b   main
 
-_asm_get_cpuid:
+_asm_get_mpidr:
     mrc     p15, 0, r0, c0, c0, 5
     and     r0, r0, #0xf
     bx      lr
@@ -44,7 +44,7 @@ cpu_idle:
 
 .global non_boot_core
 non_boot_core:
-    bl _asm_get_cpuid
+    bl _asm_get_mpidr
     cmp r0, #1
     ldreq     sp, =_bootstack_top_core1
     cmp r0, #2

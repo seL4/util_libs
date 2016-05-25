@@ -18,9 +18,7 @@ export SEL4_CMDLINE="console=0x3f8 debug=0x2f8 max_num_nodes=8"
 PHONY += harddisk-images
 harddisk-images: $(patsubst %,%-harddisk-image,$(apps))
 
-# While the main arch is x86, for 32-bit builds we want to produce images
-# with  the name ia32
-ARCH_NAME := ia32
+ARCH_NAME := ${SEL4_ARCH}
 
 %-harddisk-image: % common kernel_elf FORCE
 	@echo "[COBBLER] $@"
