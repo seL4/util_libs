@@ -10,8 +10,7 @@
 
 /* Basic functionality for printing JSON data. */
 
-#ifndef UTILS_JSON_H_
-#define UTILS_JSON_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -94,5 +93,3 @@ int json_print(json_t *j);
  * attempt to access the artefact after calling this function.
  */
 void json_destroy(json_t *j);
-
-#endif

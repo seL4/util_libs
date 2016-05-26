@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_ATTRIBUTE_H
-#define _UTILS_ATTRIBUTE_H
+#pragma once
+
 /* macros for compile time attributes */
 
 /* Stub out Clang feature macros for GCC. */
@@ -90,6 +90,3 @@
 #define PURE         __attribute__((__pure__))
 #define CONST        __attribute__((__const__))
 #endif /* __LIBSEL4_MACROS_H */
-
-#endif /* _UTILS_ATTRIBUTE_H */
-

@@ -35,8 +35,7 @@
  * ...etc
  */
 
-#ifndef _UTILS_LINEAR_ALGEBRA_H
-#define _UTILS_LINEAR_ALGEBRA_H
+#pragma once
 
 #include <math.h>
 
@@ -75,5 +74,3 @@ static inline void name##_from_polar(double length, double radians, name##_t  *r
 /* Default implementations for long int and double */
 VECTOR_2D_DEFINITION(vector_2d_long_int, long int)
 VECTOR_2D_DEFINITION(vector_2d_double, double)
-
-#endif /* _UTILS_LINEAR_ALGEBRA_H */

@@ -10,8 +10,7 @@
 
 /* Macros related to string- and token-construction operations. */
 
-#ifndef _UTILS_STRINGIFY_H
-#define _UTILS_STRINGIFY_H
+#pragma once
 
 /* See http://gcc.gnu.org/onlinedocs/cpp/Stringification.html for the purpose
  * of the extra level of indirection.
@@ -21,5 +20,3 @@
 
 #define _JOIN(x, y) x ## y
 #define JOIN(x, y) _JOIN(x, y)
-
-#endif

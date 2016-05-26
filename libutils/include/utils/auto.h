@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_AUTO_H
-#define _UTILS_AUTO_H
+#pragma once
 
 /* Helpers for resource management. */
 
@@ -29,5 +28,3 @@ static inline void autofree_(void *p) {
     free(*q);
 }
 #define AUTOFREE __attribute__((cleanup(autofree_)))
-
-#endif

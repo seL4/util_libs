@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_FORCE_H
-#define _UTILS_FORCE_H
+#pragma once
+
 /* macros for forcing the compiler to leave in statments it would
  * normally optimize away */
 
@@ -26,5 +26,3 @@
  */
 #define FORCE_READ(address) \
         volatile UNUSED typeof(*address) JOIN(__force__read, __COUNTER__) = *(address)
-
-#endif

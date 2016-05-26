@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_VERIFICATION_H
-#define _UTILS_VERIFICATION_H
+#pragma once
 
 /* Macros relevant for verification. */
 
@@ -26,5 +25,3 @@
             for (;;); \
         } \
     } while (0)
-
-#endif

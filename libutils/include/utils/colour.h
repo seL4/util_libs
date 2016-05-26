@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_COLOUR_H
-#define _UTILS_COLOUR_H
+#pragma once
 
 #include <stdint.h>
 #include <byteswap.h>
@@ -49,5 +48,3 @@ static inline uint32_t colour_rgb24_encode_u32(colour_rgb24_t colour) {
     return __bswap_32(colour.as_u32);
 #endif
 }
-
-#endif

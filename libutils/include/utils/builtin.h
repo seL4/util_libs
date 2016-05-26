@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_BUILTIN_H
-#define _UTILS_BUILTIN_H
+#pragma once
+
 /* macros for accessing compiler builtins */
 
 #include <assert.h>
@@ -45,5 +45,3 @@ void __builtin_unreachable(void);
 /* Borrowed from linux/include/linux/compiler.h */
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
-
-#endif /* _UTILS_BUILTIN_H */

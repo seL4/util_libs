@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTIL_ANSI_H_
-#define _UTIL_ANSI_H_
+#pragma once
 
 #ifndef ENABLE_ANSI_ESC_SEQENCES
 #define ENABLE_ANSI_ESC_SEQENCES true
@@ -78,5 +77,3 @@
 #define A_CLEAR      ""
 
 #endif /* ENABLE_ANSI_ESC_SEQENCES */
-
-#endif /* _UTIL_ANSI_H_ */

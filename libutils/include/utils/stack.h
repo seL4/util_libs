@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef __UTILS_STACK_H
-#define __UTILS_STACK_H
+
+#pragma once
 
 /**
  * Switch to a new stack and start running func on it.
@@ -20,5 +20,3 @@
  * @ret   the return value of func.
  */
 void *utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg);
-
-#endif /* __UTILS_STACK_H */

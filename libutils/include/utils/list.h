@@ -10,8 +10,7 @@
 
 /* Bog standard singly-linked-list implementation. */
 
-#ifndef _UTILS_LIST_H
-#define _UTILS_LIST_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -82,5 +81,3 @@ int list_prepend_node(list_t *l, struct list_node *node);
 int list_append_node(list_t *l, struct list_node *node);
 int list_remove_node(list_t *l, void *data, int(*cmp)(void*, void*));
 int list_remove_all_nodes(list_t *l);
-
-#endif

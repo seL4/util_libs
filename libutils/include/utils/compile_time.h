@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_COMPILE_TIME_H
-#define _UTILS_COMPILE_TIME_H
+#pragma once
 
 #include <autoconf.h>
 #include <utils/attribute.h>
@@ -35,5 +34,3 @@
 #define _Static_assert(expr, str) compile_time_assert(_static_assert, (expr))
 
 #endif
-
-#endif /* _UTILS_COMPILE_TIME_H */

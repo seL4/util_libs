@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTIL_DEBUG_H
-#define _UTIL_DEBUG_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -29,6 +28,3 @@
  * @param[in] word_size The number of bytes in a displayed word
  */
 void utils_memory_dump(void* address, size_t bytes, int word_size);
-
-
-#endif /* _UTIL_DEBUG_H */

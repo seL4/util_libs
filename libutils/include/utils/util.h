@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __UTILS_H
-#define __UTILS_H
+#pragma once
 
 #include <assert.h>
 #include <autoconf.h>
@@ -59,5 +58,3 @@
  */
 #define LOG_ERROR(args...) ZF_LOGE(args)
 #define LOG_INFO(args...) ZF_LOGI(args)
-
-#endif /* __UTILS_H */

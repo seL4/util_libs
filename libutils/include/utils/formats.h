@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef UTILS_FORMATS_H
-#define UTILS_FORMATS_H
+#pragma once
 
 #include <autoconf.h>
 
@@ -22,6 +21,4 @@
 #else
 #define DFMT    "%d"
 #define XFMT    "%x"
-#endif
-
 #endif

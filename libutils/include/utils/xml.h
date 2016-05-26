@@ -12,8 +12,7 @@
  * something more full-featured like libxml2.
  */
 
-#ifndef UTILS_XML_H_
-#define UTILS_XML_H_
+#pragma once
 
 #include <utils/attribute.h>
 
@@ -28,5 +27,3 @@
 int utils_put_xml_escape(const char *string,
                          int (*print)(void *arg, const char *format, ...) FORMAT(printf, 2, 3),
                          void *arg) NONNULL(1);
-
-#endif

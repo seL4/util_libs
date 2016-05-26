@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_MATH_H
-#define _UTILS_MATH_H
+#pragma once
+
 /* macros for doing basic math */
 
 #include <stdint.h>
@@ -61,5 +61,3 @@ static inline uint64_t muldivu64(uint64_t a, uint64_t b, uint64_t c)
     }
     return quotient;
 }
-
-#endif /* _UTILS_MATH_H */

@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _UTILS_FREQUENCY_H
-#define _UTILS_FREQUENCY_H
+
+#pragma once
 
 #include <utils/time.h>
 
@@ -29,5 +29,3 @@ static inline freq_t freq_cycles_and_ns_to_hz(uint64_t ncycles, uint64_t ns) {
 static inline uint64_t freq_ns_and_hz_to_cycles(uint64_t ns, freq_t hz) {
     return (ns * hz) / NS_IN_S;
 }
-
-#endif /* _UTILS_FREQUENCY_H */

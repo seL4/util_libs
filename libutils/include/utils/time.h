@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _UTILS_TIME_H
-#define _UTILS_TIME_H
+
+#pragma once
 
 /* seconds */
 #define SEC_IN_MINUTE 60llu
@@ -38,5 +38,3 @@
 #define FS_IN_US 1000000000llu
 #define FS_IN_MS 1000000000000llu
 #define FS_IN_S  1000000000000000llu
-
-#endif /* _UTILS_TIME_H */

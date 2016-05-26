@@ -15,9 +15,6 @@
 
 #pragma once
 
-#ifndef _ZF_LOG_H_
-#define _ZF_LOG_H_
-
 #include <utils/attribute.h>
 
 /* To detect incompatible changes you can define ZF_LOG_VERSION_REQUIRED to
@@ -381,6 +378,4 @@ static inline void _zf_log_unused(const int dummy, ...) {(void)dummy;}
 #else
 	#define ZF_LOGF(...) _ZF_LOG_UNUSED(__VA_ARGS__)
 	#define ZF_LOGF_MEM(...) _ZF_LOG_UNUSED(__VA_ARGS__)
-#endif
-
 #endif

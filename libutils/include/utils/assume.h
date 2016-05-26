@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_ASSUME_H
-#define _UTILS_ASSUME_H
+#pragma once
 
 #include <utils/attribute.h>
 #include <utils/builtin.h>
@@ -43,5 +42,3 @@
     do { \
         JOIN(hot_path_, __COUNTER__): HOT UNUSED; \
     } while (0)
-
-#endif

@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _UTILS_TEMPERATURE_H
-#define _UTILS_TEMPERATURE_H
+
+#pragma once
 
 typedef int millicelcius_t;
 typedef unsigned int millikelvin_t;
@@ -46,5 +46,3 @@ static inline kelvin_t celcius_to_kelvin(celcius_t c) {
 static inline celcius_t kelvin_to_celcius(kelvin_t k) {
     return millikelvin_to_millicelcius(k * MILLIKELVIN_IN_KELVIN) / MILLICELCIUS_IN_CELCIUS;
 }
-
-#endif /* _UTILS_TEMPERATURE_H */

@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef __ZF_LOG_CONFIG_H
-#define __ZF_LOG_CONFIG_H
+
+#pragma once
 
 /* zlog config for libutils */
 #define ZF_LOG_ANDROID_LOG 0
@@ -17,4 +17,3 @@
 #define ZF_LOG_LINE_BUFFER 512
 
 #undef __linux__ 
-#endif /* ZF_LOG_CONFIG_H */

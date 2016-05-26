@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _UTILS_ARITH_H
-#define _UTILS_ARITH_H
+#pragma once
+
 /* macros for doing basic math */
 
 #include <assert.h>
@@ -128,5 +128,3 @@
  */
 #define PAD_STRUCT_BETWEEN(before, after, type) \
         uint8_t JOIN(__padding, __COUNTER__)[(after) - (before) - sizeof(type)]
-
-#endif /* _UTILS_ARITH_H */

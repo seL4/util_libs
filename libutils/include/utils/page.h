@@ -7,8 +7,9 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _UTILS_PAGE_H
-#define _UTILS_PAGE_H
+
+#pragma once
+
 /* macros on page sizes */
 
 #include <stdint.h>
@@ -32,5 +33,3 @@
 
 #define SAME_PAGE_4K(a, b) \
     ((((uintptr_t)(a)) & ~PAGE_MASK_4K) == (((uintptr_t)(b)) & ~PAGE_MASK_4K))
-
-#endif /* _UTILS_PAGE_H */

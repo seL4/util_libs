@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef UTIL_PRINT_H_
-#define UTIL_PRINT_H_
+#pragma once
 
 #include <utils/attribute.h>
 
@@ -95,7 +94,5 @@
 
     extern const char *FORMAT_STRING(void *dummy, ...)
         ERROR("FORMAT_STRING requires full C11 compiler support");
-
-#endif
 
 #endif
