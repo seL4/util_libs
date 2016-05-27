@@ -185,7 +185,7 @@ switch_to_ns_svc_mode(void)
 
 extern void arm_monitor_vector(void);
 
-#ifdef CONFIG_ARM_HYPERVISOR_MODE
+#if defined(CONFIG_ARM_HYPERVISOR_MODE) || defined(CONFIG_ARM_NS_SUPERVISOR_MODE)
 /* tk1 uses GIC v2 */
 struct gicd_map {
     uint32_t enable;
@@ -255,6 +255,8 @@ void platform_init(void)
 #endif
 
 #ifdef CONFIG_ARM_NS_SUPERVISOR_MODE
+    switch_to_mon_mode();
+    route_irqs_to_nonsecure();
     switch_to_ns_svc_mode();
 #endif
 
