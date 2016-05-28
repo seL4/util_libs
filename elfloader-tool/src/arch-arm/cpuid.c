@@ -87,6 +87,8 @@ void print_cpuid(void)
     }
     if ((CPUID_PART(cpuid) & 0xf00) == 0xC00) {
         printf("Cortex-A%d ", CPUID_PART(cpuid) & 0xff);
+    } else if ((CPUID_PART(cpuid) & 0xf00) == 0xD00) {
+        printf("Cortex-A5%d ", CPUID_PART(cpuid) & 0xff);
     } else {
         printf("Part: 0x%03x ", CPUID_PART(cpuid));
     }
