@@ -232,6 +232,33 @@ ifeq ($(CONFIG_ARM_CORTEX_A57),y)
 	export RUST_ARCH_FEATURES += +v8
 endif
 
+ifeq ($(CONFIG_ARCH_RISCV),y)
+   ccflags-y += $(call cc-option, -Wno-error)
+   DEFINES += ARCH_RISCV
+   export ARCH = riscv
+   export PLAT = spike
+
+ifeq ($(CONFIG_ARCH_RISCV_RV64),y)
+   ccflags-y += $(call cc-option, -march=rv64imac)
+   ccflags-y += $(call cc-option, -mabi=lp64)
+   DEFINES += RISCV64
+   DEFINES += __KERNEL_64__
+   export KERNEL_64 = y
+   export SEL4_ARCH = riscv64
+   export TYPE_SUFFIX = 64
+endif
+
+ifeq ($(CONFIG_ARCH_RISCV_RV32),y)
+   ccflags-y += $(call cc-option, -march=rv32ima)
+   ccflags-y += $(call cc-option, -mabi=ilp32)
+   DEFINES += RISCV32
+   DEFINES += __KERNEL_32__
+   export KERNEL_32 = y
+   export SEL4_ARCH = riscv32
+   export TYPE_SUFFIX = 32
+endif
+endif
+
 ifeq ($(CONFIG_PLAT_KZM),y)
 	DEFINES += KZM
 	DEFINES += PLAT_IMX31
@@ -241,6 +268,12 @@ endif
 ifeq ($(CONFIG_PLAT_PC99),y)
 	DEFINES += PLAT_PC99
 	export PLAT = pc99
+endif
+
+ifeq ($(CONFIG_PLAT_SPIKE),y)
+	DEFINES += SPIKE
+	DEFINES += PLAT_SPIKE
+	export PLAT = spike
 endif
 
 ifeq ($(CONFIG_PLAT_REALVIEW),y)

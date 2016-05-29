@@ -62,6 +62,14 @@ case "$PLAT" in
             FORMAT=elf32-i386
         fi
         ;;
+    "spike")
+        if [ "$KERNEL_64" == "y" ]
+        then
+            FORMAT=elf64-littleriscv
+        else
+            FORMAT=elf32-littleriscv
+        fi
+        ;;
     *)
         echo "$0: Unknown platform \"$PLAT\""
         exit 1
@@ -102,14 +110,14 @@ popd > /dev/null
 
 # Generate a linker script.
 LINK_SCRIPT="${TEMP_DIR}/linkscript.ld"
-echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${SYMBOL} = . ; *(.*) ; ${SYMBOL}_end = . ; } }" \
+echo "SECTIONS { ._archive_cpio : ALIGN(8) { ${SYMBOL} = . ; *(.*) ; ${SYMBOL}_end = . ; } }" \
         > ${LINK_SCRIPT}
 
 # Generate an output object file. We switch to the same directory as ${ARCHIVE}
 # in order to avoid symbols containing ${TEMP_DIR} polluting the namespace.
 pushd "$(dirname ${ARCHIVE})" >/dev/null
 ${TOOLPREFIX}ld -T ${LINK_SCRIPT} \
-        --oformat ${FORMAT} -r -b binary $(basename ${ARCHIVE}) \
+	--oformat ${FORMAT} -b binary $(basename ${ARCHIVE}) \
         -o ${OUTPUT_FILE}
 popd >/dev/null
 

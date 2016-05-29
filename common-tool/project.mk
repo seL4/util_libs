@@ -298,6 +298,10 @@ ifeq ($(ARCH),x86)
 include $(COMMON_PATH)/project-ia32.mk
 endif
 
+ifeq ($(ARCH),riscv)
+include $(COMMON_PATH)/project-riscv.mk
+endif
+
 PHONY += $(libs)
 $(libs): lib=$(shell for lib in $(lib-dirs); do \
 	if [ -e "$(srctree)/$${lib}/$@/Makefile" ] ; then \

@@ -13,7 +13,7 @@
 menuconfig LIB_ELFLOADER
     bool "Build elfloader"
     default y
-    depends on ARCH_ARM
+    depends on ARCH_RISCV
     select LIB_CPIO
 
 choice

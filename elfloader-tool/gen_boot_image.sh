@@ -64,7 +64,16 @@ case "$PLAT" in
         ENTRY_ADDR=0x82008000;
         FORMAT=elf32-littlearm
         ;;
-    "imx31"|"omap3"|"am335x")
+    "spike")
+        ENTRY_ADDR=0x0000000080400000;
+        if [ "$KERNEL_64" == "y" ]
+        then
+            FORMAT=elf64-littleriscv
+        else
+            FORMAT=elf32-littleriscv
+        fi
+        ;;
+    "imx31"|"omap3"|"am335x"|"omap4")
         ENTRY_ADDR=0x82000000
         FORMAT=elf32-littlearm
         ;;
@@ -143,6 +152,9 @@ if [ "${STRIP}" = "y" ]; then
     ${TOOLPREFIX}strip --strip-all ${TEMP_DIR}/cpio/*
 fi
 
+dd if=/dev/urandom of=dummypayload bs=4 count=1
+cp dummypayload ${TEMP_DIR}/cpio
+
 if [ "${HASH}" = "y" ]; then
     if [ "${HASH_SHA}" = "y" ]; then
         # (2 Invocations so the hash gets printed on the terminal)
@@ -165,12 +177,28 @@ if [ "${HASH}" = "y" ]; then
 fi
 
 pushd "${TEMP_DIR}/cpio" &>/dev/null
-if [ "${HASH}" = "y" ]; then
-    ${COMMON_PATH}/files_to_obj.sh ${TEMP_DIR}/archive.o _archive_start kernel.elf $(basename ${USER_IMAGE}) kernel.bin app.bin
-else
-    ${COMMON_PATH}/files_to_obj.sh ${TEMP_DIR}/archive.o _archive_start kernel.elf $(basename ${USER_IMAGE})
+#printf "kernel.elf\ndummypayload\n$(basename ${USER_IMAGE})\n" | cpio --quiet --block-size=8 --io-size=8 -o -H newc > ${TEMP_DIR}/archive.cpio
+printf "kernel.elf\n$(basename ${USER_IMAGE})\n" | cpio --quiet --block-size=8 --io-size=8 -o -H newc > ${TEMP_DIR}/archive.cpio
+
+# Strip CPIO metadata if possible.
+which cpio-strip >/dev/null 2>/dev/null
+if [ $? -eq 0 ]; then
+    cpio-strip ${TEMP_DIR}/archive.cpio
 fi
+
 popd &>/dev/null
+
+#
+# Convert userspace / kernel into an archive which can then be linked
+# against the elfloader binary. Change to the directory of archive.cpio
+# before this operation to avoid polluting the symbol table with references
+# to the temporary directory.
+#
+pushd "${TEMP_DIR}" >/dev/null
+${TOOLPREFIX}ld -T "${SCRIPT_DIR}/archive.bin.lds" \
+        --oformat ${FORMAT} -b binary archive.cpio \
+        -o "${TEMP_DIR}/archive.o" || fail
+popd >/dev/null
 
 #
 # Clearup the linker script for target platform.
