@@ -97,7 +97,10 @@ void main(void)
         printf("No user images loaded!\n");
         abort();
     }
-
+    if(is_hyp_mode()){
+    extern void leave_hyp(void);
+        leave_hyp();
+    }
     /* Setup MMU. */
     if(is_hyp_mode()){
         init_hyp_boot_vspace(&kernel_info);
