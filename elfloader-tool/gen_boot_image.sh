@@ -58,8 +58,14 @@ case "$PLAT" in
         FORMAT=elf32-littlearm
         ;;
     "hikey")
-        ENTRY_ADDR=0x0
-        FORMAT=elf64-littleaarch64
+        if [ "$SEL4_ARCH" == "aarch64" ]
+        then
+            ENTRY_ADDR=0x0
+            FORMAT=elf64-littleaarch64
+        else
+            ENTRY_ADDR=0x1000
+            FORMAT=elf32-littlearm
+        fi
         ;;
     "tk1")
         ENTRY_ADDR=0x82000000

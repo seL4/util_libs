@@ -41,6 +41,14 @@ case "$PLAT" in
     "zynq7000"|"tk1")
         FORMAT=elf32-littlearm
         ;;
+    "hikey")
+        if [ "$SEL4_ARCH" == "aarch64" ]
+        then
+            FORMAT=elf64-littleaarch64
+        else
+            FORMAT=elf32-littlearm
+        fi
+        ;;
     "pc99")
         if [ "$SEL4_ARCH" == "x86_64" ]
         then

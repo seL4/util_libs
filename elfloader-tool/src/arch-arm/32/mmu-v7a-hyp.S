@@ -10,8 +10,6 @@
 
 #include <autoconf.h>
 
-#ifdef ARMV7_A
-
 #define   HVBAR(reg)    p15, 4, reg, c12, c0, 0
 #define     HCR(reg)    p15, 4, reg, c1 , c1, 0
 #define  HSCTLR(reg)    p15, 4, reg, c1 , c0, 0
@@ -96,8 +94,4 @@ arm_enable_hyp_mmu:
 #endif
 
     ldmfd   sp!, {pc}
-
-
-#endif
-
 

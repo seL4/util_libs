@@ -10,8 +10,6 @@
 
 #include <autoconf.h>
 
-#ifdef ARMV7_A
-
 .text
 
 /*
@@ -42,9 +40,9 @@ arm_enable_mmu:
     /* Ensure I-cache, D-cache and mmu are disabled. */
 
     mrc     p15, 0, r1, c1, c0, 0
-    bic     r1, r1, #(1 << 12) /* Disable I-cache */
-    bic     r1, r1, #(1 << 2)  /* Disable D-Cache */
-    bic     r1, r1, #(1 << 0)  /* Disable MMU */
+    bic     r1, r1, #(1 << 12)      /* Disable I-cache */
+    bic     r1, r1, #(1 << 2)       /* Disable D-Cache */
+    bic     r1, r1, #(1 << 0)       /* Disable MMU     */
     mcr     p15, 0, r1, c1, c0, 0
 
     /* invalidate caches. */
@@ -67,21 +65,26 @@ arm_enable_mmu:
 
     /* Setup misc MMU. */
     mov     r1, #0
-    mcr     p15, 0, r1, c13, c0, 1 // set ASID to 0
-    mcr     p15, 0, r1, c2, c0, 2 // set TTBCR to 0
-    mcr     p15, 0, r1, c7, c5, 4 // flush prefetch buffer
-    mcr     p15, 0, r1, c7, c5, 6 // flush branch target cache
+    mcr     p15, 0, r1, c13, c0, 1  /* set ASID to 0    */
+    mcr     p15, 0, r1, c2, c0, 2   /* set TTBCR to 0   */
+    mcr     p15, 0, r1, c7, c5, 6   /* flush branch target cache */
+#ifndef ARMV8_A
+    /* The coprocessor register deprecated in ARMV8 A */
+    mcr     p15, 0, r1, c7, c5, 4   /* flush prefetch buffer */
+#else
+    isb
+#endif
 
     /* Enable MMU, D-cache, and I-cache. */
     mrc     p15, 0, r0, c1, c0, 0
-    orr     r0, r0, #5 // set MMU and dcache enable bits
-    orr     r0, r0, #(1 << 12) // set icache enable bit
+    orr     r0, r0, #5              /* set MMU and dcache enable bits */
+    orr     r0, r0, #(1 << 12)      /* set icache enable bit */
     mcr     p15, 0, r0, c1, c0, 0
 
 #ifdef CONFIG_SMP_ARM_MPCORE
     /* Enable SMP */
     mrc     p15, 0, r0, c1, c0, 1
-    orr     r0, r0, #(1 << 6) // enable SMP bit
+    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
     mcr     p15, 0, r0, c1, c0, 1
 #endif
 
@@ -261,7 +264,3 @@ flush_dcache:
     isb
 
     ldmfd   sp!, {r4-r8,pc}
-
-#endif
-
-

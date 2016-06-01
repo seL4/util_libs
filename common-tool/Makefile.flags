@@ -168,9 +168,9 @@ ifeq ($(CONFIG_ARM_CORTEX_A15),y)
 endif
 
 ifeq ($(CONFIG_ARM_CORTEX_A57),y)
-	ccflags-y += $(call cc-option, -mtune=cortex-a57, -march=armv8-a)
-	asflags-y += $(call as-option, -Wa$(comma)-mtune=cortex-a57)
-	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a57)
+    ccflags-y += $(call cc-option, -mtune=cortex-a57,)
+    ccflags-y += $(call cc-option, -march=armv8-a)
+    asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a57,)
 	asflags-y += $(call as-option, -Wa$(comma)-march=armv8-a)
 	DEFINES += ARMV8_A
 	DEFINES += ARM_CORTEX_A57
