@@ -277,6 +277,11 @@ ifeq ($(CONFIG_IMAGE_EFI),y)
 	export __EFI__ = y
 endif
 
+ifeq ($(CONFIG_IMAGE_BINARY),y)
+    DEFINES += BINARY
+    export __binary__ = y
+endif
+
 ifeq ($(CONFIG_SMP_ARM_MPCORE),y)
 	DEFINES += CONFIG_SMP_ARM_MPCORE
 endif

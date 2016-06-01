@@ -19,7 +19,12 @@ choice
     depends on LIB_ELFLOADER
     help
         Select ELF or EFI boot image type
-        
+
+    config IMAGE_BINARY 
+        bool "Binary Boot Image"
+        help
+            Generate binary boot image
+
     config IMAGE_ELF
         bool "ELF Boot Image"
         help

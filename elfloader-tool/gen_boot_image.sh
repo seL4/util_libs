@@ -164,6 +164,14 @@ if [ "${__EFI__}" == "y" ]; then
     rm -f ${OUTPUT_FILE}
 fi
 
+#
+# Remove ELF stuff to have a binary file.
+#
+if [ "${__binary__}" == "y" ]; then
+    ${TOOLPREFIX}objcopy -O binary ${OUTPUT_FILE} ${OUTPUT_FILE}.bin
+    rm -f ${OUTPUT_FILE}
+fi
+
 # Done
 rm -rf ${TEMP_DIR}
 exit 0
