@@ -16,6 +16,7 @@ menuconfig LIB_ELFLOADER
 
 choice
     prompt "Boot image type"
+    default IMAGE_ELF
     depends on LIB_ELFLOADER
     help
         Select ELF or EFI boot image type
