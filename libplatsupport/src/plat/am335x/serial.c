@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <platsupport/serial.h>
-#include "serial.h"
+#include "../../chardev.h"
 
 #define RHR         0x00
 #define THR         0x00
@@ -24,7 +24,7 @@
 
 #define REG_PTR(base, off)     ((volatile uint32_t *)((base) + (off)))
 
-static int uart_getchar(ps_chardevice_t *d)
+int uart_getchar(ps_chardevice_t *d)
 {
     int ch = EOF;
 
@@ -34,7 +34,7 @@ static int uart_getchar(ps_chardevice_t *d)
     return ch;
 }
 
-static int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t* d, int c)
 {
     while (!(*REG_PTR(d->vaddr, LSR) & LSR_TXFIFOE)) {
         continue;
@@ -51,38 +51,6 @@ static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
     /* nothing to do */
-}
-
-
-static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const char* data = (const char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (uart_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
 }
 
 int uart_init(const struct dev_defn* defn,

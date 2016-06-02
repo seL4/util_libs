@@ -31,4 +31,10 @@ chardev_map(const struct dev_defn* d, const ps_io_ops_t* o)
     return ps_io_map((ps_io_mapper_t*)&o->io_mapper, (uintptr_t) d->paddr, d->size, 0, PS_MEM_NORMAL);
 }
 
+int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+ssize_t uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED);
+ssize_t uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED);
+int uart_getchar(ps_chardevice_t *d);
+int uart_putchar(ps_chardevice_t* d, int c);
+
 #endif /* __SRC_CHARDEV_H__ */

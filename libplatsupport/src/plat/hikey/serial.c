@@ -8,55 +8,55 @@
  * @TAG(NICTA_BSD)
  */
 
+#include <string.h>
 #include <stdlib.h>
 #include <platsupport/serial.h>
-#include <platsupport/plat/serial.h>
-#include <string.h>
-
 #include "../../chardev.h"
 
-#define USR       0x0008 /* Status register */
-#define UCR       0x0010 /* Control register */
-#define UTF       0x0070 /* TX fifo */
-#define UNTX      0x0040 /* Number of bytes to send */
+#define RHR_MASK                MASK(8)
+#define UARTDR                  0x000
+#define UARTFR                  0x018
+#define UARTIMSC                0x038
+#define UARTICR                 0x044
+#define PL011_UARTFR_TXFF       BIT(5)
+#define PL011_UARTFR_RXFE       BIT(4)
 
-#define USR_TXRDY             (1U << 2)
-#define USR_TXEMP             (1U << 3)
+#define REG_PTR(base, off)     ((volatile uint32_t *)((base) + (off)))
 
-#define CMD_TXRDY_RESET       (3U << 8)
-
-#define UART_REG(base, x)    ((volatile uint32_t *)((uintptr_t)(base) + (x)))
-
-
-static void
-uart_handle_irq(ps_chardevice_t* d UNUSED)
+int uart_getchar(ps_chardevice_t *d)
 {
+    int ch = EOF;
+
+    if ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_RXFE) == 0) {
+        ch = *REG_PTR(d->vaddr, UARTDR) & RHR_MASK;
+    }
+    return ch;
 }
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
-    while (!(*UART_REG(d->vaddr, USR) & USR_TXEMP));
-
-    *UART_REG(d->vaddr, UNTX) = 1;
-    *UART_REG(d->vaddr, UTF) = c & 0xff;
+    while ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0);
+    
+    *REG_PTR(d->vaddr, UARTDR) = c;
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         uart_putchar(d, '\r');
     }
-    return 0;
+
+    return c;
 }
 
-int uart_getchar(ps_chardevice_t* d UNUSED)
+static void
+uart_handle_irq(ps_chardevice_t* dev)
 {
-    return EOF;
+    *REG_PTR(dev->vaddr, UARTICR) = 0x7f0;
 }
 
 int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
               ps_chardevice_t* dev)
 {
-    /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
     memset(dev, 0, sizeof(*dev));
+    void* vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
         return -1;
     }
@@ -71,6 +71,7 @@ int uart_init(const struct dev_defn* defn,
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
 
+    *REG_PTR(dev->vaddr, UARTIMSC) = 0x50;
     return 0;
 }
 

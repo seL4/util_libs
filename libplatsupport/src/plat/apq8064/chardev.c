@@ -16,7 +16,6 @@
 #include "../../chardev.h"
 #include "../../common.h"
 #include <utils/util.h>
-#include "serial.h"
 
 static const int gsbi3_uart_irqs[] = {GSBI3_UART_IRQ, -1};
 static const int gsbi4_uart_irqs[] = {GSBI4_UART_IRQ, -1};

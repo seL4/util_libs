@@ -8,7 +8,12 @@
  * @TAG(NICTA_BSD)
  */
 
-#include "../../chardev.h"
+#ifndef _PLATSUPPORT_PLAT_GPIO_H
+#define _PLATSUPPORT_PLAT_GPIO_H
 
-int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+enum gpio_port {
+    GPIO_NBANKS
+};
+
+#endif /* _PLATSUPPORT_PLAT_GPIO_H */
 

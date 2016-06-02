@@ -10,9 +10,9 @@
 
 #include <stdlib.h>
 #include <platsupport/serial.h>
-
-#include "serial.h"
 #include <string.h>
+
+#include "../../chardev.h"
 
 #define IMXUART_DLL             0x000
 #define IMXUART_RHR             0x000 /* UXRD */
@@ -34,7 +34,7 @@
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
-static int uart_getchar(ps_chardevice_t* d)
+int uart_getchar(ps_chardevice_t* d)
 {
     int character = -1;
     uint32_t data = 0;
@@ -49,7 +49,7 @@ static int uart_getchar(ps_chardevice_t* d)
     return character;
 }
 
-static int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t* d, int c)
 {
     if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
         *REG_PTR(d->vaddr, IMXUART_THR) = c;
@@ -62,46 +62,10 @@ static int uart_putchar(ps_chardevice_t* d, int c)
     }
 }
 
-
 static void uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
     /* TODO */
 }
-
-
-static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const char* data = (const char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (uart_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
-}
-
-
-
 
 int
 uart_init(const struct dev_defn* defn,

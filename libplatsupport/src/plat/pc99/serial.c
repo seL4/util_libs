@@ -8,10 +8,11 @@
  * @TAG(NICTA_BSD)
  */
 
-#include "serial.h"
 #include <stdlib.h>
 #include <string.h>
 #include <utils/util.h>
+
+#include "../../chardev.h"
 
 /*
  * Port offsets
@@ -39,7 +40,7 @@
 #define SERIAL_LSR_TRANSMITTER_EMPTY BIT(5)
 
 
-static int serial_getchar(ps_chardevice_t *device)
+int uart_getchar(ps_chardevice_t *device)
 {
     uint32_t res;
     uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
@@ -67,7 +68,7 @@ static int serial_ready(ps_chardevice_t* device)
     return res & SERIAL_LSR_TRANSMITTER_EMPTY;
 }
 
-static int serial_putchar(ps_chardevice_t* device, int c)
+int uart_putchar(ps_chardevice_t* device, int c)
 {
     uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
 
@@ -83,58 +84,27 @@ static int serial_putchar(ps_chardevice_t* device, int c)
         /* If we output immediately then odds are the transmit buffer
          * will be full, so we have to wait */
         while (!serial_ready(device));
-        serial_putchar(device, '\r');
+        uart_putchar(device, '\r');
     }
 
     return c;
 }
 
-static ssize_t
-serial_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const unsigned char* data = (const unsigned char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (serial_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-serial_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = serial_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
-}
-
-static void serial_handle_irq(ps_chardevice_t* device UNUSED)
+static void uart_handle_irq(ps_chardevice_t* device UNUSED)
 {
     /* No IRQ handling required here. */
 }
 
 int
-serial_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
+uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
 {
     memset(dev, 0, sizeof(*dev));
     /* Set up all the  device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void*) defn->paddr; /* Save the IO port base number. */
-    dev->read       = &serial_read;
-    dev->write      = &serial_write;
-    dev->handle_irq = &serial_handle_irq;
+    dev->read       = &uart_read;
+    dev->write      = &uart_write;
+    dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
 

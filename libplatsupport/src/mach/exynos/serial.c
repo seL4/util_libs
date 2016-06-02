@@ -155,10 +155,8 @@ static const struct dev_defn dev_defn[] = {
     UART_DEFN(3),
 };
 
-
-
 static int
-uart_putchar(ps_chardevice_t *d, int c)
+exynos_uart_putchar(ps_chardevice_t *d, int c)
 {
     if (*REG_PTR(d->vaddr, UFRSTAT) & FRSTAT_TX_FULL) {
         /* abort: no room in FIFO */
@@ -174,7 +172,7 @@ uart_putchar(ps_chardevice_t *d, int c)
              * be sent when there is insufficient FIFO space and accept the
              * inefficiencies of spinning, waiting for space.
              */
-            while (uart_putchar(d, '\r') < 0);
+            while (exynos_uart_putchar(d, '\r') < 0);
         }
         return c;
     }
@@ -185,16 +183,15 @@ uart_fill_fifo(ps_chardevice_t *d, const char* data, size_t len)
 {
     int i;
     for (i = 0; i < len; i++) {
-        if (uart_putchar(d, *data++) < 0) {
+        if (exynos_uart_putchar(d, *data++) < 0) {
             return i;
         }
     }
     return len;
 }
 
-
 static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t wcb, void* token)
+exynos_uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t wcb, void* token)
 {
     const char* data = (const char*)vdata;
     int sent;
@@ -245,7 +242,7 @@ uart_handle_tx_irq(ps_chardevice_t* d)
 }
 
 static int
-uart_getchar(ps_chardevice_t *d)
+exynos_uart_getchar(ps_chardevice_t *d)
 {
     if (*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_RXBUF_READY) {
         return *REG_PTR(d->vaddr, URXH);
@@ -260,7 +257,7 @@ uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
     int i;
     for (i = 0; i < len; i++) {
         int c;
-        c = uart_getchar(d);
+        c = exynos_uart_getchar(d);
         if (c < 0) {
             break;
         }
@@ -272,7 +269,7 @@ uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
 }
 
 static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb, void* token)
+exynos_uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb, void* token)
 {
     if (d->read_descriptor.data) {
         /* Transaction is already in progress */
@@ -490,8 +487,8 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     memset(dev, 0, sizeof(*dev));
     dev->id         = id;
     dev->vaddr      = vaddr;
-    dev->read       = &uart_read;
-    dev->write      = &uart_write;
+    dev->read       = &exynos_uart_read;
+    dev->write      = &exynos_uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = &uart_irqs[id][0];
     dev->flags      = SERIAL_AUTO_CR;

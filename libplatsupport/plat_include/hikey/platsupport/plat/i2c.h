@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014, NICTA
  *
@@ -8,8 +9,11 @@
  * @TAG(NICTA_BSD)
  */
 
-#include "../../chardev.h"
+#ifndef _PLATSUPPORT_PLAT_I2C_H_
+#define _PLATSUPPORT_PLAT_I2C_H_
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev);
+enum i2c_id {
+    NI2C
+};
+
+#endif /* _PLATSUPPORT_PLAT_I2C_H_ */
