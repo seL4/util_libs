@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
-#include "serial.h"
 #include <string.h>
+
+#include "../../chardev.h"
 
 #define UART_REF_CLK           40089600
 
@@ -79,8 +80,7 @@ imx6_uart_get_priv(ps_chardevice_t *d)
     return (imx6_uart_regs_t*)d->vaddr;
 }
 
-
-static int uart_getchar(ps_chardevice_t *d)
+int uart_getchar(ps_chardevice_t *d)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     uint32_t reg = 0;
@@ -95,7 +95,7 @@ static int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
-static int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t* d, int c)
 {
     imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
     if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
@@ -114,39 +114,6 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
     /* TODO */
 }
-
-
-static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const char* data = (const char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (uart_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
-}
-
 
 /*
  * BaudRate = RefFreq / (16 * (BMR + 1)/(BIR + 1) )
