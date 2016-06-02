@@ -17,8 +17,6 @@
 #include "../../common.h"
 #include <utils/util.h>
 
-#include "serial.h"
-
 static const int uart0_irqs[] = {UART0_IRQ, -1};
 static const int uart1_irqs[] = {UART1_IRQ, -1};
 

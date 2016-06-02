@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
-#include "serial.h"
 #include <string.h>
+
+#include "../../chardev.h"
 
 #define UART_REF_CLK            50000000
 
@@ -181,7 +182,7 @@ zynq7000_uart_enable_rx(zynq7000_uart_regs_t* regs)
     regs->cr |= UART_CR_RXEN;
 }
 
-static int uart_getchar(ps_chardevice_t *d)
+int uart_getchar(ps_chardevice_t *d)
 {
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
     int c = -1;
@@ -197,7 +198,7 @@ static int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
-static int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t* d, int c)
 {
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
 
@@ -224,38 +225,6 @@ static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
     /* TODO */
-}
-
-
-static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const char* data = (const char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (uart_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
 }
 
 /*
