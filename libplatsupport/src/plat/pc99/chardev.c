@@ -16,7 +16,6 @@
 #include "../../chardev.h"
 #include "../../common.h"
 
-#include "serial.h"
 #include "ega.h"
 #include "keyboard_chardev.h"
 #include <utils/arith.h>
@@ -33,7 +32,7 @@ static const int ega_irqs[] = { -1};
     .paddr   = SERIAL_CONSOLE_COM##devid##_PORT, \
     .size    = 0,             \
     .irqs    = com##devid##_irqs,  \
-    .init_fn = &serial_init           \
+    .init_fn = &uart_init           \
 }
 
 
