@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
-#include "serial.h"
 #include <string.h>
+
+#include "../../chardev.h"
 
 #define USR       0x0008 /* Status register */
 #define UCR       0x0010 /* Control register */
@@ -32,7 +33,7 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
 }
 
-static int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t* d, int c)
 {
     while (!(*UART_REG(d->vaddr, USR) & USR_TXEMP));
 
@@ -44,40 +45,9 @@ static int uart_putchar(ps_chardevice_t* d, int c)
     return 0;
 }
 
-static int uart_getchar(ps_chardevice_t* d UNUSED)
+int uart_getchar(ps_chardevice_t* d UNUSED)
 {
     return EOF;
-}
-
-static ssize_t
-uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    const char* data = (const char*)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
-        if (uart_putchar(d, *data++) < 0) {
-            return i;
-        }
-    }
-    return count;
-}
-
-static ssize_t
-uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
-{
-    char* data;
-    int ret;
-    int i;
-    data = (char*)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            *data++ = ret;
-        } else {
-            return i;
-        }
-    }
-    return count;
 }
 
 int uart_init(const struct dev_defn* defn,
