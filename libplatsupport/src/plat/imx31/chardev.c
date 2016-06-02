@@ -13,7 +13,7 @@
  * platform
  */
 
-#include "serial.h"
+#include "../../chardev.h"
 #include "../../common.h"
 #include <platsupport/serial.h>
 
