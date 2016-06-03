@@ -34,6 +34,8 @@ menu "Toolchain Options"
         bool "Multirust support"
         default y
         depends on USE_RUST
+        help
+            Multirust is a tool for managing rust toolchains
     config RUST_VERSION
         string "Rust version"
         default ""
@@ -41,6 +43,28 @@ menu "Toolchain Options"
         help
             Set the rust version.  Options: nightly, stable, beta,
             nightly-2014-12-18, 1.0.0
+    choice
+        prompt "cargo verbosity"
+        depends on USE_RUST
+        default RUST_COMPILE_DEFAULT
+        help
+            Select the level of cargo output
+
+        config RUST_COMPILE_DEFAULT
+            bool "default"
+            help
+                Normal cargo output
+
+        config RUST_COMPILE_QUIET
+            bool "--quiet"
+            help
+                Run cargo with --quiet.
+
+        config RUST_COMPILE_VERBOSE
+            bool "--verbose"
+            help
+                Run cargo with --verbose.
+    endchoice
     config RUST_COMPILE_RELEASE
         bool "--release"
         default n
@@ -48,18 +72,6 @@ menu "Toolchain Options"
         help
             Use release flag when compiling rust code using
             cargo.
-    config RUST_COMPILE_QUIET
-        bool "--quiet"
-        default n
-        depends on USE_RUST
-        help
-            Run cargo with --quiet.
-    config RUST_COMPILE_VERBOSE
-        bool "--verbose"
-        default n
-        depends on USE_RUST
-        help
-            Run cargo with --verbose.
 
     config KERNEL_COMPILER
         string "Path to a different compiler to use for the kernel"

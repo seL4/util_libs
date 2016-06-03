@@ -230,16 +230,12 @@ $(AUTOCONF_H_FILE): .config
 RUNONCE = $(STAGE_BASE)/runonce
 
 $(RUNONCE): .config | setup
-ifeq ($(CONFIG_USE_RUST),y)
-ifeq ($(CONFIG_RUST_VERSION), "")
-else
+ifneq ($(strip $(CONFIG_RUST_VERSION)),"")
 	@echo "[RUST] Setting toolchain override"
 	$(Q)multirust override $(CONFIG_RUST_VERSION)
 endif #($(CONFIG_RUST_VERSION), "")
-	@echo "[RUST] Updating xargo "
-	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo uninstall xargo || true
-	$(Q)CC="gcc" CFLAGS="$(HOSTCFLAGS)" cargo install --path tools/xargo
-endif #($(CONFIG_USE_RUST),y)
+	@echo "[RUST] Building local xargo "
+	$(Q)CC="$(lastword ${HOSTCC})" CFLAGS="$(HOSTCFLAGS)" cargo build --release --manifest-path tools/xargo/Cargo.toml
 	$(Q)touch $(RUNONCE)
 
 .SECONDEXPANSION:
@@ -272,6 +268,7 @@ setup: $(AUTOCONF_H_FILE)
 	$(Q)mkdir -p ${BUILD_BASE}
 	$(Q)mkdir -p ${IMAGE_ROOT}
 
+export XARGO = $(TOOLS_ROOT)/xargo/target/release/xargo
 PHONY += common
 common: setup
 # Copy only the non-hidden contents of tools/common, since some cp
@@ -285,7 +282,7 @@ rust_sysroot: common $(libc) $(RUNONCE)
 	$(Q)cat $(STAGE_BASE)/common/custom-target.json | envsubst > ${RUST_TARGET_FILE}
 	$(Q)cat $(TOOLS_ROOT)/common/sysroot.toml | envsubst > $(STAGE_BASE)/common/sysroot.toml
 	$(Q)cd $(STAGE_BASE)/common/ && RUST_TARGET_PATH=${STAGE_BASE}/common/ \
-	xargo sysroot $(RUST_CARGO_FLAGS) --target=${RUST_CUSTOM_TARGET}
+	$(XARGO) sysroot $(RUST_CARGO_FLAGS) --target=${RUST_CUSTOM_TARGET}
 
 export SEL4_COMMON=$(STAGE_BASE)/common
 

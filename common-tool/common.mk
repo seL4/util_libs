@@ -136,10 +136,12 @@ LDFLAGS += $(NK_LDFLAGS) \
 		   $(STARTGROUP) \
 		   $(LIBS:%=-l%) \
 		   $(LIBGCC) \
-		   $(RUST_TARGET:%=-lcompiler-rt) \
 		   $(ENDGROUP) \
 		   $(CFLAGS) \
 		   -static -nostdlib
+ifeq (${CONFIG_USE_RUST},y)
+ LDFLAGS += -lcompiler-rt
+endif
 
 ARCHIVES += $(LIBS:%=lib%.a)
 
@@ -182,7 +184,7 @@ vpath %.c $(SOURCE_DIR)
 vpath %.cxx $(SOURCE_DIR)
 vpath %.S $(SOURCE_DIR)
 
-PRIORITY_TARGETS += $(RUST_TARGET:%=rust)
+PRIORITY_TARGETS += $(RUST_TARGET)
 
 # Default is to build/install all targets
 default: $(PRIORITY_TARGETS) install-headers $(TARGETS)
@@ -228,11 +230,11 @@ install-headers:
 		done ; \
 	fi
 
-.PHONY: rust
-rust:
+.PHONY: $(RUST_TARGET)
+$(RUST_TARGET):
 	@echo " [RS] $(RUST_TARGET)"
 	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/  \
-	xargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(SOURCE_DIR)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(XARGO) build --lib $(RUST_CARGO_FLAGS) --manifest-path $(SOURCE_DIR)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
 	$(Q) cp $(SOURCE_DIR)/target/${RUST_CUSTOM_TARGET}/$(RUST_RELEASE_MODE)/$(RUST_TARGET) ${STAGE_DIR}/lib/$(RUST_TARGET)
 
 ifeq (${CONFIG_BUILDSYS_CPP_SEPARATE},y)
