@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <utils/time.h>
 
 #define KHZ (1000)
