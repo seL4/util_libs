@@ -13,7 +13,6 @@
 /* macros for forcing the compiler to leave in statments it would
  * normally optimize away */
 
-#include <stdint.h>
 #include <utils/attribute.h>
 #include <utils/stringify.h>
 
