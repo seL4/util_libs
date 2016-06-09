@@ -22,8 +22,3 @@
             ptr = RESOURCE(op, id);             \
         }                                        \
     }while(0)
-
-
-#define MAPCHECK(a, v) assert(((uintptr_t)(a) & 0xfff) == (v))
-
-
