@@ -36,7 +36,7 @@ enum serial_parity {
  * @param  id: the id of the character device
  * @param ops: a structure containing OS specific operations for memory access
  * @param dev: a character device structure to populate
- * @return   : NULL on error, otherwise returns the device structure pointer
+ * @return   : 0 on success
  */
 int serial_init(enum chardev_id id,
                 ps_io_ops_t* ops,
