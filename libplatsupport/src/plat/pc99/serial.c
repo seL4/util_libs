@@ -112,32 +112,55 @@ uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* 
     uint32_t io_port = (uint32_t) (uintptr_t)dev->vaddr;
 
     /* clear DLAB - Divisor Latch Access Bit */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 & ~SERIAL_DLAB);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 & ~SERIAL_DLAB) != 0) {
+        return -1;
+    }
+
     /* disable generating interrupts */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, IER), 1, 0x00);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, IER), 1, 0x00) != 0) {
+        return -1;
+    }
 
     /* set DLAB to*/
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 | SERIAL_DLAB);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 | SERIAL_DLAB) != 0) {
+        return -1;
+    }
     /* set low byte of divisor to 0x01 = 115200 baud */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, DLL), 1, 0x01);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, DLL), 1, 0x01) != 0) {
+        return -1;
+    }
     /* set high byte of divisor to 0x00 */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, DLH), 1, 0x00);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, DLH), 1, 0x00) != 0) {
+        return -1;
+    }
 
     /* line control register: set 8 bit, no parity, 1 stop bit; clear DLAB */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x03 & ~SERIAL_DLAB);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x03 & ~SERIAL_DLAB) != 0) {
+        return -1;
+    }
     /* modem control register: set DTR/RTS/OUT2 */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, MCR), 1, 0x0b);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, MCR), 1, 0x0b) != 0) {
+        return -1;
+    }
 
     uint32_t temp;
     /* clear receiver port */
-    ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, RBR), 1, &temp);
+    if (ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, RBR), 1, &temp) != 0) {
+        return -1;
+    }
     /* clear line status port */
-    ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &temp);
+    if (ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &temp) != 0) {
+        return -1;
+    }
     /* clear modem status port */
-    ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, MSR), 1, &temp);
+    if (ps_io_port_in(&dev->ioops.io_port_ops, CONSOLE(io_port, MSR), 1, &temp) != 0) {
+        return -1;
+    }
 
     /* Enable the receiver interrupt. */
-    ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, IER), 1, 0x01);
+    if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, IER), 1, 0x01) != 0) {
+        return -1;
+    }
 
     return 0;
 }
