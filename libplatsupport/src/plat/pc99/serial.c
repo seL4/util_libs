@@ -46,15 +46,19 @@ int uart_getchar(ps_chardevice_t *device)
     uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
 
     /* Check if character is available. */
-    int error UNUSED = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
-    assert(!error);
+    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    if (error != 0) {
+        return -1;
+    }
     if (!(res & SERIAL_LSR_DATA_READY)) {
         return -1;
     }
 
     /* retrieve character */
     error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, RBR), 1, &res);
-    assert(!error);
+    if (error != 0) {
+        return -1;
+    }
 
     return (int) res;
 }
@@ -63,8 +67,10 @@ static int serial_ready(ps_chardevice_t* device)
 {
     uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
     uint32_t res;
-    int UNUSED error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
-    assert(!error);
+    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    if (error != 0) {
+        return 0;
+    }
     return res & SERIAL_LSR_TRANSMITTER_EMPTY;
 }
 
