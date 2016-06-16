@@ -38,6 +38,7 @@ smc:
     smc #0
     ldmfd    sp!, {r3-r11, pc}
 
+#ifndef ARM_HYP
 .global leave_hyp
 leave_hyp:
     .arch_extension virt
@@ -47,4 +48,4 @@ leave_hyp:
     msr elr_hyp, lr
     eret
 
-
+#endif
