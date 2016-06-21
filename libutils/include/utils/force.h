@@ -18,10 +18,10 @@
 
 /* Macro for doing dummy reads
  *
- * Expands to a volatile, unused variable which is set to the value at
- * a given address. It's volatile to prevent the compiler optimizing
- * away a variable that is written but never read, and it's unused to
- * prevent warnings about a variable that's never read.
+ * Forces a memory read access to the given address.
  */
 #define FORCE_READ(address) \
-        volatile UNUSED typeof(*address) JOIN(__force__read, __COUNTER__) = *(address)
+    do { \
+        typeof(*(address)) *_ptr = (address); \
+        asm volatile ("" : "=m"(*_ptr) : "r"(*_ptr)); \
+    } while (0)
