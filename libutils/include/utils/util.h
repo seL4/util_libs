@@ -23,7 +23,6 @@
 #include <utils/debug.h>
 #include <utils/force.h>
 #include <utils/formats.h>
-#include <utils/json.h>
 #include <utils/frequency.h>
 #include <utils/list.h>
 #include <utils/page.h>
@@ -51,10 +50,10 @@
  * ZF_LOGW -- warning
  * ZF_LOGE -- error
  * ZF_LOGF -- fatal
- * 
- * setting ZF_LOG_LEVEL to ZF_LOG_VERBOSE will display 
- * all ZF_LOG output, settings it to ZF_LOG_FATAL will 
- * only display fatal outputs. 
+ *
+ * setting ZF_LOG_LEVEL to ZF_LOG_VERBOSE will display
+ * all ZF_LOG output, settings it to ZF_LOG_FATAL will
+ * only display fatal outputs.
  */
 #define LOG_ERROR(args...) ZF_LOGE(args)
 #define LOG_INFO(args...) ZF_LOGI(args)
