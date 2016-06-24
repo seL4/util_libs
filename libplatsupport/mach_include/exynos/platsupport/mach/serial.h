@@ -11,6 +11,7 @@
 #ifndef __MACHSUPPORT_MACH_SERIAL_H__
 #define __MACHSUPPORT_MACH_SERIAL_H__
 
+#include <platsupport/chardev.h>
 #include <platsupport/mux.h>
 #include <platsupport/clock.h>
 
