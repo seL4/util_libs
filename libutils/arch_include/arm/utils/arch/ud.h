@@ -12,6 +12,8 @@
 
 #include <utils/attribute.h>
 
+#define UD_INSTRUCTION_SIZE 4
+
 static inline void ALWAYS_INLINE utils_undefined_instruction(void) {
     /* See §A8.8.247 of the ARM ARM. */
     asm volatile ("udf #0");
