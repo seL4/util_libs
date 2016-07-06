@@ -80,10 +80,17 @@ BEGIN_FUNC(arm_enable_mmu)
 
     /* Enable MMU, D-cache, and I-cache. */
     mrc     SCTLR(r0)
+    orr     r0, r0, #(1 << 13)      /* selects the base address of the exception vectors */
     orr     r0, r0, #(1 << 12)      /* Enable I-cache */
     orr     r0, r0, #(1 << 2)       /* Enable D-cache */
     orr     r0, r0, #(1 << 0)       /* Enable MMU */
     mcr     SCTLR(r0)
+
+    /* Enable/disable Async aborts to drain pending bootloader aborts */
+    cpsie   a
+    dsb
+    isb
+    cpsid   a
 
 #ifdef CONFIG_SMP_ARM_MPCORE
     /* Enable SMP */

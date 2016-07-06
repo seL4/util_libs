@@ -14,6 +14,8 @@
 
 #include "structures.h"
 
+#define ARM_VECTOR_TABLE    0xffff0000
+extern char arm_vector_table[1];
 /*
  * Create a "boot" page directory, which contains a 1:1 mapping below
  * the kernel's first vaddr, and a virtual-to-physical mapping above the
@@ -29,22 +31,28 @@ void init_boot_vspace(struct image_info *kernel_info)
     for (i = 0; i < (first_vaddr >> ARM_SECTION_BITS); i++) {
         _boot_pd[i] = (i << ARM_SECTION_BITS)
                       | BIT(10) /* kernel-only access */
-#ifdef ARMV5
-                      | BIT(4)  /* must be set for ARMv5 */
-#endif
                       | BIT(1); /* 1M section */
     }
 
-    /* mapping of kernel window */
-    for (i = 0; i < ((-first_vaddr) >> ARM_SECTION_BITS); i++) {
+    /* mapping of kernel window, except last 1M*/
+    for (i = 0; i < ((-first_vaddr) >> ARM_SECTION_BITS) - 1; i++) {
         _boot_pd[i + (first_vaddr >> ARM_SECTION_BITS)]
             = ((i << ARM_SECTION_BITS) + first_paddr)
               | BIT(10) /* kernel-only access */
-#ifdef ARMV5
-              | BIT(4)  /* must be set for ARMv5 */
-#endif
               | BIT(1); /* 1M section */
     }
+
+    /* map page table covering last 1M of virtual address space to page directory */
+    _boot_pd[i + (first_vaddr >> ARM_SECTION_BITS)]
+        = ((uintptr_t)_boot_pt)
+          | BIT(9)
+          | BIT(0); /* page table */
+
+    /* map vector table */
+    _boot_pt[GET_PT_INDEX(ARM_VECTOR_TABLE)]
+        = ((uintptr_t)arm_vector_table)
+          | BIT(4)  /* kernel-only access */
+          | BIT(1); /* 4K page */
 }
 
 

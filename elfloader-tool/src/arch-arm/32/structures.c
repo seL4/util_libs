@@ -14,7 +14,8 @@
 #include "structures.h"
 
 /* Page directory for Stage1 translation in PL1 (short-desc format)*/
-uint32_t _boot_pd[BIT(PGD_BITS)] ALIGN(BIT(PGD_SIZE_BITS));
+uint32_t _boot_pd[BIT(PD_BITS)] ALIGN(BIT(PD_SIZE_BITS));
+uint32_t _boot_pt[BIT(PT_BITS)] ALIGN(BIT(PT_SIZE_BITS));
 
 /* Page global and middle directory for Stage1 in HYP mode (long-desc format) */
 uint64_t _lpae_boot_pgd[BIT(HYP_PGD_BITS)] ALIGN(BIT(HYP_PGD_SIZE_BITS));

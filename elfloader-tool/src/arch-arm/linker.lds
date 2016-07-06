@@ -53,6 +53,10 @@ SECTIONS
         . = . + 4K;
         . = ALIGN(16K);
         _bootstack_top = .;
+        _abortstack_bottom = .;
+        . = . + 4K;
+        . = ALIGN(16K);
+        _abortstack_top = .;
     }
 
     _end = .;

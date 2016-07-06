@@ -60,10 +60,18 @@ BEGIN_FUNC(arm_enable_mmu)
     mcr     BPIALL(r1)      /* flush branch target cache */
 
     /* Enable MMU, D-cache, and I-cache. */
+    orr     r0, r0, #(1 << 13)      /* selects the base address of the exception vectors */
     orr     r0, r0, #(1 << 12)      /* Enable I-cache */
     orr     r0, r0, #(1 << 2)       /* Enable D-cache */
     orr     r0, r0, #(1 << 0)       /* Enable MMU */
     mcr     SCTLR(r0)
+
+    /* Enable/disable Async aborts to drain pending bootloader aborts */
+    mov     r0, #0
+    cpsie   a
+    mcr     DSB(r0)
+    mcr     ISB(r0)
+    cpsid   a
 
     bx      lr
 END_FUNC(arm_enable_mmu)
