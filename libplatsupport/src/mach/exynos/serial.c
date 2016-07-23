@@ -282,7 +282,9 @@ exynos_uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback
         d->read_descriptor.bytes_transfered = 0;
         d->read_descriptor.bytes_requested = count;
         d->read_descriptor.data = (void*)vdata;
-        /* Dont need to enable the RX IRQ because it is always enabled */
+        /* Enable RX IRQ */
+        *REG_PTR(d->vaddr, UINTP) = INT_RX;
+        *REG_PTR(d->vaddr, UINTM) &= ~INT_RX;
         return 0;
     } else {
         /* Read what we can into the buffer and return */
@@ -301,6 +303,10 @@ uart_handle_rx_irq(ps_chardevice_t* d)
     /* If a callback was not registered, simply return. User is expected
      * to read FIFO data with a call to 'read' */
     if (d->read_descriptor.data == NULL) {
+        /* Error: RX interrupt should be masked when no read callback is registered */
+        /* Mask then clear RX interrupt */
+        *REG_PTR(d->vaddr, UINTM) |= INT_RX;
+        *REG_PTR(d->vaddr, UINTP) = INT_RX;
         return;
     }
     /* Check for timeout */
@@ -318,12 +324,17 @@ uart_handle_rx_irq(ps_chardevice_t* d)
 
     /* Check if this transaction is complete */
     if (timeout || d->read_descriptor.bytes_transfered == d->read_descriptor.bytes_requested) {
+        /* Shutdown IRQs */
+        *REG_PTR(d->vaddr, UINTM) |= INT_RX;
         d->read_descriptor.data = NULL;
         /* Signal completion */
         d->read_descriptor.callback(d, CHARDEV_STAT_COMPLETE,
                                     d->read_descriptor.bytes_transfered,
                                     d->read_descriptor.token);
     }
+
+    /* Clear the pending flag, ready for the next IRQ */
+    *REG_PTR(d->vaddr, UINTP) = INT_RX;
 }
 
 static void uart_flush(ps_chardevice_t *d)
@@ -524,8 +535,8 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     v |= (CON_TXMODE(POLL) | CON_RXMODE(POLL));
     v |= CON_TXIRQTYPE_LEVEL | CON_RXIRQTYPE_LEVEL;
     *REG_PTR(dev->vaddr, UCON) = v;
-    /* Enable RX IRQ */
-    *REG_PTR(dev->vaddr, UINTM) = ~INT_RX;
+    /* Mask then clear all interrupts */
+    *REG_PTR(dev->vaddr, UINTM) = INT_RX | INT_TX | INT_ERR | INT_MODEM;
     *REG_PTR(dev->vaddr, UINTP) = INT_RX | INT_TX | INT_ERR | INT_MODEM;
 
     return 0;

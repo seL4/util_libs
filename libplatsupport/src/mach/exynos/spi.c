@@ -204,7 +204,7 @@ spi_config(spi_bus_t *spi_bus)
      * The feedback clock only works in the master mode.
      */
     if (spi_bus->mode == MASTER_MODE) {
-        v = (0x0 << FB_CLK_SEL_SHF);
+        v = (0x2 << FB_CLK_SEL_SHF);
         spi_bus->regs->fb_clk_sel = v;
     }
 
