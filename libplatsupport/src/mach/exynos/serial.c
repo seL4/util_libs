@@ -324,6 +324,8 @@ uart_handle_rx_irq(ps_chardevice_t* d)
                                     d->read_descriptor.bytes_transfered,
                                     d->read_descriptor.token);
     }
+    /* Clear the pending flag */
+    *REG_PTR(d->vaddr, UINTP) = INT_RX;
 }
 
 static void uart_flush(ps_chardevice_t *d)
