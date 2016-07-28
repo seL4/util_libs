@@ -91,7 +91,7 @@ static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
  * Return the byte past the last byte of the physical address used.
  */
 static paddr_t load_elf(const char *name, void *elf,
-                        paddr_t dest_paddr, struct image_info *info)
+                        paddr_t dest_paddr, struct image_info *info, int keep_headers)
 {
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
@@ -146,8 +146,32 @@ static paddr_t load_elf(const char *name, void *elf,
     info->virt_entry = (vaddr_t)elf_getEntryPoint(elf);
     info->phys_virt_offset = dest_paddr - (vaddr_t)min_vaddr;
 
-    /* Return address of next free physical frame. */
-    return ROUND_UP(dest_paddr + image_size, PAGE_BITS);
+    /* Round up the destination address to the next page */
+    dest_paddr = ROUND_UP(dest_paddr + image_size, PAGE_BITS);
+
+    if (keep_headers) {
+        /* Put the ELF headers in this page */
+        uint32_t phnum = elf_getNumProgramHeaders(elf);
+        uint32_t phsize;
+        paddr_t source_paddr;
+        if (ISELF32(elf)) {
+            phsize = ((struct Elf32_Header*)elf)->e_phentsize;
+            source_paddr = (paddr_t)elf32_getProgramHeaderTable(elf);
+        } else {
+            phsize = ((struct Elf64_Header*)elf)->e_phentsize;
+            source_paddr = (paddr_t)elf64_getProgramHeaderTable(elf);
+        }
+        /* We have no way of sharing definitions with the kernel so we just
+         * memcpy to a bunch of magic offsets. Explicit numbers for sizes
+         * and offsets are used so that it is clear exactly what the layout
+         * is */
+        memcpy((void*)dest_paddr, &phnum, 4);
+        memcpy((void*)(dest_paddr + 4), &phsize, 4);
+        memcpy((void*)(dest_paddr + 8), (void*)source_paddr, phsize * phnum);
+        /* return the frame after our headers */
+        dest_paddr += BIT(PAGE_BITS);
+    }
+    return dest_paddr;
 }
 
 /*
@@ -200,7 +224,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
     next_phys_addr = load_elf("kernel", kernel_elf,
-                              (paddr_t)kernel_phys_start, kernel_info);
+                              (paddr_t)kernel_phys_start, kernel_info, 0);
 
     /*
      * Load userspace images.
@@ -224,7 +248,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 
         /* Load the file into memory. */
         next_phys_addr = load_elf(elf_filename, user_elf,
-                                  next_phys_addr, &user_info[*num_images]);
+                                  next_phys_addr, &user_info[*num_images], 1);
         *num_images = i + 1;
     }
 }
