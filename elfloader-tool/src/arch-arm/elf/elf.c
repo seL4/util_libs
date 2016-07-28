@@ -86,9 +86,6 @@
  * file is valid, < 0 if invalid.
  */
 
-#define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
-#define ISELF64(elfFile) ( ((struct Elf64_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
-
 int
 elf_checkFile(void *elfFile)
 {

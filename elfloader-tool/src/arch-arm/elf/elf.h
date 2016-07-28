@@ -109,6 +109,9 @@ ELF file into memory.
 #include "elf32.h"
 #include "elf64.h"
 
+#define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
+#define ISELF64(elfFile) ( ((struct Elf64_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
+
 /*
  * constants for Elf32_Phdr.p_flags
  */
