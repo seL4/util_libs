@@ -202,7 +202,7 @@ int cpio_info(void *archive, struct cpio_info *info) {
         // Check if this is the maximum file path size.
         current_path_sz = cpio_strlen(current_filename);
         if (current_path_sz > info->max_path_sz) {
-            info->max_path_sz = current_path_sz;    
+            info->max_path_sz = current_path_sz;
         }
     }
 

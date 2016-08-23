@@ -2,17 +2,17 @@
 
 /*
  * Australian Public Licence B (OZPLB)
- * 
+ *
  * Version 1-0
- * 
+ *
  * Copyright (c) 2004 University of New South Wales
- * 
- * All rights reserved. 
- * 
+ *
+ * All rights reserved.
+ *
  * Developed by: Operating Systems and Distributed Systems Group (DiSy)
  *               University of New South Wales
  *               http://www.disy.cse.unsw.edu.au
- * 
+ *
  * Permission is granted by University of New South Wales, free of charge, to
  * any person obtaining a copy of this software and any associated
  * documentation files (the "Software") to deal with the Software without
@@ -21,19 +21,19 @@
  * sublicense, and/or sell, lend or rent out copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimers.
- * 
+ *
  *     * Redistributions in binary form must reproduce the above
  *       copyright notice, this list of conditions and the following
  *       disclaimers in the documentation and/or other materials provided
  *       with the distribution.
- * 
+ *
  *     * Neither the name of University of New South Wales, nor the names of its
  *       contributors, may be used to endorse or promote products derived
  *       from this Software without specific prior written permission.
- * 
+ *
  * EXCEPT AS EXPRESSLY STATED IN THIS LICENCE AND TO THE FULL EXTENT
  * PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS-IS", AND
  * NATIONAL ICT AUSTRALIA AND ITS CONTRIBUTORS MAKE NO REPRESENTATIONS,
@@ -43,7 +43,7 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT,
  * THE ABSENCE OF LATENT OR OTHER DEFECTS, OR THE PRESENCE OR ABSENCE OF
  * ERRORS, WHETHER OR NOT DISCOVERABLE.
- * 
+ *
  * TO THE FULL EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
  * NATIONAL ICT AUSTRALIA OR ITS CONTRIBUTORS BE LIABLE ON ANY LEGAL
  * THEORY (INCLUDING, WITHOUT LIMITATION, IN AN ACTION OF CONTRACT,
@@ -57,7 +57,7 @@
  * DEALINGS WITH THE SOFTWARE, EVEN IF NATIONAL ICT AUSTRALIA OR ITS
  * CONTRIBUTORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH CLAIM, LOSS,
  * DAMAGES OR OTHER LIABILITY.
- * 
+ *
  * If applicable legislation implies representations, warranties, or
  * conditions, or imposes obligations or liability on University of New South
  * Wales or one of its contributors in respect of the Software that
@@ -74,7 +74,7 @@
  * b.  in the case of services:
  * i.  the supplying of the services again; or
  * ii.  the payment of the cost of having the services supplied again.
- * 
+ *
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
@@ -84,7 +84,7 @@
 #include <stdint.h>
 
 /*
- * File header 
+ * File header
  */
 struct Elf64_Header {
 	unsigned char   e_ident[16];
@@ -104,11 +104,11 @@ struct Elf64_Header {
 	uint16_t        e_shentsize;	/* Size of one section header */
 	uint16_t        e_shnum;	/* Number of section headers */
 	uint16_t        e_shstrndx;	/* Section header index of the
-					 * string table for section header 
+					 * string table for section header
 					 * * names */
 };
 
-/* 
+/*
  * Section header
 */
 struct Elf64_Shdr {
@@ -125,21 +125,21 @@ struct Elf64_Shdr {
 };
 
 /*
- * Program header 
+ * Program header
  */
 struct Elf64_Phdr {
 	uint32_t        p_type;	/* Segment type: Loadable segment = 1 */
 	uint32_t        p_flags;	/* Flags: logical "or" of PF_
 					 * constants below */
 	uint64_t        p_offset;	/* Offset of segment in file */
-	uint64_t        p_vaddr;	/* Reqd virtual address of segment 
+	uint64_t        p_vaddr;	/* Reqd virtual address of segment
 					 * when loading */
 	uint64_t        p_paddr;	/* Reqd physical address of
 					 * segment */
 	uint64_t        p_filesz;	/* How many bytes this segment
 					 * occupies in file */
 	uint64_t        p_memsz;	/* How many bytes this segment
-					 * should occupy in * memory (when 
+					 * should occupy in * memory (when
 					 * * loading, expand the segment
 					 * by * concatenating enough zero
 					 * bytes to it) */
@@ -172,13 +172,13 @@ elf64_getSectionTable(struct Elf64_Header *file)
 }
 
 /* accessor functions */
-static inline uint32_t 
+static inline uint32_t
 elf64_getSectionType(struct Elf64_Header *file, uint16_t s)
 {
 	return elf64_getSectionTable(file)[s].sh_type;
 }
 
-static inline uint32_t 
+static inline uint32_t
 elf64_getSectionFlags(struct Elf64_Header *file, uint16_t s)
 {
 	return elf64_getSectionTable(file)[s].sh_flags;
@@ -190,8 +190,8 @@ uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
 void * elf64_getSection(void *elfFile, int i);
 void * elf64_getSectionNamed(void *elfFile, const char *str);
 int elf64_getSegmentType (void *elfFile, int segment);
-void elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr, 
-			  uint64_t *p_paddr, uint64_t *p_filesz, 
+void elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
+			  uint64_t *p_paddr, uint64_t *p_filesz,
 			  uint64_t *p_offset, uint64_t *p_memsz);
 void elf64_showDetails(void *elfFile, int size, char *name);
 uint64_t elf64_getEntryPoint (struct Elf64_Header *elfFile);
@@ -208,19 +208,19 @@ elf64_getProgramHeaderTable(struct Elf64_Header *file)
 }
 
 /* accessor functions */
-static inline uint32_t 
+static inline uint32_t
 elf64_getProgramHeaderFlags(struct Elf64_Header *file, uint16_t ph)
 {
 	return elf64_getProgramHeaderTable(file)[ph].p_flags;
 }
 
-static inline uint32_t 
+static inline uint32_t
 elf64_getProgramHeaderType(struct Elf64_Header *file, uint16_t ph)
 {
 	return elf64_getProgramHeaderTable(file)[ph].p_type;
 }
 
-static inline uint64_t 
+static inline uint64_t
 elf64_getProgramHeaderFileSize(struct Elf64_Header *file, uint16_t ph)
 {
 	return elf64_getProgramHeaderTable(file)[ph].p_filesz;

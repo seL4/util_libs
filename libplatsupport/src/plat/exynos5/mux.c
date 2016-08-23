@@ -149,5 +149,3 @@ struct mux_feature_data* feature_data[] = {
     [MUX_SPI0_ISP]   = spi0_isp_data,
     [MUX_SPI1_ISP]   = spi1_isp_data
 };
-
-

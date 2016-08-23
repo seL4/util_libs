@@ -20,7 +20,7 @@
 #define TCLR_VALUE_32	BIT(1)
 #define TCLR_INTENABLE  BIT(5)
 #define TCLR_AUTORELOAD BIT(6)
-#define TCLR_STARTTIMER BIT(7) 
+#define TCLR_STARTTIMER BIT(7)
 
 #define TICKS_PER_SECOND 19200000
 #define TIMER_INTERVAL_TICKS(ns) ((uint32_t)(1ULL * (ns) * TICKS_PER_SECOND / 1000 / 1000 / 1000))
@@ -53,7 +53,7 @@ dm_timer_stop(const pstimer_t *timer)
 {
     dmt_t *dmt = (dmt_t*) timer->data;
     dmt->hw->control = dmt->hw->control & ~TCLR_STARTTIMER;
-    
+
     return 0;
 }
 
@@ -62,7 +62,7 @@ dm_timer_start(const pstimer_t *timer)
 {
     dmt_t *dmt = (dmt_t*) timer->data;
     dmt->hw->control = dmt->hw->control | TCLR_STARTTIMER;
-    
+
     return 0;
 }
 
@@ -71,17 +71,17 @@ dm_set_timeo(const pstimer_t *timer, uint64_t ns, int otherFlags)
 {
     dmt_t *dmt = (dmt_t*) timer->data;
 
-    dmt->hw->control = 0;      
+    dmt->hw->control = 0;
 
     uint32_t ticks = TIMER_INTERVAL_TICKS(ns);
     if (ticks < 2) {
         return EINVAL;
     }
 
-    dmt->hw->load = ticks;   
-    dmt->hw->value = ticks;  
+    dmt->hw->load = ticks;
+    dmt->hw->value = ticks;
     dmt->hw->control = TCLR_STARTTIMER | TCLR_INTENABLE | TCLR_VALUE_32 | otherFlags;
-   
+
     return 0;
 }
 
@@ -94,7 +94,7 @@ dm_periodic(const pstimer_t *timer, uint64_t ns)
 static int
 dm_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
 {
-    return ENOSYS;      
+    return ENOSYS;
 }
 
 static int

@@ -52,4 +52,3 @@ unsigned long simple_strtoul(const char *cp, char **endp,
 
 	return result;
 }
-

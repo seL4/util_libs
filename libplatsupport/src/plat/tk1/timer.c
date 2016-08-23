@@ -25,7 +25,7 @@
 #define PVT_PERIODIC_E_BIT  30
 
 /* 0-28 bits are for value, n + 1 trigger mode */
-#define PVT_VAL_MASK        0x1fffffff 
+#define PVT_VAL_MASK        0x1fffffff
 #define PVT_VAL_BITS        29
 
 /* write 1 to clear interruts */
@@ -216,7 +216,7 @@ tk1_get_timer(nv_tmr_config_t *config)
 
     pstimer_t *timer = &singleton_timer;
     tmr_t *tmr = &singleton_tmr;
-    
+
     timer->properties.upcounter = false;
     timer->properties.timeouts = true;
     timer->properties.bit_width = 0;
@@ -231,12 +231,12 @@ tk1_get_timer(nv_tmr_config_t *config)
     timer->periodic = tmr_periodic;
     timer->handle_irq = tmr_handle_irq;
     timer->get_nth_irq = tmr_get_nth_irq;
-    
+
     tmr->irq = config->irq;
     tmr->tmr_map = (volatile struct tmr_map *)config->vaddr;
     tmr->tmrus_map = (volatile struct tmrus_map *)config->tmrus_vaddr;
     tmr->tmr_shared_map = (volatile struct tmr_shared_map *)config->shared_vaddr;
-    
+
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
     if (tmr->tmrus_map->usec_cfg != TMRUS_USEC_CFG_DEFAULT) {
@@ -245,4 +245,3 @@ tk1_get_timer(nv_tmr_config_t *config)
 
     return timer;
 }
-

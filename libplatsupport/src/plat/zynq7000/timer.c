@@ -485,4 +485,3 @@ ps_init_timer(int _id, ps_io_ops_t* io_ops)
     }
     return timer;
 }
-

@@ -52,5 +52,3 @@ int exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu);
 
 
 #endif /* __PLAT_SUPPORT_PLAT_TMU_H */
-
-

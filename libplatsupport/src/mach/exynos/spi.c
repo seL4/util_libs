@@ -449,4 +449,3 @@ spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** ret_spi_bus)
 
     return spi_init_common(spi_bus, &io_ops->mux_sys, &io_ops->clock_sys);
 }
-

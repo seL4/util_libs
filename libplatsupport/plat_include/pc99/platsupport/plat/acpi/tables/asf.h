@@ -200,6 +200,3 @@ acpi_asf_addr_smb_next(acpi_asf_addr_t* h, acpi_asf_addr_smb_t* cur)
         return NULL;
     }
 }
-
-
-

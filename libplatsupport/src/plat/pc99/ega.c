@@ -160,5 +160,3 @@ text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice
 
     return 0;
 }
-
-

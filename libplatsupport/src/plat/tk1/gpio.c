@@ -49,9 +49,9 @@
 #define gpio_debug(fmt,args...)
 #endif
 
-uint32_t tegra_gpio_controller[] = { GPIO_CONTROLLER1_ADDR_OFFSET, 
-                                     GPIO_CONTROLLER2_ADDR_OFFSET, 
-                                     GPIO_CONTROLLER3_ADDR_OFFSET, 
+uint32_t tegra_gpio_controller[] = { GPIO_CONTROLLER1_ADDR_OFFSET,
+                                     GPIO_CONTROLLER2_ADDR_OFFSET,
+                                     GPIO_CONTROLLER3_ADDR_OFFSET,
                                      GPIO_CONTROLLER4_ADDR_OFFSET,
                                      GPIO_CONTROLLER5_ADDR_OFFSET,
                                      GPIO_CONTROLLER6_ADDR_OFFSET,
@@ -68,10 +68,10 @@ uint32_t tegra_gpio_port[] = { GPIO_PORT1,
 volatile static void *gpio_vaddr;
 
 static inline volatile void* get_controller_register(enum gpio_pin gpio_num, uint32_t gpio_register)
-{ 
+{
      return (gpio_vaddr + tegra_gpio_controller[GPIO_BANK(gpio_num)] + tegra_gpio_port[GPIO_PORT(gpio_num)] + gpio_register);
 }
- 
+
 
 void gpio_init(volatile void *vaddr)
 {
@@ -81,14 +81,14 @@ void gpio_init(volatile void *vaddr)
 
 void gpio_set_pad_mode(enum gpio_pin gpio, enum gpio_pad_mode mode)
 {
-    gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_CNF: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n", 
+    gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_CNF: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n",
                 __func__, tegra_gpio_controller[GPIO_BANK(gpio)] + tegra_gpio_port[GPIO_PORT(gpio)] + GPIO_CNF,
-                 tegra_gpio_controller[GPIO_BANK(gpio)],    
-                  tegra_gpio_port[GPIO_PORT(gpio)],  
+                 tegra_gpio_controller[GPIO_BANK(gpio)],
+                  tegra_gpio_port[GPIO_PORT(gpio)],
                   GPIO_CNF, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
     gpio_debug("%s, mode: %d\n", __func__, mode);
 
-    volatile void *reg_vaddr = get_controller_register(gpio, GPIO_CNF); 
+    volatile void *reg_vaddr = get_controller_register(gpio, GPIO_CNF);
 
     uint32_t reg = (*(uint32_t*)reg_vaddr) & 0xff;
 
@@ -104,7 +104,7 @@ void gpio_set_pad_mode(enum gpio_pin gpio, enum gpio_pad_mode mode)
     }
 
     gpio_debug("%s, reg: 0x%x\n", __func__, reg);
-    *(uint32_t*)reg_vaddr = reg;    
+    *(uint32_t*)reg_vaddr = reg;
 }
 
 void gpio_set_mode(enum gpio_pin gpio, enum gpio_mode mode)
@@ -130,10 +130,10 @@ void gpio_set_mode(enum gpio_pin gpio, enum gpio_mode mode)
 void gpio_set_level(enum gpio_pin gpio, int level)
 {
 
-    gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n", 
+    gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n",
                 __func__, tegra_gpio_controller[GPIO_BANK(gpio)] + tegra_gpio_port[GPIO_PORT(gpio)] + GPIO_OUT,
-                 tegra_gpio_controller[GPIO_BANK(gpio)],    
-                  tegra_gpio_port[GPIO_PORT(gpio)],  
+                 tegra_gpio_controller[GPIO_BANK(gpio)],
+                  tegra_gpio_port[GPIO_PORT(gpio)],
                   GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
     volatile void *reg_vaddr = get_controller_register(gpio, GPIO_OUT);
 
@@ -151,19 +151,18 @@ void gpio_set_level(enum gpio_pin gpio, int level)
 bool gpio_get_input(enum gpio_pin gpio)
 {
 
-   gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n", 
+   gpio_debug("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n",
                 __func__, tegra_gpio_controller[GPIO_BANK(gpio)] + tegra_gpio_port[GPIO_PORT(gpio)] + GPIO_IN,
-                 tegra_gpio_controller[GPIO_BANK(gpio)],   
-                  tegra_gpio_port[GPIO_PORT(gpio)],  
+                 tegra_gpio_controller[GPIO_BANK(gpio)],
+                  tegra_gpio_port[GPIO_PORT(gpio)],
                   GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
 
    volatile void *reg_vaddr = get_controller_register(gpio, GPIO_IN);
 
    uint32_t reg = (*(uint32_t*)reg_vaddr) & 0xff;
 
-   gpio_debug("reg: 0x%x\n", reg); 
-  
-   return !!(reg & BIT(GPIO_BIT(gpio)));
-  
-}
+   gpio_debug("reg: 0x%x\n", reg);
 
+   return !!(reg & BIT(GPIO_BIT(gpio)));
+
+}

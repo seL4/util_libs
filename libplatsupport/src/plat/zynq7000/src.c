@@ -93,4 +93,3 @@ reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
     reset_controller_unlock(dev);
     return 0;
 }
-

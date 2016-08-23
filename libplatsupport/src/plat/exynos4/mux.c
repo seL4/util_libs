@@ -208,5 +208,3 @@ struct mux_feature_data* feature_data[] = {
     [MUX_EBI]        = ebi_data,
     [MUX_SROM]       = srom_data,
 };
-
-

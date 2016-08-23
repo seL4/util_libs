@@ -87,5 +87,3 @@ pstimer_t *
 tsc_get_timer_with_freq(uint64_t freq);
 
 #endif /* _PLATSUPPORT_TSC_H */
-
-

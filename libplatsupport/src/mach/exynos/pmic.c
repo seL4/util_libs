@@ -289,4 +289,3 @@ pmic_print_status(pmic_t* pmic)
     }
     printf("Reset delay: %d ms\n", pmic_get_reset_delay(pmic));
 }
-

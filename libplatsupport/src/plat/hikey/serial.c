@@ -36,7 +36,7 @@ int uart_getchar(ps_chardevice_t *d)
 int uart_putchar(ps_chardevice_t* d, int c)
 {
     while ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0);
-    
+
     *REG_PTR(d->vaddr, UARTDR) = c;
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         uart_putchar(d, '\r');
@@ -74,4 +74,3 @@ int uart_init(const struct dev_defn* defn,
     *REG_PTR(dev->vaddr, UARTIMSC) = 0x50;
     return 0;
 }
-

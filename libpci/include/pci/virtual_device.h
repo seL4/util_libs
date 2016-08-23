@@ -13,8 +13,8 @@
  *     Authors:
  *         Xi (Ma) Chen
  *
- *     Tue 05 Nov 2013 14:56:38 EST 
- 
+ *     Tue 05 Nov 2013 14:56:38 EST
+
      Example usage:
         d = libpci_find_device(0x1022, 0x2000); assert(d);
         v = vpci->vdevice_assign(vpci); assert(v);
@@ -88,7 +88,7 @@ struct libpci_vdevice {
         uint32_t base_addr, /* correctly aligned new address. */
         libpci_device_t* dev /* contains physical device info */
     );
-    
+
     /* implicitly sets physical_device_passthrough to the given device. */
     void (*rebase_ioaddr_realdevice) (libpci_vdevice_t* self,
         int base_addr_index, /* 0 ... 5 */
@@ -103,7 +103,7 @@ struct libpci_vdevice {
         bool prefetch, /* prefetchable? */
         bool LWord64 /* Is this address the LWORD of a 64-bit address? */
     );
-    
+
     void (*rebase_ioaddr_virtdevice) (libpci_vdevice_t* self,
         int base_addr_index, /* 0 ... 5 */
         uint32_t base_addr, /* correctly aligned new address. */

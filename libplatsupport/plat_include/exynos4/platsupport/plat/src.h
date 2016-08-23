@@ -41,4 +41,3 @@ enum src_rst_id {
 };
 
 #endif /* PLATSUPPORT_PLAT_SRC_H */
-

@@ -252,7 +252,7 @@ char* libpci_vendorID_str(int vid) {
     if (vid == 0x1b85) return "ocz";
     if (vid == 0x15ad) return "vmware";
     if (vid == 0xffff) return "invalid";
-    return "Unknown vendor ID."; 
+    return "Unknown vendor ID.";
 }
 
 char* libpci_deviceID_str(int vid, int did) {
@@ -2290,6 +2290,5 @@ char* libpci_deviceID_str(int vid, int did) {
     if (vid == 0x15ad && did == 0x07b0) return "vmware_vmxnet3";
     if (vid == 0x15ad && did == 0x0710) return "vmware_vsvga";
     if (vid == 0x15ad && did == 0x0405) return "vmware_vsvga2";
-    return "Unknown device ID."; 
+    return "Unknown device ID.";
 }
-

@@ -159,5 +159,3 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     UNRESOURCE(&io_ops->io_mapper, IOMUXC, base);
     return 0;
 }
-
-

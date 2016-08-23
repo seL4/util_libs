@@ -658,4 +658,3 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     }
     return i2c_init_common(mux, i2c, dev);
 }
-

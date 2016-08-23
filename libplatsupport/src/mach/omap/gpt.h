@@ -182,4 +182,3 @@ uint64_t gpt_ticks_to_ns(uint64_t ns);
 uint64_t gpt_ns_to_ticks(uint64_t ticks);
 /* do a soft reset such that this gpt is ready to go, set prescaler */
 void gpt_init(gpt_t *gpt);
-

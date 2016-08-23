@@ -2,17 +2,17 @@
 
 /*
  * Australian Public Licence B (OZPLB)
- * 
+ *
  * Version 1-0
- * 
+ *
  * Copyright (c) 2004 University of New South Wales
- * 
- * All rights reserved. 
- * 
+ *
+ * All rights reserved.
+ *
  * Developed by: Operating Systems and Distributed Systems Group (DiSy)
  *               University of New South Wales
  *               http://www.disy.cse.unsw.edu.au
- * 
+ *
  * Permission is granted by University of New South Wales, free of charge, to
  * any person obtaining a copy of this software and any associated
  * documentation files (the "Software") to deal with the Software without
@@ -21,19 +21,19 @@
  * sublicense, and/or sell, lend or rent out copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimers.
- * 
+ *
  *     * Redistributions in binary form must reproduce the above
  *       copyright notice, this list of conditions and the following
  *       disclaimers in the documentation and/or other materials provided
  *       with the distribution.
- * 
+ *
  *     * Neither the name of University of New South Wales, nor the names of its
  *       contributors, may be used to endorse or promote products derived
  *       from this Software without specific prior written permission.
- * 
+ *
  * EXCEPT AS EXPRESSLY STATED IN THIS LICENCE AND TO THE FULL EXTENT
  * PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS-IS", AND
  * NATIONAL ICT AUSTRALIA AND ITS CONTRIBUTORS MAKE NO REPRESENTATIONS,
@@ -43,7 +43,7 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT,
  * THE ABSENCE OF LATENT OR OTHER DEFECTS, OR THE PRESENCE OR ABSENCE OF
  * ERRORS, WHETHER OR NOT DISCOVERABLE.
- * 
+ *
  * TO THE FULL EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
  * NATIONAL ICT AUSTRALIA OR ITS CONTRIBUTORS BE LIABLE ON ANY LEGAL
  * THEORY (INCLUDING, WITHOUT LIMITATION, IN AN ACTION OF CONTRACT,
@@ -57,7 +57,7 @@
  * DEALINGS WITH THE SOFTWARE, EVEN IF NATIONAL ICT AUSTRALIA OR ITS
  * CONTRIBUTORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH CLAIM, LOSS,
  * DAMAGES OR OTHER LIABILITY.
- * 
+ *
  * If applicable legislation implies representations, warranties, or
  * conditions, or imposes obligations or liability on University of New South
  * Wales or one of its contributors in respect of the Software that
@@ -74,7 +74,7 @@
  * b.  in the case of services:
  * i.  the supplying of the services again; or
  * ii.  the payment of the cost of having the services supplied again.
- * 
+ *
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
@@ -85,7 +85,7 @@
 
 /*
  * Checks that elfFile points to a valid elf file. Returns 0 if the elf
- * file is valid, < 0 if invalid. 
+ * file is valid, < 0 if invalid.
  */
 
 #define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
@@ -247,8 +247,8 @@ elf_getSectionNamed(void *elfFile, const char *_str)
 }
 
 void
-elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr, 
-			 uint64_t *p_paddr, uint64_t *p_filesz, uint64_t *p_offset, 
+elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr,
+			 uint64_t *p_paddr, uint64_t *p_filesz, uint64_t *p_offset,
 			 uint64_t *p_memsz)
 {
 	*p_vaddr = elf_getProgramHeaderVaddr(elfFile, ph);

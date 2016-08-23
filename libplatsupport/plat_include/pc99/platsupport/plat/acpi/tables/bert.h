@@ -34,4 +34,3 @@ typedef struct acpi_bert {
 
 
 #pragma pack(pop)
-

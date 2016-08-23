@@ -16,4 +16,3 @@ enum gpio_port {
 };
 
 #endif /* _AM335X_GPIO_H */
-

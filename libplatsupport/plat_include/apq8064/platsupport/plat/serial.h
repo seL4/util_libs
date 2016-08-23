@@ -44,5 +44,3 @@ enum chardev_id {
 
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
-
-

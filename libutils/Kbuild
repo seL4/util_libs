@@ -11,5 +11,3 @@
 libs-$(CONFIG_LIB_UTILS) += libutils
 
 libutils: common $(libc)
-
-

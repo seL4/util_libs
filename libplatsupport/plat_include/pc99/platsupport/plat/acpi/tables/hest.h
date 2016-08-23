@@ -35,6 +35,3 @@ typedef struct acpi_hest {
 
 
 #pragma pack(pop)
-
-
-

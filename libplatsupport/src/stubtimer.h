@@ -67,4 +67,3 @@ stub_timer_get_timer(pstimer_t *timer)
 }
 
 #endif /* STUB_TIMER_H */
-

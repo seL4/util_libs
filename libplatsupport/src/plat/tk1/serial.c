@@ -37,7 +37,7 @@ struct tk1_uart_regs {
     uint32_t    thr_dlab;   /* 0x0: tx holding register                     */
     uint32_t    ier_dlab;   /* 0x4: IER and DLH registers                   */
     uint32_t    iir_fcr;    /* 0x8: FIFO control; interrupt identification  */
-    uint32_t    lcr;        /* 0xc: line control                            */ 
+    uint32_t    lcr;        /* 0xc: line control                            */
     uint32_t    mcr;        /* 0x10: modem control                          */
     uint32_t    lsr;        /* 0x14: line status                            */
     uint32_t    msr;        /* 0x18: modem status                           */
@@ -97,7 +97,7 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
 
     switch (char_size) {
         case 5:
-            lcr |= LCR_WD_SIZE_5; 
+            lcr |= LCR_WD_SIZE_5;
             break;
         case 6:
             lcr |= LCR_WD_SIZE_6;
@@ -149,7 +149,7 @@ int uart_init(const struct dev_defn* defn,
             return -1;
         }
     }
-    
+
     /* add offsets properly */
     switch (defn->id) {
         case TK1_UARTA:
@@ -190,4 +190,3 @@ int uart_init(const struct dev_defn* defn,
 
     return 0;
 }
-

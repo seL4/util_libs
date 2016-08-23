@@ -100,7 +100,7 @@ uint32_t libpci_read_reg(uint8_t bus, uint8_t dev, uint8_t fun, uint8_t reg, uin
 
 void libpci_write_reg(uint8_t bus, uint8_t dev, uint8_t fun, uint8_t reg, uint32_t val, uint8_t size) {
     switch (size) {
-    case 1: libpci_write_reg8(bus, dev, fun, reg, val); return; 
+    case 1: libpci_write_reg8(bus, dev, fun, reg, val); return;
     case 2: libpci_write_reg16(bus, dev, fun, reg, val); return;
     case 4: libpci_write_reg32(bus, dev, fun, reg, val); return;
     default:

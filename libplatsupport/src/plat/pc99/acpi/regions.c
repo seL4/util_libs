@@ -249,4 +249,3 @@ acpi_find_region(acpi_t *acpi, region_type_t region)
 
     return (acpi_header_t *) regions->regions[index].start;
 }
-

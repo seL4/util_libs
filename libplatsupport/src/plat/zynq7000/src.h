@@ -11,4 +11,3 @@
 #include <platsupport/src.h>
 
 void* reset_controller_get_clock_regs(src_dev_t* dev);
-

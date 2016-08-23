@@ -14,8 +14,8 @@ menuconfig LIB_PLATSUPPORT
     depends on HAVE_LIB_UTILS
     select HAVE_LIB_PLATSUPPORT
     help
-        Build an OS independent platform support library. The only 
-        prerequisite is that a function to map physical device memory 
+        Build an OS independent platform support library. The only
+        prerequisite is that a function to map physical device memory
         be provided.
 
 choice

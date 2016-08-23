@@ -492,5 +492,3 @@ gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
     assert(io_ops);
     return exynos_gpio_sys_init(&io_ops->mux_sys, gpio_sys);
 }
-
-

@@ -76,4 +76,3 @@ int uart_init(const struct dev_defn* defn,
     *REG_PTR(dev->vaddr, IER) = IER_RHRIT;
     return 0;
 }
-

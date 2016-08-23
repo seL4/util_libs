@@ -172,7 +172,7 @@ struct enet {
 typedef volatile struct enet_regs enet_regs_t;
 
 
-static inline enet_regs_t* 
+static inline enet_regs_t*
 enet_get_regs(struct enet* enet){
     return (enet_regs_t*)enet;
 }
@@ -315,7 +315,7 @@ static struct clock mdc_clk = {
     };
 
 
-void 
+void
 enet_set_speed(struct enet* enet, int speed, int full_duplex){
     enet_regs_t* regs = enet_get_regs(enet);
     uint32_t ecr = regs->ecr;
@@ -344,9 +344,9 @@ enet_set_speed(struct enet* enet, int speed, int full_duplex){
     }
     /* Now select duplex */
     if(full_duplex){
-        rcr &= ~RCR_DRT; 
+        rcr &= ~RCR_DRT;
     }else{
-        rcr |= RCR_DRT; 
+        rcr |= RCR_DRT;
     }
     /* Write the registers */
     regs->ecr = ecr;
@@ -391,34 +391,34 @@ enet_mdio_write(struct enet * enet, uint16_t phy, uint16_t reg, uint16_t data){
 /*******************
  *** ENET driver ***
  *******************/
-void 
+void
 enet_rx_enable(struct enet* enet){
-    enet_get_regs(enet)->rdar = RDAR_RDAR; 
+    enet_get_regs(enet)->rdar = RDAR_RDAR;
 }
 
-int 
+int
 enet_rx_enabled(struct enet* enet){
-    return enet_get_regs(enet)->rdar == RDAR_RDAR; 
+    return enet_get_regs(enet)->rdar == RDAR_RDAR;
 }
 
-int 
+int
 enet_tx_enabled(struct enet* enet){
-    return enet_get_regs(enet)->tdar == TDAR_TDAR; 
+    return enet_get_regs(enet)->tdar == TDAR_TDAR;
 }
 
 
-void 
+void
 enet_tx_enable(struct enet* enet){
-    enet_get_regs(enet)->tdar = TDAR_TDAR; 
+    enet_get_regs(enet)->tdar = TDAR_TDAR;
 }
 
-void 
+void
 enet_enable(struct enet * enet){
     enet_regs_t* regs = enet_get_regs(enet);
     regs->ecr |= ECR_ETHEREN;
 }
 
-int 
+int
 enet_enabled(struct enet* enet){
     enet_regs_t* regs = enet_get_regs(enet);
     return (regs->ecr & ECR_ETHEREN) != 0;
@@ -570,7 +570,7 @@ dump_regs(uint32_t* start, int size){
     }
 }
 
-void 
+void
 enet_dump_regs(struct enet* enet){
     enet_regs_t* regs = enet_get_regs(enet);
     printf("\nEthernet regs\n");
@@ -603,7 +603,7 @@ void enet_print_mib(struct enet* enet){
     printf("\n");
 
     printf("-----------------------------\n");
-    printf("RX  Frames RX OK: %d/%d\n", mib->ieee_r_frame_ok, 
+    printf("RX  Frames RX OK: %d/%d\n", mib->ieee_r_frame_ok,
                                        mib->rmon_r_packets);
     printf("RX FIFO overflow: %d\n", mib->ieee_r_macerr);
     printf("RX  pause frames: %d\n", mib->ieee_r_fdxfc);
@@ -619,13 +619,13 @@ void enet_print_mib(struct enet* enet){
 
 
 
-void 
+void
 enet_print_state(struct enet * enet){
     enet_regs_t* regs = enet_get_regs(enet);
     printf("Ethernet state: %s\n", (   enet_enabled(enet))? "Active" : "Inactive");
     printf("      TX state: %s\n", (enet_tx_enabled(enet))? "Active" : "Inactive");
     printf("      RX state: %s\n", (enet_rx_enabled(enet))? "Active" : "Inactive");
-    printf("    TX control: 0x%08x\n", regs->tcr); 
+    printf("    TX control: 0x%08x\n", regs->tcr);
     printf("    RX control: 0x%08x\n", regs->rcr);
     printf("  RX desc base: 0x%08x (size: 0x%x)\n", regs->rdsr, regs->mrbr);
     printf("  TX desc base: 0x%08x\n", regs->tdsr);

@@ -66,6 +66,6 @@ typedef s32 __bitwise __be32;
 typedef s16 __bitwise __be16;
 typedef s8  __bitwise __be8;
 
-#define gpio_init() 
+#define gpio_init()
 
 #endif /* __UNIMPLEMENTED_H__ */

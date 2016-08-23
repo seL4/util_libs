@@ -151,5 +151,3 @@ int fec_init(unsigned phy_mask, struct enet* enet)
     udelay(100000);
     return 0;
 }
-
-

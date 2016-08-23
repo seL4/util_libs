@@ -20,4 +20,3 @@ HDRFILES := $(wildcard $(SOURCE_DIR)/include/*)
 CFLAGS += -std=gnu99 # -Wall -Werror
 
 include $(SEL4_COMMON)/common.mk
-

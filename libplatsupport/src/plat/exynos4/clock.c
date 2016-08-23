@@ -423,4 +423,3 @@ freq_t ps_freq_default[] = {
     [CLK_SPI0_ISP]       =    0 * MHZ,
     [CLK_SPI1_ISP]       =    0 * MHZ,
 };
-

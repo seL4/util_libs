@@ -97,4 +97,3 @@ int pmic_set_reset_delay(pmic_t* pmic, int ms);
 int pmic_get_reset_delay(pmic_t* pmic);
 
 #endif /* __MACHSUPPORT_MACH_PMIC__ */
-

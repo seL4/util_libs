@@ -19,7 +19,7 @@ The function acpi_init will parse the acpi tables and bring them into
 virtual memory. It requires two functions from the user:
 
     * acpi_map_paddr to map a physical area of memory (to any virtual
-    address).  
+    address).
     * acpi_unmap_vaddr to unmap an area mapped with the
     previous function.
 
@@ -40,4 +40,4 @@ Not all tables are implemented. If you can't find the table you are
 looking for, dig into the source. Sorry.
 
 There are debugging functions in src/printer* and src/browser*. These have
-not been tested recently, but are left in case they are required in future. 
+not been tested recently, but are left in case they are required in future.

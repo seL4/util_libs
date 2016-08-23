@@ -84,6 +84,3 @@ int exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* to
                            clock_sys_t* clock_sys);
 
 #endif /* _EXYNOS5_CLOCK_H */
-
-
-

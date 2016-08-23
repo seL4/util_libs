@@ -18,7 +18,7 @@ config LIB_ETHDRIVER_RX_DESC_COUNT
     depends on LIB_ETHIF
     default 128
     help
-        The number of RX descriptors in the descriptor ring for the 
+        The number of RX descriptors in the descriptor ring for the
         driver.
 
 config LIB_ETHDRIVER_TX_DESC_COUNT
