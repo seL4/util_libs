@@ -1,15 +1,16 @@
 /*
- * Copyright 2016, NICTA
+ * Copyright 2016, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
  * See "LICENSE_BSD2.txt" for details.
  *
- * @TAG(NICTA_BSD)
+ * @TAG(D61_BSD)
  */
-
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
+#include <autoconf.h>
 
 /* the UARTs are in one page, so we only map the first one */
 #define UARTA_PADDR  0x70006000
@@ -17,6 +18,7 @@
 #define UARTC_PADDR  0x70006000
 #define UARTD_PADDR  0x70006000
 
+#define UARTA_OFFSET 0x0
 #define UARTB_OFFSET 0x40
 #define UARTC_OFFSET 0x200
 #define UARTD_OFFSET 0x300
@@ -41,6 +43,3 @@ enum chardev_id {
     /* defaults */
     PS_SERIAL_DEFAULT = TK1_UARTD
 };
-
-
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
