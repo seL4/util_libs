@@ -139,7 +139,7 @@ unsigned int rtc_get_century_register(acpi_t *acpi)
 {
     acpi_header_t *header = acpi_find_region(acpi, ACPI_FADT);
     if (!header) {
-        LOG_ERROR("ACPI has no FADT header. Your BIOS is broken");
+        ZF_LOGE("ACPI has no FADT header. Your BIOS is broken");
         return 0;
     }
     acpi_fadt_t *fadt = (acpi_fadt_t*)header;
