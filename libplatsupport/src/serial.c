@@ -16,7 +16,7 @@
 ssize_t
 uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
 {
-    const char* data = (const char*)vdata;
+    const unsigned char* data = (const unsigned char*)vdata;
     int i;
     for (i = 0; i < count; i++) {
         if (uart_putchar(d, data[i]) < 0) {
