@@ -17,6 +17,7 @@
 
 
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
+static struct clock sp804_clk = { CLK_OPS_DEFAULT(SP804) };
 
 int
 clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
@@ -37,6 +38,7 @@ clk_print_clock_tree(clock_sys_t* sys)
 
 clk_t* ps_clocks[] = {
     [CLK_MASTER]   = &master_clk,
+    [CLK_SP804]    = &sp804_clk,
 };
 
 /* These frequencies are NOT the recommended
@@ -45,4 +47,5 @@ clk_t* ps_clocks[] = {
  * has left us with. */
 freq_t ps_freq_default[] = {
     [CLK_MASTER]   =  0 * MHZ,
+    [CLK_SP804]    = 250 * MHZ,
 };

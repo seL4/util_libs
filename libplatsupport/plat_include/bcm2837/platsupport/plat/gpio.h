@@ -8,8 +8,7 @@
  * @TAG(D61_BSD)
  */
 
-#ifndef _BCM2837_GPIO_H
-#define _BCM2837_GPIO_H
+ #pragma once
 
 #include <platsupport/gpio.h>
 #include <platsupport/mux.h>
@@ -17,5 +16,3 @@
 enum gpio_port {
     GPIO_NBANKS
 };
-
-#endif /* _BCM2837_GPIO_H */

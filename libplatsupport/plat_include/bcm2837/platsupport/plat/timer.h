@@ -7,8 +7,7 @@
  *
  * @TAG(D61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+ #pragma once
 
 #include <platsupport/timer.h>
 
@@ -38,10 +37,8 @@ static const int bcm_timer_irqs[] = {
 };
 
 typedef struct {
-    /* vaddr pwm is mapped to */
+    /* vaddr timer is mapped to */
     void *vaddr;
 } timer_config_t;
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
-
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */

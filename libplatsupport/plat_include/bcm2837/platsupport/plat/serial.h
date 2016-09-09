@@ -8,22 +8,21 @@
  * @TAG(D61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+ #pragma once
 
 #define BUS_ADDR_OFFSET             0x7E000000
 #define PADDDR_OFFSET               0x3F000000
 
 #define UART_BUSADDR                0x7E215000
 
-#define UART_PADDR                  (UART_BUSADDR-BUS_ADDR_OFFSET+PADDDR_OFFSET)
+#define UART_PADDR_0                (UART_BUSADDR-BUS_ADDR_OFFSET+PADDDR_OFFSET)
 
 enum chardev_id {
     BCM2837_UART0,
+
+    NUM_CHARDEV,
     /* Aliases */
     PS_SERIAL0 = BCM2837_UART0,
     /* defaults */
     PS_SERIAL_DEFAULT = BCM2837_UART0
 };
-
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

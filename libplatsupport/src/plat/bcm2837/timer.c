@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <utils/util.h>
-
+#include "../../arch/arm/clock.h"
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
@@ -127,7 +127,6 @@ static struct arm_data _timer_data[NTIMERS] = {
 };
 
 #define TIMER_BASE_OFFSET 0x400
-#define SP_CLK_MHZ 250ULL
 
 static uint32_t
 sp_get_nth_irq(const pstimer_t *timer, uint32_t n)
@@ -169,7 +168,7 @@ static int
 configure_sp(const pstimer_t *timer, uint64_t ns)
 {
     struct arm_data *data = (struct arm_data*) timer->data;
-    uint64_t ticks = ns / NS_IN_US * SP_CLK_MHZ;
+    uint64_t ticks = ns / (NS_IN_US / (data->freq / MHZ));
     uint32_t prescale_bits = 0;
     data->prescaler = 1;
     data->counter_start = ns;
@@ -248,7 +247,7 @@ sp_get_time(const pstimer_t *timer)
     uint64_t value;
 
     value = data->regs->value;
-    uint64_t ns = (value / (uint64_t)SP_CLK_MHZ) * NS_IN_US * (data->prescaler);
+    uint64_t ns = (value / (data->freq / MHZ)) * NS_IN_US * (data->prescaler);
 
     return data->counter_start - ns;
 }
@@ -261,9 +260,10 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     pstimer_t *timer;
     struct arm_data *timer_data;
     void* vaddr;
-
+    clk_t *clk;
     /* Save the mmio address */
     vaddr = config->vaddr;
+
     switch (id) {
     case SP804:
         vaddr = vaddr + TIMER_BASE_OFFSET;
@@ -276,8 +276,10 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     timer_data = &_timer_data[id];
     timer->data = timer_data;
     timer_data->regs = vaddr;
-
-    timer_data->freq = SP_CLK_MHZ;//clk_get_freq(clk);
+    clock_sys_t clk_sys;
+    clock_sys_init_default(&clk_sys);
+    clk = clk_get_clock(&clk_sys, CLK_SP804);
+    timer_data->freq = clk_get_freq(clk);
 
     timer->properties.upcounter = false;
     timer->properties.timeouts = true;
@@ -297,10 +299,4 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     timer->get_nth_irq = sp_get_nth_irq;
 
     return timer;
-}
-
-pstimer_t*
-ps_init_timer(int _id, ps_io_ops_t* io_ops)
-{
-    return NULL;
 }
