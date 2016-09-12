@@ -36,7 +36,7 @@ typedef enum {
 #define INT_NV_TMR1         32
 #define INT_NV_TMR2         33
 #define INT_NV_TMR3         73
-#define INT_NV_TMR4         74 
+#define INT_NV_TMR4         74
 #define INT_NV_TMR5         153
 #define INT_NV_TMR6         184
 #define INT_NV_TMR7         185

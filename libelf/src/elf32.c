@@ -2,17 +2,17 @@
 
 /*
  * Australian Public Licence B (OZPLB)
- * 
+ *
  * Version 1-0
- * 
+ *
  * Copyright (c) 2004 University of New South Wales
- * 
- * All rights reserved. 
- * 
+ *
+ * All rights reserved.
+ *
  * Developed by: Operating Systems and Distributed Systems Group (DiSy)
  *               University of New South Wales
  *               http://www.disy.cse.unsw.edu.au
- * 
+ *
  * Permission is granted by University of New South Wales, free of charge, to
  * any person obtaining a copy of this software and any associated
  * documentation files (the "Software") to deal with the Software without
@@ -21,19 +21,19 @@
  * sublicense, and/or sell, lend or rent out copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimers.
- * 
+ *
  *     * Redistributions in binary form must reproduce the above
  *       copyright notice, this list of conditions and the following
  *       disclaimers in the documentation and/or other materials provided
  *       with the distribution.
- * 
+ *
  *     * Neither the name of University of New South Wales, nor the names of its
  *       contributors, may be used to endorse or promote products derived
  *       from this Software without specific prior written permission.
- * 
+ *
  * EXCEPT AS EXPRESSLY STATED IN THIS LICENCE AND TO THE FULL EXTENT
  * PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS-IS", AND
  * NATIONAL ICT AUSTRALIA AND ITS CONTRIBUTORS MAKE NO REPRESENTATIONS,
@@ -43,7 +43,7 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT,
  * THE ABSENCE OF LATENT OR OTHER DEFECTS, OR THE PRESENCE OR ABSENCE OF
  * ERRORS, WHETHER OR NOT DISCOVERABLE.
- * 
+ *
  * TO THE FULL EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
  * NATIONAL ICT AUSTRALIA OR ITS CONTRIBUTORS BE LIABLE ON ANY LEGAL
  * THEORY (INCLUDING, WITHOUT LIMITATION, IN AN ACTION OF CONTRACT,
@@ -57,7 +57,7 @@
  * DEALINGS WITH THE SOFTWARE, EVEN IF NATIONAL ICT AUSTRALIA OR ITS
  * CONTRIBUTORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH CLAIM, LOSS,
  * DAMAGES OR OTHER LIABILITY.
- * 
+ *
  * If applicable legislation implies representations, warranties, or
  * conditions, or imposes obligations or liability on University of New South
  * Wales or one of its contributors in respect of the Software that
@@ -74,7 +74,7 @@
  * b.  in the case of services:
  * i.  the supplying of the services again; or
  * ii.  the payment of the cost of having the services supplied again.
- * 
+ *
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
@@ -97,7 +97,7 @@ elf32_checkFile(struct Elf32_Header *file)
 }
 
 /*
- * Returns the number of program segments in this elf file. 
+ * Returns the number of program segments in this elf file.
  */
 unsigned
 elf32_getNumSections(struct Elf32_Header *elfFile)
@@ -205,7 +205,7 @@ elf32_printStringTable(struct Elf32_Header *elfFile)
 	printf("File is %p; sections is %p; string table is %p\n", elfFile, sections, stringTable);
 
 	for (counter=0; counter < sections[elfFile->e_shstrndx].sh_size; counter++) {
-		printf("%02x %c ", stringTable[counter], 
+		printf("%02x %c ", stringTable[counter],
 				stringTable[counter] >= 0x20 ? stringTable[counter] : '.');
 	}
 }
@@ -237,11 +237,11 @@ elf32_getEntryPoint (struct Elf32_Header *elfFile)
 }
 
 /*
- * Debugging functions 
+ * Debugging functions
  */
 
 /*
- * prints out some details of one elf file 
+ * prints out some details of one elf file
  */
 void
 elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, int flags)
@@ -266,7 +266,7 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 
 
 	/*
-	 * get a pointer to the table of program segments 
+	 * get a pointer to the table of program segments
 	 */
 	segments = elf32_getProgramHeaderTable(file);
 	numSegments = elf32_getNumProgramHeaders(file);
@@ -280,12 +280,12 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 	}
 
 		/*
-		 * print out info about each section 
+		 * print out info about each section
 		 */
 		
 	if (flags & ELF_PRINT_PROGRAM_HEADERS) {
 		/*
-		 * print out info about each program segment 
+		 * print out info about each program segment
 		 */
 		fprintf(f, "Program Headers:\n");
 		fprintf(f, "  Type           Offset   VirtAddr   PhysAddr   "
@@ -297,7 +297,7 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 			} else {
 				fprintf(f, "  LOAD           0x%06" PRIx32 " 0x%08" PRIx32 " 0x%08" PRIx32  \
 				       " 0x%05" PRIx32" 0x%05" PRIx32 " %c%c%c 0x%04" PRIx32 "\n",
-				//fprintf(f, "  LOAD           0x%" PRIxPTR " 0x%" PRIxPTR " 0x%" PRIxPTR 
+				//fprintf(f, "  LOAD           0x%" PRIxPTR " 0x%" PRIxPTR " 0x%" PRIxPTR
 				//	" 0x%" PRIxPTR" 0x%" PRIxPTR " %c%c%c 0x%" PRIxPTR "\n",
 					segments[i].p_offset, segments[i].p_vaddr,
 					segments[i].p_paddr,
@@ -317,8 +317,8 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 		for (i = 0; i < numSections; i++) {
 			//if (elf_checkSection(file, i) == 0) {
 			fprintf(f, "[%2d] %s %"PRIx32" %"PRIx32"\n", i, elf32_getSectionName(file, i),
-				//fprintf(f, "[%2d] %-17.17s %-15.15s %x %x\n", i, elf32_getSectionName(file, i), " ", 
-				///fprintf(f, "%-17.17s %-15.15s %08x %06x\n", elf32_getSectionName(file, i), " "	/* sections[i].sh_type 
+				//fprintf(f, "[%2d] %-17.17s %-15.15s %x %x\n", i, elf32_getSectionName(file, i), " ",
+				///fprintf(f, "%-17.17s %-15.15s %08x %06x\n", elf32_getSectionName(file, i), " "	/* sections[i].sh_type
 				//									 */ ,
 				sections[i].sh_addr, sections[i].sh_offset);
 			//}

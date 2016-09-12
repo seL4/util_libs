@@ -165,4 +165,3 @@ static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
 #endif /* _PLATSUPPORT_GPIO_H_ */
-

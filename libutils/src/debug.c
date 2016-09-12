@@ -80,4 +80,3 @@ utils_memory_dump(void* address, size_t bytes, int word_size)
         LOG_ERROR("Invalid word size (%d). Valid options are [1, 2, 4, 8]", word_size);
     }
 }
-

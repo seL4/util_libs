@@ -26,4 +26,3 @@ dma_addr_t dma_alloc_pin(ps_dma_man_t *dma_man, size_t size, int cached, int ali
 void dma_unpin_free(ps_dma_man_t *dma_man, void *virt, size_t size);
 
 #endif /* ETHIF_DMA_H */
-

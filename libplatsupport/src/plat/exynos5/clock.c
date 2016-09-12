@@ -435,4 +435,3 @@ freq_t ps_freq_default[] = {
     [CLK_SPI2    ]   =     6 * MHZ,
     [CLK_SPI0    ]   =     6 * MHZ,
 };
-

@@ -60,7 +60,7 @@ struct imx6_eth_data {
 
 int setup_iomux_enet(ps_io_ops_t *io_ops);
 
-/* Receive descriptor status */ 
+/* Receive descriptor status */
 #define RXD_EMPTY     BIT(15) /* Buffer has no data. Waiting for reception. */
 #define RXD_OWN0      BIT(14) /* Receive software ownership. R/W by user */
 #define RXD_WRAP      BIT(13) /* Next buffer is found in ENET_RDSR */
@@ -78,7 +78,7 @@ int setup_iomux_enet(ps_io_ops_t *io_ops);
 #define RXD_ERROR    (RXD_BADLEN  | RXD_BADALIGN | RXD_CRCERR |\
                       RXD_OVERRUN | RXD_TRUNC)
 
-/* Transmit descriptor status */ 
+/* Transmit descriptor status */
 #define TXD_READY     BIT(15) /* buffer in use waiting to be transmitted */
 #define TXD_OWN0      BIT(14) /* Receive software ownership. R/W by user */
 #define TXD_WRAP      BIT(13) /* Next buffer is found in ENET_TDSR */

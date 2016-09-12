@@ -15,4 +15,3 @@ enum mux_feature {
 };
 
 #endif /* _PLATSUPPORT_PLAT_MUX_H */
-

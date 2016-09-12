@@ -171,4 +171,3 @@ _pll_init(clk_t* clk)
     clk_register_child(parent, clk);
     return clk;
 }
-

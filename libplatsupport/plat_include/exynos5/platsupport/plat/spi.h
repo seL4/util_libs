@@ -56,4 +56,3 @@ int exynos_spi_init(enum spi_id id, void* base,
 
 
 #endif /* _PLATSUPPORT_PLAT_SPI_H_ */
-

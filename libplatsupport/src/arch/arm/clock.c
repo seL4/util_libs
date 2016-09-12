@@ -195,4 +195,3 @@ clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
     ret.req_freq = frequency;
     return ret;
 }
-

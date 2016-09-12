@@ -16,4 +16,3 @@ enum gpio_port {
 };
 
 #endif /* _PLATSUPPORT_PLAT_GPIO_H */
-

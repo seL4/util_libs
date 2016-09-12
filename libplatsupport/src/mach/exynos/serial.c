@@ -570,5 +570,3 @@ ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)
     }
     return NULL;
 }
-
-

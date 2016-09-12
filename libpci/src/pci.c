@@ -118,7 +118,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     #if (PCI_DEBUG >= 2)
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, false);
     #endif
-    
+
     #ifdef PCI_DISPLAY_FOUND_DEVICES
     printf("PCI :: %.2x.%.2x.%.2x : %s %s (vid 0x%x did 0x%x) line%d pin%d\n", bus, dev, fun,
         libpci_vendorID_str(vendor_id), libpci_deviceID_str(vendor_id, device_id),
@@ -128,7 +128,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     );
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, true);
     #endif
-    
+
     libpci_num_devices++;
 
     return 1;
@@ -192,7 +192,7 @@ void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, 
         // Read and save the base address assigned by the BIOS.
         uint32_t bios_base_addr = libpci_read_reg32(bus, dev, fun, PCI_BASE_ADDRESS_0 + (i * 4));
         cfg->base_addr_raw[i] = bios_base_addr;
-        
+
         if (cfg->base_addr_64H[i]) {
             // Don't bother processing further if this is already part of a 64-bit address.
             cfg->base_addr[i] = cfg->base_addr_raw[i];

@@ -110,4 +110,3 @@ int dma330_copy_configure(uintptr_t psrc, uintptr_t pdst, size_t len, void* vbin
 
 
 #endif /* _PLATSUPPORT_ARCH_DMA330_H */
-

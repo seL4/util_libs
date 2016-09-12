@@ -150,4 +150,3 @@ struct eth_driver {
 };
 
 #endif /* __ETHIFACE_RAW_IFACE_H__ */
-

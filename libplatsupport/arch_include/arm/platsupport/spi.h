@@ -87,4 +87,3 @@ int spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
              void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token);
 
 #endif /* _PLATSUPPORT_SPI_H_ */
-

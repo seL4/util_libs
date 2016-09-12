@@ -53,5 +53,3 @@ acpi_erst_next(acpi_erst_t* hdr, acpi_erst_entry_t* cur)
         return NULL;
     }
 }
-
-

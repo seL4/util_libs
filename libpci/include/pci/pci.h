@@ -71,4 +71,3 @@ void libpci_scan(ps_io_port_ops_t port_ops);
 void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, uint8_t fun);
 
 #endif /* __LIB_PCI_SUPPORT_LIBRARY_H__ */
-

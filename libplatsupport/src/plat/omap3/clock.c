@@ -50,5 +50,3 @@ clk_t* ps_clocks[] = {
 freq_t ps_freq_default[] = {
     [CLK_MASTER]   = 24 * MHZ,
 };
-
-

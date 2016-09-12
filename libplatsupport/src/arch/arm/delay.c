@@ -75,4 +75,3 @@ ps_cpufreq_hint(unsigned long hz)
 {
     cpufreq_hint = hz;
 }
-

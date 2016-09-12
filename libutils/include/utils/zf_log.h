@@ -8,7 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-/* zf log taken from: https://github.com/wonder-mice/zf_log 
+/* zf log taken from: https://github.com/wonder-mice/zf_log
  *
  * "Software source code can not be printed on paper and sticked to a cat."
  */

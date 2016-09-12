@@ -28,4 +28,3 @@ typedef struct acpi_einj {
 
 
 #pragma pack(pop)
-

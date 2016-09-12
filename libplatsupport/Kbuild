@@ -11,5 +11,3 @@
 libs-$(CONFIG_LIB_PLATSUPPORT) += libplatsupport
 
 libplatsupport: common $(libc) libutils
-
-

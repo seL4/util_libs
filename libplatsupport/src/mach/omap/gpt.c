@@ -62,13 +62,13 @@ gpt_ok_prescaler(uint32_t prescaler)
     return true;
 }
 
-uint64_t 
+uint64_t
 gpt_ticks_to_ns(uint64_t ticks)
 {
     return (ticks / CLK_MHZ) * NS_IN_US;
 }
 
-uint64_t 
+uint64_t
 gpt_ns_to_ticks(uint64_t ns)
 {
     return ns / NS_IN_US * CLK_MHZ;
@@ -84,7 +84,7 @@ gpt_common_properties(void) {
     return properties;
 }
 
-void 
+void
 gpt_init(gpt_t *gpt)
 {
     /* Disable GPT. */
@@ -101,4 +101,3 @@ gpt_init(gpt_t *gpt)
         gpt->gpt_map->tclr |= BIT(PRE); /* Enable the prescaler */
     }
 }
-

@@ -167,5 +167,3 @@ int irq_combiner_irq(enum irq_combiner_id id, int group)
         return -1;
     }
 }
-
-

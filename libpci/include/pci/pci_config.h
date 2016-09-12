@@ -63,7 +63,7 @@ static inline int libpci_device_cfg_sizeof(int offset) {
         case PCI_LATENCY_TIMER: return 1;
         case PCI_HEADER_TYPE: return 1;
         case PCI_BIST: return 1;
-        
+
         case PCI_BASE_ADDRESS_0:
         case PCI_BASE_ADDRESS_1:
         case PCI_BASE_ADDRESS_2:
@@ -71,12 +71,12 @@ static inline int libpci_device_cfg_sizeof(int offset) {
         case PCI_BASE_ADDRESS_4:
         case PCI_BASE_ADDRESS_5:
             return 4;
-        
+
         case PCI_CARDBUS_CIS: return 4;
         case PCI_SUBSYSTEM_VENDOR_ID: return 2;
         case PCI_SUBSYSTEM_ID: return 2;
         case PCI_ROM_ADDRESS: return 4;
-        
+
         case PCI_INTERRUPT_LINE: return 1;
         case PCI_INTERRUPT_PIN: return 1;
         case PCI_MIN_GNT: return 1;

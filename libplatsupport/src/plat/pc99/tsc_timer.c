@@ -67,10 +67,9 @@ tsc_get_timer(pstimer_t *timeout_timer)
             ZF_LOGE("Failed to find tsc freq");
             return NULL;
         }
-        
+
         tsc_get_timer_with_freq(freq);
    }
 
     return tsc_timer;
 }
-

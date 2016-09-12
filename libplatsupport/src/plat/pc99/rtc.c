@@ -145,4 +145,3 @@ unsigned int rtc_get_century_register(acpi_t *acpi)
     acpi_fadt_t *fadt = (acpi_fadt_t*)header;
     return fadt->century;
 }
-

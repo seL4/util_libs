@@ -77,5 +77,3 @@ exynos5_sysreg_usbphy_enable(enum usb_phy_id phy_id, sysreg_t* sysreg)
     }
     return 0;
 }
-
-

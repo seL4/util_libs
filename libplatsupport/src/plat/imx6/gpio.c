@@ -236,4 +236,3 @@ gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
     MAP_IF_NULL(io_ops, IMX6_GPIO7, _gpio.bank[6]);
     return imx6_gpio_init_common(&io_ops->mux_sys, gpio_sys);
 }
-

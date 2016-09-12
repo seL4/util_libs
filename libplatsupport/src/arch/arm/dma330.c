@@ -698,4 +698,3 @@ dma330_copy_configure(uintptr_t pdst, uintptr_t psrc, size_t len, void* vbin)
 }
 
 #endif
-

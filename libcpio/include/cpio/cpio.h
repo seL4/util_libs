@@ -77,7 +77,7 @@ void *cpio_get_file(void *archive, const char *name, unsigned long *size);
 int cpio_info(void *archive, struct cpio_info *info);
 
 /**
- * Writes the list of file names contained within a CPIO archive into 
+ * Writes the list of file names contained within a CPIO archive into
  * a provided buffer
  * @param[in] archive  The location of the CPIO archive
  * @param[in] buf      A memory location to store the CPIO file list to

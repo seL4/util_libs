@@ -21,4 +21,3 @@
 #define GPT1_INTERRUPT 87
 
 #endif /* __PLAT_SUPPORT_IMX31_H */
-

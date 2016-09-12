@@ -78,7 +78,6 @@ static inline int omap_get_gpt_irq(int n)
 }
 
 /* confiugured by uboot. This is only correct for GPT1-9 */
-#define CLK_HZ 13000000llu 
+#define CLK_HZ 13000000llu
 #define CLK_MHZ (CLK_HZ / US_IN_S)
 #endif /* __PLAT_SUPPORT_OMAP3_H */
-

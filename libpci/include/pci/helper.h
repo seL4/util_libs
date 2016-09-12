@@ -858,7 +858,7 @@
 #define PCI_TPH_CAP_ST_MASK     0x07FF0000      /* st table mask */
 #define PCI_TPH_CAP_ST_SHIFT    16      /* st table shift */
 #define PCI_TPH_BASE_SIZEOF     12      /* size with no st table */
- 
+
 // -------------------------------------------------------------------------------------------------
 
 #define PCI_CLASS_NOT_DEFINED           0x0000

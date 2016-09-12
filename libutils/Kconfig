@@ -28,4 +28,4 @@ config LIB_UTILS_NO_STATIC_ASSERT
         C parser). This option forces the analogue to be used.
 
 config HAVE_LIB_UTILS
-    bool 
+    bool

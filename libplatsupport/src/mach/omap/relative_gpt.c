@@ -14,22 +14,22 @@
 /* Relative timeout driver for the gpt.
  *
  * This driver sets up the gpt for relative timeouts (oneshot or periodic) only.
- * 
+ *
  * It works by setting the timer to interrupt on overflow and reloading the timer
  * with (0xFFFFFFFF - relative timeout).
  */
 
-int 
+int
 configure_timeout(gpt_t *gpt, uint64_t ns, uint32_t reload)
 {
     uint64_t ticks = gpt_ns_to_ticks(ns) / (gpt->prescaler + 1);
-    
+
     if (ticks >= UINT32_MAX) {
         /* too big for this timer implementation */
         ZF_LOGE("Timeout too big for timer, max %u, got %llu\n", UINT32_MAX - 1, ticks);
         return ETIME;
     }
- 
+
     /* invert ticks - it's an upcounter and will interrupt on overflow */
     ticks = UINT32_MAX - ticks;
 
@@ -37,20 +37,20 @@ configure_timeout(gpt_t *gpt, uint64_t ns, uint32_t reload)
 
     /* Clear pending overflows. */
     gpt->gpt_map->tisr |= BIT(OVF_IT_FLAG);
-    
+
     /* Set the reload value. */
     gpt->gpt_map->tldr = (uint32_t) ticks;
 
     /* Reset the read register. */
     gpt->gpt_map->tcrr = (uint32_t) ticks;
-   
+
     /* Enable interrupt on overflow. */
     gpt->gpt_map->tier |= BIT(OVF_IT_ENA);
- 
+
     assert(!(gpt->gpt_map->tisr & BIT(OVF_IT_FLAG)));
     /* Set autoreload and start the timer. */
     gpt->gpt_map->tclr |= (reload | BIT(ST));
-    
+
     /* success */
     return 0;
 }
@@ -102,7 +102,7 @@ rel_gpt_get_timer(gpt_config_t *config)
     timer->periodic = rel_gpt_periodic;
     timer->handle_irq = gpt_handle_irq;
     timer->get_nth_irq = gpt_get_nth_irq;
-    
+
     gpt->id = config->id;
     gpt->gpt_map = (volatile struct gpt_map*) config->vaddr;
     gpt->prescaler = config->prescaler;
@@ -111,4 +111,3 @@ rel_gpt_get_timer(gpt_config_t *config)
 
     return timer;
 }
-

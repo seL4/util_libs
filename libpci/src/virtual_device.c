@@ -177,7 +177,7 @@ void libpci_vdevice_rebase_ioaddr_virtdevice(libpci_vdevice_t* self,
         assert(!"io size mask invalid");
         return;
     }
-    
+
     if ((base_addr & size_mask) != base_addr) {
         printf("ERROR: io address alignment invalid 0x%x to mask 0x%x", base_addr, size_mask);
         assert(!"io address alignment invalid ");

@@ -71,4 +71,3 @@ int imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
                        mux_sys_t* mux_sys, gpio_sys_t* gpio_sys);
 
 #endif /* _IMX6_GPIO_H */
-

@@ -58,4 +58,3 @@ static inline int rtc_get_time_date(ps_io_port_ops_t *io_port_ops, acpi_t *acpi,
 }
 
 #endif /* _PLATSUPPORT_RTC_H */
-

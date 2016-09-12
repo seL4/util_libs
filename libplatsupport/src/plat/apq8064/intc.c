@@ -126,5 +126,3 @@ test_intc(ps_io_ops_t* o)
         printf("irq: 0x%x 0x%x 0x%x 0x%x 0x%x\n", irq->stat, irq->rawstat, irq->seten, irq->clren, irq->soft);
     }
 };
-
-

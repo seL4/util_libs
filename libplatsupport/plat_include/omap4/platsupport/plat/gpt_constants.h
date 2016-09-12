@@ -76,4 +76,3 @@ static inline int omap_get_gpt_irq(int n)
 }
 
 #endif /* __PLAT_SUPPORT_IMX31_H */
-

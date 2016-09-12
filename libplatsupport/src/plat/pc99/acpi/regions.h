@@ -133,4 +133,3 @@ int
 split_region(RegionList_t* region_list, int index, size_t size);
 
 #endif /* __REGIONS_INTERAL_H__ */
-

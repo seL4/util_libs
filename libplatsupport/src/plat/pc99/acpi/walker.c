@@ -313,4 +313,3 @@ acpi_parse_tables(acpi_t* acpi)
 
     _acpi_parse_tables(acpi, acpi->rsdp, regions, -1);
 }
-

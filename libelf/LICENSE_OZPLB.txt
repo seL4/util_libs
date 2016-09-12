@@ -4,7 +4,7 @@ Version 1-0
 
 Copyright (c) 2004 University of New South Wales
 
-All rights reserved. 
+All rights reserved.
 
 Developed by: Operating Systems and Distributed Systems Group (DiSy)
               University of New South Wales

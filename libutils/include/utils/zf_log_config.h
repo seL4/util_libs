@@ -16,4 +16,4 @@
 #define ZF_LOG_PUT_CTX 0
 #define ZF_LOG_LINE_BUFFER 512
 
-#undef __linux__ 
+#undef __linux__

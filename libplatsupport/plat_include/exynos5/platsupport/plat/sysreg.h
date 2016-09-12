@@ -51,4 +51,3 @@ int exynos5_sysreg_usbphy_enable(enum usb_phy_id phy_id, sysreg_t* sysreg);
 
 
 #endif /* _PLATSUPPORT_PLAT_SYSREG_H_ */
-

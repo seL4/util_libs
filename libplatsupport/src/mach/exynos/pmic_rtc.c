@@ -178,7 +178,3 @@ pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm)
     }
     return pmic_rtc_update(pmic_rtc, RTCUPDATE_WRITE);
 }
-
-
-
-

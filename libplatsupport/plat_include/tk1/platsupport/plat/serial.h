@@ -22,9 +22,9 @@
 #define UARTD_OFFSET 0x300
 
 
-#define UARTA_IRQ    68 
-#define UARTB_IRQ    69 
-#define UARTC_IRQ    78 
+#define UARTA_IRQ    68
+#define UARTB_IRQ    69
+#define UARTC_IRQ    78
 #define UARTD_IRQ    122
 
 /* official device names */
@@ -44,5 +44,3 @@ enum chardev_id {
 
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
-
-

@@ -73,5 +73,3 @@ mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
     (void)io_ops;
     return apq8064_mux_init_common(mux);
 }
-
-

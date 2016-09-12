@@ -30,4 +30,3 @@ typedef struct acpi_facs {
 } acpi_facs_t;
 
 #pragma pack(pop)
-

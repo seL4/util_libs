@@ -19,4 +19,3 @@ enum gpio_port {
 };
 
 #endif /* _IMX6_GPIO_H */
-

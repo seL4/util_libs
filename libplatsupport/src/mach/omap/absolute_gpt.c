@@ -16,7 +16,7 @@
  * This timer works by reloading 0 on each overflow.
  * For timeouts, the compare register is used.
  *
- * If you try to set a timeout that is too close to the 
+ * If you try to set a timeout that is too close to the
  * current time there is a race condition, and irqs will Not
  * come in until the timer overflows.
  */
@@ -34,7 +34,7 @@ abs_gpt_get_time(const pstimer_t *timer)
     /* low bits */
     ticks += gpt->gpt_map->tcrr;
     ticks = ticks * (gpt->prescaler + 1);
-    
+
     return gpt_ticks_to_ns(ticks);
 }
 
@@ -44,7 +44,7 @@ abs_gpt_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
     gpt_t *gpt = (gpt_t*) timer->data;
     bool overflow = gpt->gpt_map->tisr & OVF_IT_FLAG;
     uint64_t ticks = gpt_ns_to_ticks(ns) / (gpt->prescaler + 1);
-            
+
     if ((ns >> 32llu) == (gpt->high_bits + !!overflow)) {
         /* Enable match irq */
         gpt->gpt_map->tier |= BIT(MAT_IT_ENA);
@@ -114,9 +114,8 @@ abs_gpt_get_timer(gpt_config_t *config)
     gpt->gpt_map->tisr |= BIT(OVF_IT_FLAG | MAT_IT_FLAG | TCAR_IT_FLAG);
 
     gpt->gpt_map->tclr |= (BIT(CE) | BIT(AR));
-    
+
     gpt_init(gpt);
-    
+
     return timer;
 }
-

@@ -277,5 +277,3 @@ acpi_dmar_dscope_path_length(acpi_dmar_dscope_t* dscope)
     int path_bytes = dscope->length - sizeof(*dscope);
     return path_bytes / sizeof(acpi_device_path_t);
 }
-
-

@@ -180,6 +180,3 @@ freq_t ps_freq_default[] = {
     [CLK_TCXO  ]   = 19200 * KHZ,
     [CLK_SLPXO ]   = 32768
 };
-
-
-

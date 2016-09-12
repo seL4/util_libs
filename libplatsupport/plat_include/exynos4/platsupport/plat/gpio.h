@@ -135,4 +135,3 @@ enum gpio_port {
 int exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys);
 
 #endif /* _EXYNOS4_GPIO_H */
-

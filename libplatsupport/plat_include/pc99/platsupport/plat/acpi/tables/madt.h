@@ -239,5 +239,3 @@ acpi_madt_first_ics_type(acpi_madt_t* tbl, int type)
         return hdr;
     }
 }
-
-
