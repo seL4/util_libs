@@ -155,6 +155,13 @@ LDFLAGS += -u ${ENTRY_POINT}
 # Set the entry point
 LDFLAGS += -e ${ENTRY_POINT}
 
+PAGE_SIZE ?= 0x1000
+
+# Prevent linker padding sections to align to a large page size.
+# This is to prevent elf sections starting at low addresses being
+# rounded down to address 0.
+LDFLAGS += -z max-page-size=${PAGE_SIZE}
+
 ASFLAGS += $(NK_ASFLAGS)
 
 # Object files
