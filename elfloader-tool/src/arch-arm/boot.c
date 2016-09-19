@@ -97,10 +97,13 @@ void main(void)
         printf("No user images loaded!\n");
         abort();
     }
+
+#if defined(CONFIG_ARCH_ARM_V7A) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
     if(is_hyp_mode()){
     extern void leave_hyp(void);
         leave_hyp();
     }
+#endif
     /* Setup MMU. */
     if(is_hyp_mode()){
         init_hyp_boot_vspace(&kernel_info);

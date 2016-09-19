@@ -8,6 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
+#include <autoconf.h>
 
 /* Processor mode encodings (for CPS etc.) */
 #define PMODE_USER       0x10
@@ -38,7 +39,7 @@ smc:
     smc #0
     ldmfd    sp!, {r3-r11, pc}
 
-#ifndef ARM_HYP
+#ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
 .global leave_hyp
 leave_hyp:
     .arch_extension virt
