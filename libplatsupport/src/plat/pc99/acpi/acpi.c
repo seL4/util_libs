@@ -328,14 +328,16 @@ acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist)
     return 0;
 }
 
+/* only need to parse the tables once */
+static acpi_t *acpi_singleton = NULL;
 
 acpi_t *
 acpi_init(ps_io_mapper_t io_mapper)
 {
-
-#ifndef CONFIG_KERNEL_STABLE
-    LOG_ERROR("Warning: acpi tables are not exported on the master kernel\n");
-#endif
+    if (acpi_singleton != NULL) {
+        /* acpi already initialised */
+        return acpi_singleton;
+    }
 
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
@@ -371,5 +373,6 @@ acpi_init(ps_io_mapper_t io_mapper)
     /* now parse the acpi tables */
     acpi_parse_tables(acpi);
 
+    acpi_singleton = acpi;
     return acpi;
 }
