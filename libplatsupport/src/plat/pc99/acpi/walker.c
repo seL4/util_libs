@@ -52,6 +52,7 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
     size_t length = acpi_table_length(header);
     if (length == 0xffffffff) {
         fprintf(stderr, "Skipping table %s, unknown\n", header->signature);
+        ps_io_unmap(&acpi->io_mapper, (void *) header, sizeof(acpi_header_t));
         return NULL;
     }
 
