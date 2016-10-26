@@ -11,11 +11,16 @@
 #ifndef _PLATSUPPORT_GPIO_H_
 #define _PLATSUPPORT_GPIO_H_
 
+#include <autoconf.h>
+
 struct gpio_sys;
 typedef struct gpio_sys gpio_sys_t;
 typedef int gpio_id_t;
 
+#ifndef CONFIG_PLAT_TK1
 #include <platsupport/io.h>
+#endif
+
 #include <platsupport/plat/gpio.h>
 
 #define GPIOID(port, pin)             ((port) * 32 + (pin))
@@ -64,6 +69,7 @@ struct gpio_sys {
     void* priv;
 };
 
+#ifndef CONFIG_PLAT_TK1
 /**
  * Initialise the GPIO subsystem and provide a handle for access
  * @param[in]  io_ops   io operations for device initialisation
@@ -71,6 +77,7 @@ struct gpio_sys {
  * @return              0 on success
  */
 int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
+#endif
 
 /**
  * Clear a GPIO pin

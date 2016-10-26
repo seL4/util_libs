@@ -145,7 +145,7 @@ void gpio_interrupt_enable(enum gpio_pin gpio, enum gpio_int_enb setting)
 
 void gpio_set_interrupt_type(enum gpio_pin gpio, enum gpio_int_type type)
 {
-    uint32_t lvl_type; 
+    uint32_t lvl_type = 0; 
     volatile void *reg_vaddr = get_controller_register(gpio, GPIO_INT_LVL);
 
     uint32_t reg = (*(uint32_t*)reg_vaddr) & 0xff;
