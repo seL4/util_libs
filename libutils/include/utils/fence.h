@@ -12,7 +12,11 @@
 
 #pragma once
 
-/* The fence is designed to try and prevent the compiler optimizing across code boundaries
-   that we don't want it to. The reason for preventing optimization is so that things like
-   overhead calculations aren't unduly influenced */
-#define COMPILER_MEMORY_FENCE() asm volatile("" ::: "memory")
+/* The compiler won't re-order memory accesses across this fence. */
+#define COMPILER_MEMORY_FENCE() __atomic_signal_fence(__ATOMIC_ACQ_REL)
+
+/* The compiler won't re-order memory writes to after this fence. */
+#define COMPILER_MEMORY_RELEASE() __atomic_signal_fence(__ATOMIC_RELEASE)
+
+/* The compiler won't re-order memory reads to before this fence. */
+#define COMPILER_MEMORY_ACQUIRE() __atomic_signal_fence(__ATOMIC_ACQUIRE)
