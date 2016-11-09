@@ -23,6 +23,7 @@
 #include <utils/compile_time.h>
 #include <utils/config.h>
 #include <utils/debug.h>
+#include <utils/fence.h>
 #include <utils/force.h>
 #include <utils/formats.h>
 #include <utils/frequency.h>
