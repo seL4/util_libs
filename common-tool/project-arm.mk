@@ -37,6 +37,8 @@ elfloader: libcpio common FORCE
 	@echo "[elfloader] done."
 
 %-image: export TOOLPREFIX=$(CONFIG_CROSS_COMPILER_PREFIX:"%"=%)
+%-image: export STRIP=$(CONFIG_REMOVE_SYMBOLS)
+%-image: export HASH=$(CONFIG_HASH_INSTRUCTIONS)
 %-image: export V
 %-image: % kernel_elf common elfloader FORCE
 	@echo "[GEN_IMAGE] $@-$(ARCH)-$(PLAT)"

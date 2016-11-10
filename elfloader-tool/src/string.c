@@ -27,6 +27,14 @@
 typedef word_t __attribute__((__may_alias__)) u_alias;
 #endif
 
+size_t strlen(const char *str)
+{
+	const char *s;
+	for (s = str; *s; ++s);
+	return (s - str);
+}
+
+
 int strcmp(const char *a, const char *b)
 {
     while (1) {
@@ -39,6 +47,21 @@ int strcmp(const char *a, const char *b)
         a++;
         b++;
     }
+}
+
+int strncmp(const char* s1, const char* s2, int n)
+{
+    word_t i;
+    int diff;
+
+    for (i = 0; i < n; i++) {
+        diff = ((unsigned char*)s1)[i] - ((unsigned char*)s2)[i];
+        if (diff != 0 || s1[i] == '\0') {
+            return diff;
+        }
+    }
+
+    return 0;
 }
 
 void *memset(void *s, int c, size_t n)
@@ -99,4 +122,3 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 
     return dest;
 }
-

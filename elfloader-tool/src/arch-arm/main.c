@@ -19,6 +19,8 @@
 
 #include <elfloader.h>
 
+#include "crypt_md5.h"
+
 /* Determine if two intervals overlap. */
 static int regions_overlap(uintptr_t startA, uintptr_t endA,
                            uintptr_t startB, uintptr_t endB)
@@ -55,7 +57,7 @@ static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
     uint16_t i;
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
-    
+
     word_t phys_virt_offset;
 
     /* Get size of the image. */
@@ -116,6 +118,48 @@ static paddr_t load_elf(const char *name, void *elf,
         abort();
     }
 
+	char * secname = ".text";
+	char * secbuf;
+	unsigned seclen, j;
+	char found = 0;
+
+	for(j=0; j<elf_getNumSections(elf);j++)	{
+		if(!strcmp(elf_getSectionName(elf,j),secname))	break; //the section is named .data, break the loop
+	}
+	secbuf = elf_getSection(elf,j);
+	seclen = elf_getSectionSize(elf, j);
+
+	unsigned char md[16];
+	md5_t md5;
+	md5_init(&md5);
+
+	md5_update(&md5, secbuf, seclen);
+	md5_sum(&md5, md);
+
+	printf("Hash for .text section: ");
+	for(int i =0; i < 16; i++) printf("%02x",md[i]);
+	printf("\n");
+
+	secname = ".md5";
+	for(j=0, found=0; j<elf_getNumSections(elf); j++)	{
+		if(!strcmp(elf_getSectionName(elf,j),secname))	{
+			found = 1;
+			break; //the section is named .md5, break the loop
+		}
+	}
+	if(found)	{
+		secbuf = elf_getSection(elf,j);
+		seclen = elf_getSectionSize(elf, j);
+
+		printf("Received Hash from ELF: ");
+		for(unsigned i = 0; i < seclen; i++) printf("%02x",secbuf[i]);
+		printf("\n");
+
+		if(strncmp(secbuf,(char *)md,16) != 0) {
+			printf("Hashes are different. Load failure\n");
+			abort();
+		}
+	}
     /* Print diagnostics. */
     printf("ELF-loading image '%s'\n", name);
     printf("  paddr=[%lx..%lx]\n", dest_paddr, dest_paddr + image_size - 1);
@@ -254,4 +298,3 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
         *num_images = i + 1;
     }
 }
-

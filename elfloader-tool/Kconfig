@@ -72,6 +72,20 @@ config ARM_HYPERVISOR_MODE
 
 endchoice
 
+config REMOVE_SYMBOLS
+    bool "Remove ELF symbols from the final image"
+    default y 
+	depends on IMAGE_ELF
+    help
+       Remove ELF symbols from the final image.
+
+config HASH_INSTRUCTIONS
+	bool "Perform a MD5 Hash of the .text section of elf file"
+	default n
+	depends on IMAGE_ELF
+	help
+		Hashes .text, adds in a .md5 section with the hash for each elf file (kernel + application)
+
 config ARM_MONITOR_HOOK
     bool "Install hooks in monitor mode"
     default n 

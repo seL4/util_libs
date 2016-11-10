@@ -22,6 +22,7 @@ if [ $# -ne 3 ]; then
     echo "Usage: $0 <kernel elf> <user elf> <output file>"
     exit 1
 fi
+
 KERNEL_IMAGE=$1
 USER_IMAGE=$2
 OUTPUT_FILE=$3
@@ -129,8 +130,25 @@ fail() {
 # Generate an archive of the userspace and kernel images.
 mkdir -p "${TEMP_DIR}/cpio"
 cp -f ${KERNEL_IMAGE} ${TEMP_DIR}/cpio/kernel.elf
-cp -f ${USER_IMAGE} ${TEMP_DIR}/cpio
-${TOOLPREFIX}strip --strip-all ${TEMP_DIR}/cpio/*
+cp -f ${USER_IMAGE} ${TEMP_DIR}/cpio/
+if [ "${STRIP}" = "y" ]; then
+    ${TOOLPREFIX}strip --strip-all ${TEMP_DIR}/cpio/*
+fi
+
+if [ "${HASH}" = "y" ]; then
+    arm-none-eabi-objcopy -O binary --only-section=.text ${TEMP_DIR}/cpio/kernel.elf ${TEMP_DIR}/kernel.bin
+    arm-none-eabi-objcopy -O binary --only-section=.text ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin
+
+    # md5 hash of .text (instructions) and store it to .bin file. Add the .bin file to .elf in a new section
+    md5sum ${TEMP_DIR}/kernel.bin | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/test.bin
+    arm-none-eabi-objcopy --add-section .md5=${TEMP_DIR}/test.bin ${TEMP_DIR}/cpio/kernel.elf ${TEMP_DIR}/cpio/kernel.elf
+    md5sum ${TEMP_DIR}/kernel.bin
+
+    # md5 hash of .text (instructions) and store it to .bin file. Add the .bin file to .elf in a new section
+    md5sum ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/test.bin
+    arm-none-eabi-objcopy --add-section .md5=${TEMP_DIR}/test.bin ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE})
+    md5sum ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin
+fi
 
 pushd "${TEMP_DIR}/cpio" &>/dev/null
 printf "kernel.elf\n$(basename ${USER_IMAGE})\n" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
@@ -170,7 +188,9 @@ ${TOOLPREFIX}ld -T "${SCRIPT_DIR}/linker.lds_pp" \
         "${SCRIPT_DIR}/elfloader.o" "${TEMP_DIR}/archive.o" \
         -Ttext=${ENTRY_ADDR} -o "${OUTPUT_FILE}" \
         || fail
-${TOOLPREFIX}strip --strip-all ${OUTPUT_FILE}
+if [ "${STRIP}" = "y" ]; then
+    ${TOOLPREFIX}strip --strip-all ${OUTPUT_FILE}
+fi
 
 #
 # Remove ELF stuff to have an PE32+/COFF executable file.
