@@ -22,7 +22,6 @@ if [ $# -ne 3 ]; then
     echo "Usage: $0 <kernel elf> <user elf> <output file>"
     exit 1
 fi
-
 KERNEL_IMAGE=$1
 USER_IMAGE=$2
 OUTPUT_FILE=$3
@@ -136,23 +135,32 @@ if [ "${STRIP}" = "y" ]; then
 fi
 
 if [ "${HASH}" = "y" ]; then
-    arm-none-eabi-objcopy -O binary --only-section=.text ${TEMP_DIR}/cpio/kernel.elf ${TEMP_DIR}/kernel.bin
-    arm-none-eabi-objcopy -O binary --only-section=.text ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin
+    if [ "${HASH_SHA}" = "y" ]; then
+        # (2 Invocations so the hash gets printed on the terminal)
+        # SHA256 hash of entire Kernel ELF and store it to .bin file. Add the .bin file to CPIO archive
+        sha256sum ${TEMP_DIR}/cpio/kernel.elf
+        sha256sum ${TEMP_DIR}/cpio/kernel.elf | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/cpio/kernel.bin
 
-    # md5 hash of .text (instructions) and store it to .bin file. Add the .bin file to .elf in a new section
-    md5sum ${TEMP_DIR}/kernel.bin | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/test.bin
-    arm-none-eabi-objcopy --add-section .md5=${TEMP_DIR}/test.bin ${TEMP_DIR}/cpio/kernel.elf ${TEMP_DIR}/cpio/kernel.elf
-    md5sum ${TEMP_DIR}/kernel.bin
+        # SHA256 hash of entire Application ELF and store it to .bin file. Add the .bin file to CPIO archive
+        sha256sum ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE})
+        sha256sum ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/cpio/app.bin
+    else
+        # MD5 hash of entire Kernel ELF and store it to .bin file. Add the .bin file to CPIO archive
+        md5sum ${TEMP_DIR}/cpio/kernel.elf
+        md5sum ${TEMP_DIR}/cpio/kernel.elf | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/cpio/kernel.bin
 
-    # md5 hash of .text (instructions) and store it to .bin file. Add the .bin file to .elf in a new section
-    md5sum ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/test.bin
-    arm-none-eabi-objcopy --add-section .md5=${TEMP_DIR}/test.bin ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE})
-    md5sum ${TEMP_DIR}/$(basename ${USER_IMAGE}).bin
+        # MD5 hash of entire Application ELF and store it to .bin file. Add the .bin file to CPIO archive
+        md5sum ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE})
+        md5sum ${TEMP_DIR}/cpio/$(basename ${USER_IMAGE}) | cut -d ' ' -f 1 | xxd -r -p > ${TEMP_DIR}/cpio/app.bin
+    fi
 fi
 
 pushd "${TEMP_DIR}/cpio" &>/dev/null
-printf "kernel.elf\n$(basename ${USER_IMAGE})\n" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
-
+if [ "${HASH}" = "y" ]; then
+    printf "kernel.elf\n$(basename ${USER_IMAGE})\nkernel.bin\napp.bin" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
+else
+    printf "kernel.elf\n$(basename ${USER_IMAGE})" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
+fi
 # Strip CPIO metadata if possible.
 which cpio-strip >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then

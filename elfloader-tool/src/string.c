@@ -49,7 +49,7 @@ int strcmp(const char *a, const char *b)
     }
 }
 
-int strncmp(const char* s1, const char* s2, int n)
+int strncmp(const char* s1, const char* s2, size_t n)
 {
     word_t i;
     int diff;

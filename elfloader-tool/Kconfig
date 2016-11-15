@@ -74,17 +74,24 @@ endchoice
 
 config REMOVE_SYMBOLS
     bool "Remove ELF symbols from the final image"
-    default y 
+    default y
 	depends on IMAGE_ELF
     help
        Remove ELF symbols from the final image.
 
-config HASH_INSTRUCTIONS
-	bool "Perform a MD5 Hash of the .text section of elf file"
+menuconfig HASH_INSTRUCTIONS
+	bool "Perform a SHA256/MD5 Hash of the of each elf file that the elfloader checks on load"
 	default n
 	depends on IMAGE_ELF
 	help
-		Hashes .text, adds in a .md5 section with the hash for each elf file (kernel + application)
+		Hashes each elf file (kernel + application)
+
+        config HASH_SHA
+        bool "Perform an SHA256 Hash on each ELF File. If this option isn't selected, then an MD5 Hash will be performed"
+        depends on HASH_INSTRUCTIONS
+        default y
+        help
+            Perform an SHA256 Hash on each ELF File. If this option isn't selected, then an MD5 Hash will be performed
 
 config ARM_MONITOR_HOOK
     bool "Install hooks in monitor mode"
