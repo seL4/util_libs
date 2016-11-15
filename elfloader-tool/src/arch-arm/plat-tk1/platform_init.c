@@ -83,6 +83,8 @@ arm_halt(void)
 #define MON_HANDLER_START   (MON_PA_START + 0x10000)
 #define LOADED_OFFSET       0x82000000
 
+#if defined(CONFIG_ARM_MONITOR_HOOK) || defined(CONFIG_ARM_NS_SUPERVISOR_MODE) \
+    || defined(CONFIG_ARM_HYPERVISOR_MODE) || defined(CONFIG_ARM_MONITOR_MODE)
 static int mon_init_done = 0;
 
 static void
@@ -119,7 +121,7 @@ switch_to_mon_mode(void)
     }
 }
 
-
+#endif
 
 #ifdef CONFIG_ARM_MONITOR_HOOK
 
