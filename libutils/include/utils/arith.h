@@ -59,6 +59,27 @@
        (_n + (_n % _b == 0 ? 0 : (_b - (_n % _b)))); \
     })
 
+#define DIV_ROUND_UP(n,d)	\
+    ({ typeof (n) _n = (n); \
+       typeof (d) _d = (d); \
+       (_n/_d + (_n % _d == 0 ? 0 : 1)); \
+   })
+
+/* Divides and rounds to the nearest whole number
+    DIV_ROUND(5,2) returns 3
+    DIV_ROUND(7,3) returns 2 */
+#define DIV_ROUND_UNSAFE(n,d)  \
+    ({ typeof (n) _n = (n); \
+       typeof (d) _d = (d); \
+       ((_n + (_d/2)) / _d); \
+   })
+
+#define DIV_ROUND(n,d)  \
+   ({ typeof (n) _n = (n); \
+      typeof (d) _d = (d); \
+      ((_n / _d) + ((_n % _d) >= _d/2 ? 1 : 0)); \
+  })
+
 #define MIN(a,b) \
     ({ typeof (a) _a = (a); \
        typeof (b) _b = (b); \
