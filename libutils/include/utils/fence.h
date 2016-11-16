@@ -22,5 +22,5 @@
 
 /* Prevent the compiler from re-ordering any read which preceeds the fence
  * in program order with any read or write which follows the fence in
- * program order */.
+ * program order. */
 #define COMPILER_MEMORY_ACQUIRE() __atomic_signal_fence(__ATOMIC_ACQUIRE)
