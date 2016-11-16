@@ -12,11 +12,15 @@
 
 #pragma once
 
-/* The compiler won't re-order memory accesses across this fence. */
+/* Prevent the compiler from re-ordering any read or write across the fence. */
 #define COMPILER_MEMORY_FENCE() __atomic_signal_fence(__ATOMIC_ACQ_REL)
 
-/* The compiler won't re-order memory writes to after this fence. */
+/* Prevent the compiler from re-ordering any write which follows the fence
+ * in program order with any read or write which preceeds the fence in
+ * program order. */
 #define COMPILER_MEMORY_RELEASE() __atomic_signal_fence(__ATOMIC_RELEASE)
 
-/* The compiler won't re-order memory reads to before this fence. */
+/* Prevent the compiler from re-ordering any read which preceeds the fence
+ * in program order with any read or write which follows the fence in
+ * program order */.
 #define COMPILER_MEMORY_ACQUIRE() __atomic_signal_fence(__ATOMIC_ACQUIRE)
