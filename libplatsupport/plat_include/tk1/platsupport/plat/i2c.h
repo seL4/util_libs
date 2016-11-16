@@ -10,4 +10,8 @@
 #ifndef _PLATSUPPORT_PLAT_I2C_H
 #define _PLATSUPPORT_PLAT_I2C_H
 
+enum i2c_id {
+    NI2C
+};
+
 #endif /* _PLATSUPPORT_PLAT_I2C_H */

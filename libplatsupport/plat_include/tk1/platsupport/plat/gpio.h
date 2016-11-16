@@ -7,6 +7,7 @@
  *
  * @TAG(NICTA_BSD)
 */
+
 #pragma once
 
 #include <stdint.h>
@@ -43,7 +44,7 @@ enum gpio_bank {
         GPIO_BANK_2,
         GPIO_BANK_3,
         GPIO_BANK_4,
-        GPIO_BANK_5, 
+        GPIO_BANK_5,
         GPIO_BANK_6,
         GPIO_BANK_7,
         GPIO_BANK_8,
@@ -309,23 +310,36 @@ enum gpio_pin {
         GPIOPORT_NONE,
 };
 
+enum gpio_features_indexes {
+   CAN1_INTn = 0,
+   CAN1_CS,
+   CAN2_CS,
+};
 
-void gpio_init(volatile void *vaddr);
+struct gpio_feature_data {
+    int pin_number;
+    enum gpio_int_enb int_enb;
+    enum gpio_int_type int_type;
+    enum gpio_mode mode;
+    bool default_value;
+};
 
-void gpio_set_pad_mode(enum gpio_pin gpio, enum gpio_pad_mode mode);
+/* mux_sys will be stored by this init and must live for as long as the gpio
+ * subsystem is used for */
+void gpio_init(volatile void *vaddr, mux_sys_t *mux_sys, gpio_sys_t *gpio_sys);
 
-void gpio_set_level(enum gpio_pin gpio, int level);
+void gpio_set_pad_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_pad_mode mode);
 
-void gpio_set_mode(enum gpio_pin gpio, enum gpio_mode mode);
+void gpio_set_level(gpio_sys_t *gpio_sys, enum gpio_pin gpio, int level);
 
-bool gpio_get_input(enum gpio_pin gpio);
+void gpio_set_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_mode mode);
 
-void gpio_set_interrupt_type(enum gpio_pin gpio, enum gpio_int_type type);
+bool gpio_get_input(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
 
-void gpio_interrupt_enable(enum gpio_pin gpio, enum gpio_int_enb setting);
+void gpio_set_interrupt_type(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_int_type type);
 
-bool gpio_check_pending( enum gpio_pin gpio);
+void gpio_interrupt_enable(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_int_enb setting);
 
-void gpio_int_clear(enum gpio_pin gpio);
+bool gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
 
-
+void gpio_int_clear(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
