@@ -511,11 +511,11 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
 
     /* Select DLM. */
     uartd_regs->lcr |= LCR_DLAB;
-    COMPILER_MEMORY_RELEASE();
+    THREAD_MEMORY_RELEASE();
     uartd_dl = uartd_regs->thr_dlab;
     uartd_dh = uartd_regs->ier_dlab;
     /* Deselect DLM */
-    COMPILER_MEMORY_RELEASE();
+    THREAD_MEMORY_RELEASE();
     uartd_regs->lcr &= ~LCR_DLAB;
 
     /* There are stores being done to 3 distinct memory locations here: lcr,
@@ -538,10 +538,10 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
      * middle stores isn't important here.
      */
     regs->lcr |= LCR_DLAB;
-    COMPILER_MEMORY_RELEASE();
+    THREAD_MEMORY_RELEASE();
     regs->thr_dlab = uartd_dl;
     regs->ier_dlab = uartd_dh;
-    COMPILER_MEMORY_RELEASE();
+    THREAD_MEMORY_RELEASE();
     regs->lcr &= ~LCR_DLAB;
 
     return 0;
