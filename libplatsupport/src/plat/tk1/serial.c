@@ -498,51 +498,48 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
         /* Force RTS and DTR to low (active) */
         mcr |= (BIT(1) | BIT(0));
         regs->mcr = mcr;
+
+        /* Program the divisor to select 115200 baud.
+         * U-boot programs UART-D with values that are correct for the frequency
+         * that it uses for the PLLP0 clock source. Since we currently rely on
+         * u-boot for clock setup, just use the same values that u-boot uses for
+         * UART-D.
+         */
+        tk1_uart_regs_t *uartd_regs = (tk1_uart_regs_t *)((uintptr_t)regs + UARTD_OFFSET);
+        uint32_t uartd_dh, uartd_dl;
+
+        /* Select DLM. */
+        uartd_regs->lcr |= LCR_DLAB;
+        THREAD_MEMORY_RELEASE();
+        uartd_dl = uartd_regs->thr_dlab;
+        uartd_dh = uartd_regs->ier_dlab;
+        /* Deselect DLM */
+        THREAD_MEMORY_RELEASE();
+        uartd_regs->lcr &= ~LCR_DLAB;
+
+        /* Volatile DOES NOT prevent reordering with respect to distinct volatile
+         * locations. All of these stores are independent of each other because
+         * there are no source-level data dependencies between lcr, thr_dlab and
+         * ier_dlab. To the compiler they look like independent stores to different
+         * memory locations.
+         *
+         * Volatile ONLY guarantees rereads on load and commissions on store.
+         * It just so happens that when interleaving reads/writes to a single memory
+         * location, the data dependencies also mean that the compiler *USUALLY*
+         * cannot reorder between read-modify-writes.
+         *
+         * Loads/Stores from/to lcr are NOT sequentially ordered relative to loads/
+         * stores from/to thr_dlab and ier_dlab. Barriers are here to force the
+         * first and last stores to LCR to occur first, and last. The order of the
+         * middle stores isn't important here.
+         */
+        regs->lcr |= LCR_DLAB;
+        THREAD_MEMORY_RELEASE();
+        regs->thr_dlab = uartd_dl;
+        regs->ier_dlab = uartd_dh;
+        THREAD_MEMORY_RELEASE();
+        regs->lcr &= ~LCR_DLAB;
     }
-
-    /* Program the divisor to select 115200 baud.
-     * U-boot programs UART-D with values that are correct for the frequency
-     * that it uses for the PLLP0 clock source. Since we currently rely on
-     * u-boot for clock setup, just use the same values that u-boot uses for
-     * UART-D.
-     */
-    tk1_uart_regs_t *uartd_regs = (tk1_uart_regs_t *)((uintptr_t)regs + UARTD_OFFSET);
-    uint32_t uartd_dh, uartd_dl;
-
-    /* Select DLM. */
-    uartd_regs->lcr |= LCR_DLAB;
-    THREAD_MEMORY_RELEASE();
-    uartd_dl = uartd_regs->thr_dlab;
-    uartd_dh = uartd_regs->ier_dlab;
-    /* Deselect DLM */
-    THREAD_MEMORY_RELEASE();
-    uartd_regs->lcr &= ~LCR_DLAB;
-
-    /* There are stores being done to 3 distinct memory locations here: lcr,
-     * thr_dlab and ier_dlab.
-     *
-     * Volatile DOES NOT prevent reordering with respect to distinct volatile
-     * locations. All of these stores are independent of each other because
-     * there are no source-level data dependencies between lcr, thr_dlab and
-     * ier_dlab. To the compiler they look like independent stores to different
-     * memory locations.
-     *
-     * Volatile ONLY guarantees rereads on load and commissions on store.
-     * It just so happens that when interleaving reads/writes to a single memory
-     * location, the data dependencies also mean that the compiler *USUALLY*
-     * cannot reorder between read-modify-writes.
-     *
-     * Loads/Stores from/to lcr are NOT sequentially ordered relative to loads/
-     * stores from/to thr_dlab and ier_dlab. Barriers are here to force the
-     * first and last stores to LCR to occur first, and last. The order of the
-     * middle stores isn't important here.
-     */
-    regs->lcr |= LCR_DLAB;
-    THREAD_MEMORY_RELEASE();
-    regs->thr_dlab = uartd_dl;
-    regs->ier_dlab = uartd_dh;
-    THREAD_MEMORY_RELEASE();
-    regs->lcr &= ~LCR_DLAB;
 
     return 0;
 }
@@ -574,7 +571,7 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
             break;
         case TK1_UARTD:
             uart_vaddr = uart_mmio_vaddr + UARTD_OFFSET;
-            ZF_LOGE("The kernel uses UART-D. Recommend not conflicting with it.");
+            /* The kernel uses UART-D. Recommend not conflicting with it. */
             break;
         default:
             return -1;
@@ -591,6 +588,10 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
     dev->irqs       = defn->irqs;
     dev->ioops      = ioops_zero;
     dev->flags      = SERIAL_AUTO_CR;
+
+    /* Zero out the client state. */
+    dev->write_descriptor = cxd_zero;
+    dev->read_descriptor = cxd_zero;
 
     regs = tk1_uart_get_priv(dev);
 
@@ -624,10 +625,6 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
         ZF_LOGE("FIFO mode wasn't enabled.\n");
         return -1;
     }
-
-    /* Zero out the client state. */
-    dev->write_descriptor = cxd_zero;
-    dev->read_descriptor = cxd_zero;
 
     return 0;
 }
