@@ -247,4 +247,57 @@ menu "Toolchain Options"
             meaningful, or when your final compiler does not understand line
             directives.
 
+    choice
+        prompt "X86 microarchitecture"
+        depends on ARCH_X86
+        default ARCH_X86_NEHALEM
+        help
+            Select the X86 microarchitecture
+ 
+        config ARCH_X86_GENERIC
+            bool "Generic"
+            help
+                Build for a generic X86 microarchitecture. Select this if your build does not 
+                depend on any microarchitecture specific features.
+
+        config ARCH_X86_NEHALEM
+            bool "Nehalem"
+            help
+                Intel Nehalem CPU with 64-bit extensions, MMX, SSE, SSE2,
+                SSE3, SSSE3, SSE4.1, SSE4.2 and POPCNT instruction set support. 
+
+        config ARCH_X86_WESTMERE
+            bool "Westmere"
+            help
+                Intel Westmere CPU with 64-bit extensions, MMX, SSE, SSE2, SSE3,
+                SSSE3, SSE4.1, SSE4.2, POPCNT, AES and PCLMUL instruction set support.
+
+        config ARCH_X86_SANDY
+            bool "Sandybridge"
+            help
+                Intel Sandy Bridge CPU with 64-bit extensions, MMX, SSE, SSE2, SSE3,
+                SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AES and PCLMUL instruction set support. 
+
+        config ARCH_X86_IVY
+            bool "Ivybridge"
+            help
+                Intel Ivy Bridge CPU with 64-bit extensions, MMX, SSE, SSE2, SSE3,
+                SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AES, PCLMUL, FSGSBASE, RDRND
+                and F16C instruction set support.
+
+        config ARCH_X86_HASWELL
+            bool "Haswell"
+            help
+                Intel Haswell CPU with 64-bit extensions, MOVBE, MMX, SSE, SSE2,
+                SSE3, SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AVX2, AES, PCLMUL,
+                FSGSBASE, RDRND, FMA, BMI, BMI2 and F16C instruction set support. 
+
+        config ARCH_X86_BROADWELL
+            bool "Broadwell"
+            help
+                Intel Broadwell CPU with 64-bit extensions, MOVBE, MMX, SSE, SSE2,
+                SSE3, SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AVX2, AES, PCLMUL,
+                FSGSBASE, RDRND, FMA, BMI, BMI2, F16C, RDSEED, ADCX and PREFETCHW
+                instruction set support. 
+    endchoice
 endmenu

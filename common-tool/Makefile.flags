@@ -86,6 +86,30 @@ ifeq ($(CONFIG_ARCH_X86_64),y)
 	export TYPE_SUFFIX = 64
 endif
 
+ifeq ($(CONFIG_ARCH_X86_NEHALEM), y)
+	cflags-y += -march=nehalem
+endif
+
+ifeq ($(CONFIG_ARCH_X86_WESTMERE), y)
+	cflags-y += -march=westmere
+endif
+
+ifeq ($(CONFIG_ARCH_X86_SANDY), y)
+	cflags-y += -march=sandybridge
+endif
+
+ifeq ($(CONFIG_ARCH_X86_IVY), y)
+	cflags-y += -march=ivybridge
+endif
+
+ifeq ($(CONFIG_ARCH_X86_HASWELL), y)
+	cflags-y += -march=haswell
+endif
+
+ifeq ($(CONFIG_ARCH_X86_BROADWELL), y)
+	cflags-y += -march=broadwell
+endif
+
 ifeq ($(CONFIG_ARCH_AARCH32),y)
 	DEFINES += AARCH32
 	DEFINES += __KERNEL_32__
