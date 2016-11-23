@@ -68,7 +68,7 @@ case "$PLAT" in
         fi
         ;;
     "tk1")
-        ENTRY_ADDR=0x82000000
+        ENTRY_ADDR=0x90000000
         FORMAT=elf32-littlearm
         ;;
     "bcm2837")
