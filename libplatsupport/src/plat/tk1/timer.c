@@ -35,8 +35,17 @@
 #define PCR_VAL_MASK        0x1fffffff
 /* counter width is 29 bits */
 
-#define CLK_FREQ_MHZ        12
-#define CLK_FREQ_HZ         12000000ull
+/* The NV-TMR timers are based on a 1us upcounter. This 1us upcounter literally
+ * counts up once every 1us, so the frequency here can only be 1us.
+ *
+ * You are required to initialize the upcounter with a divisor that will cause
+ * it to count up at 1us, and no other upcount value is supported.
+ *
+ * We set the divisor below in tk1_get_timer(). The divisor divides the
+ * "clk_m" input clock (which operates at 12MHz) down to 1us.
+ */
+#define CLK_FREQ_MHZ        1
+#define CLK_FREQ_HZ         CLK_FREQ_MHZ * US_IN_S
 
 struct tmr_map {
     uint32_t    pvt;    /* present trigger value */
@@ -239,9 +248,16 @@ tk1_get_timer(nv_tmr_config_t *config)
 
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
-    if (tmr->tmrus_map->usec_cfg != TMRUS_USEC_CFG_DEFAULT) {
-        ZF_LOGE("Check your clock frequency and configure USEC_CFG registers accordingly");
-    }
+
+    /* Just unconditionally set the divisor as if "clk_m" is always 12MHz,
+     * because it actually is always 12MHz.
+     *
+     * Nvidia TK1 manual, section 5.2.2, Table 14:
+     * "clk_m: This clock (with DFT control) runs at 12 MHz, 13 MHz, 16.8 MHz,
+     * 19.2 MHz, 26 MHz, 38.4 MHz, or 48 MHz. Only 12 MHz is currently
+     * supported."
+     */
+    tmr->tmrus_map->usec_cfg == TMRUS_USEC_CFG_DEFAULT;
 
     return timer;
 }
