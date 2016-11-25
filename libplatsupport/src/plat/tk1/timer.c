@@ -257,7 +257,7 @@ tk1_get_timer(nv_tmr_config_t *config)
      * 19.2 MHz, 26 MHz, 38.4 MHz, or 48 MHz. Only 12 MHz is currently
      * supported."
      */
-    tmr->tmrus_map->usec_cfg == TMRUS_USEC_CFG_DEFAULT;
+    tmr->tmrus_map->usec_cfg = TMRUS_USEC_CFG_DEFAULT;
 
     return timer;
 }
