@@ -163,7 +163,9 @@ tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
 static uint64_t
 tmr_get_time(const pstimer_t *timer)
 {
-    return 0;
+    tmr_t *tmr = (tmr_t *)timer->data;
+
+    return (uint64_t)tmr->tmrus_map->cntr_1us * NS_IN_US;
 }
 
 static uint32_t
@@ -260,4 +262,66 @@ tk1_get_timer(nv_tmr_config_t *config)
     tmr->tmrus_map->usec_cfg = TMRUS_USEC_CFG_DEFAULT;
 
     return timer;
+}
+
+pstimer_t *ps_init_timer(int id, ps_io_ops_t* io_ops)
+{
+    nv_tmr_config_t nv_timer_config;
+    uintptr_t paddr, irq;
+
+    switch (id)
+    {
+    case TMR0:
+        irq = INT_NV_TMR0;
+        paddr = NV_TMR_PADDR + TMR0_OFFSET;
+        break;
+    case TMR1:
+        irq = INT_NV_TMR1;
+        paddr = NV_TMR_PADDR + TMR1_OFFSET;
+        break;
+    case TMR2:
+        irq = INT_NV_TMR2;
+        paddr = NV_TMR_PADDR + TMR2_OFFSET;
+        break;
+    case TMR3:
+        irq = INT_NV_TMR3;
+        paddr = NV_TMR_PADDR + TMR3_OFFSET;
+        break;
+    case TMR4:
+        irq = INT_NV_TMR4;
+        paddr = NV_TMR_PADDR + TMR4_OFFSET;
+        break;
+    case TMR5:
+        irq = INT_NV_TMR5;
+        paddr = NV_TMR_PADDR + TMR5_OFFSET;
+        break;
+    case TMR6:
+        irq = INT_NV_TMR6;
+        paddr = NV_TMR_PADDR + TMR6_OFFSET;
+        break;
+    case TMR7:
+        irq = INT_NV_TMR7;
+        paddr = NV_TMR_PADDR + TMR7_OFFSET;
+        break;
+    case TMR8:
+        irq = INT_NV_TMR8;
+        paddr = NV_TMR_PADDR + TMR8_OFFSET;
+        break;
+    case TMR9:
+        irq = INT_NV_TMR9;
+        paddr = NV_TMR_PADDR + TMR9_OFFSET;
+        break;
+    default:
+        ZF_LOGE("TK1: ps_init_timer: Invalid timer device ID %d requested. Returning NULL.", id);
+        return NULL;
+    };
+
+    nv_timer_config.vaddr = ps_io_map(&io_ops->io_mapper,
+                             paddr, NV_TMR_SIZE, 0, PS_MEM_NORMAL);
+    nv_timer_config.tmrus_vaddr = ps_io_map(&io_ops->io_mapper,
+                                   NV_TMR_PADDR + TMRUS_OFFSET, NV_TMR_SIZE,
+                                   0, PS_MEM_NORMAL);
+    nv_timer_config.shared_vaddr = NULL;
+
+    return tk1_get_timer(&nv_timer_config);
 }

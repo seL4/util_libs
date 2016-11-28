@@ -29,7 +29,8 @@ typedef enum {
     TMR7,
     TMR8,
     TMR9,
-    TMR_LAST = TMR9
+    TMR_LAST = TMR9,
+    PS_DEFAULT_TIMER = TMR0
 } nv_tmr_id_t;
 
 #define INT_NV_TMR0         188
@@ -59,6 +60,7 @@ typedef enum {
 
 /* all timers are in on 4K page */
 #define NV_TMR_PADDR    0x60005000
+#define NV_TMR_SIZE     0x1000
 
 typedef struct {
     void        *vaddr;
