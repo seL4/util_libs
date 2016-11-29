@@ -1,0 +1,4 @@
+# @LICENSE(NICTA_CORE)
+libpicotcplibraries-$(CONFIG_LIB_PICOTCP_SOCKETS) := libsel4sync libsel4vka libsel4vspace libsel4utils
+libs-$(CONFIG_LIB_PICOTCP) += libpicotcp
+libpicotcp: $(libc) $(libpicotcplibraries-y) common

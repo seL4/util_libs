@@ -1,0 +1,13 @@
+menuconfig LIB_PICOTCP
+    bool "Build PicoTCP"
+    default y
+    help
+        Lighweight TPC/IP network stack library.
+
+config LIB_PICOTCP_SOCKETS
+    bool "Enable PicoTCP Sockets"
+    default n
+    depends on LIB_PICOTCP && LIB_SEL4_SYNC && LIB_SEL4_VKA
+    help
+        Whether to build PicoTCP sockets interface.
+
