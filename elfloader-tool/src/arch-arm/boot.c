@@ -98,7 +98,7 @@ void main(void)
         abort();
     }
 
-#if defined(CONFIG_ARCH_ARM_V7A) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
+#if (defined(CONFIG_ARCH_ARM_V7A) || defined(CONFIG_ARCH_ARM_V8A)) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
     if(is_hyp_mode()){
     extern void leave_hyp(void);
         leave_hyp();

@@ -35,6 +35,7 @@ ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v
 endif
 ifeq ($(ARMV),armv8-a)
 # ARMv8-A is backward compatible with ARMv7-A in 32bit mode except for deprecated instructions
+ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/smc.S)
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a.S)
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a-hyp.S)
 endif
