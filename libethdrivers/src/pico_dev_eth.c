@@ -20,6 +20,9 @@
 #include <pico_stack.h>
 #include <pico_device.h>
 
+/* Toggle for async driver, which will use eth_dsr instead of eth_poll */
+#define ASYNC_DRIVER 1 
+
 static void initialize_free_bufs(pico_device_eth *pico_iface){
     dma_addr_t *dma_bufs = NULL;
     dma_bufs = malloc(sizeof(dma_addr_t) * CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS);
@@ -131,6 +134,10 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
     /* Also store the information about the length */
     pico_iface->rx_lens[pico_iface->num_free_rx_bufs] = buf_size;
 
+    if(ASYNC_DRIVER) {
+    	pico_iface->pico_dev.__serving_interrupt = 1;
+    }
+
     *cookie = (void*)buf;
     return buf->phys;
 
@@ -217,6 +224,33 @@ static int pico_eth_poll(struct pico_device *dev, int loop_score){
 
 }
 
+/* Async driver */
+static int pico_eth_dsr(struct pico_device *dev, int loop_score){
+    struct pico_device_eth *eth_device = (struct pico_device_eth *)dev;
+    while (loop_score > 0){
+        if (eth_device->num_free_rx_bufs == CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS){
+            eth_device->pico_dev.__serving_interrupt = 0;
+            break;
+        }
+
+        /* Retrieve the data from the rx buffer */
+        dma_addr_t *buf = eth_device->rx_bufs[eth_device->num_free_rx_bufs];
+
+        /* Retrieve the length of the data in the frame */
+        int len = eth_device->rx_lens[eth_device->num_free_rx_bufs];
+
+        ps_dma_cache_invalidate(&eth_device->dma_man, buf->virt, len);
+        pico_stack_recv(dev, buf->virt, len);
+
+        eth_device->num_free_rx_bufs++;
+        loop_score--;
+
+    }
+
+    return loop_score;
+
+}
+
 static struct raw_iface_callbacks pico_prealloc_callbacks = {
     .tx_complete = pico_tx_complete,
     .rx_complete = pico_rx_complete,
@@ -255,8 +289,13 @@ struct pico_device *pico_eth_create(char *name,
 
     /* Attach funciton pointers */
     eth_dev->pico_dev.send = pico_eth_send;
-    eth_dev->pico_dev.poll = pico_eth_poll;
-
+    if (ASYNC_DRIVER){
+        eth_dev->pico_dev.poll = NULL;
+        eth_dev->pico_dev.dsr = pico_eth_dsr;
+    } else {
+        eth_dev->pico_dev.poll = pico_eth_poll;
+    }
+    
     /* Also do some low level init */
     int mtu;
     uint8_t mac[6] = {};
