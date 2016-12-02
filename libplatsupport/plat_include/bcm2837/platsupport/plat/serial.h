@@ -16,6 +16,10 @@
 #define UART_BUSADDR                0x7E215000
 
 #define UART_PADDR_0                (UART_BUSADDR-BUS_ADDR_OFFSET+PADDDR_OFFSET)
+/* Broadcom 2835 Peripheral Manual, section 7.5,
+ * table "ARM Peripherals interrupts table"
+ */
+#define UART_IRQ_0                  (57)
 
 enum chardev_id {
     BCM2837_UART0,
