@@ -26,11 +26,12 @@ typedef struct pico_device_eth {
     int num_free_bufs;
     dma_addr_t **bufs;
 
-    // Pico buffer
-    int num_free_rx_bufs;
-    dma_addr_t **rx_bufs;
+    int next_free_buf;
+    int *buf_pool;
+    int *rx_queue;
     int *rx_lens;
-                                                      
+    int rx_count;    
+                                                 
 } pico_device_eth;
 
  /**
