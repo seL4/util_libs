@@ -9,6 +9,7 @@
  */
 
 #include "../elfloader.h"
+#include "sys_fputc.h"
 
 #define MPCORE_PRIV               0xF8F00000
 
@@ -70,5 +71,6 @@ void remap_ram(void)
 void platform_init(void)
 {
     remap_ram();
+    enable_uart();
 }
 

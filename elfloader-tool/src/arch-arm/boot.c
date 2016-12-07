@@ -85,9 +85,9 @@ void main(void)
 #endif
 
     /* Print welcome message. */
+    platform_init();
     printf("\nELF-loader started on ");
     print_cpuid();
-    platform_init();
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
 

@@ -40,6 +40,9 @@
 #define UART_INTRPT_MASK_TXEMPTY     (1U << 3)
 #define UART_CHANNEL_STS_TXEMPTY     (1U << 3)
 
+#define UART_CONTROL_TX_EN           (1U << 4)
+#define UART_CONTROL_TX_DIS          (1U << 5)
+
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
@@ -58,4 +61,13 @@ __fputc(int c, FILE *stream)
     }
 
     return 0;
+}
+
+void
+enable_uart()
+{
+    uint32_t v = *UART_REG(UART_CONTROL);
+    v |= UART_CONTROL_TX_EN;
+    v &= ~UART_CONTROL_TX_DIS;
+    *UART_REG(UART_CONTROL) = v;
 }
