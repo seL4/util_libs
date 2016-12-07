@@ -171,7 +171,7 @@ zynq7000_uart_get_priv(ps_chardevice_t *d)
 static inline void
 zynq7000_uart_enable_tx(zynq7000_uart_regs_t* regs)
 {
-    regs->cr &= ~UART_CR_RXDIS;
+    regs->cr &= ~UART_CR_TXDIS;
     regs->cr |= UART_CR_TXEN;
 }
 
