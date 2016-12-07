@@ -187,7 +187,7 @@ int uart_getchar(ps_chardevice_t *d)
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
     int c = -1;
 
-    if ((regs->sr & UART_SR_RTRIG) || (regs->isr & UART_ISR_TIMEOUT)) {
+    if (!(regs->sr & UART_SR_REMPTY)) {
         c = regs->fifo;
 
         /* Clear the Rx timeout interrupt status bit if set */
