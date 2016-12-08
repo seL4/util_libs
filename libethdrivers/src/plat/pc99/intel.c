@@ -86,7 +86,7 @@ typedef enum e1000_family {
 #define REG_82574_FCAL(x) REG(x, 0x028)
 #define REG_82574_FCAH(x) REG(x, 0x02c)
 
-#define IMC_82580_RESERVED_BITS (BIT(1) | BIT(3) | BIT(5) | BIT(9) | BIT(15) | BIT(16) | BIT(17) | BIT(21) | BIT(23) | BIT(27) | BIT(31))
+#define IMC_82580_RESERVED_BITS ((uint32_t)(BIT(1) | BIT(3) | BIT(5) | BIT(9) | BIT(15) | BIT(16) | BIT(17) | BIT(21) | BIT(23) | BIT(27) | BIT(31)))
 #define IMC_82574_RESERVED_BITS (BIT(3) | BIT(5) | BIT(8) | (0b11111 << 10) | BIT(19) | (0b1111111 << 25))
 
 #define CTRL_82580_RESERVED_BITS (BIT(24) | BIT(25))
