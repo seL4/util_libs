@@ -15,6 +15,7 @@
 
 #include <pci/helper.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 // ref: http://www.acm.uiuc.edu/sigops/roll_your_own/7.c.0.html
 //      PCI System Architecture, rev 4
@@ -129,12 +130,12 @@ static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, b
              * lines. This is similar to how the Linux kernel PCI debug displays in dmesg. */
             if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) continue;
             if (cfg->base_addr_space[i] == PCI_BASE_ADDRESS_SPACE_IO) {
-                printf("    BAR%d : [ io 0x%llx sz 0x%x szmask 0x%x ]\n", i,
+                printf("    BAR%d : [ io 0x%"PRIx64" sz 0x%x szmask 0x%x ]\n", i,
                        libpci_device_iocfg_get_baseaddr(cfg, i),
                        cfg->base_addr_size[i],
                        cfg->base_addr_size_mask[i]);
             } else {
-                printf("    BAR%d : [ mem 0x%llx sz 0x%x szmask 0x%x %s %s ]\n", i,
+                printf("    BAR%d : [ mem 0x%"PRIx64" sz 0x%x szmask 0x%x %s %s ]\n", i,
                        libpci_device_iocfg_get_baseaddr(cfg, i),
                        cfg->base_addr_size[i],
                        cfg->base_addr_size_mask[i],
@@ -155,7 +156,7 @@ static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, b
             printf("]\n");
             printf("        base_addr_prefetchable[%d]: %s\n", i, cfg->base_addr_prefetchable[i]
                    ? "yes" : "no");
-            printf("        base_addr[%d]: 0x%llx\n", i, libpci_device_iocfg_get_baseaddr(cfg, i));
+            printf("        base_addr[%d]: 0x%"PRIx64"\n", i, libpci_device_iocfg_get_baseaddr(cfg, i));
             printf("        base_addr_size_mask[%d]: 0x%x\n", i, cfg->base_addr_size_mask[i]);
         }
     }

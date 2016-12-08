@@ -59,7 +59,7 @@ error:
 static uintptr_t lwip_allocate_rx_buf(void *iface, size_t buf_size, void **cookie) {
     lwip_iface_t *lwip_iface = (lwip_iface_t*)iface;
     if (buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
-        LOG_ERROR("Requested RX buffer of size %d which can never be fullfilled by preallocated buffers of size %d", buf_size, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
+        LOG_ERROR("Requested RX buffer of size %zu which can never be fullfilled by preallocated buffers of size %d", buf_size, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
         return 0;
     }
     if (lwip_iface->num_free_bufs == 0) {
