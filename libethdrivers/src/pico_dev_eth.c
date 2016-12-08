@@ -16,6 +16,7 @@
 #include <ethdrivers/helpers.h>
 #include <string.h>
 #include "debug.h"
+#include <utils/zf_log.h>
 
 #include <pico_stack.h>
 #include <pico_device.h>
@@ -26,7 +27,7 @@
 static int alloc_buf_pool(pico_device_eth *pico_iface){
     /* Take the next free buffer */
     if (pico_iface->next_free_buf == -1){
-        LOG_ERROR("Out of preallocated eth buffers.");
+        ZF_LOGE("Out of preallocated eth buffers.");
         return -1;
     }
     
@@ -39,7 +40,7 @@ static int alloc_buf_pool(pico_device_eth *pico_iface){
 static void free_buf_pool(pico_device_eth *pico_iface, int buf_no){
     /* Return back into the buffer pool */
     if (buf_no < 0 || buf_no > CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS){
-        LOG_ERROR("Attempted to return a buffer outside of the pool %d.", buf_no);
+        ZF_LOGE("Attempted to return a buffer outside of the pool %d.", buf_no);
         return;
     }
     pico_iface->buf_pool[pico_iface->next_free_buf] = pico_iface->next_free_buf;
@@ -131,7 +132,7 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
     pico_device_eth *pico_iface = (pico_device_eth*)iface;
 
     if (buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
-        LOG_ERROR("Requested RX buffer of size %d which can never be fullfilled by preallocated buffers of size %d", 
+        ZF_LOGE("Requested RX buffer of size %d which can never be fullfilled by preallocated buffers of size %d", 
                 buf_size, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
         return 0;
     }
@@ -139,7 +140,7 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
     if (!pico_iface->bufs) {
         initialize_free_bufs(pico_iface);
         if (!pico_iface->bufs) {
-            LOG_ERROR("Failed lazy initialization of preallocated free buffers");
+            ZF_LOGE("Failed lazy initialization of preallocated free buffers");
             return 0;
         }
     } else {
@@ -168,7 +169,7 @@ static void pico_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
     pico_device_eth *pico_iface = (pico_device_eth*)iface;
     
     if (num_bufs > 1){
-        LOG_ERROR("RX buffer of size is smaller than MTU. Frame splitting unhandled.\n");
+        ZF_LOGE("RX buffer of size is smaller than MTU. Frame splitting unhandled.\n");
         /* Frame splitting is not handled. Warn and return bufs to pool. */
         for (int i=0; i<num_bufs; i++){
             free_buf_pool(pico_iface, cookies[i]);
@@ -217,7 +218,7 @@ static int pico_eth_send(struct pico_device *dev, void *input_buf, int len){
     switch(status) {
     case ETHIF_TX_FAILED:
         pico_tx_complete(dev, buf_no);
-        LOG_ERROR("Failed tx\n");
+        ZF_LOGE("Failed tx\n");
         return 0; // Error for PICO
     case ETHIF_TX_COMPLETE:
         pico_tx_complete(dev, buf_no);
@@ -269,7 +270,7 @@ struct pico_device *pico_eth_create(char *name,
     /* Create the pico device struct */
     struct pico_device_eth *eth_dev = malloc(sizeof(struct pico_device_eth));
     if (!eth_dev){
-        LOG_ERROR("Failed to malloc pico eth device interface");
+        ZF_LOGE("Failed to malloc pico eth device interface");
         return NULL;
     }
 
@@ -313,7 +314,7 @@ struct pico_device *pico_eth_create(char *name,
 
     /* Register in picoTCP (equivalent to netif init in lwip)*/
     if (pico_device_init(&(eth_dev->pico_dev), name, mac) != 0){
-        LOG_ERROR("Failed to initialize pico device");
+        ZF_LOGE("Failed to initialize pico device");
         free(eth_dev);
         return NULL;
     }
