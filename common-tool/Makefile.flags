@@ -110,6 +110,10 @@ ifeq ($(CONFIG_ARCH_X86_BROADWELL), y)
 	cflags-y += -march=broadwell
 endif
 
+ifeq ($(CONFIG_ARCH_X86_SKYLAKE), y)
+	cflags-y += -march=skylake
+endif
+
 ifeq ($(CONFIG_ARCH_AARCH32),y)
 	DEFINES += AARCH32
 	DEFINES += __KERNEL_32__

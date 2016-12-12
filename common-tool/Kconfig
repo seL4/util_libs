@@ -299,5 +299,13 @@ menu "Toolchain Options"
                 SSE3, SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AVX2, AES, PCLMUL,
                 FSGSBASE, RDRND, FMA, BMI, BMI2, F16C, RDSEED, ADCX and PREFETCHW
                 instruction set support. 
+
+        config ARCH_X86_SKYLAKE
+            bool "Skylake"
+            help
+                Intel Skylake CPU with 64-bit extensions, MOVBE, MMX, SSE, SSE2,
+                SSE3, SSSE3, SSE4.1, SSE4.2, POPCNT, AVX, AVX2, AES, PCLMUL,
+                FSGSBASE, RDRND, FMA, BMI, BMI2, F16C, RDSEED, ADCX, PREFETCHW,
+                CLFLUSHOPT, XSAVEC and XSAVES instruction set support.
     endchoice
 endmenu
