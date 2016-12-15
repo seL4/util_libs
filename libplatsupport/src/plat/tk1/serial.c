@@ -17,31 +17,9 @@
 
 #include "../../chardev.h"
 
-/** @file
- * TK1 UART driver. Caution: the kernel uses UARTD. You are strongly cautioned
- * against using UART-D yourself.
- *
- * This driver was originally written to be asynchronous, and has an IRQ handler
- * that should work fine. The driver was later modified to be synchronous
- * because integrating it into a CAmkES component with proved to be difficult
- * with the concurrency.
- *
- * To make reads asynchronous:
- *  1. In tk1_uart_init_common(): call tk1_uart_set_rbr_irq(regs, true).
- *  2. In tk1_uart_read(): Remove the loop that spins to read from the receieve
- *     buffer, and have tk1_uart_read() return 0. The IRQ handler will call the
- *     callback when data is available. Remove the callback invocation that
- *     calls with d->read_descriptor.bytes_transfered.
- *  3. In tk1_uart_write(): Write out the first byte of the data, and then
- *     enable the (tk1_uart_set_thr_irq(regs, true)). The IRQ handler
- *     automatically disables the THRE IRQ when the entire transfer has
- *     completed, so it must be re-enabled each time tk1_uart_write() is called.
- *  4. In tk1_uart_write(): Make sure you add a check for the length of the
- *     supplied data being == 1. If so, then don't enable the THRE IRQ, since
- *     you've already written out all the data, when you wrote out the first
- *     byte.
- */
 #define UART_BYTE_MASK  0xff
+
+#define TK1_UART_INPUT_CLOCK_FREQ_HZ (408000000)
 
 #define LCR_DLAB        BIT(7)
 #define LCR_SET_BREAK   BIT(6)
@@ -129,6 +107,15 @@ tk1_uart_get_priv(ps_chardevice_t *d)
     return (tk1_uart_regs_t*)d->vaddr;
 }
 
+static inline bool
+tk1_uart_is_async(ps_chardevice_t *d)
+{
+    /* TK1_UART[ABCD] are polling, while TK1_UART[ABCD]_ASYNC are asynchronous
+     * versions of the first 4 devices.
+     */
+    return (d->id >= TK1_UARTA_ASYNC);
+}
+
 static inline void
 tk1_uart_set_thr_irq(tk1_uart_regs_t *regs, bool enable)
 {
@@ -203,7 +190,7 @@ uart_handle_irq(ps_chardevice_t* d)
         break;
     case IIR_INT_SOURCE_DATA_ERROR:
 
-        ZF_LOGE("Parity, overrun, or framing error.\n");
+        ZF_LOGE("Parity, overrun, or framing error.");
         if (d->read_descriptor.data != NULL) {
             struct chardev_xmit_descriptor *rd = &d->read_descriptor;
 
@@ -240,7 +227,7 @@ uart_handle_irq(ps_chardevice_t* d)
              * But I assume I have to re-enable it too, because otherwise I
              * won't get them anymore.
              */
-            ZF_LOGV("Int reason EO received data.\n");
+            ZF_LOGV("Int reason EO received data.");
             regs->ier_dlab &= ~IER_EO_RECEIVE_DATA;
             regs->ier_dlab |= IER_EO_RECEIVE_DATA;
         }
@@ -250,7 +237,7 @@ uart_handle_irq(ps_chardevice_t* d)
              * or some other unusual case has been triggered, we should read the
              * RBR register and consume the bytes in it.
              */
-            ZF_LOGV("Draining.");
+            ZF_LOGW("Draining.");
             while (uart_getchar(d) != -1) {
                 /* Just read the bytes out to clear the FIFO */
             }
@@ -269,7 +256,7 @@ uart_handle_irq(ps_chardevice_t* d)
         while (c != -1) {
             /* Don't overrun the client-supplied buffer */
             if (rd->bytes_transfered >= rd->bytes_requested) {
-                ZF_LOGW("Buffer of %dB will be overrun.", rd->bytes_requested);
+                ZF_LOGV("Buffer of %dB will be overrun.", rd->bytes_requested);
 
                 /* We use bytes_requested as a flag to indicate to the this IRQ
                  * handler that it shouldn't call the callback again.
@@ -311,7 +298,7 @@ uart_handle_irq(ps_chardevice_t* d)
     }
 
     case IIR_INT_SOURCE_THR_TXRDY:
-        ZF_LOGV("Int reason THR ready: %d of %d bytes transferred.\n",
+        ZF_LOGV("Int reason THR ready: %d of %d bytes transferred.",
                 d->write_descriptor.bytes_transfered,
                 d->write_descriptor.bytes_requested);
 
@@ -351,10 +338,10 @@ uart_handle_irq(ps_chardevice_t* d)
         break;
 
     case IIR_INT_SOURCE_MODEM_STATUS:
-        ZF_LOGV("Modem status changed.\n");
+        ZF_LOGV("Modem status changed.");
         break;
     default:
-        ZF_LOGW("Unknown interrupt reason %d.\n", irq_ident_val);
+        ZF_LOGW("Unknown interrupt reason %d.", irq_ident_val);
     };
 }
 
@@ -381,21 +368,25 @@ tk1_uart_write(ps_chardevice_t* d, const void* vdata,
         return 0;
     }
 
-    /* Write the data out over the line synchronously. This driver used to use
-     * the IRQ and work asynchronously, but when tested repeatedly on hardware,
-     * there was too much inconsistent behaviour when using the IRQ, so the
-     * driver has been made synchronous.
-     */
-    for (int i=0; i<count; i++) {
-        while (uart_putchar(d, ((uint8_t *)vdata)[i]) == -1) {
+    if (!tk1_uart_is_async(d)) {
+        /* Write the data out over the line synchronously. */
+        for (int i = 0; i < count; i++) {
+            while (uart_putchar(d, ((uint8_t *)vdata)[i]) == -1) {
+            }
+
+            d->write_descriptor.bytes_transfered++;
         }
 
-        d->write_descriptor.bytes_transfered++;
+        if (rcb != NULL) {
+            rcb(d, CHARDEV_STAT_COMPLETE, d->write_descriptor.bytes_transfered,
+                token);
+        }
+    } else {
+        /* Else enable the THRE IRQ and return. */
+        tk1_uart_set_thr_irq(tk1_uart_get_priv(d), true);
+        THREAD_MEMORY_RELEASE();
     }
 
-    if (rcb != NULL) {
-        rcb(d, CHARDEV_STAT_COMPLETE, d->write_descriptor.bytes_transfered, token);
-    }
     return d->write_descriptor.bytes_transfered;
 }
 
@@ -423,35 +414,122 @@ tk1_uart_read(ps_chardevice_t* d, void* vdata,
         rcb(d, CHARDEV_STAT_COMPLETE, count, token);
     }
 
-    int n_chars_read = 0;
-    int c;
+    if (!tk1_uart_is_async(d)) {
+        int n_chars_read = 0;
+        int c;
 
-    while ((c = uart_getchar(d)) == -1) {
-    }
+        while ((c = uart_getchar(d)) == -1) {
+        }
 
-    /* Write the data out over the line synchronously. */
-    while (c != -1) {
-        ((uint8_t *)vdata)[n_chars_read] = c;
+        /* Read the data synchronously. */
+        while (c != -1) {
+            ((uint8_t *)vdata)[n_chars_read] = c;
 
-        c = uart_getchar(d);
-        n_chars_read++;
-    }
+            c = uart_getchar(d);
+            n_chars_read++;
+        }
 
-    d->read_descriptor.bytes_transfered = n_chars_read;
+        d->read_descriptor.bytes_transfered = n_chars_read;
 
-    if (rcb != NULL) {
-        rcb(d, CHARDEV_STAT_COMPLETE, d->read_descriptor.bytes_transfered, token);
+        if (rcb != NULL) {
+            rcb(d, CHARDEV_STAT_COMPLETE, d->read_descriptor.bytes_transfered,
+                token);
+        }
     }
 
     return d->read_descriptor.bytes_transfered;
+}
+
+/** Used for debugging. Concats the dlab hi and lo bytes into a 16-bit int.
+ * @param d Pointer to the device whose divisor you want to get.
+ * @return 16-bit divisor.
+ */
+UNUSED static uint16_t
+tk1_uart_get_dlab_divisor(ps_chardevice_t *d)
+{
+    uint16_t ret=0;
+    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+
+    regs->lcr |= LCR_DLAB;
+    THREAD_MEMORY_RELEASE();
+    ret = regs->thr_dlab & 0xFF;
+    ret |= (regs->ier_dlab & 0xFF) << 8;
+    THREAD_MEMORY_RELEASE();
+    regs->lcr &= ~LCR_DLAB;
+
+    return ret;
+}
+
+static void
+tk1_uart_set_dlab_divisor(ps_chardevice_t *d, uint16_t divisor)
+{
+    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+
+    regs->lcr |= LCR_DLAB;
+    THREAD_MEMORY_RELEASE();
+    regs->thr_dlab = divisor & 0xFF;
+    regs->ier_dlab = (divisor >> 8) & 0xFF;
+    THREAD_MEMORY_RELEASE();
+    regs->lcr &= ~LCR_DLAB;
+}
+
+static int
+tk1_uart_get_divisor_for(int baud)
+{
+    int ret;
+
+    switch (baud) {
+    case 115200:
+    case 57600:
+    case 38400:
+    case 19200:
+    case 9600:
+    case 4800:
+    case 2400:
+    case 1200:
+    case 300:
+        /* Do nothing; This switch is for input validation. */
+        break;
+    default:
+        ZF_LOGE("TK1-uart: Unsupported baud rate %d.",
+                baud);
+        return -1;
+    }
+
+    /* Both we an u-boot program the UARTs to use PllP_out as their input clock,
+     * which is fixed at 408MHz:
+     *
+     *  TegraK1 TRM, Section 5.22, Table 14:
+     *  "pllP_out: This is the PLLP’s output clock which is set to 408 MHz."
+     *
+     * This 408MHz output, is then channeled into the UART-controllers after
+     * being passed through a divider. The divider's default divisor is 17
+     * on hardware #RESET, but u-boot sets the divider's divisor to 0, and so
+     * the UART controller gets the full 408 MHz as its input.
+     *
+     * From there, we just calculate a divisor to put into the UART controller's
+     * DLAB (divisor latch) registers, based on the caller's requested baud
+     * rate, according to the formula:
+     *  Divisor = input_clock_freq / (16 * desired_baud)
+     *
+     * The number "16" comes from the fact that the UART controller takes 16
+     * clock phases to generate one bit of output on the line (TK1 TRM, section
+     * 34.1.1.)
+     */
+    ret = TK1_UART_INPUT_CLOCK_FREQ_HZ / (16 * baud);
+    return ret;
 }
 
 int
 uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
     tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    int divisor;
     /* line control register */
     uint32_t lcr = 0;
+
+    /* Disable the receive IRQ while changing line configuration. */
+    tk1_uart_set_rbr_irq(regs, false);
 
     switch (char_size) {
         case 5:
@@ -487,10 +565,18 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
     /* one stop bit */
     regs->lcr = lcr;
 
+    divisor = tk1_uart_get_divisor_for(bps);
+    if (divisor < 1) {
+        /* Unsupported baud rate. */
+        return -1;
+    }
+
+    tk1_uart_set_dlab_divisor(d, divisor);
+
     /* Disable hardware flow control for all UARTs other than UARTD,
      * because UARTD actually has an RS232 pinout port.
      */
-    if (d->id != TK1_UARTD) {
+    if (d->id != TK1_UARTD && d->id != TK1_UARTD_ASYNC) {
         uint32_t mcr = regs->mcr;
 
         /* Clear RTS_EN and CTS_EN. */
@@ -498,47 +584,18 @@ uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity p
         /* Force RTS and DTR to low (active) */
         mcr |= (BIT(1) | BIT(0));
         regs->mcr = mcr;
+    }
 
-        /* Program the divisor to select 115200 baud.
-         * U-boot programs UART-D with values that are correct for the frequency
-         * that it uses for the PLLP0 clock source. Since we currently rely on
-         * u-boot for clock setup, just use the same values that u-boot uses for
-         * UART-D.
-         */
-        tk1_uart_regs_t *uartd_regs = (tk1_uart_regs_t *)((uintptr_t)regs + UARTD_OFFSET);
-        uint32_t uartd_dh, uartd_dl;
+    /* Drain the RX buffer when configuring a new set of line options.
+     * By implication, the caller should wait for previous transmissions to be
+     * completed before reconfiguring.
+     */
+    while (uart_getchar(d) != -1) {
+    }
 
-        /* Select DLM. */
-        uartd_regs->lcr |= LCR_DLAB;
-        THREAD_MEMORY_RELEASE();
-        uartd_dl = uartd_regs->thr_dlab;
-        uartd_dh = uartd_regs->ier_dlab;
-        /* Deselect DLM */
-        THREAD_MEMORY_RELEASE();
-        uartd_regs->lcr &= ~LCR_DLAB;
-
-        /* Volatile DOES NOT prevent reordering with respect to distinct volatile
-         * locations. All of these stores are independent of each other because
-         * there are no source-level data dependencies between lcr, thr_dlab and
-         * ier_dlab. To the compiler they look like independent stores to different
-         * memory locations.
-         *
-         * Volatile ONLY guarantees rereads on load and commissions on store.
-         * It just so happens that when interleaving reads/writes to a single memory
-         * location, the data dependencies also mean that the compiler *USUALLY*
-         * cannot reorder between read-modify-writes.
-         *
-         * Loads/Stores from/to lcr are NOT sequentially ordered relative to loads/
-         * stores from/to thr_dlab and ier_dlab. Barriers are here to force the
-         * first and last stores to LCR to occur first, and last. The order of the
-         * middle stores isn't important here.
-         */
-        regs->lcr |= LCR_DLAB;
-        THREAD_MEMORY_RELEASE();
-        regs->thr_dlab = uartd_dl;
-        regs->ier_dlab = uartd_dh;
-        THREAD_MEMORY_RELEASE();
-        regs->lcr &= ~LCR_DLAB;
+    if (tk1_uart_is_async(d)) {
+        /* Re-enable receive IRQ. */
+        tk1_uart_set_rbr_irq(regs, true);
     }
 
     return 0;
@@ -561,15 +618,19 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
     /* add offsets properly */
     switch (defn->id) {
         case TK1_UARTA:
+        case TK1_UARTA_ASYNC:
             uart_vaddr = uart_mmio_vaddr;
             break;
         case TK1_UARTB:
+        case TK1_UARTB_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTB_OFFSET;
             break;
         case TK1_UARTC:
+        case TK1_UARTC_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTC_OFFSET;
             break;
         case TK1_UARTD:
+        case TK1_UARTD_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTD_OFFSET;
             /* The kernel uses UART-D. Recommend not conflicting with it. */
             break;
@@ -595,12 +656,12 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
 
     regs = tk1_uart_get_priv(dev);
 
-    /* Line configuration */
-    uart_configure(dev, 115200, 8, PARITY_NONE, 1);
-
-    /* Disable IRQs. For asynchronous operation, enable the RBR IRQ here. */
+    /* Disable IRQs. */
     tk1_uart_set_rbr_irq(regs, false);
     tk1_uart_set_thr_irq(regs, false);
+
+    /* Line configuration */
+    uart_configure(dev, 115200, 8, PARITY_NONE, 1);
 
     /* Set FCR[0] to 1 to enable FIFO mode, and enable DMA mode 1 which will
      * generate an interrupt only when the buffer has.

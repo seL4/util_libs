@@ -21,6 +21,10 @@ static const int uartA_irqs[] = {UARTA_IRQ, -1};
 static const int uartB_irqs[] = {UARTB_IRQ, -1};
 static const int uartC_irqs[] = {UARTC_IRQ, -1};
 static const int uartD_irqs[] = {UARTD_IRQ, -1};
+static const int uartA_ASYNC_irqs[] = {UARTA_IRQ, -1};
+static const int uartB_ASYNC_irqs[] = {UARTB_IRQ, -1};
+static const int uartC_ASYNC_irqs[] = {UARTC_IRQ, -1};
+static const int uartD_ASYNC_irqs[] = {UARTD_IRQ, -1};
 
 
 #define UART_DEFN(devid) {          \
@@ -31,12 +35,24 @@ static const int uartD_irqs[] = {UARTD_IRQ, -1};
     .init_fn = &uart_init           \
 }
 
+#define UART_ASYNC_DEFN(devid) {          \
+    .id      = TK1_UART##devid##_ASYNC,    \
+    .paddr   = UART##devid##_PADDR, \
+    .size    = BIT(12),             \
+    .irqs    = uart##devid##_ASYNC_irqs,  \
+    .init_fn = &uart_init           \
+}
+
 
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(A),
     UART_DEFN(B),
     UART_DEFN(C),
     UART_DEFN(D),
+    UART_ASYNC_DEFN(A),
+    UART_ASYNC_DEFN(B),
+    UART_ASYNC_DEFN(C),
+    UART_ASYNC_DEFN(D)
 };
 
 struct ps_chardevice*

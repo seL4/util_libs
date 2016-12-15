@@ -29,12 +29,29 @@
 #define UARTC_IRQ    78
 #define UARTD_IRQ    122
 
-/* official device names */
+/* Official device IDs, as recognized by ps_cdev_init().
+ *
+ * The first 4 IDs, TK1_UART[ABCD] are "real" devices, and the next 4 IDs,
+ * TK1_UART[ABCD]_ASYNC are those same devices repeated.
+ *
+ * The difference is that if you request the first 4, you will get a handle to
+ * a ps_chardevice_t that exports a polling, synchronous interface.
+ *
+ * If you request the other 4, you will get a handle to a ps_chardevice_t that
+ * exports an irq-based, asynchronous interface (and requires you to handle
+ * IRQs and use callback functions).
+ */
 enum chardev_id {
+    /* Synchronous devices. */
     TK1_UARTA,
     TK1_UARTB,
     TK1_UARTC,
     TK1_UARTD,
+    /* Asynchronous versions of those devices. */
+    TK1_UARTA_ASYNC,
+    TK1_UARTB_ASYNC,
+    TK1_UARTC_ASYNC,
+    TK1_UARTD_ASYNC,
     /* Aliases */
     PS_SERIAL0 = TK1_UARTA,
     PS_SERIAL1 = TK1_UARTB,
