@@ -41,20 +41,20 @@
 #ifndef __LWIPLIB_H__
 #define __LWIPLIB_H__
 
-#include "src/include/lwip/opt.h"
+#include <lwip/opt.h>
 
 /* Ensure that AUTOIP COOP option is configured correctly.*/
 #undef LWIP_DHCP_AUTOIP_COOP
 #define LWIP_DHCP_AUTOIP_COOP   ((LWIP_DHCP) && (LWIP_AUTOIP))
 
-#include "src/include/lwip/api.h"
-#include "src/include/lwip/netifapi.h"
-#include "src/include/lwip/tcp.h"
-#include "src/include/lwip/udp.h"
-#include "src/include/lwip/tcpip.h"
-#include "src/include/lwip/sockets.h"
-#include "src/include/lwip/mem.h"
-#include "src/include/lwip/stats.h"
+#include <lwip/api.h>
+#include <lwip/netifapi.h>
+#include <lwip/tcp.h>
+#include <lwip/udp.h>
+#include <lwip/tcpip.h>
+#include <lwip/sockets.h>
+#include <lwip/mem.h>
+#include <lwip/stats.h>
 
 /******************************************************************************
 **                            Macro Definitions
@@ -257,32 +257,4 @@ typedef struct cpsw_config {
     s32_t ret;   /* Return  Success/Failure */
 } CPSW_CONF_IF;
 
-typedef struct lwipIf {
-    unsigned int instNum;   /* Instance Number */
-    unsigned int slvPortNum; /* CPSW Slave Port Number */
-    unsigned int ipAddr; /* IP Address */
-    unsigned int netMask; /* Net Mask */
-    unsigned int gwAddr; /* Gate Way Address */
-    unsigned int ipMode; /* IP Address mode
-                            IPADDR_USE_STATIC - force static IP
-                                                addressing to be used \n
-                            IPADDR_USE_DHCP - force DHCP with fallback
-                                              to Link Local \n
-                            IPADDR_USE_AUTOIP */
-    unsigned char macArray[LEN_MAC_ADDRESS]; /* MAC Address to be used*/
-} LWIP_IF;
-
-/******************************************************************************
-**                    lwIP Abstraction Layer API
-******************************************************************************/
-extern unsigned int lwIPLinkStatusGet(unsigned int instNum,
-                                      unsigned int slvPortNum);
-extern unsigned int lwIPNetIfStatusGet(unsigned int instNum,
-                                       unsigned int slvPortNum);
-extern unsigned int lwIPInit(LWIP_IF *lwipIf);
-extern void lwIPRxIntHandler(unsigned int instNum);
-extern void lwIPTxIntHandler(unsigned int instNum);
-extern unsigned int lwIPDHCPStart(unsigned int instNum,
-                                  unsigned int slvPortNum);
-extern void cpsw_switch_configuration(struct cpsw_config  *cpsw_config);
 #endif /* __LWIPLIB_H__ */

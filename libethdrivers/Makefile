@@ -17,11 +17,13 @@ TARGETS := libethdrivers.a
 CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/*.c)))
 CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/uboot/*.c)))
 CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c)))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/cpsw/*.c)))
 
 # Header files/directories this library provides
 HDRFILES := \
     $(sort $(wildcard ${SOURCE_DIR}/include/*)) \
     $(sort $(wildcard ${SOURCE_DIR}/plat_include/$(PLAT)/*)) \
-    $(sort $(wildcard ${SOURCE_DIR}/arch_include/${ARCH}/*))
+    $(sort $(wildcard ${SOURCE_DIR}/arch_include/${ARCH}/*)) \
+    $(sort $(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/cpsw/*)
 
 include $(SEL4_COMMON)/common.mk
