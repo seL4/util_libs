@@ -10,15 +10,15 @@
 
 #include <autoconf.h>
 
-#include "stdint.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "efi/efi.h"
-
-#include "elfloader.h"
-#include "cpuid.h"
+#include <printf.h>
+#include <types.h>
+#include <abort.h>
+#include <strops.h>
+#include <cpuid.h>
 #include <platform.h>
+
+#include "efi/efi.h"
+#include <elfloader.h>
 
 static struct image_info kernel_info;
 static struct image_info user_info;

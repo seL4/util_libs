@@ -15,10 +15,10 @@
 
 #ifdef CONFIG_SMP_ARM_MPCORE
 
-#include "stdint.h"
+#include <types.h>
+#include <cpuid.h>
 
-#include "cpuid.h"
-#include "elfloader.h"
+#include <elfloader.h>
 
 #define SCU_CTRL 0
 #define SCU_CONFIG 1

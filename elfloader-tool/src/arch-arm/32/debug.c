@@ -8,10 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../stdio.h"
-#include "../stdlib.h"
-#include "../stdint.h"
-#include "../string.h"
+#include <abort.h>
+#include <types.h>
 
 #define DFSR_FS_MASK                0x40f
 #define DFSR_FS_ASYNC_EXT_ABORT     0x406

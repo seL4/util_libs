@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "cpuid.h"
-#include "stdio.h"
+#include <printf.h>
+#include <cpuid.h>
 
 #define CPUID_IMPL(cpuid)    (((cpuid) >> 24) &  0xff)
 #define CPUID_MAJOR(cpuid)   (((cpuid) >> 20) &   0xf)

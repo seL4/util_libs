@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../stdint.h"
+#include <types.h>
 
 /* read MP ID register from CPUID */
 uint32_t read_cpuid_mpidr(void)

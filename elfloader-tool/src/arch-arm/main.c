@@ -8,14 +8,14 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "stdint.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "elf/elf.h"
-#include "elfloader.h"
-
+#include <printf.h>
+#include <types.h>
+#include <abort.h>
+#include <strops.h>
+#include <binaries/elf/elf.h>
 #include <cpio/cpio.h>
+
+#include <elfloader.h>
 
 /* Determine if two intervals overlap. */
 static int regions_overlap(uintptr_t startA, uintptr_t endA,

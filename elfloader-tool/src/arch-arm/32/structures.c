@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
-#include "../stdint.h"
+#include <elfloader.h>
+#include <types.h>
 
 #include "structures.h"
 

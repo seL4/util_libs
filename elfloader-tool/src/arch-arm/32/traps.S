@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
- #include "../assembler.h"
+ #include <assembler.h>
  #include "assembler.h"
 
 .text

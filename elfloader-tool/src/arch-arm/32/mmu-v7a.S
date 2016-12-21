@@ -10,7 +10,7 @@
 
 #include <autoconf.h>
 
-#include "../assembler.h"
+#include <assembler.h>
 #include "assembler-v7a.h"
 
 .text

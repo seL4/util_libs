@@ -11,8 +11,8 @@
 #ifndef _EFI_H_
 #define _EFI_H_
 
-#include "../stdio.h"
-#include "../stdint.h"
+#include <printf.h>
+#include <types.h>
 
 typedef struct {
     uint64_t signature;
