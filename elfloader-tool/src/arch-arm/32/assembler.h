@@ -21,7 +21,10 @@
 #define      TTBCR(reg)    p15, 0, reg, c2, c0, 2
 #define       DACR(reg)    p15, 0, reg, c3, c0, 0
 #define     BPIALL(reg)    p15, 0, reg, c7, c5, 6
+#define   DTLBIALL(reg)    p15, 0, reg, c8, c6, 0
 #define    TLBIALL(reg)    p15, 0, reg, c8, c7, 0
+#define  DTLBIASID(reg)    p15, 0, reg, c8, c6, 2
+#define   TLBIASID(reg)    p15, 0, reg, c8, c7, 2
 #define CONTEXTIDR(reg)    p15, 0, reg, c13, c0, 1
 
 /* Processor mode encodings */
@@ -37,6 +40,11 @@
 #define PMASK_ASYNC_ABORT   (1 << 8)
 #define PMASK_IRQ           (1 << 7)
 #define PMASK_FIRQ          (1 << 6)
+
+#define CPSR_SUPERVISOR     ( PMASK_FIRQ         \
+                            | PMASK_IRQ          \
+                            | PMASK_ASYNC_ABORT  \
+                            | PMODE_SUPERVISOR   )
 
 #else /* !__ASSEMBLER__ */
 #warning "Including assembly-specific header in C code"

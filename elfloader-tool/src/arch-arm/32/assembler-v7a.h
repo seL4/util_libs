@@ -22,6 +22,27 @@
 #define      ACTLR(reg)    p15, 0, reg, c1, c0, 1
 #define       DISW(reg)    p15, 0, reg, c7, c6, 2
 #define      DCISW(reg)    p15, 0, reg, c7, c14, 2
+#define      HVBAR(reg)    p15, 4, reg, c12, c0, 0
+#define        HCR(reg)    p15, 4, reg, c1 , c1, 0
+#define     HSCTLR(reg)    p15, 4, reg, c1 , c0, 0
+#define     HACTLR(reg)    p15, 4, reg, c1 , c0, 1
+#define       HDCR(reg)    p15, 4, reg, c1 , c1, 1
+#define      HCPTR(reg)    p15, 4, reg, c1 , c1, 2
+#define       HSTR(reg)    p15, 4, reg, c1 , c1, 3
+#define       HACR(reg)    p15, 4, reg, c1 , c1, 7
+#define       HTCR(reg)    p15, 4, reg, c2 , c0, 2
+#define     HADFSR(reg)    p15, 4, reg, c5 , c1, 0
+#define     HAIFSR(reg)    p15, 4, reg, c5 , c1, 1
+#define        HSR(reg)    p15, 4, reg, c5 , c2, 0
+#define      HDFAR(reg)    p15, 4, reg, c6 , c0, 0
+#define      HIFAR(reg)    p15, 4, reg, c6 , c0, 2
+#define      HPFAR(reg)    p15, 4, reg, c6 , c0, 4
+#define     HMAIR0(reg)    p15, 4, reg, c10, c2, 0
+#define     HMAIR1(reg)    p15, 4, reg, c10, c2, 1
+#define    HAMAIR0(reg)    p15, 4, reg, c10, c3, 0
+#define    HAMAIR1(reg)    p15, 4, reg, c10, c3, 1
+#define     HTPIDR(reg)    p15, 4, reg, c13, c0, 2
+#define    HTTBR(rh,rl)    p15, 4, rl, rh, c2
 
 .macro dcache op
     dmb
