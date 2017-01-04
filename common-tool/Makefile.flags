@@ -33,6 +33,8 @@ ifeq ($(CONFIG_ARCH_X86),y)
 	export ARCH_X86
 	export RUST_ENDIAN = little
 	export RUST_ENV = gnu
+	ccflags-y += $(call cc-option,-fno-pic)
+	ldflags-y += -static
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
