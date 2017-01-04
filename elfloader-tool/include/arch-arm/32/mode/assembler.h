@@ -8,8 +8,8 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __ASSEMBLER_32_H__
-#define __ASSEMBLER_32_H__
+#ifndef __ASSEMBLER_MODE_32_H__
+#define __ASSEMBLER_MODE_32_H__
 
 /* This file contains useful macros for assembly code. */
 
@@ -50,4 +50,4 @@
 #warning "Including assembly-specific header in C code"
 #endif
 
-#endif /* __ASSEMBLER_H_32__ */
+#endif /* __ASSEMBLER_MODE_32_H__ */

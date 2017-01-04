@@ -16,28 +16,22 @@ CFILES   := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/plat/$(PLAT)/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/binaries/elf/*.c))
+CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/*.c))
 ASMFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/plat/$(PLAT)/*.S))
+ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/*.S))
 
 NK_CFLAGS += -D_XOPEN_SOURCE=700
+
+ifeq ($(ARMV),armv8-a)
+ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(SEL4_ARCH)/*.S))
+CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(SEL4_ARCH)/*.c))
+endif
 
 ifeq ($(__ARM_32__),y)
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/crt0.S)
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/traps.S)
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/32/*.c))
-ifeq ($(ARMV),armv6)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v6.S)
-endif
-ifeq ($(ARMV),armv7-a)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/smc.S)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a.S)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a-hyp.S)
-endif
-ifeq ($(ARMV),armv8-a)
-# ARMv8-A is backward compatible with ARMv7-A in 32bit mode except for deprecated instructions
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/smc.S)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a.S)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/32/mmu-v7a-hyp.S)
-endif
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/32
 endif
 
 ifeq ($(__ARM_64__),y)
@@ -53,6 +47,7 @@ ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/arch-$(ARCH)/efi/head
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/efi/*.c))
 endif
 
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)
 INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/
 INCLUDE_DIRS += $(SOURCE_DIR)/include/plat/$(PLAT)/
 INCLUDE_DIRS += $(SOURCE_DIR)/include/
