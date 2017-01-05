@@ -9,59 +9,33 @@
  */
 
 #include <autoconf.h>
+#include <assembler.h>
 
 .extern main
-
-.text
-.global _start
-_start:
-#ifdef CONFIG_SMP_ARM_MPCORE
-    bl      _asm_get_mpidr
-    ldr     r2, =booting_cpu_id
-    ldrex   r1, [r2] 
-    cmp     r1, #0xff
-    bne     non_boot_core
-    strex   r3, r0, [r2]
-    cmp     r3, #0
-    bne     _start
-#endif
-
-    ldr sp, =_bootstack_top
-    b   main
-
-_asm_get_mpidr:
-    mrc     p15, 0, r0, c0, c0, 5
-    and     r0, r0, #0xf
-    bx      lr
-
 .extern non_boot_main
 
-.global non_boot_core
-non_boot_core:
-    bl _asm_get_mpidr
-    cmp r0, #1
-    ldreq     sp, =_bootstack_top_core1
-    cmp r0, #2
-    ldreq     sp, =_bootstack_top_core2
-    cmp r0, #3
-    /* If we got more than 4 cores we are hozed, just don't bring them up */
-    bhi non_boot_core
-    ldreq     sp, =_bootstack_top_core3
+.text
+
+BEGIN_FUNC(_start)
+    ldr sp, =[core_stack_alloc + 0xffc]
+    b   main
+END_FUNC(_start)
+
+BEGIN_FUNC(non_boot_core)
+    ldr     r0, =[smp_aps_index]
+1:  ldrex   r1, [r0]
+    add     r1, r1, #1
+    strex   r2, r1, [r0]
+    teq     r2, #0
+    bne     1b
+
+    mov     r0, #0x1000
+    mul     r1, r0
+    ldr     r3, =[core_stack_alloc - 0x4]
+    add     r3, r1
+    mov     sp, r3
     b       non_boot_main
-
-.align 8
-.space 1024
-_bootstack_top_core1:
-.align 8
-.space 1024
-_bootstack_top_core2:
-.align 8
-.space 1024
-_bootstack_top_core3:
-
-.global booting_cpu_id
-booting_cpu_id:
-.word   0xff
+END_FUNC(non_boot_core)
 
 /*
  * Symbols required for libgcc.

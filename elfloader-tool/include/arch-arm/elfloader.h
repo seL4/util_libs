@@ -25,7 +25,7 @@ typedef uintptr_t vaddr_t;
 #define ROUND_UP(n, b)      (((((n) - 1) >> (b)) + 1) << (b))
 
 #define ALIGN(n)            __attribute__((__aligned__(n)))
-
+#define VISIBLE             __attribute__((externally_visible))
 
 /*
  * Information about an image we are loading.

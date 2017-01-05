@@ -20,19 +20,16 @@
 #include "efi/efi.h"
 #include <elfloader.h>
 
+ALIGN(BIT(PAGE_BITS)) VISIBLE
+char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
+VISIBLE volatile word_t smp_aps_index = 1;
+static volatile int non_boot_lock = 0;
+
 static struct image_info kernel_info;
 static struct image_info user_info;
 
 typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
                               paddr_t ui_p_reg_end, int32_t pv_offset, vaddr_t v_entry);
-
-/* Poor-man's lock. */
-static volatile int non_boot_lock = 0;
-
-#ifdef CONFIG_SMP_ARM_MPCORE
-/* External symbols. */
-extern uint32_t booting_cpu_id;
-#endif
 
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
@@ -74,13 +71,6 @@ void main(void)
     if (efi_exit_boot_services() != EFI_SUCCESS) {
         printf("Unable to exit UEFI boot services!\n");
         abort();
-    }
-#endif
-
-#ifdef CONFIG_SMP_ARM_MPCORE
-    /* If not the boot strap processor then go to non boot main */
-    if ( (read_cpuid_mpidr() & 0xf) != booting_cpu_id) {
-        non_boot_main();
     }
 #endif
 

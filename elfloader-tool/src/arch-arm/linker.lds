@@ -49,10 +49,6 @@ SECTIONS
     {
         *(.bss)
 
-        _bootstack_bottom = .;
-        . = . + 4K;
-        . = ALIGN(16K);
-        _bootstack_top = .;
         _abortstack_bottom = .;
         . = . + 4K;
         . = ALIGN(16K);
