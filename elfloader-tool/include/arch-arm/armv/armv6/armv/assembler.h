@@ -8,10 +8,10 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __ASSEMBLER_32_V6_H__
-#define __ASSEMBLER_32_V6_H__
+#ifndef __ASSEMBLER_V6_H__
+#define __ASSEMBLER_V6_H__
 
-#include "assembler.h"
+#include <mode/assembler.h>
 
 /* This file contains useful macros for assembly code. */
 
@@ -28,4 +28,4 @@
 #warning "Including assembly-specific header in C code"
 #endif
 
-#endif /* __ASSEMBLER_32_V6_H__ */
+#endif /* __ASSEMBLER_V6_H__ */

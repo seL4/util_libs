@@ -10,8 +10,7 @@
 
 #include <elfloader.h>
 #include <types.h>
-
-#include "structures.h"
+#include <mode/structures.h>
 
 /* Page directory for Stage1 translation in PL1 (short-desc format)*/
 uint32_t _boot_pd[BIT(PD_BITS)] ALIGN(BIT(PD_SIZE_BITS));

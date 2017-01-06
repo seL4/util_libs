@@ -10,8 +10,7 @@
 
 #include <types.h>
 #include <elfloader.h>
-
-#include "structures.h"
+#include <mode/structures.h>
 
 #define ARM_VECTOR_TABLE    0xffff0000
 extern char arm_vector_table[1];

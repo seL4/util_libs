@@ -34,17 +34,6 @@ _asm_get_mpidr:
     and     r0, r0, #0xf
     bx      lr
 
-.global cpu_idle
-cpu_idle:
-#ifndef ARMV8_A
-    /* The coprocessor register deprecated in ARMV8 A */
-    mcr     p15, 0, r0, c7, c10, 4
-#else
-    dsb
-#endif
-    mcr     p15, 0, r0, c7, c0, 4
-    bx      lr
-
 .extern non_boot_main
 
 .global non_boot_core

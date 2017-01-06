@@ -11,7 +11,7 @@
 #include <autoconf.h>
 
 #include <assembler.h>
-#include "assembler-v7a.h"
+#include <armv/assembler.h>
 
 .text
 
