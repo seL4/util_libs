@@ -14,7 +14,7 @@
 .extern main
 .extern non_boot_main
 
-.text
+.section ".text.start"
 
 BEGIN_FUNC(_start)
     ldr sp, =[core_stack_alloc + 0xffc]
