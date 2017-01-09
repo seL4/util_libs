@@ -17,12 +17,12 @@
 .section ".text.start"
 
 BEGIN_FUNC(_start)
-    ldr sp, =[core_stack_alloc + 0xffc]
-    b   main
+    ldr     sp, =core_stack_alloc + 0xff0
+    b       main
 END_FUNC(_start)
 
 BEGIN_FUNC(non_boot_core)
-    ldr     r0, =[smp_aps_index]
+    ldr     r0, =smp_aps_index
 1:  ldrex   r1, [r0]
     add     r1, r1, #1
     strex   r2, r1, [r0]
@@ -31,7 +31,7 @@ BEGIN_FUNC(non_boot_core)
 
     mov     r0, #0x1000
     mul     r1, r0
-    ldr     r3, =[core_stack_alloc - 0x4]
+    ldr     r3, =core_stack_alloc - 0x10
     add     r3, r1
     mov     sp, r3
     b       non_boot_main
