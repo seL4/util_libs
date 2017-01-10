@@ -264,13 +264,11 @@ static struct raw_iface_callbacks pico_prealloc_callbacks = {
     .allocate_rx_buf = pico_allocate_rx_buf
 };
 
-struct pico_device *pico_eth_create(char *name, 
-    ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops){
+struct pico_device *pico_eth_create_no_malloc(char *name, 
+    ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops, struct pico_device_eth *eth_dev){
 
-    /* Create the pico device struct */
-    struct pico_device_eth *eth_dev = malloc(sizeof(struct pico_device_eth));
-    if (!eth_dev){
-        ZF_LOGE("Failed to malloc pico eth device interface");
+    if (eth_dev == NULL){
+        ZF_LOGE("Invalid pico_device passed into Pico create no_malloc");
         return NULL;
     }
 
@@ -320,6 +318,20 @@ struct pico_device *pico_eth_create(char *name,
     }
 
     return (struct pico_device *)eth_dev;
+}
+
+
+struct pico_device *pico_eth_create(char *name, 
+    ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops){
+
+    /* Create the pico device struct */
+    struct pico_device_eth *eth_dev = malloc(sizeof(struct pico_device_eth));
+    if (!eth_dev){
+        ZF_LOGE("Failed to malloc pico eth device interface");
+        return NULL;
+    }
+
+    return pico_eth_create_no_malloc(name, driver_init, driver_config, io_ops, eth_dev);
 }
 
 #endif /* CONFIG_LIB_PICOTCP */
