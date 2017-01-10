@@ -12,6 +12,7 @@
 #include <autoconf.h>
 
 #include <printf.h>
+#include <armv/machine.h>
 #include <scu.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
@@ -56,6 +57,7 @@ static void src_enable_cpu(int cpu)
 static void src_set_cpu_jump(int cpu, void *jump_addr)
 {
     REG(SRC_BASE, SRC_GPR1 + cpu * 8) = (unsigned int)jump_addr;
+    dsb();
 }
 
 void init_cpus(void)
