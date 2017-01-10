@@ -21,6 +21,7 @@ BEGIN_FUNC(_start)
     b       main
 END_FUNC(_start)
 
+#if CONFIG_MAX_NUM_NODES > 1
 BEGIN_FUNC(non_boot_core)
     ldr     r0, =smp_aps_index
 1:  ldrex   r1, [r0]
@@ -36,6 +37,7 @@ BEGIN_FUNC(non_boot_core)
     mov     sp, r3
     b       non_boot_main
 END_FUNC(non_boot_core)
+#endif /* CONFIG_MAX_NUM_NODES */
 
 /*
  * Symbols required for libgcc.

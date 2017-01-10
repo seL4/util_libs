@@ -31,10 +31,9 @@ static struct image_info user_info;
 typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
                               paddr_t ui_p_reg_end, int32_t pv_offset, vaddr_t v_entry);
 
-/* Entry point for all CPUs other than the initial. */
+#if CONFIG_MAX_NUM_NODES > 1
 void non_boot_main(void)
 {
-#ifdef CONFIG_SMP_ARM_MPCORE
     /* Spin until the first CPU has finished initialisation. */
     while (!non_boot_lock) {
         cpu_idle();
@@ -51,12 +50,10 @@ void non_boot_main(void)
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);
-
-#endif
-
     printf("AP Kernel returned back to the elf-loader.\n");
     abort();
 }
+#endif /* CONFIG_MAX_NUM_NODES */
 
 /*
  * Entry point.
@@ -102,12 +99,12 @@ void main(void)
      * just in case the kernel does not support hyp mode. */
     init_boot_vspace(&kernel_info);
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
     /* Bring up any other CPUs before switching PD in case
      * required device memory exists in the kernel window. */
     init_cpus();
     non_boot_lock = 1;
-#endif
+#endif /* CONFIG_MAX_NUM_NODES */
 
     if(is_hyp_mode()){
         printf("Enabling hypervisor MMU and paging\n");

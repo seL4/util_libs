@@ -14,8 +14,7 @@
 #include <printf.h>
 #include <scu.h>
 
-#ifdef CONFIG_SMP_ARM_MPCORE
-
+#if CONFIG_MAX_NUM_NODES > 1
 /* System Reset Controller base address */
 #define SRC_BASE 0x020D8000
 
@@ -59,7 +58,6 @@ static void src_set_cpu_jump(int cpu, void *jump_addr)
     REG(SRC_BASE, SRC_GPR1 + cpu * 8) = (unsigned int)jump_addr;
 }
 
-
 void init_cpus(void)
 {
     unsigned int i, num;
@@ -69,16 +67,14 @@ void init_cpus(void)
     src_init();
 
     num = scu_get_core_count(scu);
-#ifdef CONFIG_MAX_NUM_NODES
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     }
-#endif
+
     printf("Bringing up %d other cpus\n", num - 1);
     for (i = 1; i < num; i++) {
         src_set_cpu_jump(i, imx_non_boot);
         src_enable_cpu(i);
     }
 }
-
-#endif
+#endif /* CONFIG_MAX_NUM_NODES */

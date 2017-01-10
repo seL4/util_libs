@@ -14,8 +14,7 @@
 #include <printf.h>
 #include <scu.h>
 
-#ifdef CONFIG_SMP_ARM_MPCORE
-
+#if CONFIG_MAX_NUM_NODES > 1
 /* System Reset Controller base address */
 #define SRC_BASE 0x30390000
 #define GPC_BASE 0x303a0000
@@ -39,7 +38,6 @@
 
 void imx_non_boot(void);
 
-/* need to check if this is still required when the manual is available */
 static void src_init(void)
 {
     unsigned int val;
@@ -89,16 +87,14 @@ void init_cpus(void)
     asm volatile ("mrc p15, 1, %0, c9, c0, 2": "=r"(num));
     num = ((num >> 24) & 0x3) + 1;
 
-#ifdef CONFIG_MAX_NUM_NODES
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     }
-#endif
+
     printf("Bringing up %d other cpus\n", num - 1);
     for (i = 1; i < num; i++) {
         src_set_cpu_jump(i, (unsigned int)imx_non_boot);
         src_enable_cpu(i);
     }
 }
-
-#endif
+#endif /* CONFIG_MAX_NUM_NODES */
