@@ -52,6 +52,13 @@ struct image_info {
     uint32_t phys_virt_offset;
 };
 
+extern struct image_info kernel_info;
+extern struct image_info user_info;
+typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
+                              paddr_t ui_p_reg_end,
+                              int32_t pv_offset,
+                              vaddr_t v_entry);
+
 /* Enable the mmu. */
 extern void arm_enable_mmu(void);
 extern void arm_enable_hyp_mmu(void);
@@ -77,6 +84,7 @@ extern void cpu_idle(void);
 /* Platform functions */
 void platform_init(void);
 void init_cpus(void);
+void smp_boot(void);
 
 /* Secure monitor call */
 uint32_t smc(uint32_t, uint32_t, uint32_t, uint32_t);

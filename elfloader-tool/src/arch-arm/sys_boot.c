@@ -22,38 +22,9 @@
 
 ALIGN(BIT(PAGE_BITS)) VISIBLE
 char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
-VISIBLE volatile word_t smp_aps_index = 1;
-static volatile int non_boot_lock = 0;
 
-static struct image_info kernel_info;
-static struct image_info user_info;
-
-typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
-                              paddr_t ui_p_reg_end, int32_t pv_offset, vaddr_t v_entry);
-
-#if CONFIG_MAX_NUM_NODES > 1
-void non_boot_main(void)
-{
-    /* Spin until the first CPU has finished initialisation. */
-    while (!non_boot_lock) {
-        cpu_idle();
-    }
-
-    /* Enable the MMU, and enter the kernel. */
-    if(is_hyp_mode()){
-        arm_enable_hyp_mmu();
-    }else{
-        arm_enable_mmu();
-    }
-
-    /* Jump to the kernel. */
-    ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                            user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry);
-    printf("AP Kernel returned back to the elf-loader.\n");
-    abort();
-}
-#endif /* CONFIG_MAX_NUM_NODES */
+struct image_info kernel_info;
+struct image_info user_info;
 
 /*
  * Entry point.
@@ -100,10 +71,7 @@ void main(void)
     init_boot_vspace(&kernel_info);
 
 #if CONFIG_MAX_NUM_NODES > 1
-    /* Bring up any other CPUs before switching PD in case
-     * required device memory exists in the kernel window. */
-    init_cpus();
-    non_boot_lock = 1;
+    smp_boot();
 #endif /* CONFIG_MAX_NUM_NODES */
 
     if(is_hyp_mode()){
