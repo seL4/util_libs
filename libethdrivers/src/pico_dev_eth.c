@@ -143,9 +143,7 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
             ZF_LOGE("Failed lazy initialization of preallocated free buffers");
             return 0;
         }
-    } else {
-        return 0;
-    }
+    } 
 
     int buf_no = alloc_buf_pool(pico_iface);
     if (buf_no < 0){
