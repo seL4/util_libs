@@ -17,7 +17,6 @@
 
 #ifdef __ASSEMBLER__
 
-#define      IIALL(reg)    p15, 0, reg, c7, c5, 0
 #define      PIALL(reg)    p15, 0, reg, c7, c5, 4
 #define        ISB(reg)    p15, 0, reg, c7, c5, 4
 #define      DCALL(reg)    p15, 0, reg, c7, c10, 0

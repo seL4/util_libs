@@ -24,7 +24,7 @@ BEGIN_FUNC(invalidate_dcache)
 END_FUNC(invalidate_dcache)
 
 BEGIN_FUNC(invalidate_icache)
-    mcr     p15, 0, r1, c7, c5, 0
+    mcr     IIALL(r1)
     bx      lr
 END_FUNC(invalidate_icache)
 

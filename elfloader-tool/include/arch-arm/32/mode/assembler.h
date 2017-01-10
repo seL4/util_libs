@@ -20,6 +20,7 @@
 #define      TTBR0(reg)    p15, 0, reg, c2, c0, 0
 #define      TTBCR(reg)    p15, 0, reg, c2, c0, 2
 #define       DACR(reg)    p15, 0, reg, c3, c0, 0
+#define      IIALL(reg)    p15, 0, reg, c7, c5, 0
 #define     BPIALL(reg)    p15, 0, reg, c7, c5, 6
 #define   DTLBIALL(reg)    p15, 0, reg, c8, c6, 0
 #define    TLBIALL(reg)    p15, 0, reg, c8, c7, 0
