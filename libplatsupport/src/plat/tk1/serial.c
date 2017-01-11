@@ -138,8 +138,10 @@ tk1_uart_set_rbr_irq(tk1_uart_regs_t *regs, bool enable)
     ier = regs->ier_dlab;
     if (enable) {
         ier |= IER_RHR_ENABLE;
+        ier |= IER_RX_FIFO_TIMEDOUT;
     } else {
         ier &= ~IER_RHR_ENABLE;
+        ier &= ~IER_RX_FIFO_TIMEDOUT;
     }
     regs->ier_dlab = ier;
 }
@@ -671,8 +673,8 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
      */
     iir_fcr = 0
         | FCR_FIFO_ENABLE | FCR_DMA_MODE0
-        | ENCODE_BITS(0, FCR_RX_TRIG_FIFO_GT_8, FCR_RX_TRIG_SHIFT, FCR_RX_TRIG_MASK)
-        | ENCODE_BITS(0, FCR_TX_TRIG_FIFO_GT_1, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK)
+        | ENCODE_BITS(0, FCR_RX_TRIG_SHIFT, FCR_RX_TRIG_MASK, FCR_RX_TRIG_FIFO_GT_16)
+        | ENCODE_BITS(0, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK, FCR_TX_TRIG_FIFO_GT_1)
         | BIT(FCR_TX_FIFO_CLEAR_SHIFT)
         | BIT(FCR_RX_FIFO_CLEAR_SHIFT);
 
