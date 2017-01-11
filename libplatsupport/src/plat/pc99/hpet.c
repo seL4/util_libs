@@ -254,6 +254,22 @@ hpet_get_nth_irq(const pstimer_t *device, uint32_t n)
 static pstimer_t singleton_timer;
 static hpet_t singleton_hpet;
 
+bool
+hpet_supports_fsb_delivery(void *vaddr)
+{
+    volatile hpet_timer_t *timer0 = (volatile hpet_timer_t*)((uintptr_t)vaddr + 0x100);
+    uint32_t timer0_config_low = timer0->config;
+    return !!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP));
+}
+
+uint32_t
+hpet_ioapic_irq_delivery_mask(void *vaddr)
+{
+    volatile hpet_timer_t *timer0 = (volatile hpet_timer_t*)((uintptr_t)vaddr + 0x100);
+    uint32_t irq_mask = timer0->config >> TN_INT_ROUTE_CAP;
+    return irq_mask;
+}
+
 pstimer_t *
 hpet_get_timer(hpet_config_t *config)
 {

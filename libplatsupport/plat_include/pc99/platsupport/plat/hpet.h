@@ -26,6 +26,13 @@ typedef struct PACKED {
 
 pstimer_t *hpet_get_timer(hpet_config_t *config);
 
+/* Queries the HPET device mapped at the provided vaddr and returns
+ * whether timer0 (the timer used by hpet_get_timer) supports fsb
+ * deliver */
+bool hpet_supports_fsb_delivery(void *vaddr);
 
+/* Queries the HPET device mapped at the provided vaddr and returns
+ * the mask of interrupts supported by IOAPIC delivery */
+uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr);
 
 #endif /* _PLATSUPPORT_PC99_HPET_H */
