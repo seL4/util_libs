@@ -21,6 +21,7 @@
 
 #include <utils/attribute.h>
 #include <utils/util.h>
+#include <utils/fence.h>
 
 /* hpet data structures / memory maps */
 typedef struct hpet_timer {
@@ -32,23 +33,13 @@ typedef struct hpet_timer {
 
 /* the hpet has one set of global config registers */
 typedef struct hpet {
-
-    /* POINTERS TO MEMORY MAP */
-    volatile uint64_t *general_cap_id_reg;
-    volatile uint64_t *general_config_reg;
-    /* hpet has global upcounter and many comparators, which are confusingly
-     * called timers. This is the upcounter. */
-    volatile uint64_t *main_counter_reg;
-
-    /* POINTERS TO MEMORY MAPPED STRUCTS */
-    /* pointer to an array of timer configs. This driver
-     * so far only uses the first. */
-    volatile hpet_timer_t *timers;
+    /* Pointer to base address of memory mapped HPET region */
+    void *base_addr;
 
     /* Timer state */
     double period_ns;
-    uint32_t periodic;
     uint64_t period;
+    uint32_t periodic;
     uint32_t irq;
 } hpet_t;
 
@@ -125,21 +116,49 @@ enum {
     FIXED = 20
 };
 
+#define CAP_ID_REG 0x0
+#define GENERAL_CONFIG_REG 0x10
+#define MAIN_COUNTER_REG 0xF0
+#define TIMERS_OFFSET 0x100
+
+static inline uint64_t *hpet_get_general_config(void *vaddr)
+{
+    return (uint64_t*)((uintptr_t)vaddr + GENERAL_CONFIG_REG);
+}
+
+static inline uint64_t *hpet_get_main_counter(void *vaddr)
+{
+    return (uint64_t*)((uintptr_t)vaddr + MAIN_COUNTER_REG);
+}
+
+static inline uint64_t *hpet_get_cap_id(void *vaddr)
+{
+    return (uint64_t*)((uintptr_t)vaddr + CAP_ID_REG);
+}
+
+static inline hpet_timer_t *hpet_get_hpet_timer(void *vaddr, unsigned int timer)
+{
+    return ((hpet_timer_t*)((uintptr_t)vaddr + TIMERS_OFFSET)) + timer;
+}
 
 static int
 hpet_start(const pstimer_t* device)
 {
 
     hpet_t *hpet = (hpet_t *) device->data;
+    hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     /* enable the global timer */
-    *hpet->general_config_reg |= BIT(ENABLE_CNF);
+    *hpet_get_general_config(hpet->base_addr) |= BIT(ENABLE_CNF);
+
+    /* make sure the comparator is 0 before we turn time0 on*/
+    timer->comparator = 0llu;
+    COMPILER_MEMORY_RELEASE();
 
     /* turn timer0 on */
-    hpet->timers[0].config |= BIT(TN_INT_ENB_CNF);
+    timer->config |= BIT(TN_INT_ENB_CNF);
 
-    /* make sure the comparator is 0 */
-    hpet->timers[0].comparator = 0llu;
-
+    /* ensure the compiler sends the writes to the hardware */
+    COMPILER_MEMORY_RELEASE();
     return 0;
 }
 
@@ -150,13 +169,16 @@ hpet_stop(const pstimer_t* device)
     hpet_t *hpet = (hpet_t *) device->data;
 
     hpet->periodic = false;
+    hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
 
     /* turn off timer0 */
-    hpet->timers[0].config &= ~(BIT(TN_INT_ENB_CNF));
+    timer->config &= ~(BIT(TN_INT_ENB_CNF));
 
     /* turn the global timer off */
-    *hpet->general_config_reg &= ~BIT(ENABLE_CNF);
+    *hpet_get_general_config(hpet->base_addr) &= ~BIT(ENABLE_CNF);
 
+    /* ensure the compiler sends the writes to the hardware */
+    COMPILER_MEMORY_RELEASE();
     return 0;
 }
 
@@ -168,9 +190,10 @@ hpet_get_time(const pstimer_t* device)
     hpet_t *hpet = (hpet_t *) device->data;
 
     do {
-        time = *hpet->main_counter_reg;
+        time = *hpet_get_main_counter(hpet->base_addr);
+        COMPILER_MEMORY_ACQUIRE();
         /* race condition on 32-bit systems: check the bottom 32 bits didn't overflow */
-    } while (CONFIG_WORD_SIZE == 32 && ((uint32_t) (time >> 32llu)) != ((uint32_t *) hpet->main_counter_reg)[1]);
+    } while (CONFIG_WORD_SIZE == 32 && ((uint32_t) (time >> 32llu)) != ((uint32_t *)hpet_get_main_counter(hpet->base_addr))[1]);
 
     return time * hpet->period_ns;
 }
@@ -179,10 +202,12 @@ int
 hpet_oneshot_absolute(const pstimer_t *device, uint64_t absolute_ns)
 {
     hpet_t *hpet = (hpet_t *) device->data;
+    hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     uint64_t absolute_fs = absolute_ns / hpet->period_ns;
 
     hpet->periodic = false;
-    hpet->timers[0].comparator = absolute_fs;
+    timer->comparator = absolute_fs;
+    COMPILER_MEMORY_RELEASE();
 
     if (hpet_get_time(device) > absolute_ns) {
         return ETIME;
@@ -254,7 +279,7 @@ static hpet_t singleton_hpet;
 bool
 hpet_supports_fsb_delivery(void *vaddr)
 {
-    volatile hpet_timer_t *timer0 = (volatile hpet_timer_t*)((uintptr_t)vaddr + 0x100);
+    hpet_timer_t *timer0 = hpet_get_hpet_timer(vaddr, 0);
     uint32_t timer0_config_low = timer0->config;
     return !!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP));
 }
@@ -262,7 +287,7 @@ hpet_supports_fsb_delivery(void *vaddr)
 uint32_t
 hpet_ioapic_irq_delivery_mask(void *vaddr)
 {
-    volatile hpet_timer_t *timer0 = (volatile hpet_timer_t*)((uintptr_t)vaddr + 0x100);
+    hpet_timer_t *timer0 = hpet_get_hpet_timer(vaddr, 0);
     uint32_t irq_mask = timer0->config >> TN_INT_ROUTE_CAP;
     return irq_mask;
 }
@@ -294,12 +319,10 @@ hpet_get_timer(hpet_config_t *config)
         .irqs = 1
     };
 
-    hpet->general_cap_id_reg = (uint64_t*) config->vaddr;
-    hpet->general_config_reg = (uint64_t*) (config->vaddr + 0x10);
-    hpet->main_counter_reg = (uint64_t*) (config->vaddr + 0xF0);
-    hpet->timers = (hpet_timer_t *) (config->vaddr + 0x100);
+    hpet->base_addr = config->vaddr;
+    hpet_timer_t *hpet_timer = hpet_get_hpet_timer(hpet->base_addr, 0);
 
-    uint32_t timer0_config_low = (uint32_t) hpet->timers[0].config;
+    uint32_t timer0_config_low = (uint32_t) hpet_timer->config;
 
     /* check that this timer is edge triggered */
     if (timer0_config_low & BIT(TN_INT_TYPE_CNF)) {
@@ -317,20 +340,20 @@ hpet_get_timer(hpet_config_t *config)
 
     if (config->ioapic_delivery) {
         /* Check if this IO/APIC offset is valid */
-        uint32_t irq_mask = hpet->timers[0].config >> TN_INT_ROUTE_CAP;
+        uint32_t irq_mask = hpet_timer->config >> TN_INT_ROUTE_CAP;
         if (!(BIT(config->irq) & irq_mask)) {
             ZF_LOGE("IRQ %d not in the support mask 0x%x", config->irq, irq_mask);
             return NULL;
         }
         /* Remove any legacy replacement route so our interrupts go where we want them
          * NOTE: PIT will cease to function from here on */
-        *hpet->general_config_reg &= ~BIT(LEG_RT_CNF);
+        *hpet_get_general_config(hpet->base_addr) &= ~BIT(LEG_RT_CNF);
         /* Make sure we're not deliverying by MSI */
-        hpet->timers[0].config &= ~BIT(TN_FSB_EN_CNF);
+        hpet_timer->config &= ~BIT(TN_FSB_EN_CNF);
         /* Put the IO/APIC offset in (this is called an irq, but in reality it is
          * an index into whichever IO/APIC the HPET delivers to */
-        hpet->timers[0].config &= ~(MASK(5) << TN_INT_ROUTE_CNF);
-        hpet->timers[0].config |= config->irq << TN_INT_ROUTE_CNF;
+        hpet_timer->config &= ~(MASK(5) << TN_INT_ROUTE_CNF);
+        hpet_timer->config |= config->irq << TN_INT_ROUTE_CNF;
     } else {
         /* check that this timer supports front size bus delivery */
         if (!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP))) {
@@ -339,19 +362,20 @@ hpet_get_timer(hpet_config_t *config)
         }
 
         /* set timer 0 to delivery interrupts via the front side bus (using MSIs) */
-        hpet->timers[0].config |= BIT(TN_FSB_EN_CNF);
+        hpet_timer->config |= BIT(TN_FSB_EN_CNF);
 
         /* set up the message address register and message value register so we receive
          * MSIs for timer 0*/
-        hpet->timers[0].fsb_irr =
+        hpet_timer->fsb_irr =
             /* top 32 bits is the message address register */
             ((0x0FEEllu << FIXED) << 32llu)
             /* bottom 32 bits is the message value register */
             | config->irq;
     }
+    COMPILER_MEMORY_RELEASE();
 
     /* read the period of the timer (its in femptoseconds) and calculate no of ticks per ns */
-    uint32_t tick_period_fs = (uint32_t) (*hpet->general_cap_id_reg >> 32llu);
+    uint32_t tick_period_fs = (uint32_t) (*hpet_get_cap_id(hpet->base_addr) >> 32llu);
     hpet->period_ns = tick_period_fs / 1000000.0f;
 
     return timer;
