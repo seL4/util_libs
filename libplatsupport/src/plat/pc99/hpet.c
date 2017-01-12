@@ -8,9 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __PLATSUPPORT_TIMERDEV_H__
-#define __PLATSUPPORT_TIMERDEV_H__
-
 #include <autoconf.h>
 #include <errno.h>
 
@@ -359,5 +356,3 @@ hpet_get_timer(hpet_config_t *config)
 
     return timer;
 }
-
-#endif /* __PLATSUPPORT_TIMER_H__ */
