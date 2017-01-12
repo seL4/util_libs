@@ -228,7 +228,7 @@ hpet_handle_irq(const pstimer_t* device, uint32_t irq UNUSED)
     if (hpet->periodic) {
         int error = hpet_periodic(device, hpet->period);
         if (error != 0) {
-            fprintf(stderr, "Repeat periodic timeout failed. Period: %"PRIu64"\n", hpet->period);
+            ZF_LOGE("Repeat periodic timeout failed. Period: %"PRIu64"", hpet->period);
             assert(error == 0);
         }
     }
@@ -303,13 +303,13 @@ hpet_get_timer(hpet_config_t *config)
 
     /* check that this timer is edge triggered */
     if (timer0_config_low & BIT(TN_INT_TYPE_CNF)) {
-        fprintf(stderr, "This driver expects the timer to be edge triggered\n");
+        ZF_LOGE("This driver expects the timer to be edge triggered");
         return NULL;
     }
 
     /* check that this timer is 64 bit */
     if (!(timer0_config_low & BIT(TN_SIZE_CAP))) {
-        fprintf(stderr, "This driver expects hpet timer0 to be 64bit\n");
+        ZF_LOGE("This driver expects hpet timer0 to be 64bit");
         return NULL;
     }
 
@@ -319,7 +319,7 @@ hpet_get_timer(hpet_config_t *config)
         /* Check if this IO/APIC offset is valid */
         uint32_t irq_mask = hpet->timers[0].config >> TN_INT_ROUTE_CAP;
         if (!(BIT(config->irq) & irq_mask)) {
-            LOG_ERROR("IRQ %d not in the support mask 0x%x\n", config->irq, irq_mask);
+            ZF_LOGE("IRQ %d not in the support mask 0x%x", config->irq, irq_mask);
             return NULL;
         }
         /* Remove any legacy replacement route so our interrupts go where we want them
@@ -334,7 +334,7 @@ hpet_get_timer(hpet_config_t *config)
     } else {
         /* check that this timer supports front size bus delivery */
         if (!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP))) {
-            LOG_ERROR("Requested fsb delivery, but timer0 does not support");
+            ZF_LOGE("Requested fsb delivery, but timer0 does not support");
             return NULL;
         }
 
