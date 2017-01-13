@@ -10,27 +10,15 @@
 
 #include <autoconf.h>
 
-#include "../assembler.h"
+#include <assembler.h>
 
 .extern main
 
-.text
+.section ".text.start"
 
 BEGIN_FUNC(_start)
-    adrp    x19, _bootstack_top
+    adrp    x19, core_stack_alloc
+    add     x19, x19, #0xff0
     mov     sp, x19
     b       main
 END_FUNC(_start)
-
-/*
- * Symbols required for libgcc.
- */
-.global raise
-.global __aeabi_unwind_cpp_pr0
-.global __aeabi_unwind_cpp_pr1
-.global __aeabi_unwind_cpp_pr2
-raise:
-__aeabi_unwind_cpp_pr0:
-__aeabi_unwind_cpp_pr1:
-__aeabi_unwind_cpp_pr2:
-    b       raise
