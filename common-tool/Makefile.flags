@@ -290,12 +290,6 @@ ifeq ($(CONFIG_PLAT_ZYNQ7000),y)
 	export PLAT=zynq7000
 endif
 
-ifeq ($(CONFIG_PLAT_OMAP4),y)
-	DEFINES += OMAP4
-	DEFINES += TI_MSHIELD
-	export PLAT=omap4
-endif
-
 ifeq ($(CONFIG_PLAT_HIKEY),y)
 	DEFINES += HIKEY
 	export PLAT=hikey

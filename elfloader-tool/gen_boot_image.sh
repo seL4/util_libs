@@ -53,7 +53,7 @@ case "$PLAT" in
         ENTRY_ADDR=0x82008000;
         FORMAT=elf32-littlearm
         ;;
-    "imx31"|"omap3"|"am335x"|"omap4")
+    "imx31"|"omap3"|"am335x")
         ENTRY_ADDR=0x82000000
         FORMAT=elf32-littlearm
         ;;
