@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "efi.h"
-#include "../stdio.h"
+#include <binaries/efi/efi.h>
+#include <printf.h>
 
 int efi_fputc(int c, FILE *stream)
 {

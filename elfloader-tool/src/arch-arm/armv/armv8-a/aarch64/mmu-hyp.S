@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
  
- #include "../assembler.h"
- #include "assembler.h"
+#include <assembler.h>
+#include <armv/assembler.h>
 
 .text
 
@@ -17,13 +17,7 @@
 .extern invalidate_dcache
 .extern invalidate_icache
 
-/*
- * Hypervisor MMU has not been implemented yet!
- * 
- * Currently, we drop from EL2 to EL1 as preparation to run standalone kernel 
- * by disabling hypervisor specific traps.
- */
-BEGIN_FUNC(arm_enable_hyp_mmu)
+BEGIN_FUNC(leave_hyp)
     /* We call nested functions, follow the ABI. */
     stp     x29, x30, [sp, #-16]!
     mov     x29, sp
@@ -61,4 +55,8 @@ BEGIN_FUNC(arm_enable_hyp_mmu)
     msr     sp_el1, x28
     msr     elr_el2, x30
     eret
+END_FUNC(leave_hyp)
+
+BEGIN_FUNC(arm_enable_hyp_mmu)
+    
 END_FUNC(arm_enable_hyp_mmu)

@@ -8,10 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../stdio.h"
-#include "../stdlib.h"
-#include "../stdint.h"
-#include "../string.h"
+#include <abort.h>
+#include <types.h>
+#include <printf.h>
 
 #define print_register(_r) do{                              \
         uint64_t val;                                       \

@@ -8,8 +8,8 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../assembler.h"
-#include "assembler.h"
+#include <assembler.h>
+#include <mode/assembler.h>
 
 .text
 
@@ -83,15 +83,8 @@ BEGIN_FUNC(arm_enable_mmu)
 
     enable_mmu sctlr_el1 , x8
 
-#ifdef DEBUG
-    /* In 64-bit environment, after mapping the kernel, serial port would still remain
-     * available and could be used for dubugging as it is in user space.
-     *
-     * Setup an exception vector
-     */
     adrp    x8, arm_vector_table
     msr     vbar_el1, x8
-#endif
 
     ldp     x29, x30, [sp], #16
     ret

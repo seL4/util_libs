@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "efi.h"
+#include <binaries/efi/efi.h>
 
 void *__application_handle = NULL;             // current efi application handler
 efi_system_table_t *__efi_system_table = NULL; // current efi system table

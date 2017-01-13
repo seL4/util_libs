@@ -8,12 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../stdio.h"
-#include "../stdint.h"
-
-#include "../elfloader.h"
-
-#include "structures.h"
+#include <types.h>
+#include <elfloader.h>
+#include <mode/structures.h>
 
 /*
 * Create a "boot" page table, which contains a 1:1 mapping below

@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../stdint.h"
+#include <types.h>
 
 #define CURRENTEL_EL2           (2 << 2)
 word_t is_hyp_mode(void)

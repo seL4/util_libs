@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "efi.h"
+#include <binaries/efi/efi.h>
 
 efi_boot_services_t *get_efi_boot_services(void)
 {

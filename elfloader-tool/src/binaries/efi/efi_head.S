@@ -8,7 +8,7 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../assembler.h"
+#include <assembler.h>
 
 .extern efi_early_init
 

@@ -8,10 +8,9 @@
  * @TAG(NICTA_GPL)
  */
 
-#include "../elfloader.h"
-#include "../stdint.h"
-
-#include "structures.h"
+#include <elfloader.h>
+#include <types.h>
+#include <mode/structures.h>
 
 /* Paging structures for kernel mapping */
 uint64_t _boot_pgd_up[BIT(PGD_BITS)] ALIGN(BIT(PGD_SIZE_BITS));

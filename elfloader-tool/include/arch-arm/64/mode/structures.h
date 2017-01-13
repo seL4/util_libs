@@ -8,8 +8,8 @@
  * @TAG(GD_GPL)
  */
  
-#ifndef _STRUCTURES_H_
-#define _STRUCTURES_H_
+#ifndef __STRUCTURES_MODE_64_H_
+#define __STRUCTURES_MODE_64_H_
 
 #define ARM_1GB_BLOCK_BITS      30
 #define ARM_2MB_BLOCK_BITS      21
@@ -36,4 +36,4 @@ extern uint64_t _boot_pmd_up[BIT(PMD_BITS)];
 extern uint64_t _boot_pgd_down[BIT(PGD_BITS)];
 extern uint64_t _boot_pud_down[BIT(PUD_BITS)];
 
-#endif /* _STRUCTURES_H_ */
+#endif /* __STRUCTURES_MODE_64_H_ */

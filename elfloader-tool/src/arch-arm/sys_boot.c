@@ -17,7 +17,7 @@
 #include <cpuid.h>
 #include <platform.h>
 
-#include "efi/efi.h"
+#include <binaries/efi/efi.h>
 #include <elfloader.h>
 
 ALIGN(BIT(PAGE_BITS)) VISIBLE
