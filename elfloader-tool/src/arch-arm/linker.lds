@@ -23,6 +23,7 @@ SECTIONS
 {
     .text :
     {
+        *(.text.efi.header)
         *(.text.start)
         *(.text)
     }

@@ -12,7 +12,7 @@
 
 .extern efi_early_init
 
-.section ".text.start"
+.section ".text.efi.header"
 
  /*
  * This is PE32+/COFF executable file format for UEFI Spec.
