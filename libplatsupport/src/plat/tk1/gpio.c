@@ -201,7 +201,7 @@ void gpio_set_pad_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_pad_m
             reg &= ~(BIT(GPIO_BIT(gpio)));
             break;
         default:
-            ZF_LOGE("%s gpio: %d,error: %d\n", __func__, gpio, mode);
+            ZF_LOGF("%s gpio: %d,error: %d\n", __func__, gpio, mode);
     }
 
     ZF_LOGV("%s, reg: 0x%x\n", __func__, reg);
@@ -222,7 +222,7 @@ void gpio_interrupt_enable(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_i
             reg &= ~(BIT(GPIO_BIT(gpio)));
             break;
         default:
-            ZF_LOGE("%s gpio: %d,error: %d\n", __func__, gpio, setting);
+            ZF_LOGF("%s gpio: %d,error: %d\n", __func__, gpio, setting);
     }
 
     *(volatile uint32_t*)reg_vaddr = reg;
@@ -251,8 +251,8 @@ void gpio_set_interrupt_type(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio
         case GPIO_INT_LOW_LVL:
            lvl_type = GPIO_INT_LVL_LEVEL_LOW;
            break;
-        default: 
-           ZF_LOGE("%s gpio: %d,error: %d\n", __func__, gpio, type);
+        default:
+           ZF_LOGF("%s gpio: %d,error: %d\n", __func__, gpio, type);
      }
 
      reg &= ~(GPIO_INT_LVL_MASK << GPIO_BIT(gpio));
@@ -276,7 +276,7 @@ void gpio_set_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_mode mode
             reg &= ~(BIT(GPIO_BIT(gpio)));
             break;
         default:
-            ZF_LOGE("%s gpio: %d,error: %d\n", __func__, gpio, mode);
+            ZF_LOGF("%s gpio: %d,error: %d\n", __func__, gpio, mode);
     }
 
     *(uint32_t*)reg_vaddr = reg;
