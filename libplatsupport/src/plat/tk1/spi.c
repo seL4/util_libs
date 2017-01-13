@@ -218,9 +218,9 @@ struct spi_regs {
     volatile uint32_t rx_data;	/* 01c:SPI_RX_DATA register */
     volatile uint32_t dma_ctl;	/* 020:SPI_DMA_CTL register */
     volatile uint32_t dma_blk;	/* 024:SPI_DMA_BLK register */
-    volatile uint32_t rsvd[56];	/* 028-107 reserved */
+    PAD_STRUCT_BETWEEN(0x24, 0x108, uint32_t);
     volatile uint32_t tx_fifo;	/* 108:SPI_FIFO1 register */
-    volatile uint32_t rsvd2[31];	/* 10c-187 reserved */
+    PAD_STRUCT_BETWEEN(0x108, 0x188, uint32_t);
     volatile uint32_t rx_fifo;	/* 188:SPI_FIFO2 register */
     volatile uint32_t spare_ctl;	/* 18c:SPI_SPARE_CTRL register */
 };
