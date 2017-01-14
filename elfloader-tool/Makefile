@@ -11,44 +11,40 @@
 # Targets
 TARGETS := elfloader.o
 
+ifeq ($(__ARM_32__), y)
+TYPE_SUFFIX:=32
+else
+ifeq ($(__ARM_64__), y)
+TYPE_SUFFIX:=64
+else
+$(error Cannot determine TYPE_SUFFIX)
+endif
+endif
+
 # Source files required to build the target
 CFILES   := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/plat/$(PLAT)/*.c))
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/binaries/elf/*.c))
-CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/*.c))
+CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/$(TYPE_SUFFIX)/*.c))
+CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(TYPE_SUFFIX)/*.c))
+
 ASMFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/plat/$(PLAT)/*.S))
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/*.S))
+ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/$(TYPE_SUFFIX)/*.S))
+ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(TYPE_SUFFIX)/*.S))
 
 NK_CFLAGS += -D_XOPEN_SOURCE=700
 
-ifeq ($(ARMV),armv8-a)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(SEL4_ARCH)/*.S))
-CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/armv/$(ARMV)/$(SEL4_ARCH)/*.c))
-endif
-
-ifeq ($(__ARM_32__),y)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/32/*.S))
-CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/32/*.c))
-INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/32
-INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)/32
-endif
-
-ifeq ($(__ARM_64__),y)
-ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/64/*.S))
-CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARCH)/64/*.c))
-INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/64
-INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)/64
-endif
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/$(TYPE_SUFFIX)/
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)/$(TYPE_SUFFIX)/
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/
+INCLUDE_DIRS += $(SOURCE_DIR)/include/plat/$(PLAT)/
+INCLUDE_DIRS += $(SOURCE_DIR)/include/
 
 ifeq ($(__EFI__),y)
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(SOURCE_DIR)/src/binaries/efi/efi_head.S)
 CFILES   += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/binaries/efi/*.c))
 endif
-
-INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/
-INCLUDE_DIRS += $(SOURCE_DIR)/include/plat/$(PLAT)/
-INCLUDE_DIRS += $(SOURCE_DIR)/include/
 
 LIBS = cpio
 
