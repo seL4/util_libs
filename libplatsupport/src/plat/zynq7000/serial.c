@@ -329,7 +329,7 @@ zynq7000_uart_set_baud(ps_chardevice_t* d, long bps)
 }
 
 int
-uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
+serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
     zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
     uint32_t mr;
@@ -409,7 +409,7 @@ int uart_init(const struct dev_defn* defn,
     // TODO - does the I/O signal routing have to be configured here too?
 
     /* Configure UART character frame */
-    uart_configure(dev, 115200, 8, PARITY_NONE, 1);
+    serial_configure(dev, 115200, 8, PARITY_NONE, 1);
 
     /* Set the level of the RxFIFO trigger level */
     regs->rxwm &= ~UART_RXWM_RTRIG_MASK;    /* Clear the Rx trigger level */
