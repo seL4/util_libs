@@ -77,12 +77,12 @@ BEGIN_FUNC(arm_enable_hyp_mmu)
     orr     r0, r0, #(1 << 0)  // MMU enable 
     mcr     HSCTLR(r0)
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
     /* Enable SMP */
     mrc     p15, 0, r0, c1, c0, 1
     orr     r0, r0, #(1 << 6) // enable SMP bit
     mcr     p15, 0, r0, c1, c0, 1
-#endif
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
 
     ldmfd   sp!, {pc}
 END_FUNC(arm_enable_hyp_mmu)

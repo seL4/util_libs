@@ -11,7 +11,7 @@
 #include <autoconf.h>
 #include <types.h>
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
 
 
 void init_cpus(void)
@@ -19,4 +19,4 @@ void init_cpus(void)
     /* SMP booting for Tegra K1 to be implemented */
 }
 
-#endif
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
