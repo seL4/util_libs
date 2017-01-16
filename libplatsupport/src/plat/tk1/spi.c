@@ -115,6 +115,7 @@ struct spi_bus {
     uint8_t *txbuf;
     uint8_t *rxbuf;
     size_t txsize, rxsize;
+    spi_chipselect_fn cs;
     spi_callback_fn cb;
     void* token;
 };
@@ -128,11 +129,12 @@ static spi_bus_t _spi[] = {
 };
 
 int
-tegra_spi_init(enum spi_id id, volatile void* base,
+tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
                mux_sys_t* mux_sys, clock_sys_t* clock_sys,
                spi_bus_t** ret_spi_bus)
 {
     spi_bus_t* spi_bus = &_spi[id];
+    spi_bus->cs = cs_func;
     spi_bus->regs = base + spi_controller_offsets[id];
 
     uint32_t fifo_status = spi_bus->regs->fifo_status;
@@ -186,6 +188,12 @@ finish_spi_transfer(spi_bus_t* spi_bus) {
 
     spi_bus->regs->xfer_status |= SPI_XFER_STS_RDY;
     spi_bus->in_progress = false;
+
+    // Release chip select
+    if (spi_bus->cs != NULL) {
+      spi_bus->cs(NULL, SPI_CS_RELEASE);
+    }
+
     spi_bus->cb(spi_bus, size, spi_bus->token);
 }
 
@@ -213,6 +221,10 @@ spi_handle_irq(spi_bus_t* spi_bus)
 
 static void
 start_spi_transfer(spi_bus_t* spi_bus) {
+    // Assert chip select
+    if (spi_bus->cs != NULL) {
+      spi_bus->cs(NULL, SPI_CS_ASSERT);
+    }
     size_t size = spi_bus->txsize + spi_bus->rxsize;
     spi_bus->regs->dma_blk = size - 1;
 
