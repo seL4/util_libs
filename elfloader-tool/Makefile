@@ -36,6 +36,7 @@ ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/arch-$(ARC
 NK_CFLAGS += -D_XOPEN_SOURCE=700
 
 INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/$(TYPE_SUFFIX)/
+INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)/
 INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/armv/$(ARMV)/$(TYPE_SUFFIX)/
 INCLUDE_DIRS += $(SOURCE_DIR)/include/arch-$(ARCH)/
 INCLUDE_DIRS += $(SOURCE_DIR)/include/plat/$(PLAT)/
