@@ -151,7 +151,10 @@ tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
 
     uint32_t command1 = spi_bus->regs->command1;
     command1 |= (spi_bus->clock_mode << SPI_CMD1_MODE_SHIFT);
-    command1 |= SPI_CMD1_CS_SW_HW;
+    if (spi_bus->cs != NULL) {
+        // Use software chip select if spi_chipselect_fn is provided
+        command1 |= SPI_CMD1_CS_SW_HW;
+    }
     command1 |= SPI_CMD1_TX_EN | SPI_CMD1_RX_EN;
     command1 |= (8 - 1) << SPI_CMD1_BIT_LEN_SHIFT;
     spi_bus->regs->command1 = command1;
@@ -191,7 +194,7 @@ finish_spi_transfer(spi_bus_t* spi_bus) {
 
     // Release chip select
     if (spi_bus->cs != NULL) {
-      spi_bus->cs(NULL, SPI_CS_RELEASE);
+        spi_bus->cs(NULL, SPI_CS_RELEASE);
     }
 
     spi_bus->cb(spi_bus, size, spi_bus->token);
@@ -214,6 +217,10 @@ spi_handle_irq(spi_bus_t* spi_bus)
         // Re-initialize transfer status
         spi_bus->regs->xfer_status |= SPI_XFER_STS_RDY;
         spi_bus->in_progress = false;
+        // Release chip select
+        if (spi_bus->cs != NULL) {
+            spi_bus->cs(NULL, SPI_CS_RELEASE);
+        }
         // Indicate failure to user
         spi_bus->cb(spi_bus, -1, spi_bus->token);
     }
@@ -223,7 +230,7 @@ static void
 start_spi_transfer(spi_bus_t* spi_bus) {
     // Assert chip select
     if (spi_bus->cs != NULL) {
-      spi_bus->cs(NULL, SPI_CS_ASSERT);
+        spi_bus->cs(NULL, SPI_CS_ASSERT);
     }
     size_t size = spi_bus->txsize + spi_bus->rxsize;
     spi_bus->regs->dma_blk = size - 1;
