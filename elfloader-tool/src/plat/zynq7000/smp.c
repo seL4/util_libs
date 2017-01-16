@@ -11,7 +11,7 @@
 
 #include <autoconf.h>
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
 
 #define CPU_JUMP_PTR              0xFFFFFFF0
 
@@ -44,7 +44,6 @@ init_cpus(void)
     void *scu = get_scu_base();
 
     num = scu_get_core_count(scu);
-#ifdef CONFIG_MAX_NUM_NODES
     /* Currently there is no support for choosing which CPUs to boot, however,
      * there are only 2 CPUs on the Zynq7000. Either we boot no additional CPUs
      * or we boot all additional CPUs.
@@ -53,11 +52,10 @@ init_cpus(void)
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     }
-#endif
     printf("Bringing up %d other cpus\n", num - 1);
     if(num != 1){
         boot_cpus(&non_boot_core);
     }
 }
 
-#endif
+#endif /* CONFIG_MAX_NUM_NODES > 1 */

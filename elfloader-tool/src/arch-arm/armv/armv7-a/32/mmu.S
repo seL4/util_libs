@@ -92,12 +92,12 @@ BEGIN_FUNC(arm_enable_mmu)
     isb
     cpsid   a
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
     /* Enable SMP */
     mrc     ACTLR(r0)
     orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
     mcr     ACTLR(r0)
-#endif
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
 
     ldmfd   sp!, {pc}
 END_FUNC(arm_enable_mmu)

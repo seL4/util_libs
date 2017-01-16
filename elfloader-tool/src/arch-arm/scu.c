@@ -13,7 +13,7 @@
 
 #include <autoconf.h>
 
-#ifdef CONFIG_SMP_ARM_MPCORE
+#if CONFIG_MAX_NUM_NODES > 1
 
 #include <types.h>
 #include <cpuid.h>
@@ -65,4 +65,4 @@ unsigned int scu_get_core_count(void *_scu_base)
     return (ncores & 0x03) + 1;
 }
 
-#endif
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
