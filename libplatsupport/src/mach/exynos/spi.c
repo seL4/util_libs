@@ -118,10 +118,6 @@ enum spi_mode {
     SLAVE_MODE
 };
 
-enum spi_cs_state {
-    SPI_CS_ASSERT,
-    SPI_CS_RELAX
-};
 
 struct spi_bus {
     volatile struct spi_regs* regs;

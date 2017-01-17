@@ -27,8 +27,10 @@ struct spi_slave_config {
     uint32_t fb_delay;
 };
 
-#define SPI_CS_RELEASE 1
-#define SPI_CS_ASSERT  0
+enum spi_cs_state {
+    SPI_CS_ASSERT,
+    SPI_CS_RELAX
+};
 
 /**
  * Function pointer to override chip select function.
