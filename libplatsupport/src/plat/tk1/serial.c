@@ -523,7 +523,7 @@ tk1_uart_get_divisor_for(int baud)
 }
 
 int
-uart_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
+serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
     tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
     int divisor;
@@ -663,7 +663,7 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
     tk1_uart_set_thr_irq(regs, false);
 
     /* Line configuration */
-    uart_configure(dev, 115200, 8, PARITY_NONE, 1);
+    serial_configure(dev, 115200, 8, PARITY_NONE, 1);
 
     /* Set FCR[0] to 1 to enable FIFO mode, and enable DMA mode 1 which will
      * generate an interrupt only when the buffer has.
