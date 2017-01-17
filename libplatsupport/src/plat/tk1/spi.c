@@ -84,9 +84,9 @@
 #define SPI_IE_RX                       (1 << 29)
 #define SPI_IE_TX                       (1 << 28)
 
-#define DARPA_CLK_TAP_DELAY             0x1f
-#define DARPA_CS_SETUP_TIME             0xf
-#define DARPA_CS_HOLD_TIME              0xf
+#define CLK_TAP_DELAY                   0x1f
+#define CS_SETUP_TIME                   0xf
+#define CS_HOLD_TIME                    0xf
 
 #define FIFO_SIZE                       64
 
@@ -160,12 +160,12 @@ tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
     spi_bus->regs->command1 = command1;
 
     uint32_t command2 = spi_bus->regs->command2;
-    command2 |= (DARPA_CLK_TAP_DELAY & SPI_CMD2_RX_CLK_TAP_DELAY_MASK);
+    command2 |= (CLK_TAP_DELAY & SPI_CMD2_RX_CLK_TAP_DELAY_MASK);
     spi_bus->regs->command2 = command2;
 
     uint32_t timing1 = spi_bus->regs->timing1;
-    timing1 |= (DARPA_CS_SETUP_TIME << CS_SETUP_TIME_0_SHIFT);
-    timing1 |= (DARPA_CS_HOLD_TIME << CS_HOLD_TIME_0_SHIFT);
+    timing1 |= (CS_SETUP_TIME << CS_SETUP_TIME_0_SHIFT);
+    timing1 |= (CS_HOLD_TIME << CS_HOLD_TIME_0_SHIFT);
     spi_bus->regs->timing1 = timing1;
 
     uint32_t dma_ctl = spi_bus->regs->dma_ctl;
