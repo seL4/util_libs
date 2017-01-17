@@ -27,6 +27,21 @@ struct spi_slave_config {
     uint32_t fb_delay;
 };
 
+#define SPI_CS_RELEASE 1
+#define SPI_CS_ASSERT  0
+
+/**
+ * Function pointer to override chip select function.
+ *
+ * It is sometimes necessary to override the chip select functionality such
+ * as when GPIO pins are used for chipselect.  This function pointer is passed
+ * in when a SPI driver is initialised.  If NULL is passed then the driver's
+ * default chip select behavior will occur.
+ * @param  config  A pointer to the slave struct
+ * @param  state   The release or assert cs state
+ */
+typedef void (*spi_chipselect_fn)(const spi_slave_config_t* cfg, int state);
+
 #include <platsupport/plat/spi.h>
 
 typedef void (*spi_callback_fn)(spi_bus_t* spi_bus, int status, void* token);
