@@ -137,16 +137,14 @@ tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
     spi_bus->cs = cs_func;
     spi_bus->regs = base + spi_controller_offsets[id];
 
-    uint32_t fifo_status = spi_bus->regs->fifo_status;
-    fifo_status = SPI_FIFO_STS_ERR           |
+    // Clear relevant bits in fifo status register
+    uint32_t fifo_status = SPI_FIFO_STS_RX_FIFO_FLUSH |
+                  SPI_FIFO_STS_TX_FIFO_FLUSH |
+                  SPI_FIFO_STS_ERR           |
                   SPI_FIFO_STS_TX_FIFO_OVF   |
                   SPI_FIFO_STS_TX_FIFO_UNR   |
                   SPI_FIFO_STS_RX_FIFO_OVF   |
-                  SPI_FIFO_STS_RX_FIFO_UNR   |
-                  SPI_FIFO_STS_TX_FIFO_FULL  |
-                  SPI_FIFO_STS_TX_FIFO_EMPTY |
-                  SPI_FIFO_STS_RX_FIFO_FULL  |
-                  SPI_FIFO_STS_RX_FIFO_EMPTY;
+                  SPI_FIFO_STS_RX_FIFO_UNR;
     spi_bus->regs->fifo_status = fifo_status;
 
     uint32_t command1 = spi_bus->regs->command1;
