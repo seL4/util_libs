@@ -192,7 +192,7 @@ finish_spi_transfer(spi_bus_t* spi_bus) {
 
     // Release chip select
     if (spi_bus->cs != NULL) {
-        spi_bus->cs(NULL, SPI_CS_RELEASE);
+        spi_bus->cs(NULL, SPI_CS_RELAX);
     }
 
     spi_bus->cb(spi_bus, size, spi_bus->token);
@@ -217,7 +217,7 @@ spi_handle_irq(spi_bus_t* spi_bus)
         spi_bus->in_progress = false;
         // Release chip select
         if (spi_bus->cs != NULL) {
-            spi_bus->cs(NULL, SPI_CS_RELEASE);
+            spi_bus->cs(NULL, SPI_CS_RELAX);
         }
         // Indicate failure to user
         spi_bus->cb(spi_bus, -1, spi_bus->token);
