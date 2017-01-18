@@ -165,8 +165,7 @@ typedef enum e1000_family {
 #define MTA_LENGTH 128
 
 struct __attribute((packed)) legacy_tx_ldesc {
-    uint32_t bufferAddress;
-    uint32_t bufferAddressHigh;
+    uint64_t bufferAddress;
     uint32_t length: 16;
     uint32_t CSO: 8;
     uint32_t CMD: 8;
@@ -177,8 +176,7 @@ struct __attribute((packed)) legacy_tx_ldesc {
 };
 
 struct __attribute((packed)) legacy_rx_ldesc {
-    uint32_t bufferAddress;
-    uint32_t bufferAddressHigh;
+    uint64_t bufferAddress;
     uint32_t length: 16;
     uint32_t packetChecksum: 16;
     uint32_t status: 8;
@@ -552,15 +550,17 @@ void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu) {
     *mtu = 1500;
 }
 
-static void set_tx_ring(e1000_dev_t *dev, uint32_t phys) {
+static void set_tx_ring(e1000_dev_t *dev, uintptr_t phys) {
+    uint32_t phys_low = (uint32_t)phys;
+    uint32_t phys_high = (uint32_t)(sizeof(phys) > 4 ? phys >> 32 : 0);
     switch(dev->family) {
     case e1000_82580:
-        REG_82580_TDBAL(dev, 0) = phys;
-        REG_82580_TDBAH(dev, 0) = 0;
+        REG_82580_TDBAL(dev, 0) = phys_low;
+        REG_82580_TDBAH(dev, 0) = phys_high;
         break;
     case e1000_82574:
-        REG_82574_TDBAL(dev, 0) = phys;
-        REG_82574_TDBAH(dev, 0) = 0;
+        REG_82574_TDBAL(dev, 0) = phys_low;
+        REG_82574_TDBAH(dev, 0) = phys_high;
         break;
     default:
         assert(!"Unknown device");
@@ -609,15 +609,17 @@ static void set_tdlen(e1000_dev_t *dev, uint32_t val) {
 }
 
 
-static void set_rx_ring(e1000_dev_t *dev, uint32_t phys) {
+static void set_rx_ring(e1000_dev_t *dev, uint64_t phys) {
+    uint32_t phys_low = (uint32_t)phys;
+    uint32_t phys_high = (uint32_t)(sizeof(phys) > 4 ? phys >> 32 : 0);
     switch(dev->family) {
     case e1000_82580:
-        REG_82580_RDBAL(dev, 0) = phys;
-        REG_82580_RDBAH(dev, 0) = 0;
+        REG_82580_RDBAL(dev, 0) = phys_low;
+        REG_82580_RDBAH(dev, 0) = phys_high;
         break;
     case e1000_82574:
-        REG_82574_RDBAL(dev, 0) = phys;
-        REG_82574_RDBAH(dev, 0) = 0;
+        REG_82574_RDBAL(dev, 0) = phys_low;
+        REG_82574_RDBAH(dev, 0) = phys_high;
         break;
     default:
         assert(!"Unknown device");
@@ -813,7 +815,6 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     for (i = 0; i < num; i++) {
         dev->tx_ring[(dev->tdt + i) % dev->tx_size] = (struct legacy_tx_ldesc) {
             .bufferAddress = phys[i],
-            .bufferAddressHigh = 0,
             .length = len[i],
             .CSO = 0,
             .CMD = dev->tx_cmd_bits | (i + 1 == num ? TX_CMD_EOP: 0),
@@ -850,7 +851,6 @@ static int fill_rx_bufs(struct eth_driver *driver) {
         /* zery the descriptor */
         dev->rx_ring[dev->rdt] = (struct legacy_rx_ldesc) {
             .bufferAddress = phys,
-            .bufferAddressHigh = 0,
             .length = BUF_SIZE,
             .packetChecksum = 0,
             .status = 0,
