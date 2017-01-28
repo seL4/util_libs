@@ -15,7 +15,7 @@
 #define COLOR_ERROR "\033[1;31m"
 #define COLOR_NORMAL "\033[0m"
 
-#ifdef CONFIG_ARCH_X86_64
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
 #define DFMT    "%ld"
 #define XFMT    "%lx"
 #else
