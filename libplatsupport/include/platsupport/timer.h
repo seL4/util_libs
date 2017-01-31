@@ -62,7 +62,8 @@ struct pstimer {
 
     /**
      * Get the current time since this timer last overflowed or was reset.
-     *
+     * The value returned is expected to be in nanoseconds, consistent with
+     * the rest of the API.
      */
     uint64_t (*get_time)(const pstimer_t* device);
 
