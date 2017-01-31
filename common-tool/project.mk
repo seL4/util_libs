@@ -28,6 +28,10 @@ ifeq ($(lib-dirs),)
     old-kbuild-hack:=1
 endif
 
+ifeq ($(app-dirs),)
+    app-dirs:=apps
+endif
+
 export KERNEL_ROOT_PATH COMMON_PATH SEL4_LIBS_PATH SEL4_APPS_PATH DATA_PATH
 
 export BUILD_ROOT=${PWD}/build
@@ -316,11 +320,17 @@ PHONY += app-images
 app-images: $(patsubst %,%-image,$(apps))
 
 PHONY += $(apps) $(components)
+$(apps) $(components): app=$(shell for app in $(app-dirs); do \
+	if [ -e "$(srctree)/$${app}/$@/Makefile" ] ; then \
+		echo "$${app}"; \
+		break; \
+	fi; \
+	done)
 $(apps) $(components): common
-	@echo "[apps/$@] building..."
+	@echo "[$(app)/$@] building..."
 	$(Q)mkdir -p $(BUILD_BASE)/$@
-	$(Q)CFLAGS= LDFLAGS= $(MAKE) $(MAKE_SILENT) -C $(BUILD_BASE)/$@ -f $(srctree)/.config -f $(APPS_ROOT)/$@/Makefile \
-		BUILD_DIR=$(BUILD_BASE)/$@ SOURCE_DIR=$(APPS_ROOT)/$@ V=$(V) \
+	$(Q)CFLAGS= LDFLAGS= $(MAKE) $(MAKE_SILENT) -C $(BUILD_BASE)/$@ -f $(srctree)/.config -f $(srctree)/$(app)/$@/Makefile \
+		BUILD_DIR=$(BUILD_BASE)/$@ SOURCE_DIR=$(srctree)/$(app)/$@ V=$(V) \
 		STAGE_DIR=$(STAGE_BASE) \
 		TOOLPREFIX=$(CONFIG_CROSS_COMPILER_PREFIX:"%"=%)
 	@echo "[apps/$@] done."
