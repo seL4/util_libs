@@ -69,6 +69,9 @@
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #define WEAK         __attribute__((weak))
+
+#define CONSTRUCTOR_MIN_PRIORITY 101
+#define CONSTRUCTOR_MAX_PRIORITY 65535
 #define CONSTRUCTOR(priority) __attribute__((constructor(priority)))
 
 /* alloc_align was added to GCC in 4.9 */
