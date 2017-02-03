@@ -51,6 +51,8 @@
 #define DMTIMER15_INTERRUPT 61
 #define DMTIMER16_INTERRUPT 62
 #define DMTIMER17_INTERRUPT 63
+#define RTC0_INTERRUPT 44
+#define RTC1_INTERRUPT 40
 
 /* Timers */
 enum timer_id {
@@ -128,12 +130,26 @@ static const int dm_timer_irqs[] = {
     [DMTIMER16] = DMTIMER16_INTERRUPT,
     [DMTIMER17] = DMTIMER17_INTERRUPT,
     /* We don't use the RTC's alarm IRQ feature */
-    [RTC0] = 0,
-    [RTC1] = 0
+    [RTC0] = RTC0_INTERRUPT,
+    [RTC1] = RTC1_INTERRUPT
 };
 
+/* These two must be populated by the caller of
+ * ps_get_timer(), with two pstimer_t* pointers
+ * to two pstimer_t handles that were previously
+ * returned by a successful call to ps_get_timer().
+ *
+ * In other words, first call ps_get_timer() on the
+ * two timers you plan to use as the back-end for the
+ * virtual upcounter, and then finally fill out the
+ * two handles you got from those previous two calls,
+ * and pass those two (using this struct member) into
+ * your call to ps_get_timer(VIRTUAL_UPCOUNTER).
+ */
+struct pstimer;
+
 typedef struct {
-    void *rtc_vaddr, *dualtimer_vaddr;
+    struct pstimer *rtc_timer, *dualtimer_timer;
 } hikey_vupcounter_timer_config_t;
 
 typedef struct {

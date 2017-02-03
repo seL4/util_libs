@@ -197,7 +197,6 @@ hikey_vupcounter_get_timer(int rtc_id, int dualtimer_id,
                            hikey_vupcounter_timer_config_t *config)
 {
     pstimer_t *ret;
-    timer_config_t tmp_config = { .irq = 0 };
 
     if (rtc_id < RTC0 || rtc_id > RTC1) {
         ZF_LOGE("Invalid rtc ID %d.", rtc_id);
@@ -216,26 +215,12 @@ hikey_vupcounter_get_timer(int rtc_id, int dualtimer_id,
     hikey_vupcounter_descriptor.priv.rtc_id = rtc_id;
     hikey_vupcounter_descriptor.priv.dualtimer_id = dualtimer_id;
     hikey_vupcounter_descriptor.priv.timer_id = (rtc_id << 8) | dualtimer_id;
-    hikey_vupcounter_descriptor.priv.rtc_vaddr = config->rtc_vaddr;
-    hikey_vupcounter_descriptor.priv.dualtimer_vaddr = config->dualtimer_vaddr;
 
-    /* Actually initialize the underlying devices by ID. RTC first. */
-    tmp_config.vaddr = config->rtc_vaddr;
-    hikey_vupcounter_descriptor.priv.rtc = hikey_rtc_get_timer(rtc_id,
-                                                               &tmp_config);
-    if (hikey_vupcounter_descriptor.priv.rtc == NULL) {
-        ZF_LOGE("Vupcounter: Failed to initialize RTC device.");
-        return NULL;
-    }
-
-    /* Actually initialize the underlying devices by ID. Dualtimer second. */
-    tmp_config.vaddr = config->dualtimer_vaddr;
-    hikey_vupcounter_descriptor.priv.dualtimer = hikey_dualtimer_get_timer(dualtimer_id,
-                                                                           &tmp_config);
-    if (hikey_vupcounter_descriptor.priv.dualtimer == NULL) {
-        ZF_LOGE("Vupcounter: Failed to initialize dualtimer device.");
-        return NULL;
-    }
+    /* Assign the pstimer_t instance pointers for the underlying rtc and
+     * dualtimer devices.
+     */
+    hikey_vupcounter_descriptor.priv.rtc = config->rtc_timer;
+    hikey_vupcounter_descriptor.priv.dualtimer = config->dualtimer_timer;
 
     ret->start = hikey_vupcounter_start;
     ret->stop = hikey_vupcounter_stop;
