@@ -10,27 +10,6 @@
 
 #pragma once
 
-#include <autoconf.h>
-#include <utils/attribute.h>
-#include <utils/stringify.h>
+#include <assert.h>
 
-/* Morally, _Static_assert and compile_time_assert are intended to do the same
- * thing. _Static_assert gives more sensible error messages, but is only
- * available in C1X or GCC >= 4.6. Define them both to a common representation
- * that fits our current environment:
- */
-
-#if !defined(CONFIG_LIB_UTILS_NO_STATIC_ASSERT) && (__STDC_VERSION__ >= 201104 || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-/* Hooray, we're on a modern compiler. */
-
-#define compile_time_assert(name, expr) _Static_assert((expr), #name)
-
-#else
-/* Boo hiss, no _Static_assert for us. */
-
-#define compile_time_assert(name, expr) \
-        extern char JOIN(JOIN(JOIN(_assertion_failed_, name), _), __COUNTER__)[__builtin_constant_p(expr) ? ((expr) ? 1 : -1) : -1] UNUSED
-
-#define _Static_assert(expr, str) compile_time_assert(_static_assert, (expr))
-
-#endif
+#define compile_time_assert(name, expr) static_assert((expr), #name)
