@@ -16,9 +16,6 @@ CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)
 CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/uboot/*.c))
 CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c))
 
-# This should be excluded for camkes
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/resource/*.c))
-
 # Header files/directories this library provides
 HDRFILES := \
     $(wildcard ${SOURCE_DIR}/include/*) \
