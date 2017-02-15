@@ -341,7 +341,11 @@ ifeq ($(CONFIG_SMP_ARM_MPCORE),y)
 endif
 
 # work out what machine family we are running on.
+ifneq (,$(filter $(PLAT), tk1 tx1))
+export MACH=nvidia
+else
 export MACH=$(strip $(foreach mach,exynos imx omap,$(findstring $(mach),$(PLAT))))
+endif
 
 # Kernel debugging.
 ifeq ($(CONFIG_DEBUG_BUILD),y)
