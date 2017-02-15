@@ -67,6 +67,10 @@ case "$PLAT" in
             FORMAT=elf32-littlearm
         fi
         ;;
+    "tx1")
+        ENTRY_ADDR=0x0
+        FORMAT=elf64-littleaarch64
+        ;;
     "tk1")
         ENTRY_ADDR=0x90000000
         FORMAT=elf32-littlearm

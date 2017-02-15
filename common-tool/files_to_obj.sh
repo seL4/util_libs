@@ -49,6 +49,9 @@ case "$PLAT" in
             FORMAT=elf32-littlearm
         fi
         ;;
+    "tx1")
+            FORMAT=elf64-littleaarch64
+        ;;
     "pc99")
         if [ "$SEL4_ARCH" == "x86_64" ]
         then

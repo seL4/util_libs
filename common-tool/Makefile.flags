@@ -215,6 +215,19 @@ ifeq ($(CONFIG_ARM_CORTEX_A53),y)
 	export RUST_ARCH_FEATURES += +v8
 endif
 
+ifeq ($(CONFIG_ARM_CORTEX_A57),y)
+	ccflags-y += $(call cc-option, -mtune=cortex-a57)
+	ccflags-y += $(call cc-option, -march=armv8-a)
+	asflags-y += $(call as-option, -Wa$(comma)-march=armv8-a)
+	asflags-y += $(call as-option, -Wa$(comma)-mtune=cortex-a57)
+	asflags-y += $(call as-option, -Wa$(comma)-mcpu=cortex-a57)
+	DEFINES += ARMV8_A
+	DEFINES += ARM_CORTEX_A57
+	export ARMV=armv8-a
+	export CPU=cortex-a57
+	export RUST_CPU = cortex-a57
+	export RUST_ARCH_FEATURES += +v8
+endif
 
 ifeq ($(CONFIG_PLAT_KZM),y)
 	DEFINES += KZM
@@ -299,6 +312,12 @@ ifeq ($(CONFIG_PLAT_TK1),y)
 	DEFINES += TK1
 	DEFINES += PLAT_TK1
 	export PLAT=tk1
+endif
+
+ifeq ($(CONFIG_PLAT_TX1),y)
+	DEFINES += TX1
+	DEFINES += PLAT_TX1
+	export PLAT=tx1
 endif
 
 ifeq ($(CONFIG_PLAT_BCM2837),y)
