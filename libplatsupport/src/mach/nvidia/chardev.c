@@ -28,7 +28,7 @@ static const int uartD_ASYNC_irqs[] = {UARTD_IRQ, -1};
 
 
 #define UART_DEFN(devid) {          \
-    .id      = TK1_UART##devid,    \
+    .id      = NV_UART##devid,    \
     .paddr   = UART##devid##_PADDR, \
     .size    = BIT(12),             \
     .irqs    = uart##devid##_irqs,  \
@@ -36,7 +36,7 @@ static const int uartD_ASYNC_irqs[] = {UARTD_IRQ, -1};
 }
 
 #define UART_ASYNC_DEFN(devid) {          \
-    .id      = TK1_UART##devid##_ASYNC,    \
+    .id      = NV_UART##devid##_ASYNC,    \
     .paddr   = UART##devid##_PADDR, \
     .size    = BIT(12),             \
     .irqs    = uart##devid##_ASYNC_irqs,  \

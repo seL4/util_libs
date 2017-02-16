@@ -7,8 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
-#ifndef _PLATSUPPORT_MACH_TIMER_H
-#define _PLATSUPPORT_MACH_TIMER_H
+
+#pragma once
 
 /* the NVIDIA Timers (TMR) in the manual, there are 10 of them for TK1
  * each timer has a 29-bit programmable timer counter and a 32-bit
@@ -69,6 +69,4 @@ typedef struct {
     uint32_t    irq;
 } nv_tmr_config_t;
 
-pstimer_t *tk1_get_timer(nv_tmr_config_t *config);
-
-#endif /* _PLATSUPPORT_MACH_TIMER_H */
+pstimer_t *nv_get_timer(nv_tmr_config_t *config);

@@ -13,4 +13,4 @@
 #pragma once
 #include <platsupport/mach/serial.h>
 
-#define PS_SERIAL_DEFAULT   NV_UARTD
+#define PS_SERIAL_DEFAULT   NV_UARTA

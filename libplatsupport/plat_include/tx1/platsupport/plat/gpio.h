@@ -10,7 +10,11 @@
  * @TAG(D61_BSD)
  */
 
-#pragma once
-#include <platsupport/mach/serial.h>
+#ifndef _PLATSUPPORT_PLAT_GPIO_H
+#define _PLATSUPPORT_PLAT_GPIO_H
 
-#define PS_SERIAL_DEFAULT   NV_UARTD
+enum gpio_port {
+    GPIO_NBANKS
+};
+
+#endif /* _PLATSUPPORT_PLAT_GPIO_H */

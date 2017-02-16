@@ -19,7 +19,7 @@
 
 #define UART_BYTE_MASK  0xff
 
-#define TK1_UART_INPUT_CLOCK_FREQ_HZ (408000000)
+#define NV_UART_INPUT_CLOCK_FREQ_HZ (408000000)
 
 #define LCR_DLAB        BIT(7)
 #define LCR_SET_BREAK   BIT(6)
@@ -110,10 +110,10 @@ tk1_uart_get_priv(ps_chardevice_t *d)
 static inline bool
 tk1_uart_is_async(ps_chardevice_t *d)
 {
-    /* TK1_UART[ABCD] are polling, while TK1_UART[ABCD]_ASYNC are asynchronous
+    /* NV_UART[ABCD] are polling, while NV_UART[ABCD]_ASYNC are asynchronous
      * versions of the first 4 devices.
      */
-    return (d->id >= TK1_UARTA_ASYNC);
+    return (d->id >= NV_UARTA_ASYNC);
 }
 
 static inline void
@@ -518,7 +518,7 @@ tk1_uart_get_divisor_for(int baud)
      * clock phases to generate one bit of output on the line (TK1 TRM, section
      * 34.1.1.)
      */
-    ret = TK1_UART_INPUT_CLOCK_FREQ_HZ / (16 * baud);
+    ret = NV_UART_INPUT_CLOCK_FREQ_HZ / (16 * baud);
     return ret;
 }
 
@@ -578,7 +578,7 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     /* Disable hardware flow control for all UARTs other than UARTD,
      * because UARTD actually has an RS232 pinout port.
      */
-    if (d->id != TK1_UARTD && d->id != TK1_UARTD_ASYNC) {
+    if (d->id != NV_UARTD && d->id != NV_UARTD_ASYNC) {
         uint32_t mcr = regs->mcr;
 
         /* Clear RTS_EN and CTS_EN. */
@@ -619,20 +619,20 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
 
     /* add offsets properly */
     switch (defn->id) {
-        case TK1_UARTA:
-        case TK1_UARTA_ASYNC:
+        case NV_UARTA:
+        case NV_UARTA_ASYNC:
             uart_vaddr = uart_mmio_vaddr;
             break;
-        case TK1_UARTB:
-        case TK1_UARTB_ASYNC:
+        case NV_UARTB:
+        case NV_UARTB_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTB_OFFSET;
             break;
-        case TK1_UARTC:
-        case TK1_UARTC_ASYNC:
+        case NV_UARTC:
+        case NV_UARTC_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTC_OFFSET;
             break;
-        case TK1_UARTD:
-        case TK1_UARTD_ASYNC:
+        case NV_UARTD:
+        case NV_UARTD_ASYNC:
             uart_vaddr = uart_mmio_vaddr + UARTD_OFFSET;
             /* The kernel uses UART-D. Recommend not conflicting with it. */
             break;

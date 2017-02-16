@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <utils/util.h>
+#include <inttypes.h>
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
@@ -41,7 +42,7 @@
  * You are required to initialize the upcounter with a divisor that will cause
  * it to count up at 1us, and no other upcount value is supported.
  *
- * We set the divisor below in tk1_get_timer(). The divisor divides the
+ * We set the divisor below in nv_get_timer(). The divisor divides the
  * "clk_m" input clock (which operates at 12MHz) down to 1us.
  */
 #define CLK_FREQ_MHZ        1
@@ -109,7 +110,7 @@ get_ticks(uint64_t ns)
     uint64_t microsecond = ns / 1000ull;
     uint64_t ticks = microsecond * CLK_FREQ_MHZ;
     if (ticks >= BIT(PVT_VAL_BITS)) {
-        ZF_LOGE("ns too high %llu\n", ns);
+        ZF_LOGE("ns too high %"PRIu64"\n", ns);
         return INVALID_PVT_VAL;
     }
     return (uint32_t)ticks;
@@ -204,7 +205,7 @@ static tmr_t     singleton_tmr;
 #define TMRUS_USEC_CFG_DEFAULT   0xb
 
 pstimer_t *
-tk1_get_timer(nv_tmr_config_t *config)
+nv_get_timer(nv_tmr_config_t *config)
 {
     switch (config->irq) {
 
@@ -254,7 +255,7 @@ tk1_get_timer(nv_tmr_config_t *config)
     /* Just unconditionally set the divisor as if "clk_m" is always 12MHz,
      * because it actually is always 12MHz.
      *
-     * Nvidia TK1 manual, section 5.2.2, Table 14:
+     * Nvidia manual, section 5.2.2, Table 14:
      * "clk_m: This clock (with DFT control) runs at 12 MHz, 13 MHz, 16.8 MHz,
      * 19.2 MHz, 26 MHz, 38.4 MHz, or 48 MHz. Only 12 MHz is currently
      * supported."
@@ -302,7 +303,7 @@ pstimer_t *ps_init_timer(int id, ps_io_ops_t* io_ops)
         paddr = NV_TMR_PADDR + TMR9_OFFSET;
         break;
     default:
-        ZF_LOGE("TK1: ps_init_timer: Invalid timer device ID %d requested. Returning NULL.", id);
+        ZF_LOGE("NV: ps_init_timer: Invalid timer device ID %d requested. Returning NULL.", id);
         return NULL;
     };
 
@@ -313,5 +314,5 @@ pstimer_t *ps_init_timer(int id, ps_io_ops_t* io_ops)
                                    0, PS_MEM_NORMAL);
     nv_timer_config.shared_vaddr = NULL;
 
-    return tk1_get_timer(&nv_timer_config);
+    return nv_get_timer(&nv_timer_config);
 }

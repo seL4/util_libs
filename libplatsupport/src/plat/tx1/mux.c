@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Data61
+ * Copyright 2017, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,7 +10,10 @@
  * @TAG(D61_BSD)
  */
 
-#pragma once
-#include <platsupport/mach/serial.h>
+#include <platsupport/mux.h>
 
-#define PS_SERIAL_DEFAULT   NV_UARTD
+int
+mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+{
+    return 0;
+}
