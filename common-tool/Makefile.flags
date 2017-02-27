@@ -367,6 +367,12 @@ else
 	DEFINES += NDEBUG
 endif
 
+ifeq (${CONFIG_USER_LINKER_GC_SECTIONS},y)
+	NK_CCFLAGS += $(call cc-option, -ffunction-sections)
+	NK_CCFLAGS += $(call cc-option, -fdata-sections)
+	NK_LDFLAGS += -Wl,--gc-sections
+endif
+
 ifeq ($(CONFIG_DANGEROUS_CODE_INJECTION),y)
    DEFINES += DANGEROUS_CODE_INJECTION
    DEFINES += SEL4_DANGEROUS_CODE_INJECTION_KERNEL

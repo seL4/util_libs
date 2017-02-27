@@ -218,6 +218,17 @@ menu "Toolchain Options"
             NDEBUG is passed to Musl C which will turn off assertions. This will
             enable -g for user level.
 
+    config USER_LINKER_GC_SECTIONS
+        bool "Perform dead code and data removal"
+        default y if !USER_DEBUG_BUILD
+        help
+            Build user level with -ffunction-sections and -fdata-sections and
+            link with --gc-sections. The first two options place each function
+            and data in a different section such that --gc-sections is able
+            to effectively discard sections that are unused after a reachability
+            analysis. This does not interact well with debug symbols generated
+            by -g and can in some cases result in larger object files and binaries
+
     config BUILDSYS_CPP_SEPARATE
         bool "Separately invoke CPP"
         default n
