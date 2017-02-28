@@ -14,6 +14,7 @@
 #include <printf.h>
 #include <armv/machine.h>
 #include <scu.h>
+#include <abort.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
 /* System Reset Controller base address */
@@ -69,8 +70,12 @@ void init_cpus(void)
     src_init();
 
     num = scu_get_core_count(scu);
+
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
+    } else if (num < CONFIG_MAX_NUM_NODES) {
+        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n", num, CONFIG_MAX_NUM_NODES);
+        abort();
     }
 
     printf("Bringing up %d other cpus\n", num - 1);

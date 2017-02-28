@@ -18,6 +18,7 @@
 #include <printf.h>
 #include <types.h>
 #include <scu.h>
+#include <abort.h>
 
 extern void non_boot_core(void);
 
@@ -51,7 +52,11 @@ init_cpus(void)
 
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
+    } else if (num < CONFIG_MAX_NUM_NODES) {
+        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n", num, CONFIG_MAX_NUM_NODES);
+        abort();
     }
+
     printf("Bringing up %d other cpus\n", num - 1);
     if(num != 1){
         boot_cpus(&non_boot_core);
