@@ -13,6 +13,9 @@
 #include <printf.h>
 #include <platform.h>
 
+extern void flush_dcache(void);
+extern void invalidate_icache(void);
+
 /* non-secure bit: 0 secure; 1 nonsecure */
 #define SCR_NS      (0)
 
@@ -148,8 +151,26 @@ install_monitor_hook(void)
 static void
 switch_to_hyp_mode(void)
 {
-    register uint32_t scr asm("r1") = 0;
-    asm volatile ("mov r0, sp");
+    register uint32_t scr asm("r4") = 0;
+    register uint32_t sp asm("r5");
+    register uint32_t fp asm("r6");
+
+    /*
+     * Frame and Stack pointers are banked; save them
+     * in current state; restore in final state
+     */
+    asm volatile ("mov %0, sp" : "=r"(sp));
+    asm volatile ("mov %0, fp" : "=r"(fp));
+
+    /*
+     * Need to make sure anything in the write buffer is
+     * in RAM, and nothing in the cache that we want to access is tagged
+     * 'secure' because we're about to switch to non-secure mode.
+     * Note: flush_dcache() does a flush-and-invalidate.
+     */
+    flush_dcache();
+    invalidate_icache();
+
     asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
     scr |= BIT(SCR_HCE);
     scr &= ~BIT(SCR_SCD);
@@ -159,7 +180,8 @@ switch_to_hyp_mode(void)
     asm volatile ("cps %0\n\t"
                   "isb\n"
                   ::"I"(HYPERVISOR_MODE));
-    asm volatile ("mov sp, r0");
+    asm volatile ("mov sp, %0" : "+r"(sp));
+    asm volatile ("mov fp, %0" : "+r"(fp));
     asm volatile ("mrs %0, cpsr":"=r"(scr));
     printf("Load seL4 in nonsecure HYP mode %x", scr);
 }
