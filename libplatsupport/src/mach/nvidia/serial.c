@@ -23,7 +23,7 @@
 
 #define LCR_DLAB        BIT(7)
 #define LCR_SET_BREAK   BIT(6)
-#define LCR_SET_PARITY  BIT(5)
+#define LCR_SET_PARITY  BIT(5)  /* Force parity to value of BIT(4) */
 #define LCR_EVEN        BIT(4)  /* even parity? */
 #define LCR_PAR         BIT(3)  /* send parity? */
 #define LCR_STOP        BIT(2)  /* transmit 1 (0) or 2 (1) stop bits */
@@ -554,12 +554,21 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
         case PARITY_NONE:
             break;
         case PARITY_EVEN:
-            lcr |= LCR_SET_PARITY;
-            lcr |= LCR_EVEN;
+            lcr |= LCR_EVEN | LCR_PAR;
             break;
         case PARITY_ODD:
-            lcr |= LCR_SET_PARITY;
+            lcr |= LCR_PAR;
             break;
+/*
+ * Uncomment if we ever need fixed values for parity bits
+ *
+        case PARITY_ONE:
+            lcr |= LCR_SET_PARITY | LCR_EVEN;
+            break;
+        case PARITY_ZERO:
+            lcr |= LCR_SET_PARITY;
+            break
+*/
         default:
             return -1;
     }
