@@ -314,6 +314,7 @@ enum gpio_features_indexes {
    CAN1_INTn = 0,
    CAN1_CS,
    CAN2_CS,
+   USB_VBUS_EN1,
 };
 
 struct gpio_feature_data {

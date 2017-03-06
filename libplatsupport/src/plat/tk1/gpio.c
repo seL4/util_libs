@@ -77,11 +77,16 @@ static struct gpio_feature_data can2_cs = {
     .pin_number = GPIO_PT0, .int_enb = GPIO_INT_DISABLE, .int_type = GPIO_INT_LOW_LVL, .mode = GPIO_MODE_OUTPUT, .default_value = 1
 };
 
+static struct gpio_feature_data usb_vbus_en1 = {
+    .pin_number = GPIO_PN5, .int_enb = GPIO_INT_DISABLE, .int_type = GPIO_INT_LOW_LVL, .mode = GPIO_MODE_OUTPUT, .default_value = 1
+};
+
 
 struct gpio_feature_data* gpio_features[] = {
     [CAN1_INTn] = &can1_intn,
     [CAN1_CS] = &can1_cs,
-    [CAN2_CS] = &can2_cs
+    [CAN2_CS] = &can2_cs,
+    [USB_VBUS_EN1] = &usb_vbus_en1,
 };
 
 static int tegra_pending_status(gpio_t* gpio, int clear)
