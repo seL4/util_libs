@@ -47,9 +47,10 @@ utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
         "mov %%esp, %%ecx\n\t"          /* Save sp. */
         "mov %[new_stack], %%esp\n\t"   /* Switch to new stack. */
         "pushl %%ecx\n\t"               /* Push old sp onto new stack. */
+        "subl $8, %%esp\n\t"            /* dummy padding for 16-byte stack alignment */
         "pushl %[arg]\n\t"              /* Setup argument to func. */
         "call *%[func]\n\t"
-        "add $0x4, %%esp\n\t"
+        "add $12, %%esp\n\t"
         "popl %%esp\n\t"                /* Switch back! */
         : [ret] "=a" (ret)
         : [new_stack] "r" (stack_top),
