@@ -10,10 +10,21 @@
 
 #include <autoconf.h>
 #include <utils/stack.h>
+#include <utils/arith.h>
+#include <utils/util.h>
 
 void *
 utils_run_on_stack(void *stack_top, void * (*func)(void *arg), void *arg)
 {
+    if (stack_top == NULL) {
+        ZF_LOGE("Invalid stack address \n");
+        return NULL;
+    } else if (!IS_ALIGNED((uintptr_t) stack_top, 4)) {
+      /* Stack has to be aligned to 16-bytes */
+        ZF_LOGE("Invalid stack alignment. Stack has to be 16-bytes aligned \n");
+        return NULL;
+    }
+
 /*
  * Note that x86-64 ABI requires that at least SSE and
  * SSE2 are supported, and thus the API uses xmm registers
