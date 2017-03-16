@@ -10,6 +10,11 @@
 
 #pragma once
 
+#include <utils/arch/stack.h>
+#include <utils/arith.h>
+
+#define STACK_CALL_ALIGNMENT_BITS LOG_BASE_2(STACK_CALL_ALIGNMENT)
+
 /**
  * Switch to a new stack and start running func on it.
  * If func returns, you will be back on the old stack.
