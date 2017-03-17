@@ -15,4 +15,4 @@
 /* Number of bytes to which the stack pointer must be aligned when
  * executing a call instruction
  */
-#define STACK_CALL_ALIGNMENT  8
+#define STACK_CALL_ALIGNMENT  16
