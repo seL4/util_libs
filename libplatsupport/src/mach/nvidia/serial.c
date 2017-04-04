@@ -683,7 +683,7 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
     iir_fcr = 0
         | FCR_FIFO_ENABLE | FCR_DMA_MODE0
         | ENCODE_BITS(0, FCR_RX_TRIG_SHIFT, FCR_RX_TRIG_MASK, FCR_RX_TRIG_FIFO_GT_16)
-        | ENCODE_BITS(0, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK, FCR_TX_TRIG_FIFO_GT_1)
+        | ENCODE_BITS(0, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK, FCR_TX_TRIG_FIFO_GT_16)
         | BIT(FCR_TX_FIFO_CLEAR_SHIFT)
         | BIT(FCR_RX_FIFO_CLEAR_SHIFT);
 
