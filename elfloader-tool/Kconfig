@@ -40,8 +40,9 @@ endchoice
 
 choice
     prompt "seL4 mode"
-    default ARM_MONITOR_MODE
-    depends on PLAT_TK1
+    default ARM_MONITOR_MODE if PLAT_TK1
+    default ARM_S_SUPERVISOR_MODE if PLAT_IMX6
+    depends on PLAT_TK1 || PLAT_IMX6
     help
         Select the mode to load the seL4 kernel.
 
@@ -50,6 +51,12 @@ config ARM_NS_SUPERVISOR_MODE
     help
         The default mode for seL4 is non-secure supervisor mode
 
+config ARM_S_SUPERVISOR_MODE
+    bool "Load the seL4 kernel in secure supervisor mode"
+    depends on PLAT_IMX6
+    help
+       The default mode for seL4 on i.MX6 Sabre.
+
 config ARM_MONITOR_MODE
     bool "Load the seL4 kernel in monitor mode"
     help
@@ -57,6 +64,7 @@ config ARM_MONITOR_MODE
 
 config ARM_HYPERVISOR_MODE
     bool "Load the seL4 kernel in hypervisor mode (NS)"
+    depends on PLAT_TK1
     help
         The elfloader loads seL4 kernel in hypvisor mode.
 
@@ -65,7 +73,7 @@ endchoice
 config ARM_MONITOR_HOOK
     bool "Install hooks in monitor mode"
     default n 
-    depends on PLAT_TK1
+    depends on PLAT_TK1 || PLAT_IMX6
     help
        Install SMC call handlers in monitor mode.
 
