@@ -81,12 +81,56 @@ static struct gpio_feature_data usb_vbus_en1 = {
     .pin_number = GPIO_PN5, .int_enb = GPIO_INT_DISABLE, .int_type = GPIO_INT_LOW_LVL, .mode = GPIO_MODE_OUTPUT, .default_value = 1
 };
 
+/* The SPI CSn signal for the MPU is connected to the TK1's GPIO4 pin.
+ *
+ * Please find these values recorded in the daughterboard's "pins.ods" mapping
+ * spreadsheet.
+ */
+static struct gpio_feature_data feat_gpio_ps3 = {
+    .pin_number = GPIO_PS3,
+    .int_enb = GPIO_INT_DISABLE,
+    .int_type = GPIO_INT_LOW_LVL,
+    .mode = GPIO_MODE_OUTPUT,
+    .default_value = 1
+};
+
+/* The SPI CSn signal for the barometer is connected to the TK1's GPIO5 pin. */
+static struct gpio_feature_data feat_gpio_pr0 = {
+    .pin_number = GPIO_PR0,
+    .int_enb = GPIO_INT_DISABLE,
+    .int_type = GPIO_INT_LOW_LVL,
+    .mode = GPIO_MODE_OUTPUT,
+    .default_value = 1
+};
+
+/* The SPI CSn signal for the accelerometer is connected to the TK1's GPIO6 pin. */
+static struct gpio_feature_data feat_gpio_pr6 = {
+    .pin_number = GPIO_PR6,
+    .int_enb = GPIO_INT_DISABLE,
+    .int_type = GPIO_INT_LOW_LVL,
+    .mode = GPIO_MODE_OUTPUT,
+    .default_value = 1
+};
+
+/* The SPI CSn signal for the gyroscope is connected to the TK1's GPIO7 pin. */
+static struct gpio_feature_data feat_gpio_ps4 = {
+    .pin_number = GPIO_PS4,
+    .int_enb = GPIO_INT_DISABLE,
+    .int_type = GPIO_INT_LOW_LVL,
+    .mode = GPIO_MODE_OUTPUT,
+    .default_value = 1
+};
+
 
 struct gpio_feature_data* gpio_features[] = {
     [CAN1_INTn] = &can1_intn,
     [CAN1_CS] = &can1_cs,
     [CAN2_CS] = &can2_cs,
     [USB_VBUS_EN1] = &usb_vbus_en1,
+    [FEAT_GPIO_PS3n] = &feat_gpio_ps3,
+    [FEAT_GPIO_PR0n] = &feat_gpio_pr0,
+    [FEAT_GPIO_PR6n] = &feat_gpio_pr6,
+    [FEAT_GPIO_PS4n] = &feat_gpio_ps4
 };
 
 static int tegra_pending_status(gpio_t* gpio, int clear)

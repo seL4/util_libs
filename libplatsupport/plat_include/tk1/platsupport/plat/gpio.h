@@ -315,6 +315,10 @@ enum gpio_features_indexes {
    CAN1_CS,
    CAN2_CS,
    USB_VBUS_EN1,
+   FEAT_GPIO_PS3n,
+   FEAT_GPIO_PR0n,
+   FEAT_GPIO_PR6n,
+   FEAT_GPIO_PS4n
 };
 
 struct gpio_feature_data {
