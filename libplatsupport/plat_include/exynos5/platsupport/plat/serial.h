@@ -11,6 +11,8 @@
 #ifndef __PLATSUPPORT_PLAT_SERIAL_H__
 #define __PLATSUPPORT_PLAT_SERIAL_H__
 
+#include <autoconf.h>
+
 #define EXYNOS_UART0_PADDR  0x12C00000
 #define EXYNOS_UART1_PADDR  0x12C10000
 #define EXYNOS_UART2_PADDR  0x12C20000
@@ -21,11 +23,11 @@
 #define EXYNOS_UART2_IRQ    85
 #define EXYNOS_UART3_IRQ    86
 
-#if defined(PLAT_EXYNOS5250)
+#if defined(CONFIG_PLAT_EXYNOS5250)
 #define UART_DEFAULT_FIN    100000000
-#elif defined(PLAT_EXYNOS5410)
+#elif defined(CONFIG_PLAT_EXYNOS5410)
 #define UART_DEFAULT_FIN     64000000
-#elif defined(PLAT_EXYNOS5422)
+#elif defined(CONFIG_PLAT_EXYNOS5422)
 #define UART_DEFAULT_FIN  53200000
 #else
 #error Unknown platform

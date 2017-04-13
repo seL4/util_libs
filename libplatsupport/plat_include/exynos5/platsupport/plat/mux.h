@@ -10,13 +10,15 @@
 #ifndef _PLATSUPPORT_PLAT_MUX_H
 #define _PLATSUPPORT_PLAT_MUX_H
 
-#if defined(PLAT_EXYNOS5250)
+#include <autoconf.h>
+
+#if defined(CONFIG_PLAT_EXYNOS5250)
 /* These are for the arndale */
 #define EXYNOS_GPIOLEFT_PADDR    0x11400000
 #define EXYNOS_GPIORIGHT_PADDR   0x13400000
 #define EXYNOS_GPIOC2C_PADDR     0x10D10000
 #define EXYNOS_GPIOAUDIO_PADDR   0x03860000
-#elif defined(PLAT_EXYNOS54XX)
+#elif defined(CONFIG_PLAT_EXYNOS54XX)
 /* These are for Odroid-XU and XU3 */
 #define EXYNOS_GPIOLEFT_PADDR    0x13400000
 #define EXYNOS_GPIORIGHT_PADDR   0x14000000

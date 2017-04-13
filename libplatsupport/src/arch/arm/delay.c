@@ -8,17 +8,18 @@
  * @TAG(NICTA_BSD)
  */
 
+#include <autoconf.h>
 #include <platsupport/delay.h>
 #include <stdint.h>
 #include <stdio.h>
 
-#if defined(PLAT_EXYNOS5250)
+#if defined(CONFIG_PLAT_EXYNOS5250)
 #define DEFAULT_CPUFREQ 1000000000UL
-#elif defined(PLAT_EXYNOS5410)
+#elif defined(CONFIG_PLAT_EXYNOS5410)
 #define DEFAULT_CPUFREQ 1000000000UL
-#elif defined(PLAT_EXYNOS4)
+#elif defined(CONFIG_PLAT_EXYNOS4)
 #define DEFAULT_CPUFREQ 1000000000UL
-#elif defined(PLAT_IMX6)
+#elif defined(CONFIG_PLAT_IMX6)
 #define DEFAULT_CPUFREQ  792000000UL
 #else
 #define DEFAULT_CPUFREQ 0UL

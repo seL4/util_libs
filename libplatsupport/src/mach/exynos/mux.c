@@ -7,6 +7,8 @@
  *
  * @TAG(NICTA_BSD)
  */
+
+#include <autoconf.h>
 #include <stdint.h>
 #include <platsupport/mux.h>
 #include <platsupport/gpio.h>
@@ -283,7 +285,7 @@ gpio_get_extint_idx(gpio_t *gpio)
         return port - 1;
     } else if (portid == GPV4) {
         return port - 2;
-#ifdef PLAT_EXYNOS5
+#ifdef CONFIG_PLAT_EXYNOS5
         /* GPC4 on EXYNOS5 is very special indeed. */
     } else if (portid == GPC4) {
         return 13;

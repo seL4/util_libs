@@ -8,6 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
+#include <autoconf.h>
 #include <platsupport/i2c.h>
 #include <platsupport/mux.h>
 #include <utils/util.h>
@@ -17,7 +18,7 @@
  *** SoC specifics ***
  *********************/
 
-#if defined(PLAT_EXYNOS4)
+#if defined(CONFIG_PLAT_EXYNOS4)
 /* IRQS */
 #define EXYNOS_I2C0_IRQ  90
 #define EXYNOS_I2C1_IRQ  91
@@ -45,7 +46,7 @@
 #define EXYNOS_I2C10_PADDR 0xDEADBEEF
 #define EXYNOS_I2C11_PADDR 0xDEADBEEF
 
-#elif defined(PLAT_EXYNOS5)
+#elif defined(CONFIG_PLAT_EXYNOS5)
 /* IRQS */
 #define EXYNOS_I2C0_IRQ  88
 #define EXYNOS_I2C1_IRQ  89
@@ -161,8 +162,8 @@ static struct i2c_bus_priv _i2c[NI2C] = {
     { .regs = NULL, .mux = MUX_I2C5  },
     { .regs = NULL, .mux = MUX_I2C6  },
     { .regs = NULL, .mux = MUX_I2C7  },
-#if defined(PLAT_EXYNOS4)
-#elif defined(PLAT_EXYNOS5)
+#if defined(CONFIG_PLAT_EXYNOS4)
+#elif defined(CONFIG_PLAT_EXYNOS5)
     { .regs = NULL, .mux = MUX_I2C8  },
     { .regs = NULL, .mux = MUX_I2C9  },
     { .regs = NULL, .mux = MUX_I2C10 },
@@ -630,8 +631,8 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     case I2C7:
         MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs);
         break;
-#if defined(PLAT_EXYNOS4)
-#elif defined(PLAT_EXYNOS5)
+#if defined(CONFIG_PLAT_EXYNOS4)
+#elif defined(CONFIG_PLAT_EXYNOS5)
     case I2C8:
         MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs);
         break;

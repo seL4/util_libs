@@ -8,10 +8,10 @@
  * @TAG(NICTA_BSD)
  */
 
-
+#include <autoconf.h>
 
 /* This is core ARM IP, but we will limit the compile to EXYNOS5 for now */
-#ifdef PLAT_EXYNOS5
+#ifdef CONFIG_PLAT_EXYNOS5
 
 #include <platsupport/dma330.h>
 #include "string.h"

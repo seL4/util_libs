@@ -20,7 +20,7 @@
 /* For clock.h and mux.h */
 typedef struct ps_io_ops ps_io_ops_t;
 
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
 #include <platsupport/clock.h>
 #include <platsupport/mux.h>
 #endif
@@ -265,7 +265,7 @@ struct ps_io_ops {
     ps_io_mapper_t io_mapper;
     ps_io_port_ops_t io_port_ops;
     ps_dma_man_t dma_manager;
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
     clock_sys_t clock_sys;
     mux_sys_t mux_sys;
 #endif
