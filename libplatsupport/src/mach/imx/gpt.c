@@ -166,7 +166,7 @@ gpt_timer_stop(const pstimer_t *timer)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
     /* Disable timer. */
-    gpt->gpt_map->gptcr = 0;
+    gpt->gpt_map->gptcr &= ~(BIT(EN));
 
     return 0;
 }
