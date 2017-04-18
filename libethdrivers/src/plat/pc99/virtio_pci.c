@@ -227,7 +227,7 @@ static void complete_tx(struct eth_driver *driver) {
     virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
     while (dev->tuh != dev->tx_ring.used->idx) {
         uint16_t ring = dev->tuh % dev->tx_size;
-        unsigned int desc = dev->tx_ring.used->ring[ring].id;
+        unsigned int UNUSED desc = dev->tx_ring.used->ring[ring].id;
         assert(desc == dev->tdh);
         void *cookie = dev->tx_cookies[dev->tdh];
         /* add 1 to the length we stored to account for the extra descriptor
@@ -280,7 +280,7 @@ static void complete_rx(struct eth_driver *driver) {
     virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
     while (dev->ruh != dev->rx_ring.used->idx) {
         uint16_t ring = dev->ruh % dev->rx_size;
-        unsigned int desc = dev->rx_ring.used->ring[ring].id;
+        unsigned int UNUSED desc = dev->rx_ring.used->ring[ring].id;
         assert(desc == dev->rdh);
         void *cookie = dev->rx_cookies[dev->rdh];
         /* subtract off length of the virtio header we received */
