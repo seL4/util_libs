@@ -16,6 +16,7 @@ struct gpio_sys;
 typedef struct gpio_sys gpio_sys_t;
 typedef int gpio_id_t;
 
+#include <stdbool.h>
 #include <platsupport/io.h>
 
 #include <platsupport/plat/gpio.h>
@@ -60,6 +61,8 @@ struct gpio_sys {
     int (*read)(gpio_t* gpio, char* data, int len);
 /// Manipulate the status of a pending IRQ
     int (*pending_status)(gpio_t *gpio, int clear);
+/// Enable and disable the IRQ signal from the pin
+    int (*irq_enable_disable)(gpio_t *gpio, bool enable);
 /// platform specific private data
     void* priv;
 };
@@ -148,6 +151,40 @@ static inline void gpio_pending_clear(gpio_t* gpio)
     assert(gpio);
     assert(gpio->gpio_sys);
     gpio->gpio_sys->pending_status(gpio, 1);
+}
+
+/**
+ * Enable the IRQ signal from the pin.
+ * @param[in] gpio Handle to the pin to manipulate
+ * @return 0 for success, nonzero on error.
+ */
+static inline int
+gpio_irq_enable(gpio_t *gpio)
+{
+    if (!gpio) {
+        return -ENOSYS;
+    }
+    if (!gpio->gpio_sys) {
+        return -ENOSYS;
+    }
+    return gpio->gpio_sys->irq_enable_disable(gpio, true);
+}
+
+/**
+ * Disable the IRQ signal from the pin.
+ * @param[in] gpio Handle to the pin to manipulate
+ * @return 0 for success, nonzero on error.
+ */
+static inline int
+gpio_irq_disable(gpio_t *gpio)
+{
+    if (!gpio) {
+        return -ENOSYS;
+    }
+    if (!gpio->gpio_sys) {
+        return -ENOSYS;
+    }
+    return gpio->gpio_sys->irq_enable_disable(gpio, false);
 }
 
 /**
