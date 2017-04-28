@@ -11,6 +11,8 @@
 #ifndef __PLATSUPPORT_PLAT_SERIAL_H__
 #define __PLATSUPPORT_PLAT_SERIAL_H__
 
+#include <autoconf.h>
+
 #define UART1_PADDR  0x02020000
 #define UART2_PADDR  0x021E8000
 #define UART3_PADDR  0x021EC000
