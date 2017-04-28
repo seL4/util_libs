@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Copyright 2014, NICTA
@@ -34,11 +34,28 @@ if [ -z "${SYSLINUX}" ]; then
     exit 1
 fi
 SYSLINUXDIR=`echo $SYSLINUX | sed 's:/bin/:/share/:'`
-[ -f "$SYSLINUXDIR"/mbr.bin ] || SYSLINUXDIR="`echo $SYSLINUXDIR | sed 's:/share/:/lib/:'`"
-[ -f "$SYSLINUXDIR"/mbr.bin ] || {
+[ -d "$SYSLINUXDIR"  ] || SYSLINUXDIR="`echo $SYSLINUXDIR | sed 's:/share/:/lib/:'`"
+
+[ -d "$SYSLINUXDIR" ] || {
        echo >&2 "Cannot find syslinux data directory!"
        exit 1
 }
+
+if [ -f "$SYSLINUXDIR"/mbr.bin ]
+then
+    SYSLINUX_MODULES="$SYSLINUXDIR"
+    MBR="$SYSLINUXDIR"/mbr.bin
+elif [ -d "$SYSLINUXDIR"/modules ]
+then
+    SYSLINUX_MODULES="$SYSLINUXDIR"/modules/bios/
+    MBR="$SYSLINUXDIR"/mbr/mbr.bin
+fi
+
+[ -f "$MBR" ] || {
+    echo >&2 "Can't find mbr.bin.  Is syslinux installed?"
+    exit 1
+}
+
 
 trap "rm -f mtoolsrc syslinux.cfg mbr.bin" 0
 
@@ -65,9 +82,11 @@ for UIMG in $UIMGS ; do
     fi
 done
 
+MODULES="$SYSLINUX_MODULES/mboot.c32"
+[ -f $SYSLINUX_MODULES/libcom32.c32 ] && MODULES="$MODULES $SYSLINUX_MODULES/libcom32.c32"
 # Calculate image size and number of cylinders
 
-IMGSIZE=`stat -c '%s' $UIMGS $KERNEL $SYSLINUXDIR/mboot.c32 | awk ' { sum += $1 } END { print sum }'`
+IMGSIZE=`stat -c '%s' $UIMGS $KERNEL $MODULES | awk ' { sum += $1 } END { print sum }'`
 
 echo "final image size will be $IMGSIZE"
 
@@ -84,10 +103,10 @@ echo "drive c: file=\"$OUTIMG\" partition=1" > mtoolsrc
 export MTOOLSRC=mtoolsrc
 
 # Get mbr.bin and blow up/cut down to 512 bytes (required by mtools)
-cat $SYSLINUXDIR/mbr.bin /dev/zero 2>/dev/null | head -c 512 > mbr.bin
+cat "$MBR" /dev/zero 2>/dev/null | head -c 512 > mbr.bin
 
 # Create filesystem
-which mpartition &>/dev/null
+which mpartition >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "mpartition not found. Is mtools installed?" >&2
     exit 1
@@ -96,7 +115,7 @@ mpartition -I -B mbr.bin c:
 mpartition -c -t $CYLINDERS -h $HEADS -s $SECTORS c:
 mpartition -a c:
 mformat c:
-syslinux -o `expr $SECTORS \* 512` $OUTIMG
+syslinux --offset `expr $SECTORS \* 512` $OUTIMG
 
 # Write syslinux config file
 UIMGS_CFG=""
@@ -115,7 +134,7 @@ label mylabel
 EOF
 
 # Install kernel and apps to the image
-for file in $KERNEL $UIMGS $SYSLINUXDIR/mboot.c32 syslinux.cfg
+for file in $KERNEL $UIMGS $MODULES syslinux.cfg
 do
     mcopy "$file" c: || {
         echo "Error: mcopy $file failed!" >&2
