@@ -8,11 +8,13 @@
  * @TAG(NICTA_GPL)
  */
 
+#include <autoconf.h>
+
 ENTRY(_start)
 
 PECOFF_FILE_ALIGNMENT = 0x200;
 
-#ifdef EFI
+#ifdef CONFIG_IMAGE_EFI
 #define PECOFF_EDATA_PADDING    \
     .pecoff_edata_padding : { BYTE(0); . = ALIGN(PECOFF_FILE_ALIGNMENT); }
 #else
