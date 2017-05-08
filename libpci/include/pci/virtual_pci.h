@@ -9,9 +9,6 @@
  *
  * @TAG(DATA61_BSD)
  */
-/* Xi (Ma) Chen
- * Fri 22 Nov 2013 04:21:49 EST */
-
 #pragma once
 
 #include <stdint.h>

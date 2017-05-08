@@ -10,11 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 /* Virtual PCI devices - allows rebasing base addresses.
- *
- *     Authors:
- *         Xi (Ma) Chen
- *
- *     Tue 05 Nov 2013 14:56:38 EST
 
      Example usage:
         d = libpci_find_device(0x1022, 0x2000); assert(d);

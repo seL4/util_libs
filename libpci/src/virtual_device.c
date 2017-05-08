@@ -7,9 +7,6 @@
  *
  * @TAG(NICTA_BSD)
  */
-/* Xi (Ma) Chen */
-/* Tue 22 Oct 2013 16:09:11 EST */
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
