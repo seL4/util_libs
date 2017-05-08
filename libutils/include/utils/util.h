@@ -39,6 +39,10 @@
 #include <utils/xml.h>
 
 #ifndef ZF_LOG_LEVEL
+#ifdef _ZF_LOG_LEVEL
+#warning "Attempted to set ZF_LOG_LEVEL but _ZF_LOG_LEVEL has already been defined." \
+"Check that <utils/zf_log.h> hasn't been imported before this file, or define ZF_LOG_LEVEL explicitly before including <utils/zf_log.h>."
+#endif
 #define ZF_LOG_LEVEL ZF_LOG_ERROR
 #endif /* ZF_LOG_LEVEL */
 
