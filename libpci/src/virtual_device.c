@@ -16,13 +16,7 @@
 #include <pci/virtual_pci.h>
 #include <pci/virtual_device.h>
 #include <pci/ioreg.h>
-
-#define VDEV_DEBUG_VERBOSE 0
-#if VDEV_DEBUG_VERBOSE
-    #define dvprintf printf
-#else
-    #define dvprintf(...)
-#endif
+#include <utils/zf_log.h>
 
 static uint8_t libpci_vdevice_rebase_callback_ioread(libpci_vdevice_t* vdevice, int offset) {
     assert(vdevice);
@@ -31,7 +25,7 @@ static uint8_t libpci_vdevice_rebase_callback_ioread(libpci_vdevice_t* vdevice, 
     int index = (offset - PCI_BASE_ADDRESS_0) / 4;
     int byte_offset = (offset - PCI_BASE_ADDRESS_0) % 4;
     uint8_t* rebased_addr_ptr = (uint8_t*)(&vdevice->rebased_addr[index]);
-    dvprintf("returning rebased_addr rebased_addr[%d] 0x%x\n", index, vdevice->rebased_addr[index]);
+    ZF_LOGD("returning rebased_addr rebased_addr[%d] 0x%x\n", index, vdevice->rebased_addr[index]);
     return rebased_addr_ptr[byte_offset];
 }
 

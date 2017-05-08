@@ -14,15 +14,9 @@
 #include <pci/pci.h>
 #include <pci/helper.h>
 #include <pci/ioreg.h>
+#include <utils/zf_log.h>
 
 #define PCI_DISPLAY_FOUND_DEVICES
-#define PCI_DEBUG 0
-#if (PCI_DEBUG >= 1)
-    #define dprintf printf
-#else
-    #define dprintf(...)
-#endif
-
 #ifndef CTZ
     #define CTZ(x) __builtin_ctz(x)
 #endif
@@ -93,11 +87,11 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
         return 0;
     }
 
-    dprintf("PCI :: Device found at BUS %d DEV %d FUN %d:\n", (int)bus, (int)dev, (int)fun);
-    dprintf("    vendorID = %s [0x%x]\n", libpci_vendorID_str(vendor_id), vendor_id);
+    ZF_LOGD("PCI :: Device found at BUS %d DEV %d FUN %d:\n", (int)bus, (int)dev, (int)fun);
+    ZF_LOGD("    vendorID = %s [0x%x]\n", libpci_vendorID_str(vendor_id), vendor_id);
 
     uint16_t device_id = libpci_read_reg16(bus, dev, fun, PCI_DEVICE_ID);
-    dprintf("    deviceID = %s [0x%x]\n", libpci_deviceID_str(vendor_id, device_id), device_id);
+    ZF_LOGD("    deviceID = %s [0x%x]\n", libpci_deviceID_str(vendor_id, device_id), device_id);
 
     assert(libpci_num_devices + 1<= PCI_MAX_DEVICES);
     libpci_device_list[libpci_num_devices].bus = bus;
@@ -112,9 +106,9 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     libpci_device_list[libpci_num_devices].subsystem_id = libpci_read_reg16(bus, dev, fun, PCI_SUBSYSTEM_ID);
     libpci_read_ioconfig(&libpci_device_list[libpci_num_devices].cfg, bus, dev, fun);
 
-    #if (PCI_DEBUG >= 2)
+#if (ZF_LOG_LEVEL >= ZF_LOG_VERBOSE)
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, false);
-    #endif
+#endif
 
     #ifdef PCI_DISPLAY_FOUND_DEVICES
     printf("PCI :: %.2x.%.2x.%.2x : %s %s (vid 0x%x did 0x%x) line%d pin%d\n", bus, dev, fun,
@@ -167,7 +161,7 @@ static void lib_pci_scan_bus(int bus) {
 
 void libpci_scan(ps_io_port_ops_t port_ops) {
     global_port_ops = port_ops;
-    dprintf("PCI :: Scanning...\n");
+    ZF_LOGD("PCI :: Scanning...\n");
     if ( (libpci_read_reg8(0, 0, 0, PCI_HEADER_TYPE) & 0x80) == 0) {
         printf("Single bus detected\n");
         lib_pci_scan_bus(0);

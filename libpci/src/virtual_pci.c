@@ -16,19 +16,16 @@
 #include <pci/ioreg.h>
 #include <pci/virtual_pci.h>
 #include <pci/virtual_device.h>
-
-#define dprintf printf
-//#define dprintfv printf
-#define dprintfv(...)
+#include <utils/zf_log.h>
 
 bool libpci_virtual_pci_device_allow(libpci_virtual_pci_t* self, libpci_device_t *device) {
     assert(self);
     if (!device) {
-        printf("device_allow error: NULL device!\n");
+        ZF_LOGD("device_allow error: NULL device!\n");
         return false;
     }
     if (!libpci_find_device_matching(device)) {
-        printf("device_allow error: invalid device!\n");
+        ZF_LOGD("device_allow error: invalid device!\n");
         return false;
     }
     assert(self->num_allowed_devices + 1 < PCI_MAX_VDEVICES);
@@ -110,7 +107,7 @@ libpci_vdevice_t* libpci_virtual_pci_vdevice_check(libpci_virtual_pci_t* self,
 int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint32_t* val, uint32_t size) {
     if (port_no >= PCI_CONF_PORT_ADDR && port_no < PCI_CONF_PORT_ADDR_END) {
         if (port_no + size > PCI_CONF_PORT_ADDR_END) {
-            dprintf("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
+            ZF_LOGD("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
             return 1;
         }
         /* Emulate read addr. */
@@ -119,7 +116,7 @@ int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint
         return 0;
     }
     if (port_no < PCI_CONF_PORT_DATA || port_no >= PCI_CONF_PORT_DATA_END) {
-        dprintf("vpci_ioread WARNING: port_no 0x%x size %d invalid.\n", port_no, size);
+        ZF_LOGD("vpci_ioread WARNING: port_no 0x%x size %d invalid.\n", port_no, size);
         return 1;
     }
 
@@ -140,7 +137,7 @@ int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint
     if (!allowed) {
         // Disallowed device, we hide it from the virtual PCI config.
         // By returning a commonly accepted invalid value. (All 1 bits)
-        dprintfv("vpci_ioread WARNING: disallowed device %d %d %d.\n", bus, dev, fun);
+        ZF_LOGV("vpci_ioread WARNING: disallowed device %d %d %d.\n", bus, dev, fun);
         *val = PCI_INVALID_READ_VALUE;
         return 0;
     }
@@ -154,7 +151,7 @@ int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint
 int libpci_virtual_pci_iowrite(libpci_virtual_pci_t* self, uint32_t port_no, uint32_t val, uint32_t size) {
     if (port_no >= PCI_CONF_PORT_ADDR && port_no < PCI_CONF_PORT_ADDR_END) {
         if (port_no + size > PCI_CONF_PORT_ADDR_END) {
-            dprintf("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
+            ZF_LOGD("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
             return 1;
         }
         /* Emulated set addr. */
@@ -162,7 +159,7 @@ int libpci_virtual_pci_iowrite(libpci_virtual_pci_t* self, uint32_t port_no, uin
         return 0;
     }
     if (port_no < PCI_CONF_PORT_DATA || port_no >= PCI_CONF_PORT_DATA_END) {
-        dprintf("vpci_iowrite WARNING: port_no 0x%x size %d invalid.\n", port_no, size);
+        ZF_LOGD("vpci_iowrite WARNING: port_no 0x%x size %d invalid.\n", port_no, size);
         return 1;
     }
 
@@ -181,7 +178,7 @@ int libpci_virtual_pci_iowrite(libpci_virtual_pci_t* self, uint32_t port_no, uin
     bool allowed = self->device_check(self, bus, dev, fun);
     if (!allowed) {
         // Disallowed device, we hide it from the virtual PCI config.
-        dprintfv("vpci_iowrite WARNING: disallowed device %d %d %d.\n", bus, dev, fun);
+        ZF_LOGV("vpci_iowrite WARNING: disallowed device %d %d %d.\n", bus, dev, fun);
         return 0;
     }
 
