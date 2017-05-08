@@ -14,12 +14,10 @@
 #include <pci/pci.h>
 #include <pci/helper.h>
 #include <pci/ioreg.h>
+#include <utils/attribute.h>
 #include <utils/zf_log.h>
 
 #define PCI_DISPLAY_FOUND_DEVICES
-#ifndef CTZ
-    #define CTZ(x) __builtin_ctz(x)
-#endif
 
 libpci_device_t libpci_device_list[PCI_MAX_DEVICES];
 uint32_t libpci_num_devices = 0;

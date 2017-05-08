@@ -12,14 +12,7 @@
 #pragma once
 
 #include <stdint.h>
-
-#ifndef MASK
-    #define MASK(n) (BIT(n)-1ul)
-#endif
-
-#ifndef BIT
-    #define BIT(n) (1ul<<(n))
-#endif
+#include <utils/arith.h>
 
 /* Generic IOPort in/out functions. */
 
