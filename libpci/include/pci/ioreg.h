@@ -12,8 +12,7 @@
 /* Xi (Ma) Chen
  * Fri 22 Nov 2013 04:08:03 EST */
 
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_IOREG_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_IOREG_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -50,5 +49,3 @@ void libpci_write_reg(uint8_t bus, uint8_t dev, uint8_t fun, uint8_t reg, uint32
 /* Reverse look up which device is associated with a given IOPort number. */
 void libpci_portno_reverse_lookup(uint32_t port_no, uint8_t *bus, uint8_t *dev, uint8_t *fun,
                                   uint8_t *reg);
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_IOREG_H__ */

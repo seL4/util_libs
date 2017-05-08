@@ -12,8 +12,8 @@
 /* Xi (Ma) Chen
  * Fri 22 Nov 2013 04:10:13 EST */
 
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_PCI_CONFIG_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_PCI_CONFIG_H__
+
+#pragma once
 
 #include <pci/helper.h>
 #include <stdbool.h>
@@ -163,5 +163,3 @@ static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, b
         }
     }
 }
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_PCI_CONFIG_H__ */

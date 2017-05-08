@@ -12,8 +12,7 @@
 /* Xi (Ma) Chen
  * Fri 22 Nov 2013 04:09:58 EST */
 
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_H__
+#pragma once
 
 #include <assert.h>
 #include <stdio.h>
@@ -71,5 +70,3 @@ void libpci_scan(ps_io_port_ops_t port_ops);
 
 /* Read base addr info from give device, and populate a base addr info structure. */
 void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, uint8_t fun);
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_H__ */

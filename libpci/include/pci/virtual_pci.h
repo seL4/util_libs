@@ -12,8 +12,7 @@
 /* Xi (Ma) Chen
  * Fri 22 Nov 2013 04:21:49 EST */
 
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_PCI_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_PCI_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -59,5 +58,3 @@ struct libpci_virtual_pci {
 };
 
 void libpci_virtual_pci_init(libpci_virtual_pci_t* vp);
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_PCI_H__ */

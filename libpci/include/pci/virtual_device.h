@@ -22,9 +22,7 @@
         v->enable(v, d->bus, d->dev, d->fun, d);
         v->rebase_ioaddr_realdevice(v, 0, 0x3000, d);
  */
-
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_DEVICE_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_DEVICE_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -122,5 +120,3 @@ struct libpci_vdevice {
 };
 
 void libpci_vdevice_init(libpci_vdevice_t* vd);
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_VIRTUAL_DEVICE_H__ */

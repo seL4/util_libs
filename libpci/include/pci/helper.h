@@ -9,9 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-
-#ifndef __LIB_PCI_SUPPORT_LIBRARY_HELPER_H__
-#define __LIB_PCI_SUPPORT_LIBRARY_HELPER_H__
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -3837,5 +3835,3 @@
 
 char* libpci_vendorID_str(int vid);
 char* libpci_deviceID_str(int vid, int did);
-
-#endif /* __LIB_PCI_SUPPORT_LIBRARY_HELPER_H__ */
