@@ -14,9 +14,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// src: Linux kernel
-// http://www.acm.uiuc.edu/sigops/roll_your_own/7.c.0.html
-
 /*
  * Under PCI, each device has 256 bytes of configuration address space,
  * of which the first 64 bytes are standardized as follows:
