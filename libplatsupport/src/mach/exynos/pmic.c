@@ -8,19 +8,11 @@
  * @TAG(NICTA_BSD)
  */
 
-
+#include <utils/util.h>
 #include <platsupport/mach/pmic.h>
 #include <string.h>
 
 #define mV
-
-//#define PMIC_DEBUG
-#ifdef PMIC_DEBUG
-#define dprintf(...) printf("PMIC:" __VA_ARGS__)
-#else
-#define dprintf(...) do{}while(0)
-#endif
-
 
 #define REG_CHIPID        0x00
 #define REG_RESET_DELAY   0x0A
@@ -91,12 +83,12 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
     int ret;
     ret = i2c_kvslave_init(i2c, addr, LITTLE8, LITTLE8, &pmic->i2c_slave);
     if (ret) {
-        dprintf("Failed to register I2C slave\n");
+        ZF_LOGD("Failed to register I2C slave");
         return -1;
     }
     /* Read the chip ID */
     if (pmic_reg_read(pmic, REG_CHIPID, &chip_id, 2)) {
-        dprintf("Bus error\n");
+        ZF_LOGD("Bus error");
         return -1;
     }
     /* Check the chip ID */
@@ -109,11 +101,11 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
         pmic->priv = (void*)&max77802_cfg;
         break;
     default:
-        dprintf("Unidentified chip 0x%02x\n", chip_id);
+        ZF_LOGD("Unidentified chip 0x%02x", chip_id);
         return -1;
     }
 
-    dprintf("found chip ID 0x%x\n", chip_id);
+    ZF_LOGD("found chip ID 0x%x", chip_id);
     return 0;
 }
 

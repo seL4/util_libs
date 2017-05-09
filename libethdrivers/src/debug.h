@@ -12,7 +12,7 @@
 #define __DEBUG_H__
 
 #include <stdint.h>
-
+#include <utils/util.h>
 //#define DBG_MAP
 //#define DBG_PKT
 //#define DBG_PRINT_PAYLOAD
@@ -86,20 +86,14 @@
 
 #define cprintf(col, ...) do { \
         set_colour(col);       \
-        dprintf(__VA_ARGS__);  \
+        ZF_LOGD(__VA_ARGS__);  \
         set_colour(COL_DEF);   \
         printf("\n");          \
     }while(0)
 
-
-#define dprintf(...) do { \
-        printf("%s %s %d: ", __FILE__, __func__, __LINE__); \
-        printf(__VA_ARGS__); \
-    }while(0)
-
 #define UNIMPLEMENTED() \
     do{\
-        printf("unimplemented %s %s %d\n", __FILE__, __func__, __LINE__); \
+        ZF_LOGF("unimplemented"); \
         while(1); \
     } while(0)
 

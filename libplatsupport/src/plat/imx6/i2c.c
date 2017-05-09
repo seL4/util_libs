@@ -11,17 +11,11 @@
 #include <platsupport/i2c.h>
 #include <platsupport/mux.h>
 #include <platsupport/clock.h>
+#include <utils/util.h>
 #include "../../services.h"
 #include "../../arch/arm/clock.h"
 
 #include <string.h>
-
-//#define I2C_DEBUG
-#ifdef I2C_DEBUG
-#define dprintf(...) printf("I2C: " __VA_ARGS__)
-#else
-#define dprintf(...) do{}while(0)
-#endif
 
 #define IMX6_I2C_DEFAULT_FREQ (400 * KHZ)
 
@@ -293,7 +287,7 @@ imx6_i2c_handle_irq(i2c_bus_t* i2c_bus)
                 /** Master TX **/
                 if (!acked(dev)) {
                     /* RXAK != 0 */
-                    dprintf("NACK from slave\n");
+                    ZF_LOGD("NACK from slave");
                     master_stop(dev);
                 } else if (dev->mode_tx && dev->tx_count == dev->tx_len) {
                     /* Last byte transmitted successfully */
@@ -326,7 +320,7 @@ imx6_i2c_handle_irq(i2c_bus_t* i2c_bus)
                         master_stop(dev);
                     }
                 } else {
-                    printf("Master RX IRQ but RX complete!\n");
+                    ZF_LOGD("Master RX IRQ but RX complete!");
                 }
             }
         } else {
@@ -350,21 +344,21 @@ master_rxstart(struct i2c_bus_priv* dev, int slave)
 static int
 imx6_i2c_read(i2c_bus_t* i2c_bus, void* data, size_t len, i2c_callback_fn cb, void* token)
 {
-    assert(!"Not implemented\n");
+    ZF_LOGF("Not implemented");
     return -1;
 }
 
 static int
 imx6_i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t len, i2c_callback_fn cb, void* token)
 {
-    assert(!"Not implemented\n");
+    ZF_LOGF("Not implemented");
     return -1;
 }
 
 static int
 imx6_i2c_master_stop(i2c_bus_t* i2c_bus)
 {
-    assert(!"Not implemented\n");
+    ZF_LOGF("Not implemented");
     return -1;
 }
 
@@ -375,7 +369,7 @@ imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t le
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
+    ZF_LOGD("Writing %d bytes to slave@0x%02x", len, slave);
     master_txstart(dev, slave);
 
     dev->tx_count = 0;
@@ -402,7 +396,7 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
+    ZF_LOGD("Reading %d bytes from slave@0x%02x", len, slave);
     if (slave == dev->regs->address) {
         return -1;
     }
@@ -454,7 +448,7 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     int err;
     clk_t* i2c_clk;
     /* Map memory */
-    dprintf("Mapping i2c %d\n", id);
+    ZF_LOGD("Mapping i2c %d\n", id);
     switch (id) {
     case I2C1:
         MAP_IF_NULL(io_ops, IMX6_I2C1, dev->regs);

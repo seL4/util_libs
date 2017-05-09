@@ -12,13 +12,7 @@
 #include <platsupport/mach/pmic_rtc.h>
 #include <platsupport/delay.h>
 #include "../../services.h"
-
-#define PMICRTC_DEBUG
-#ifdef PMICRTC_DEBUG
-#define dprintf(...) printf("PMIC RTC:" __VA_ARGS__)
-#else
-#define dprintf(...) do{}while(0)
-#endif
+#include <utils/util.h>
 
 #define RTCREG_INTSTAT    0x00
 #define RTCREG_INTMASK    0x01
@@ -78,7 +72,7 @@ pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag)
     /* Write to the update register */
     ret = pmic_rtc_reg_write(dev, RTCREG_UPDATE, &flag, 1);
     if (ret != 1) {
-        dprintf("Bus error\n");
+        ZF_LOGD("Bus error");
         return -1;
     }
     /* Wait for completion */
@@ -111,7 +105,7 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
     ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR, LITTLE8, LITTLE8,
                            &pmic_rtc->i2c_slave);
     if (ret) {
-        dprintf("Failed to register I2C slave\n");
+        ZF_LOGD("Failed to register I2C slave");
         return -1;
     }
 
@@ -123,7 +117,7 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
     data[RTCREG_WATCHDOG ] = 0x00;
     ret = pmic_rtc_reg_write(pmic_rtc, RTCREG_INTSTAT, data, sizeof(data));
     if (ret != sizeof(data)) {
-        dprintf("Bus error\n");
+        ZF_LOGD("Bus error");
         return -1;
     }
 

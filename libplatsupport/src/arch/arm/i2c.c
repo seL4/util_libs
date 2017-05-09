@@ -9,7 +9,7 @@
  */
 
 #include <platsupport/i2c.h>
-
+#include <utils/util.h>
 #include <assert.h>
 
 /**
@@ -18,15 +18,6 @@
  * also because a write operation must be a contiguous stream of register
  * address then data.
  */
-
-//#define KVI2C_DEBUG
-#ifdef KVI2C_DEBUG
-#define dprintf(...) printf("KVI2C: " __VA_ARGS__)
-#else
-#define dprintf(...) do{}while(0)
-#endif
-
-
 #define ABS(x) ( ((x) < 0)? -x : x )
 
 #define BUFFER_SIZE 128
@@ -75,22 +66,22 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
         count = BUFFER_SIZE / dbytes;
     }
     /* Send the register address */
-    dprintf("Seek register 0x%02llx\n", reg);
+    ZF_LOGD("Seek register 0x%02llx", reg);
     _fill_reg(d, reg, i2c_slave->address_fmt);
     bytes = i2c_slave_write(i2c_slave, d, abytes, NULL, NULL);
     if (bytes != abytes) {
-        dprintf("Bus error\n");
+        ZF_LOGD("Bus error");
         return -1;
     }
     /* Receive the reply */
-    dprintf("Read register %d\n", dbytes * count);
+    ZF_LOGD("Read register %d", dbytes * count);
     bytes = i2c_slave_read(i2c_slave, d, dbytes * count, NULL, NULL);
     if (bytes < 0) {
-        dprintf("read error\n");
+        ZF_LOGD("read error");
         return bytes;
     }
     if (bytes != dbytes * count) {
-        dprintf("short read %d/%d\n", bytes, dbytes * count);
+        ZF_LOGD("short read %d/%d", bytes, dbytes * count);
     }
     /* Fix endianess */
     count = bytes / dbytes;
@@ -113,14 +104,14 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
         count = (BUFFER_SIZE - abytes) / dbytes;
     }
     /* Set up the register address */
-    dprintf("Seek register 0x%02llx\n", reg);
+    ZF_LOGD("Seek register 0x%02llx", reg);
     _fill_reg(d, reg, i2c_slave->address_fmt);
     /* Load up the data */
     _fill_data(d + abytes, data, i2c_slave->data_fmt, count);
     /* Send the request */
     bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, NULL, NULL);
     if (bytes <= 0) {
-        dprintf("Bus error (%d)\n", bytes);
+        ZF_LOGD("Bus error (%d)", bytes);
         return bytes;
     }
     count = (bytes - abytes) / dbytes;
@@ -217,7 +208,7 @@ i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
             count++;
         } else if (ret < 0) {
         } else {
-            printf("Invalid response\n");
+            ZF_LOGE("Invalid response");
         }
     }
     return count;

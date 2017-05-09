@@ -10,14 +10,8 @@
 
 #include <platsupport/i2c.h>
 #include <platsupport/mux.h>
+#include <utils/util.h>
 #include "../../services.h"
-
-//#define I2C_DEBUG
-#ifdef I2C_DEBUG
-#define dprintf(...) printf("I2C: " __VA_ARGS__)
-#else
-#define dprintf(...) do{}while(0)
-#endif
 
 /*********************
  *** SoC specifics ***
@@ -265,7 +259,7 @@ exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb,
     i2c_bus->cb = cb;
     i2c_bus->token = token;
 
-    dprintf("Reading %d bytes as slave 0x%x\n", len, dev->regs->address);
+    ZF_LOGD("Reading %d bytes as slave 0x%x", len, dev->regs->address);
     dev->regs->control |= I2CCON_ACK_EN;
 
     if (cb == NULL) {
@@ -273,7 +267,7 @@ exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb,
         while (dev->rx_count < dev->rx_len && busy(dev)) {
             i2c_handle_irq(i2c_bus);
         }
-        dprintf("read %d bytes\n", dev->rx_count);
+        ZF_LOGD("read %d bytes", dev->rx_count);
         return dev->rx_count;
     } else {
         /* Let the ISR handle it */
@@ -292,14 +286,14 @@ exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len, i2c_callback
     i2c_bus->cb = cb;
     i2c_bus->token = token;
 
-    dprintf("Writing %d bytes as slave 0x%x\n", len, dev->regs->address);
+    ZF_LOGD("Writing %d bytes as slave 0x%x", len, dev->regs->address);
     dev->regs->control |= I2CCON_ACK_EN;
 
     if (cb == NULL) {
         while (dev->tx_count < dev->tx_len && busy(dev)) {
             i2c_handle_irq(i2c_bus);
         }
-        dprintf("wrote %d bytes\n", dev->tx_count);
+        ZF_LOGD("wrote %d bytes", dev->tx_count);
         return dev->tx_count;
     } else {
         /* Let the ISR handle it */
@@ -320,7 +314,7 @@ exynos_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dprintf("Reading %d bytes from slave@0x%02x\n", len, slave);
+    ZF_LOGD("Reading %d bytes from slave@0x%02x", len, slave);
     master_rxstart(dev, slave);
 
     /* Setup the RX descriptor */
@@ -348,7 +342,7 @@ exynos_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t 
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    dprintf("Writing %d bytes to slave@0x%02x\n", len, slave);
+    ZF_LOGD("Writing %d bytes to slave@0x%02x", len, slave);
     master_txstart(dev, slave);
 
     dev->tx_count = -1;
@@ -394,7 +388,7 @@ exynos_i2c_probe_aas(i2c_bus_t* i2c_bus)
             mode = I2CMODE_RX;
         }
 
-        dprintf("Addressed as slave for %s transfer.\n",
+        ZF_LOGD("Addressed as slave for %s transfer.",
                 (mode == I2CMODE_RX) ? "READ" : "WRITE");
 
         /* Call out to the handler if one was registered */
@@ -541,7 +535,7 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
 static long
 exynos_i2c_set_speed(i2c_bus_t* i2c_bus, long bps)
 {
-    assert(!"Not implemented\n");
+    ZF_LOGF("Not implemented");
     return -1;
 }
 
@@ -564,11 +558,11 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     if (dev->regs == NULL) {
         return -2;
     }
-    dprintf("Memory for regs mapped\n");
+    ZF_LOGD("Memory for regs mapped");
 
     /* Configure MUX */
     if (mux_sys_valid(mux) && mux_feature_enable(mux, dev->mux)) {
-        dprintf("Warning: failed to configure MUX\n");
+        ZF_LOGD("Warning: failed to configure MUX");
     }
 
     /* I2C setup */
@@ -599,7 +593,7 @@ int
 exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c)
 {
     struct i2c_bus_priv* dev = _i2c + id;
-    dprintf("Mapping i2c %d\n", id);
+    ZF_LOGD("Mapping i2c %d", id);
     dev->regs = base;
     return i2c_init_common(mux, i2c, dev);
 }
@@ -610,7 +604,7 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     struct i2c_bus_priv* dev = _i2c + id;
     mux_sys_t* mux = &io_ops->mux_sys;
     /* Map memory */
-    dprintf("Mapping i2c %d\n", id);
+    ZF_LOGD("Mapping i2c %d", id);
     switch (id) {
     case I2C0:
         MAP_IF_NULL(io_ops, EXYNOS_I2C0,  dev->regs);
