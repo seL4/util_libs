@@ -110,6 +110,7 @@ static void lwip_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
 
 #if ETH_PAD_SIZE
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+    len -= ETH_PAD_SIZE;
 #endif
 
     /* fill the pbuf chain */
