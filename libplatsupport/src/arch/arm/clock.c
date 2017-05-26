@@ -44,7 +44,7 @@ _fixed_clk_init(clk_t* clk)
 freq_t
 _default_clk_get_freq(clk_t* clk)
 {
-    assert(clk->id >= 0 && clk->id < NCLOCKS);
+    assert(clk->id < NCLOCKS);
     return ps_freq_default[clk->id];
 }
 
@@ -69,7 +69,7 @@ _default_clk_init(clk_t* clk)
 static clk_t*
 get_clock_default(clock_sys_t* clock_sys UNUSED, enum clk_id id)
 {
-    if (id < 0 || id >= NCLOCKS) {
+    if (id >= NCLOCKS) {
         return NULL;
     } else {
         clk_t* clk;
@@ -104,7 +104,7 @@ clock_sys_init_default(clock_sys_t* clock_sys)
 int
 clock_sys_set_default_freq(enum clk_id id, freq_t hz)
 {
-    if (id < 0 || id >= NCLOCKS) {
+    if (id >= NCLOCKS) {
         return -1;
     } else {
         ps_freq_default[id] = hz;
@@ -115,7 +115,7 @@ clock_sys_set_default_freq(enum clk_id id, freq_t hz)
 clk_t*
 ps_get_clock(clock_sys_t* sys, enum clk_id id)
 {
-    if (id < 0 || id >= NCLOCKS) {
+    if (id >= NCLOCKS) {
         return NULL;
     } else {
         clk_t* clk;
