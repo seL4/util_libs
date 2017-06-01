@@ -103,18 +103,18 @@ typedef uint64_t iomux_v3_cfg_t;
 	((iomux_v3_cfg_t)(sel_input_ofs) << MUX_SEL_INPUT_OFS_SHIFT)|	\
 	((iomux_v3_cfg_t)(sel_input)     << MUX_SEL_INPUT_SHIFT))
 
-#define NO_PAD_CTRL		(1 << 17)
+#define NO_PAD_CTRL		(BIT(17))
 #define GPIO_PIN_MASK		0x1f
 #define GPIO_PORT_SHIFT		5
 #define GPIO_PORT_MASK		(0x7 << GPIO_PORT_SHIFT)
 #define GPIO_PORTA		(0 << GPIO_PORT_SHIFT)
-#define GPIO_PORTB		(1 << GPIO_PORT_SHIFT)
+#define GPIO_PORTB		(BIT(GPIO_PORT_SHIFT))
 #define GPIO_PORTC		(2 << GPIO_PORT_SHIFT)
 #define GPIO_PORTD		(3 << GPIO_PORT_SHIFT)
 #define GPIO_PORTE		(4 << GPIO_PORT_SHIFT)
 #define GPIO_PORTF		(5 << GPIO_PORT_SHIFT)
 
-#define MUX_CONFIG_SION		(0x1 << 4)
+#define MUX_CONFIG_SION		(BIT(4))
 
 
 #endif                         /* __MX6QSABRE_COMMON_CONFIG_H */

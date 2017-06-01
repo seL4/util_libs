@@ -46,14 +46,14 @@ static struct phy_driver KSZ804_driver = {
 #define MII_KSZ9021_EXTENDED_DATAW	0x0c
 #define MII_KSZ9021_EXTENDED_DATAR	0x0d
 #define MII_KSZ9021_PHY_CTL		0x1f
-#define MIIM_KSZ9021_PHYCTL_1000	(1 << 6)
-#define MIIM_KSZ9021_PHYCTL_100		(1 << 5)
-#define MIIM_KSZ9021_PHYCTL_10		(1 << 4)
-#define MIIM_KSZ9021_PHYCTL_DUPLEX	(1 << 3)
+#define MIIM_KSZ9021_PHYCTL_1000	(BIT(6))
+#define MIIM_KSZ9021_PHYCTL_100		(BIT(5))
+#define MIIM_KSZ9021_PHYCTL_10		(BIT(4))
+#define MIIM_KSZ9021_PHYCTL_DUPLEX	(BIT(3))
 
-#define CTRL1000_PREFER_MASTER		(1 << 10)
-#define CTRL1000_CONFIG_MASTER		(1 << 11)
-#define CTRL1000_MANUAL_CONFIG		(1 << 12)
+#define CTRL1000_PREFER_MASTER		(BIT(10))
+#define CTRL1000_CONFIG_MASTER		(BIT(11))
+#define CTRL1000_MANUAL_CONFIG		(BIT(12))
 
 int ksz9021_phy_extended_write(struct phy_device *phydev, int regnum, uint16_t val)
 {

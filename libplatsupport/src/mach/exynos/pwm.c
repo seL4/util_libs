@@ -117,7 +117,7 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
     /* Calculate the scale and reload values. */
     uint32_t div = 0; /* Not implemented */
     uint32_t prescale = ns * ACLK_66 / 1000 / 100000000UL;
-    uint32_t cnt = ns * ACLK_66 / 1000 / (prescale + 1) / (1 << div);
+    uint32_t cnt = ns * ACLK_66 / 1000 / (prescale + 1) / (BIT(div));
     assert(prescale <= 0xff); /* if this fails, we need to implement div */
     assert(div <= 0xf);
 

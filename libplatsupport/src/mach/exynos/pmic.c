@@ -30,7 +30,7 @@
 #define LDO_MV(mv)        (( ((mv) + LDO_VSTEP / 2) - LDO_VMIN) / LDO_VSTEP)
 #define LDO_GET_MV(reg)   (((reg) & LDO_VMASK) * LDO_VSTEP + LDO_VMIN)
 #define LDOMODE_OFF       (0x0 << 6)
-#define LDOMODE_STANDBY   (0x1 << 6)
+#define LDOMODE_STANDBY   (BIT(6))
 #define LDOMODE_LOWPWR    (0x2 << 6)
 #define LDOMODE_ON        (0x3 << 6)
 #define LDOMODE_MASK      (0x3 << 6)

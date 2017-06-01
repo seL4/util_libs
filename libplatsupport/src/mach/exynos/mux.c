@@ -73,7 +73,7 @@ exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val)
     v = cfg->dat;
     v &= ~BITFIELD_MASK(pin, 1);
     if (val) {
-        v |= 1 << BITFIELD_SHIFT(pin, 1);
+        v |= BIT(BITFIELD_SHIFT(pin, 1));
     }
     DMUX("dat.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
     cfg->dat = v;

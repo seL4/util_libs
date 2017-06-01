@@ -31,7 +31,7 @@
 #define IMXUART_LSR_TXSRE       (1<<6)
 #define IMXUART_LSR_RXFIFOSTS   (1<<7)
 
-#define UART_RHR_READY_MASK    (1 << 15)
+#define UART_RHR_READY_MASK    (BIT(15))
 #define UART_BYTE_MASK           0xFF
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))

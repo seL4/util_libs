@@ -32,7 +32,7 @@
 #define INTEN_FALL1            (1<<20)
 #define INTEN_FALL2            (1<<24)
 
-#define INT_RISE(x)            (1 << ((x) * 4))
+#define INT_RISE(x)            (BIT(((x) * 4)))
 #define INT_FALL(x)            INT_RISE(3 + (x))
 
 #define TRIM_INFO_MASK         (0xFF)

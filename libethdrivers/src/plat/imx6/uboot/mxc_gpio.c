@@ -93,7 +93,7 @@ static int mxc_gpio_direction(unsigned int gpio,
 		l |= 1 << gpio;
 		break;
 	case MXC_GPIO_DIRECTION_IN:
-		l &= ~(1 << gpio);
+		l &= ~(BIT(gpio));
 	}
 	writel(l, &regs->gpio_dir);
 
@@ -117,7 +117,7 @@ int gpio_set_value(unsigned gpio, int value)
 	if (value)
 		l |= 1 << gpio;
 	else
-		l &= ~(1 << gpio);
+		l &= ~(BIT(gpio));
 	writel(l, &regs->gpio_dr);
 
 	return 0;

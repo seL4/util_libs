@@ -112,7 +112,7 @@
 #define MDIO_PCS_SPEED_10P2B		0x0002	/* 10PASS-TS/2BASE-TL capable */
 
 /* Device present registers. */
-#define MDIO_DEVS_PRESENT(devad)	(1 << (devad))
+#define MDIO_DEVS_PRESENT(devad)	(BIT((devad)))
 #define MDIO_DEVS_PMAPMD		MDIO_DEVS_PRESENT(MDIO_MMD_PMAPMD)
 #define MDIO_DEVS_WIS			MDIO_DEVS_PRESENT(MDIO_MMD_WIS)
 #define MDIO_DEVS_PCS			MDIO_DEVS_PRESENT(MDIO_MMD_PCS)

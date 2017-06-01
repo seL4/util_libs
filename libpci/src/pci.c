@@ -222,7 +222,7 @@ void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, 
         }
 
         /* Calculate size from size_mask. */
-        cfg->base_addr_size[i] = 1 << CTZ(cfg->base_addr_size_mask[i]);
+        cfg->base_addr_size[i] = BIT(CTZ(cfg->base_addr_size_mask[i]));
 
         // Write back the address set by the BIOS.
         libpci_write_reg32(bus, dev, fun, PCI_BASE_ADDRESS_0 + (i * 4), bios_base_addr);

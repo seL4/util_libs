@@ -101,7 +101,7 @@
 /* DMAKILL       */
 #define DMAI_MOV_SAR(a)        /* DMAMOV        */ ((PTR64(a) << 16) | 0xBC)
 #define DMAI_MOV_DAR(a)        /* DMAMOV        */ (DMAI_MOV_SAR(a) | (0x2 << 8))
-#define DMAI_MOV_CCR(a)        /* DMAMOV        */ (DMAI_MOV_SAR(a) | (0x1 << 8))
+#define DMAI_MOV_CCR(a)        /* DMAMOV        */ (DMAI_MOV_SAR(a) | (BIT(8)))
 #define DMAI_NOP               /* DMANOP        */ (0x18)
 /* DMARMB        */
 #define DMAI_SEV(e)            /* DMASEV        */ (((e) << 11) | 0x34)

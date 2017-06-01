@@ -277,8 +277,8 @@ struct ethtool_sset_info {
 };
 
 enum ethtool_test_flags {
-	ETH_TEST_FL_OFFLINE	= (1 << 0),	/* online / offline */
-	ETH_TEST_FL_FAILED	= (1 << 1),	/* test passed / failed */
+	ETH_TEST_FL_OFFLINE	= (BIT(0)),	/* online / offline */
+	ETH_TEST_FL_FAILED	= (BIT(1)),	/* test passed / failed */
 };
 
 /* for requesting NIC test and getting results*/
@@ -313,11 +313,11 @@ struct ethtool_perm_addr {
  * flag differs from the read-only value.
  */
 enum ethtool_flags {
-	ETH_FLAG_TXVLAN		= (1 << 7),	/* TX VLAN offload enabled */
-	ETH_FLAG_RXVLAN		= (1 << 8),	/* RX VLAN offload enabled */
-	ETH_FLAG_LRO		= (1 << 15),	/* LRO is enabled */
-	ETH_FLAG_NTUPLE		= (1 << 27),	/* N-tuple filters enabled */
-	ETH_FLAG_RXHASH		= (1 << 28),
+	ETH_FLAG_TXVLAN		= (BIT(7)),	/* TX VLAN offload enabled */
+	ETH_FLAG_RXVLAN		= (BIT(8)),	/* RX VLAN offload enabled */
+	ETH_FLAG_LRO		= (BIT(15)),	/* LRO is enabled */
+	ETH_FLAG_NTUPLE		= (BIT(27)),	/* N-tuple filters enabled */
+	ETH_FLAG_RXHASH		= (BIT(28)),
 };
 
 /* The following structures are for supporting RX network flow
@@ -488,9 +488,9 @@ enum ethtool_sfeatures_retval_bits {
 	ETHTOOL_F_COMPAT__BIT,
 };
 
-#define ETHTOOL_F_UNSUPPORTED   (1 << ETHTOOL_F_UNSUPPORTED__BIT)
-#define ETHTOOL_F_WISH          (1 << ETHTOOL_F_WISH__BIT)
-#define ETHTOOL_F_COMPAT        (1 << ETHTOOL_F_COMPAT__BIT)
+#define ETHTOOL_F_UNSUPPORTED   (BIT(ETHTOOL_F_UNSUPPORTED__BIT))
+#define ETHTOOL_F_WISH          (BIT(ETHTOOL_F_WISH__BIT))
+#define ETHTOOL_F_COMPAT        (BIT(ETHTOOL_F_COMPAT__BIT))
 
 /* CMDs currently supported */
 #define ETHTOOL_GSET		0x00000001 /* Get settings. */
@@ -563,50 +563,50 @@ enum ethtool_sfeatures_retval_bits {
 #define SPARC_ETH_SSET		ETHTOOL_SSET
 
 /* Indicates what features are supported by the interface. */
-#define SUPPORTED_10baseT_Half		(1 << 0)
-#define SUPPORTED_10baseT_Full		(1 << 1)
-#define SUPPORTED_100baseT_Half		(1 << 2)
-#define SUPPORTED_100baseT_Full		(1 << 3)
-#define SUPPORTED_1000baseT_Half	(1 << 4)
-#define SUPPORTED_1000baseT_Full	(1 << 5)
-#define SUPPORTED_Autoneg		(1 << 6)
-#define SUPPORTED_TP			(1 << 7)
-#define SUPPORTED_AUI			(1 << 8)
-#define SUPPORTED_MII			(1 << 9)
-#define SUPPORTED_FIBRE			(1 << 10)
-#define SUPPORTED_BNC			(1 << 11)
-#define SUPPORTED_10000baseT_Full	(1 << 12)
-#define SUPPORTED_Pause			(1 << 13)
-#define SUPPORTED_Asym_Pause		(1 << 14)
-#define SUPPORTED_2500baseX_Full	(1 << 15)
-#define SUPPORTED_Backplane		(1 << 16)
-#define SUPPORTED_1000baseKX_Full	(1 << 17)
-#define SUPPORTED_10000baseKX4_Full	(1 << 18)
-#define SUPPORTED_10000baseKR_Full	(1 << 19)
-#define SUPPORTED_10000baseR_FEC	(1 << 20)
+#define SUPPORTED_10baseT_Half		(BIT(0))
+#define SUPPORTED_10baseT_Full		(BIT(1))
+#define SUPPORTED_100baseT_Half		(BIT(2))
+#define SUPPORTED_100baseT_Full		(BIT(3))
+#define SUPPORTED_1000baseT_Half	(BIT(4))
+#define SUPPORTED_1000baseT_Full	(BIT(5))
+#define SUPPORTED_Autoneg		(BIT(6))
+#define SUPPORTED_TP			(BIT(7))
+#define SUPPORTED_AUI			(BIT(8))
+#define SUPPORTED_MII			(BIT(9))
+#define SUPPORTED_FIBRE			(BIT(10))
+#define SUPPORTED_BNC			(BIT(11))
+#define SUPPORTED_10000baseT_Full	(BIT(12))
+#define SUPPORTED_Pause			(BIT(13))
+#define SUPPORTED_Asym_Pause		(BIT(14))
+#define SUPPORTED_2500baseX_Full	(BIT(15))
+#define SUPPORTED_Backplane		(BIT(16))
+#define SUPPORTED_1000baseKX_Full	(BIT(17))
+#define SUPPORTED_10000baseKX4_Full	(BIT(18))
+#define SUPPORTED_10000baseKR_Full	(BIT(19))
+#define SUPPORTED_10000baseR_FEC	(BIT(20))
 
 /* Indicates what features are advertised by the interface. */
-#define ADVERTISED_10baseT_Half		(1 << 0)
-#define ADVERTISED_10baseT_Full		(1 << 1)
-#define ADVERTISED_100baseT_Half	(1 << 2)
-#define ADVERTISED_100baseT_Full	(1 << 3)
-#define ADVERTISED_1000baseT_Half	(1 << 4)
-#define ADVERTISED_1000baseT_Full	(1 << 5)
-#define ADVERTISED_Autoneg		(1 << 6)
-#define ADVERTISED_TP			(1 << 7)
-#define ADVERTISED_AUI			(1 << 8)
-#define ADVERTISED_MII			(1 << 9)
-#define ADVERTISED_FIBRE		(1 << 10)
-#define ADVERTISED_BNC			(1 << 11)
-#define ADVERTISED_10000baseT_Full	(1 << 12)
-#define ADVERTISED_Pause		(1 << 13)
-#define ADVERTISED_Asym_Pause		(1 << 14)
-#define ADVERTISED_2500baseX_Full	(1 << 15)
-#define ADVERTISED_Backplane		(1 << 16)
-#define ADVERTISED_1000baseKX_Full	(1 << 17)
-#define ADVERTISED_10000baseKX4_Full	(1 << 18)
-#define ADVERTISED_10000baseKR_Full	(1 << 19)
-#define ADVERTISED_10000baseR_FEC	(1 << 20)
+#define ADVERTISED_10baseT_Half		(BIT(0))
+#define ADVERTISED_10baseT_Full		(BIT(1))
+#define ADVERTISED_100baseT_Half	(BIT(2))
+#define ADVERTISED_100baseT_Full	(BIT(3))
+#define ADVERTISED_1000baseT_Half	(BIT(4))
+#define ADVERTISED_1000baseT_Full	(BIT(5))
+#define ADVERTISED_Autoneg		(BIT(6))
+#define ADVERTISED_TP			(BIT(7))
+#define ADVERTISED_AUI			(BIT(8))
+#define ADVERTISED_MII			(BIT(9))
+#define ADVERTISED_FIBRE		(BIT(10))
+#define ADVERTISED_BNC			(BIT(11))
+#define ADVERTISED_10000baseT_Full	(BIT(12))
+#define ADVERTISED_Pause		(BIT(13))
+#define ADVERTISED_Asym_Pause		(BIT(14))
+#define ADVERTISED_2500baseX_Full	(BIT(15))
+#define ADVERTISED_Backplane		(BIT(16))
+#define ADVERTISED_1000baseKX_Full	(BIT(17))
+#define ADVERTISED_10000baseKX4_Full	(BIT(18))
+#define ADVERTISED_10000baseKR_Full	(BIT(19))
+#define ADVERTISED_10000baseR_FEC	(BIT(20))
 
 /* The following are all involved in forcing a particular link
  * mode for the device for setting things.  When getting the
@@ -654,13 +654,13 @@ enum ethtool_sfeatures_retval_bits {
 #define ETH_TP_MDI_X		0x02
 
 /* Wake-On-Lan options. */
-#define WAKE_PHY		(1 << 0)
-#define WAKE_UCAST		(1 << 1)
-#define WAKE_MCAST		(1 << 2)
-#define WAKE_BCAST		(1 << 3)
-#define WAKE_ARP		(1 << 4)
-#define WAKE_MAGIC		(1 << 5)
-#define WAKE_MAGICSECURE	(1 << 6) /* only meaningful if WAKE_MAGIC */
+#define WAKE_PHY		(BIT(0))
+#define WAKE_UCAST		(BIT(1))
+#define WAKE_MCAST		(BIT(2))
+#define WAKE_BCAST		(BIT(3))
+#define WAKE_ARP		(BIT(4))
+#define WAKE_MAGIC		(BIT(5))
+#define WAKE_MAGICSECURE	(BIT(6)) /* only meaningful if WAKE_MAGIC */
 
 /* L2-L4 network traffic flow types */
 #define	TCP_V4_FLOW	0x01	/* hash or spec (tcp_ip4_spec) */
@@ -681,13 +681,13 @@ enum ethtool_sfeatures_retval_bits {
 #define	ETHER_FLOW	0x12	/* spec only (ether_spec) */
 
 /* L3-L4 network traffic flow hash options */
-#define	RXH_L2DA	(1 << 1)
-#define	RXH_VLAN	(1 << 2)
-#define	RXH_L3_PROTO	(1 << 3)
-#define	RXH_IP_SRC	(1 << 4)
-#define	RXH_IP_DST	(1 << 5)
-#define	RXH_L4_B_0_1	(1 << 6) /* src port in case of TCP/UDP/SCTP */
-#define	RXH_L4_B_2_3	(1 << 7) /* dst port in case of TCP/UDP/SCTP */
+#define	RXH_L2DA	(BIT(1))
+#define	RXH_VLAN	(BIT(2))
+#define	RXH_L3_PROTO	(BIT(3))
+#define	RXH_IP_SRC	(BIT(4))
+#define	RXH_IP_DST	(BIT(5))
+#define	RXH_L4_B_0_1	(BIT(6)) /* src port in case of TCP/UDP/SCTP */
+#define	RXH_L4_B_2_3	(BIT(7)) /* dst port in case of TCP/UDP/SCTP */
 #define	RXH_DISCARD	(1U << 31)
 
 #define	RX_CLS_FLOW_DISC	0xffffffffffffffffULL
@@ -705,14 +705,14 @@ enum ethtool_reset_flags {
 	 * ETH_RESET_SHARED_SHIFT to reset a shared component of the
 	 * same type.
 	 */
-	ETH_RESET_MGMT		= 1 << 0,	/* Management processor */
-	ETH_RESET_IRQ		= 1 << 1,	/* Interrupt requester */
-	ETH_RESET_DMA		= 1 << 2,	/* DMA engine */
-	ETH_RESET_FILTER	= 1 << 3,	/* Filtering/flow direction */
-	ETH_RESET_OFFLOAD	= 1 << 4,	/* Protocol offload */
-	ETH_RESET_MAC		= 1 << 5,	/* Media access controller */
-	ETH_RESET_PHY		= 1 << 6,	/* Transceiver/PHY */
-	ETH_RESET_RAM		= 1 << 7,	/* RAM shared between
+	ETH_RESET_MGMT		= BIT(0),	/* Management processor */
+	ETH_RESET_IRQ		= BIT(1),	/* Interrupt requester */
+	ETH_RESET_DMA		= BIT(2),	/* DMA engine */
+	ETH_RESET_FILTER	= BIT(3),	/* Filtering/flow direction */
+	ETH_RESET_OFFLOAD	= BIT(4),	/* Protocol offload */
+	ETH_RESET_MAC		= BIT(5),	/* Media access controller */
+	ETH_RESET_PHY		= BIT(6),	/* Transceiver/PHY */
+	ETH_RESET_RAM		= BIT(7),	/* RAM shared between
 						 * multiple components */
 
 	ETH_RESET_DEDICATED	= 0x0000ffff,	/* All components dedicated to

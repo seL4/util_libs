@@ -260,7 +260,7 @@ static void configure_pba(e1000_dev_t *dev) {
 }
 
 static void phy_write(e1000_dev_t *dev, int phy, int reg, uint16_t data) {
-    REG_MDIC(dev) = data | (reg << 16) | (phy << 21) | (1 << 26);
+    REG_MDIC(dev) = data | (reg << 16) | (phy << 21) | (BIT(26));
     while((REG_MDIC(dev) & BIT(28)) == 0);
 }
 

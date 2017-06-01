@@ -550,7 +550,7 @@ static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
 		/* If the PHY ID is mostly f's, we didn't find anything */
 		if ((phy_id & 0x1fffffff) != 0x1fffffff)
 			return phy_device_create(bus, addr, phy_id, interface);
-		phy_mask &= ~(1 << addr);
+		phy_mask &= ~(BIT(addr));
 	}
 	return NULL;
 }
@@ -565,7 +565,7 @@ static struct phy_device *search_for_existing_phy(struct mii_dev *bus,
 			bus->phymap[addr]->interface = interface;
 			return bus->phymap[addr];
 		}
-		phy_mask &= ~(1 << addr);
+		phy_mask &= ~(BIT(addr));
 	}
 	return NULL;
 }
@@ -603,7 +603,7 @@ static struct phy_device *get_phy_device_by_mask(struct mii_dev *bus,
 static struct phy_device *get_phy_device(struct mii_dev *bus, int addr,
 					 phy_interface_t interface)
 {
-	return get_phy_device_by_mask(bus, 1 << addr, interface);
+	return get_phy_device_by_mask(bus, BIT(addr), interface);
 }
 
 int phy_reset(struct phy_device *phydev)
@@ -716,7 +716,7 @@ struct phy_device *phy_connect_by_mask(struct mii_dev *bus, unsigned phy_mask,
 struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 		struct eth_device *dev, phy_interface_t interface)
 {
-	return phy_connect_by_mask(bus, 1 << addr, dev, interface);
+	return phy_connect_by_mask(bus, BIT(addr), dev, interface);
 }
 
 int phy_shutdown(struct phy_device *phydev)

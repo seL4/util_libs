@@ -415,7 +415,7 @@ uart_set_charsize(ps_chardevice_t* d, int char_size)
         v |= (0x0 << 0);
         break;
     case 6:
-        v |= (0x1 << 0);
+        v |= (BIT(0));
         break;
     case 7:
         v |= (0x2 << 0);
@@ -435,13 +435,13 @@ uart_set_stop(ps_chardevice_t *d, int stop_bits)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
-    v &= ~(0x1 << 2);
+    v &= ~(BIT(2));
     switch (stop_bits) {
     case 1:
         v |= (0x0 << 2);
         break;
     case 2:
-        v |= (0x1 << 2);
+        v |= (BIT(2));
         break;
     default :
         return -1;

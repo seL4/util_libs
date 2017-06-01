@@ -44,8 +44,8 @@ struct intctl {
     uint32_t polariy[2];      /* +0x050 */
     uint32_t res5[2];
     uint32_t no_pend_val;     /* +0x060 */
-#define INTMASTER_IRQEN  (0x1 << 0)
-#define INTMASTER_FIQEN  (0x1 << 1)
+#define INTMASTER_IRQEN  (BIT(0))
+#define INTMASTER_FIQEN  (BIT(1))
     uint32_t master_enable;   /* +0x064 */
 #define INTVIC_VECTOR_MODE 0x1
     uint32_t vic_config;      /* +0x068 */

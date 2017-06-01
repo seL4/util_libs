@@ -114,7 +114,7 @@ static struct mpsk_tbl _vpll_tbl[] = {
 /* PERIL CLK SEL */
 #define CLK_SEL_BITS        4
 #define CLK_SEL_SHIFT(x)    ((x)*CLK_SEL_BITS)
-#define CLK_SEL_MASK        ((1 << CLK_SEL_SHIFT(1)) - 1)
+#define CLK_SEL_MASK        ((BIT(CLK_SEL_SHIFT(1))) - 1)
 #define CLK_SEL_VPLL        0x8
 #define CLK_SEL_EPLL        0x7
 #define CLK_SEL_MPLL_USER_T 0x6
