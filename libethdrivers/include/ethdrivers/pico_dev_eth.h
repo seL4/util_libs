@@ -1,11 +1,13 @@
 /*
- * Copyright 2016, NICTA
+ *  Copyright 2017, Data61
+ *  Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ *  ABN 41 687 119 230.
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
  * See "LICENSE_BSD2.txt" for details.
  *
- * @TAG(NICTA_BSD)
+ * @TAG(DATA61_BSD)
  */
 
  #include <platsupport/io.h>
@@ -25,6 +27,7 @@ typedef struct pico_device_eth {
     ps_dma_man_t dma_man;
     int num_free_bufs;
     dma_addr_t **bufs;
+    dma_addr_t * dma_bufs; 
 
     int next_free_buf;
     int *buf_pool;
