@@ -28,6 +28,12 @@
 #define IS_CONSTANT(expr) __builtin_constant_p(expr)
 #define POPCOUNT(x) __builtin_popcount(x)
 
+#if CONFIG_WORD_SIZE == 32
+#define BSWAP_WORD(x) __builtin_bswap32(x)
+#elif CONFIG_WORD_SIZE == 64
+#define BSWAP_WORD(x) __builtin_bswap64(x)
+#endif
+
 /* The UNREACHABLE macro is used in some code that is imported to Isabelle via
  * the C-to-Simpl parser. This parser can handle calls to uninterpreted
  * functions, but it needs to see a function declaration before the call site,
