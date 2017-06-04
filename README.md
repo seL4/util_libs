@@ -1,4 +1,12 @@
-# util_libs
+<!--
+  Copyright 2017, Data61
+  Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+  ABN 41 687 119 230.
+
+  This software may be distributed and modified according to the terms of
+  the BSD 2-Clause license. Note that NO WARRANTY is provided.
+  See "LICENSE_BSD2.txt" for details.
+-->
 Collection of OS independent utility libs:
 
 * libcpio - a library for parsing CPIO files.
@@ -24,5 +32,3 @@ Collection of OS independent utility libs:
   * verification.h - macros for verification in Isabelle.
   * zf_log_config.h - provides zf_log config.
   * zf_log.h - an open source logging library.
-
-See `LICENSE_BSD2.txt` for license details.
