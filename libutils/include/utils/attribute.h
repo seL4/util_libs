@@ -63,7 +63,7 @@
 #define SENTINEL_LAST __attribute__((sentinel))
 #define UNUSED       __attribute__((__unused__))
 #define USED         __attribute__((__used__))
-#if __clang__ && !__has_attribute(externally_visible)
+#if defined(__clang__) && !__has_attribute(externally_visible)
   #define VISIBLE /* ignored */
 #else
   #define VISIBLE __attribute__((__externally_visible__))
