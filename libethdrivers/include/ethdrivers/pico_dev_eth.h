@@ -1,13 +1,11 @@
 /*
- *  Copyright 2017, Data61
- *  Commonwealth Scientific and Industrial Research Organisation (CSIRO)
- *  ABN 41 687 119 230.
+ * Copyright 2016, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
  * See "LICENSE_BSD2.txt" for details.
  *
- * @TAG(DATA61_BSD)
+ * @TAG(NICTA_BSD)
  */
 
  #include <platsupport/io.h>
@@ -27,24 +25,20 @@ typedef struct pico_device_eth {
     ps_dma_man_t dma_man;
     int num_free_bufs;
     dma_addr_t **bufs;
-    dma_addr_t * dma_bufs; 
 
-    int next_free_buf;
-    int *buf_pool;
-    int *rx_queue;
+    // Pico buffer
+    int num_free_rx_bufs;
+    dma_addr_t **rx_bufs;
     int *rx_lens;
-    int rx_count;    
-                                                 
+                                                      
 } pico_device_eth;
 
-/*
- * Creates a pico device and initialises the ethernet driver.
- */
+ /**
+  * Creates a pico device and initialises the ethernet driver.
+  */
 struct pico_device *pico_eth_create(char *name, ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops);
 
-struct pico_device *pico_eth_create_no_malloc(char *name, ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops, pico_device_eth *pico_dev);
-
-/* Wrapper function for a picotcp driver for asking the underlying
+/* Wrapper function for an LWIP driver for asking the underlying
  * eth driver to handle an IRQ */
 static inline void ethif_pico_handle_irq(pico_device_eth *iface, int irq) {
     iface->driver.i_fn.raw_handleIRQ(&iface->driver, irq);
