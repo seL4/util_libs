@@ -272,14 +272,26 @@ route_irqs_to_nonsecure(void)
 }
 #endif
 
+static void
+enable_ns_access_cp(void)
+{
+    uint32_t nsacr = 0;
+    asm volatile ("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
+
+    /* enable cp10, cp11 */
+    nsacr |= BIT(10) |  BIT(11);
+    asm volatile ("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
+
+    asm volatile("isb");
+}
+
 void platform_init(void)
 {
-    /* Nothing to do here */
-    /* not really!        */
-
 #ifdef CONFIG_ARM_MONITOR_HOOK
     install_monitor_hook();
 #endif
+
+    enable_ns_access_cp();
 
 #ifdef CONFIG_ARM_NS_SUPERVISOR_MODE
     switch_to_mon_mode();
