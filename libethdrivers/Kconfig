@@ -33,7 +33,7 @@ config LIB_ETHDRIVER_TX_DESC_COUNT
 
 config LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
     int "Number of preallocated DMA buffers"
-    depends on LIB_ETHIF && LIB_LWIP
+    depends on LIB_ETHIF && (LIB_LWIP || LIB_PICOTCP)
     default 512
     help
         To avoid allocating and freeing buffers continuously the driver
@@ -41,10 +41,17 @@ config LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
 
 config LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE
     int "Size of preallocated DMA buffers"
-    depends on LIB_ETHIF && LIB_LWIP
+    depends on LIB_ETHIF && (LIB_LWIP || LIB_PICOTCP)
     default 2048
     help
         The size of each preallocated buffer that will be used for RX and
         TX allocation requests. This needs to be the maximum of the RX buffer
         size and the MTU. Currently the largest RX buffer of any of the
         implemented drivers is 2048, and the MTU is 1500
+
+config LIB_PICOTCP_ASYNC_DRIVER
+    bool "Async driver for PicoTcp"
+    depends on LIB_ETHIF && LIB_PICOTCP
+    default y
+    help
+        Use an async instead of a polling driver for PicoTCP.

@@ -20,9 +20,6 @@
 #include "debug.h"
 #include <utils/zf_log.h>
 
-/* Toggle for async driver, which will use eth_dsr instead of eth_poll */
-#define ASYNC_DRIVER 1
-
 static int alloc_buf_pool(pico_device_eth *pico_iface) {
     /* Take the next free buffer */
     if (pico_iface->next_free_buf == -1) {
@@ -184,7 +181,7 @@ static void pico_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
         pico_iface->rx_lens[buf_no] = lens[0];
         pico_iface->rx_count += 1;
 
-        if(ASYNC_DRIVER) {
+        if(CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
             pico_iface->pico_dev.__serving_interrupt = 1;
         }
     }
@@ -233,12 +230,12 @@ static int pico_eth_send(struct pico_device *dev, void *input_buf, int len) {
 
 }
 
-/* Async driver */
+/* Async driver will set a flag to signal that there is work to be done  */
 static int pico_eth_poll(struct pico_device *dev, int loop_score) {
     struct pico_device_eth *eth_device = (struct pico_device_eth *)dev;
     while (loop_score > 0) {
         if (eth_device->rx_count == 0) {
-            if (ASYNC_DRIVER) {
+            if (CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
                 /* Also clear the serving_interrupt flag for async driver*/
                 eth_device->pico_dev.__serving_interrupt = 0;
             }
@@ -296,7 +293,7 @@ struct pico_device *pico_eth_create_no_malloc(char *name,
 
     /* Attach funciton pointers */
     eth_dev->pico_dev.send = pico_eth_send;
-    if (ASYNC_DRIVER) {
+    if (CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
         /* Although the same function, .poll needs to be set to NULL for an async driver */
         eth_dev->pico_dev.poll = NULL;
         eth_dev->pico_dev.dsr = pico_eth_poll;
