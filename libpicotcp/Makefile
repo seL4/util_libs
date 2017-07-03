@@ -44,5 +44,5 @@ CORE_OBJ= stack/pico_stack.o \
 HDRFILES := $(wildcard $(SOURCE_DIR)/include/*)
 HDRFILES += $(wildcard $(SOURCE_DIR)/include/arch/*)
 HDRFILES += $(wildcard $(SOURCE_DIR)/modules/*.h)
-
+HDRFILES += $(wildcard $(SOURCE_DIR)/picoopts.h)
 include $(SEL4_COMMON)/common.mk
