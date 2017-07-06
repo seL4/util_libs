@@ -28,6 +28,7 @@ CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/modules/pico_dev
 CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/modules/pico_igmp.c))
 CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/modules/pico_dns_client.c))
 CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/modules/pico_dns_common.c))
+CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/modules/pico_ethernet.c))
 
 CORE_OBJ= stack/pico_stack.o \
           stack/pico_frame.o \
@@ -38,11 +39,10 @@ CORE_OBJ= stack/pico_stack.o \
           stack/pico_tree.o \
           stack/pico_md5.o
 
-
-
 # Header files/directories this library provides
 HDRFILES := $(wildcard $(SOURCE_DIR)/include/*)
 HDRFILES += $(wildcard $(SOURCE_DIR)/include/arch/*)
 HDRFILES += $(wildcard $(SOURCE_DIR)/modules/*.h)
-HDRFILES += $(wildcard $(SOURCE_DIR)/picoopts.h)
+# picoopts.h will be copied to include/pico_defines.h by manifest
+
 include $(SEL4_COMMON)/common.mk

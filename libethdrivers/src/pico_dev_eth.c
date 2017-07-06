@@ -181,9 +181,9 @@ static void pico_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
         pico_iface->rx_lens[buf_no] = lens[0];
         pico_iface->rx_count += 1;
 
-        if(CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
+#ifdef CONFIG_LIB_PICOTCP_ASYNC_DRIVER
             pico_iface->pico_dev.__serving_interrupt = 1;
-        }
+#endif
     }
     ZF_LOGD("RX complete, %d in queue!\n", ((pico_device_eth*)iface)->rx_count);
 
@@ -235,10 +235,10 @@ static int pico_eth_poll(struct pico_device *dev, int loop_score) {
     struct pico_device_eth *eth_device = (struct pico_device_eth *)dev;
     while (loop_score > 0) {
         if (eth_device->rx_count == 0) {
-            if (CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
+#ifdef CONFIG_LIB_PICOTCP_ASYNC_DRIVER
                 /* Also clear the serving_interrupt flag for async driver*/
                 eth_device->pico_dev.__serving_interrupt = 0;
-            }
+#endif
             break;
         }
 
@@ -293,13 +293,14 @@ struct pico_device *pico_eth_create_no_malloc(char *name,
 
     /* Attach funciton pointers */
     eth_dev->pico_dev.send = pico_eth_send;
-    if (CONFIG_LIB_PICOTCP_ASYNC_DRIVER) {
+
+#ifdef CONFIG_LIB_PICOTCP_ASYNC_DRIVER
         /* Although the same function, .poll needs to be set to NULL for an async driver */
         eth_dev->pico_dev.poll = NULL;
         eth_dev->pico_dev.dsr = pico_eth_poll;
-    } else {
+#else
         eth_dev->pico_dev.poll = pico_eth_poll;
-    }
+#endif
 
     /* Also do some low level init */
     int mtu;

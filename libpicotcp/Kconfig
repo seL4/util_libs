@@ -14,7 +14,7 @@ menuconfig LIB_PICOTCP
     bool "Build PicoTCP"
     default y
     help
-        Lighweight TPC/IP network stack library.
+        PicoTCP network stack library.
 
 config LIB_PICOTCP_SOCKETS
     bool "Enable PicoTCP Sockets"

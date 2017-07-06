@@ -17,8 +17,6 @@
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
-#include <pico_device.h>
-#include <stdint.h>
 
 #include <pico_stack.h>
 #include <pico_device.h>
