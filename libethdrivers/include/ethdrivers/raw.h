@@ -150,3 +150,8 @@ struct eth_driver {
     int dma_alignment;
 };
 
+struct dma_buf_cookie {
+    void* vbuf;
+    void* pbuf;
+};
+
