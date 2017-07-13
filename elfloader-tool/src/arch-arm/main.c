@@ -105,7 +105,9 @@ static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
  * Return the byte past the last byte of the physical address used.
  */
 static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
-                        struct image_info *info, int keep_headers, unsigned long size, const char *hash)
+                        struct image_info *info, int keep_headers,
+                        __attribute__((unused)) unsigned long size,
+                        __attribute__((unused)) const char *hash)
 {
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
