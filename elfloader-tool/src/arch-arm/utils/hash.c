@@ -14,8 +14,8 @@
  *
  */
 
-#include <stdio.h>
-#include <stdint.h>
+#include <printf.h>
+#include <types.h>
 
 #include "../hash.h"
 

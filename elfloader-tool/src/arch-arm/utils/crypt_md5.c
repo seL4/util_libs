@@ -22,9 +22,9 @@
  * at least 32bit int is assumed, key is limited and $1$ prefix is mandatory,
  * on error "*" is returned
  */
-#include <string.h>
-#include <stdint.h>
-#include <stdio.h>
+#include <strops.h>
+#include <printf.h>
+#include <types.h>
 #include "../crypt_md5.h"
 
 /* public domain md5 implementation based on rfc1321 and libtomcrypt */

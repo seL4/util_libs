@@ -23,11 +23,9 @@
  * in the salt and rounds= setting must contain a valid iteration count,
  * on error "*" is returned.
  */
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
+#include <printf.h>
+#include <types.h>
+#include <strops.h>
 
 #include "../crypt_sha256.h"
 
