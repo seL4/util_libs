@@ -43,7 +43,7 @@ case "$PLAT" in
     "zynq7000"|"tk1"|"bcm2837")
         FORMAT=elf32-littlearm
         ;;
-    "hikey")
+    "hikey"|"zynqmp")
         if [ "$SEL4_ARCH" == "aarch64" ]
         then
             FORMAT=elf64-littleaarch64

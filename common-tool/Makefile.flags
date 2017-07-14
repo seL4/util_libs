@@ -306,6 +306,11 @@ ifeq ($(CONFIG_PLAT_ZYNQ7000),y)
 	export PLAT=zynq7000
 endif
 
+ifeq ($(CONFIG_PLAT_ZYNQMP),y)
+	DEFINES += PLAT_ZYNQMP
+	export PLAT=zynqmp
+endif
+
 ifeq ($(CONFIG_PLAT_HIKEY),y)
 	DEFINES += HIKEY
 	export PLAT=hikey
@@ -347,7 +352,7 @@ endif
 ifneq (,$(filter $(PLAT), tk1 tx1))
 export MACH=nvidia
 else
-export MACH=$(strip $(foreach mach,exynos imx omap,$(findstring $(mach),$(PLAT))))
+export MACH=$(strip $(foreach mach,exynos imx omap zynq,$(findstring $(mach),$(PLAT))))
 endif
 
 # Kernel debugging.
