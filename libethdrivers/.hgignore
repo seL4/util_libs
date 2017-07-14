@@ -1,7 +1,0 @@
-glob:u-boot-imx6
-glob:*.d 
-glob:*.o
-glob:reboot
-glob:run
-glob:*.out
-
