@@ -30,10 +30,8 @@
 #undef	_LINUX_CONFIG_H
 #define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
 
-
 #include "mx6qsabrelite.h"
 #include "../unimplemented.h"
-
 
 #ifdef CONFIG_POST
 #define CONFIG_HAS_POST
@@ -47,15 +45,12 @@
 #error Read section CONFIG_SKIP_LOWLEVEL_INIT in README.
 #endif
 
-
 #define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
 #define DIV_ROUND(n,d)		(((n) + ((d)/2)) / (d))
 #define DIV_ROUND_UP(n,d)	(((n) + (d) - 1) / (d))
 #define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
 
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
-
-
 
 #ifdef ETH_DEBUG
 #define _DEBUG	1
@@ -87,6 +82,5 @@
 #define container_of(ptr, type, member) ({			\
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
-
 
 #endif	/* __COMMON_H_ */

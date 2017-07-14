@@ -33,5 +33,4 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = DM_UART0
 };
 
-
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

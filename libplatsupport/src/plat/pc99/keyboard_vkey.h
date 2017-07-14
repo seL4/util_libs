@@ -351,7 +351,6 @@ int16_t keycode_info_char(keycode_state_t *s, keycode_info_t *info);
 
 int16_t keycode_ps2_to_vkey(int32_t ps2_keycode);
 
-
 keycode_info_t *keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed,
                                            void* cookie);
 
@@ -359,6 +358,5 @@ int16_t keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, boo
                                            void* cookie);
 
 bool keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey);
-
 
 #endif /* _PLATSUPPORT_PLAT_VIRTUAL_KEYCODE_PS2_H */

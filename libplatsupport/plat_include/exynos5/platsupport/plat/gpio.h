@@ -55,10 +55,6 @@
 #define XEINT30  GPIOID(GPX3, 6)
 #define XEINT31  GPIOID(GPX3, 7)
 
-
-
-
-
 enum gpio_bank {
     GPIO_LEFT_BANK,
     GPIO_RIGHT_BANK,

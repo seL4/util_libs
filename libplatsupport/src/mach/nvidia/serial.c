@@ -40,7 +40,6 @@
 #define IER_RX_FIFO_TIMEDOUT    BIT(4)
 #define IER_EO_RECEIVE_DATA     BIT(5)
 
-
 /* IIR is read-only, FCR is write-only. Both share the same address mapping.
  * IIR is automatically selected when you do a read-access.
  * FCR is automatically selected when you do a write-access

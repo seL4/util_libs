@@ -64,5 +64,4 @@ int exynos_mux_init(void* bank1,
                     void* bank4,
                     mux_sys_t* mux);
 
-
 #endif /* __PLATSUPPORT_PLAT_MUX_H__ */

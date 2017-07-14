@@ -15,7 +15,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-
 #define MD_BYTES_PER_LINE (sizeof(uint32_t) * 4)
 #define MD_GROUPING       4
 

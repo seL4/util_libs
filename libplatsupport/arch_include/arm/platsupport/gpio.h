@@ -25,7 +25,6 @@ typedef int gpio_id_t;
 #define GPIOID_PORT(gpio)             ((gpio) / 32)
 #define GPIOID_PIN(gpio)              ((gpio) % 32)
 
-
 typedef struct gpio {
 /// GPIO port identifier
     gpio_id_t id;
@@ -34,7 +33,6 @@ typedef struct gpio {
 /// Chain GPIO's to enable bulk reads/writes
     struct gpio* next;
 } gpio_t;
-
 
 enum gpio_dir {
 /// Output direction
@@ -89,7 +87,6 @@ static inline int gpio_clr(gpio_t* gpio)
     return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
 }
 
-
 /**
  * Return the state of a GPIO pin
  * @param[in] a handle to a GPIO
@@ -109,7 +106,6 @@ static inline int gpio_get(gpio_t* gpio)
     }
 }
 
-
 /**
  * Set a GPIO pin
  * @param[in] a handle to a GPIO
@@ -123,7 +119,6 @@ static inline int gpio_set(gpio_t* gpio)
     data = 0xff;
     return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
 }
-
 
 /**
  * Check if an IRQ is pending for this GPIO
@@ -149,8 +144,6 @@ static inline void gpio_pending_clear(gpio_t* gpio)
     assert(gpio->gpio_sys);
     gpio->gpio_sys->pending_status(gpio, 1);
 }
-
-
 
 /**
  * Acquire a handle to a GPIO pin

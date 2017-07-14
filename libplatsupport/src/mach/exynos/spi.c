@@ -30,7 +30,6 @@
 #define DSPI(...) do{}while(0)
 #endif
 
-
 /* SPI configuration */
 #define CH_CFG_HIGH_SPEED_EN       BIT(6)
 #define CH_CFG_SW_RST              BIT(5)
@@ -121,7 +120,6 @@ enum spi_mode {
     SLAVE_MODE
 };
 
-
 struct spi_bus {
     volatile struct spi_regs* regs;
     enum mux_feature mux;
@@ -150,7 +148,6 @@ static spi_bus_t _spi[NSPI] = {
 #endif /* EXYNOSX */
 };
 
-
 static void
 spi_reset(spi_bus_t *spi_bus)
 {
@@ -176,7 +173,6 @@ spi_reset(spi_bus_t *spi_bus)
     v |= (CH_CFG_RX_CH_ON | CH_CFG_TX_CH_ON);
     spi_bus->regs->ch_cfg = v;
 }
-
 
 static void
 spi_config(spi_bus_t *spi_bus)
@@ -347,8 +343,6 @@ spi_handle_irq(spi_bus_t* spi_bus)
     transfer_data(spi_bus);
 }
 
-
-
 int
 spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
          void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token)
@@ -381,7 +375,6 @@ spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
 
     return spi_bus->rxcnt;
 }
-
 
 long
 spi_set_speed(spi_bus_t* spi_bus, long bps)

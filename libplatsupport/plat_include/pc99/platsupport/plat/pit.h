@@ -30,5 +30,4 @@
  */
 pstimer_t * pit_get_timer(ps_io_port_ops_t *io_port_ops);
 
-
 #endif /* _PLATSUPPORT_PIT_H */

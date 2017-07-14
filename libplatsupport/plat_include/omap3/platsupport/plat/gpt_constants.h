@@ -72,7 +72,6 @@ omap_get_gpt_paddr(int n)
     return paddrs[n];
 }
 
-
 static inline int omap_get_gpt_irq(int n)
 {
     assert(n <= GPT_LAST);

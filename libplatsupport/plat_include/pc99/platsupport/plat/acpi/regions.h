@@ -43,7 +43,6 @@
 #define ACPI_SIG_HEST           "HEST"      /* Hardware Error Source Table */
 #define ACPI_SIG_MCFG           "MCFG"      /* PCI Memory mapped ConFiGuration */
 
-
 #define ACPI_SIG_ASPT           "ASPT"      /* Unknown table? */
 
 #define ACPI_TABLE_TEST(addr, TABLE) \

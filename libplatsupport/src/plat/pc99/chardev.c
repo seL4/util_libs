@@ -37,7 +37,6 @@ static const int ega_irqs[] = { -1};
     .init_fn = &uart_init           \
 }
 
-
 #define PC99_TEXT_EGA_DEFN() {      \
         .id = PC99_TEXT_EGA,        \
         .paddr = EGA_TEXT_FB_BASE,  \
@@ -45,7 +44,6 @@ static const int ega_irqs[] = { -1};
         .irqs = ega_irqs,           \
         .init_fn = text_ega_init    \
     }
-
 
 static const int keyboard_irqs[] = {KEYBOARD_PS2_IRQ, -1};
 

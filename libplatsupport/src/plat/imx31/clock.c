@@ -15,7 +15,6 @@
 #include <string.h>
 #include <utils/util.h>
 
-
 static volatile struct clock_regs {
     int dummy;
 } clk_regs;

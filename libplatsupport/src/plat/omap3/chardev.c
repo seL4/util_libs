@@ -25,7 +25,6 @@ static const int uart2_irqs[] = {UART2_IRQ, -1};
 static const int uart3_irqs[] = {UART3_IRQ, -1};
 static const int uart4_irqs[] = {UART4_IRQ, -1};
 
-
 #define UART_DEFN(devid) {                     \
         .id      = OMAP3_UART##devid,          \
         .paddr   = UART##devid##_PADDR,        \
@@ -34,14 +33,12 @@ static const int uart4_irqs[] = {UART4_IRQ, -1};
         .init_fn = &uart_init                  \
     }
 
-
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(1),
     UART_DEFN(2),
     UART_DEFN(3),
     UART_DEFN(4)
 };
-
 
 /* It would be nice to reuse this, but it requires knowledge of the variable *
  * sized 'dev_defn'                                                          */

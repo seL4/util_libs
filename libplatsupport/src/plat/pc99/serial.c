@@ -41,7 +41,6 @@
 #define SERIAL_LSR_DATA_READY BIT(0)
 #define SERIAL_LSR_TRANSMITTER_EMPTY BIT(5)
 
-
 int uart_getchar(ps_chardevice_t *device)
 {
     uint32_t res;

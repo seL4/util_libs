@@ -562,7 +562,6 @@ const clk_register_t tk1_clk_registers[] = {
     CLK_REGISTER_ENTRY(CLK_MISC), // CLK_RST_CONTROLLER_EMC_PLLC_SHAPER_CTRL_0
 };
 
-
 int
 clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 {

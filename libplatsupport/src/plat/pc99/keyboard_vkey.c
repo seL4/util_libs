@@ -18,7 +18,6 @@
 #include <string.h>
 #include <assert.h>
 
-
 /* This requires ISO-C99 gcc standard. */
 /* ref: http://www.unix-manuals.com/refs/misc/ascii-table.html */
 keycode_info_t keycodes[VK_MAX_ENUM] = {
@@ -187,7 +186,6 @@ int16_t ps2_to_vkey[PS2_MAX_KEYCODES_BASIC] = {
     [PS2_KEY_NUM_0] = VK_NUMPAD0,
     [PS2_KEY_NUM_DOT] = VK_DECIMAL
 };
-
 
 void
 keycode_init(keycode_state_t *s,

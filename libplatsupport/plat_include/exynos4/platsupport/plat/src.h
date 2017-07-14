@@ -10,7 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
 #ifndef PLATSUPPORT_PLAT_SRC_H
 #define PLATSUPPORT_PLAT_SRC_H
 

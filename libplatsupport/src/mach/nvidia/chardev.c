@@ -28,7 +28,6 @@ static const int uartB_ASYNC_irqs[] = {UARTB_IRQ, -1};
 static const int uartC_ASYNC_irqs[] = {UARTC_IRQ, -1};
 static const int uartD_ASYNC_irqs[] = {UARTD_IRQ, -1};
 
-
 #define UART_DEFN(devid) {          \
     .id      = NV_UART##devid,    \
     .paddr   = UART##devid##_PADDR, \
@@ -44,7 +43,6 @@ static const int uartD_ASYNC_irqs[] = {UARTD_IRQ, -1};
     .irqs    = uart##devid##_ASYNC_irqs,  \
     .init_fn = &uart_init           \
 }
-
 
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(A),

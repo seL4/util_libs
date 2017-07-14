@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifndef __FEC_MXC_H
 #define __FEC_MXC_H
 
@@ -75,7 +74,6 @@ int fec_init(unsigned phy_mask, struct enet* enet);
 #define FEC_ECNTRL_DBSWAP		0x00000100
 
 #define FEC_X_WMRK_STRFWD		0x00000100
-
 
 /**
  * @brief i.MX27-FEC private structure

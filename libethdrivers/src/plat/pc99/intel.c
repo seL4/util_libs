@@ -36,7 +36,6 @@ typedef enum e1000_family {
 #define RX_DD BIT(0) /* Descriptor Done */
 #define RX_EOP BIT(1) /* End of Packet */
 
-
 #define REG(x,y) (*(volatile uint32_t*)(((uintptr_t)(x)->iobase) + (y)))
 
 #define REG_CTRL(x) REG(x, 0x0)
@@ -609,7 +608,6 @@ static void set_tdlen(e1000_dev_t *dev, uint32_t val) {
         assert(!"Unknown device");
     }
 }
-
 
 static void set_rx_ring(e1000_dev_t *dev, uint64_t phys) {
     uint32_t phys_low = (uint32_t)phys;

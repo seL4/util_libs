@@ -239,7 +239,6 @@ static void complete_rx(struct eth_driver *eth_driver) {
     }
 }
 
-
 static void complete_tx(struct eth_driver *driver) {
     struct imx6_eth_data *dev = (struct imx6_eth_data*)driver->eth_data;
     while (dev->tdh != dev->tdt) {

@@ -15,11 +15,9 @@
 #include <string.h>
 #include <utils/util.h>
 
-
 static volatile struct clock_regs {
     int dummy;
 } clk_regs;
-
 
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 

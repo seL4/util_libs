@@ -116,7 +116,6 @@ static int genphy_config_advert(struct phy_device *phydev)
 	return changed;
 }
 
-
 /**
  * genphy_setup_forced - configures/forces speed/duplex from @phydev
  * @phydev: target phy_device struct
@@ -144,7 +143,6 @@ static int genphy_setup_forced(struct phy_device *phydev)
 	return err;
 }
 
-
 /**
  * genphy_restart_aneg - Enable and Restart Autonegotiation
  * @phydev: target phy_device struct
@@ -167,7 +165,6 @@ int genphy_restart_aneg(struct phy_device *phydev)
 
 	return ctl;
 }
-
 
 /**
  * genphy_config_aneg - restart auto-negotiation or write BMCR

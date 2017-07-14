@@ -19,13 +19,11 @@
 #include "../../common.h"
 #include <platsupport/serial.h>
 
-
 static const int uart1_irqs[] = {UART1_IRQ, -1};
 static const int uart2_irqs[] = {UART2_IRQ, -1};
 static const int uart3_irqs[] = {UART3_IRQ, -1};
 static const int uart4_irqs[] = {UART4_IRQ, -1};
 static const int uart5_irqs[] = {UART5_IRQ, -1};
-
 
 #define UART_DEFN(devid) {                     \
         .id      = IMX31_UART##devid,          \
@@ -35,7 +33,6 @@ static const int uart5_irqs[] = {UART5_IRQ, -1};
         .init_fn = &uart_init                  \
     }
 
-
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(1),
     UART_DEFN(2),
@@ -43,7 +40,6 @@ static const struct dev_defn dev_defn[] = {
     UART_DEFN(4),
     UART_DEFN(5)
 };
-
 
 /* It would be nice to reuse this, but it requires knowledge of the variable *
  * sized 'dev_defn'                                                          */

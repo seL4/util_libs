@@ -34,7 +34,6 @@ void udelay(uint32_t us);
 
 unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base);
 
-
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;

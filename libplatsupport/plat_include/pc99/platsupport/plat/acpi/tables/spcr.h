@@ -16,7 +16,6 @@
 
 #pragma pack(push,1)
 
-
 /* Serial Port Console Redirection "SPCR" */
 typedef struct acpi_spcr {
     acpi_header_t header;
@@ -40,6 +39,5 @@ typedef struct acpi_spcr {
     uint8_t       pci_seg;
     uint8_t       res3[4]; /* 0 */
 } acpi_spcr_t;
-
 
 #pragma pack(pop)

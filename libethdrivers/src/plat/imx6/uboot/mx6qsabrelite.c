@@ -85,8 +85,6 @@ static iomux_v3_cfg_t const enet_pads2[] = {
 	MX6Q_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 };
 
-
-
 /*
  * configures a single pad in the iomuxer
  */
@@ -126,7 +124,6 @@ static int imx_iomux_v3_setup_multiple_pads(void *base, iomux_v3_cfg_t const *pa
 	}
 	return 0;
 }
-
 
 int setup_iomux_enet(ps_io_ops_t *io_ops)
 {

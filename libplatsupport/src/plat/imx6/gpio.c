@@ -46,7 +46,6 @@
 #define GPIO_ICFG(f, v)   (((v) & 0x3) << ((f) * 2))
 #define GPIO_ICFG_MASK(f) GPIO_ICFG(f, 0x3)
 
-
 struct imx6_gpio_regs {
     uint32_t data;        /* +0x00 */
     uint32_t direction;   /* +0x04 */
@@ -56,7 +55,6 @@ struct imx6_gpio_regs {
     uint32_t int_status;  /* +0x18 */
     uint32_t edge;        /* +0x1C */
 };
-
 
 static struct imx6_gpio {
     mux_sys_t* mux;
@@ -183,7 +181,6 @@ imx6_gpio_read(gpio_t* gpio, char* data, int len)
     }
     return count;
 }
-
 
 int
 imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys)

@@ -43,7 +43,6 @@
 #define GPIO_FULLPORT(x)	((x) >> 3)
 #define GPIO_BIT(x)		((x) & 0x7)
 
-
 #define GPIO_INT_LVL_MASK		0x010101
 #define GPIO_INT_LVL_EDGE_RISING	0x000101
 #define GPIO_INT_LVL_EDGE_FALLING	0x000100
@@ -122,7 +121,6 @@ static struct gpio_feature_data feat_gpio_ps4 = {
     .mode = GPIO_MODE_OUTPUT,
     .default_value = 1
 };
-
 
 struct gpio_feature_data* gpio_features[] = {
     [CAN1_INTn] = &can1_intn,
@@ -373,11 +371,10 @@ bool gpio_get_input(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
 
 }
 
-
 void gpio_int_clear(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
 {
 
-   ZF_LOGV("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n", 
+   ZF_LOGV("%s, offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d\n",
                 __func__, tegra_gpio_controller[GPIO_BANK(gpio)] + tegra_gpio_port[GPIO_PORT(gpio)] + GPIO_INT_CLR,
                  tegra_gpio_controller[GPIO_BANK(gpio)],
                   tegra_gpio_port[GPIO_PORT(gpio)],

@@ -15,7 +15,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -45,7 +44,6 @@
 #define T4_DIVISOR_MASK    T4_DIVISOR(0xf)
 #define T0_DIVISOR(x)      (x)
 #define T0_DIVISOR_MASK    T0_DIVISOR(0xf)
-
 
 /* TINT_CSTAT */
 #define INT_ENABLE(x)      BIT(x)
@@ -82,7 +80,6 @@ struct pwm_map {
 typedef struct pwm {
     volatile struct pwm_map *pwm_map;
 } pwm_t;
-
 
 void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
 {
@@ -235,7 +232,6 @@ pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
     }
     pwm->pwm_map->tint_cstat = v;
 }
-
 
 static uint64_t
 pwm_get_time(const pstimer_t *timer)

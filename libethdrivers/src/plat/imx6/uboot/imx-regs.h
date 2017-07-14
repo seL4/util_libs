@@ -182,7 +182,6 @@
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 
-
 /* System Reset Controller (SRC) */
 struct src {
 	uint32_t	scr;
@@ -256,7 +255,6 @@ struct ocotp_regs {
 
 #define IOMUXC_GPR3_HDMI_MUX_CTL_OFFSET		2
 #define IOMUXC_GPR3_HDMI_MUX_CTL_MASK		(3<<IOMUXC_GPR3_HDMI_MUX_CTL_OFFSET)
-
 
 struct iomuxc {
 	uint32_t gpr[14];

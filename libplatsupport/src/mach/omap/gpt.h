@@ -67,7 +67,6 @@ typedef enum {
     /* Pulse or toggle select bit. Pulse 0. Toggle 1. */
     PT = 12,
 
-
     /* Capture mode select bit (first/second)
      * 0x0: Capture the first enabled capture event in TCAR1.
      * 0x1: Capture the second enabled capture event in TCAR2.

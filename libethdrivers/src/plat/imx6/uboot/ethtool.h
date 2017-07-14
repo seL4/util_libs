@@ -380,7 +380,6 @@ struct ethtool_usrip4_spec {
 	uint8_t    proto;
 };
 
-
 /**
  * struct ethtool_rxfh_indir - command to get or set RX flow hash indirection
  * @cmd: Specific command number - %ETHTOOL_GRXFHINDIR or %ETHTOOL_SRXFHINDIR

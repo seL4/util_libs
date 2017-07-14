@@ -10,7 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
 #ifndef _PLATSUPPORT_PLAT_SPI_H_
 #define _PLATSUPPORT_PLAT_SPI_H_
 
@@ -55,6 +54,5 @@ enum spi_id {
 int exynos_spi_init(enum spi_id id, void* base,
                     mux_sys_t* mux_sys, clock_sys_t* clock_sys,
                     spi_bus_t** spi_bus);
-
 
 #endif /* _PLATSUPPORT_PLAT_SPI_H_ */

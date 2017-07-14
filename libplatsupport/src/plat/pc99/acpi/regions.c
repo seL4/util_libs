@@ -112,7 +112,6 @@ consolidate_regions(const RegionList_t* regions_in, RegionList_t* consolidated)
     }
 }
 
-
 void
 sort_regions(RegionList_t* regions)
 {
@@ -173,8 +172,6 @@ remove_region(RegionList_t* region_list, int index)
 
     return 0;
 }
-
-
 
 int
 find_space(const RegionList_t* rlist, size_t size,
@@ -237,7 +234,6 @@ find_region(const RegionList_t* rlist, int start_index,
     }
     return -1;
 }
-
 
 acpi_header_t *
 acpi_find_region(acpi_t *acpi, region_type_t region)

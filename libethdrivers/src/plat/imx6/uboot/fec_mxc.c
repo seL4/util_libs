@@ -52,9 +52,7 @@
 #define CONFIG_FEC_XCV_TYPE MII100
 #endif
 
-
 #undef DEBUG
-
 
 int fec_phy_read(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr)
 {
@@ -66,7 +64,6 @@ int fec_phy_write(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr,
 {
 	return enet_mdio_write((struct enet*)bus->priv, phyAddr, regAddr, data);
 }
-
 
 /**
  * Halt the FEC engine

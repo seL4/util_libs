@@ -21,12 +21,8 @@
 #define __arch_putw(val, addr)    *((volatile uint16_t*)(addr)) = val
 #define __arch_putb(val, addr)    *((volatile uint8_t*)(addr)) = val
 
-
 //#define __raw_writel(...) writel(__VA_ARGS__)
 //#define __raw_readl(...) readl(__VA_ARGS__)
-
-
-
 
 #define __raw_writeb(v,a)	__arch_putb(v,a)
 #define __raw_writew(v,a)	__arch_putw(v,a)

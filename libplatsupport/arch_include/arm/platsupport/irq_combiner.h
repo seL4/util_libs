@@ -103,7 +103,6 @@ static inline int irq_combiner_enable_irq(irq_combiner_t* combiner, combiner_irq
     return combiner->set_enabled(combiner, cirq, 1);
 }
 
-
 /**
  * Disable a combiner IRQ within a group. Does not disable the entire group
  * at the primary interrupt controller.

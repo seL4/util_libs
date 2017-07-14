@@ -163,7 +163,6 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
     {66, PLL_CFG_FDIV66}
 };
 
-
 /******************
  ****  Clocks  ****
  ******************/
@@ -201,7 +200,6 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
 /* Clock Control (enable/disable a clock) */
 #define CLK_CLKACT          BIT(0)
 
-
 /**********************
  ****  CPU Clocks  ****
  **********************/
@@ -237,7 +235,6 @@ static struct pll_cfg_t pll_cfg_tbl[] = {
 #define DDR_CLK_GET_DIVISOR(dom)    \
     ((clk_regs->ddr_clk_ctrl & DDR_CLK_DIVISOR_MASK(dom)) >> DDR_##dom##XCLK_DIVISOR_SHIFT)
 
-
 /**************************
  ****  FPGA PL Clocks  ****
  **************************/
@@ -249,7 +246,6 @@ typedef volatile struct {
     uint32_t thr_cnt;   /* PL Clock x Throttle Count */
     uint32_t thr_sta;   /* PL Clock x Throttle Status */
 } pl_clk_regs_t;
-
 
 /***************************
  ****  Clock Registers  ****
@@ -312,7 +308,6 @@ static const enum clk_id generic_clk_src[] = {
 #define can_clk_src generic_clk_src
 #define pcap_clk_src generic_clk_src
 
-
 static volatile struct zynq7000_clk_regs* clk_regs = NULL;
 
 /* Set divisors, avoiding over clocking peripherals */
@@ -336,8 +331,6 @@ set_div(volatile uint32_t* ctrl, uint8_t div0)
 {
     CLK_SET_DIVISOR(0, *ctrl, div0);
 }
-
-
 
 /*
  * Calculate the clock rate divisors
@@ -425,7 +418,6 @@ zynq7000_even_divisor(uint8_t divisor)
     }
 }
 
-
 /* PS_CLK */
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
@@ -473,7 +465,6 @@ _pll_get_freq(clk_t* clk)
 
     return fout;
 }
-
 
 static freq_t
 _pll_set_freq(clk_t* clk, freq_t hz)
@@ -537,7 +528,6 @@ static struct clock arm_pll_clk = { CLK_OPS(ARM_PLL, pll, NULL) };
 static struct clock ddr_pll_clk = { CLK_OPS(DDR_PLL, pll, NULL) };
 static struct clock io_pll_clk  = { CLK_OPS(IO_PLL,  pll, NULL) };
 
-
 static int
 _cpu_set_621(clk_t* clk, int v)
 {
@@ -568,7 +558,6 @@ clk_cpu_clk_select_421(clk_t* clk)
 {
     return _cpu_set_621(clk, 0);
 }
-
 
 /* CPU Clocks */
 static freq_t
@@ -654,7 +643,6 @@ static struct clock cpu_6or4x_clk = { CLK_OPS(CPU_6OR4X, cpu, NULL) };
 static struct clock cpu_3or2x_clk = { CLK_OPS(CPU_3OR2X, cpu, NULL) };
 static struct clock cpu_2x_clk    = { CLK_OPS(CPU_2X,    cpu, NULL) };
 static struct clock cpu_1x_clk    = { CLK_OPS(CPU_1X,    cpu, NULL) };
-
 
 /* DDR Clocks */
 static freq_t
@@ -742,7 +730,6 @@ _ddr_init(clk_t* clk)
 static struct clock ddr_2x_clk = { CLK_OPS(DDR_2X, ddr, NULL) };
 static struct clock ddr_3x_clk = { CLK_OPS(DDR_3X, ddr, NULL) };
 static struct clock dci_clk    = { CLK_OPS(DCI,    ddr, NULL) };
-
 
 /* I/O Peripheral Clocks */
 static freq_t
@@ -894,7 +881,6 @@ static struct clock spi1_clk  = { CLK_OPS(SPI1,  aper, NULL) };
 static struct clock can0_clk  = { CLK_OPS(CAN0,  aper, NULL) };
 static struct clock can1_clk  = { CLK_OPS(CAN1,  aper, NULL) };
 
-
 static inline pl_clk_regs_t*
 get_pl_clk_regs(clk_t* clk)
 {
@@ -1017,7 +1003,6 @@ clk_print_clock_tree(clock_sys_t* sys)
     clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
-
 
 clk_t* ps_clocks[] = {
     [CLK_MASTER]    = &master_clk,

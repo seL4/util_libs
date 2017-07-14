@@ -93,7 +93,6 @@ text_ega_putchar(ps_chardevice_t* d, int c)
     return 0;
 }
 
-
 static ssize_t
 text_ega_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
 {
@@ -125,15 +124,11 @@ text_ega_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t 
     return count;
 }
 
-
-
 static void
 text_ega_handle_irq(ps_chardevice_t* d)
 {
     /* TODO */
 }
-
-
 
 int
 text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)

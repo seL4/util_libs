@@ -129,7 +129,6 @@ static ssize_t axi_uartlite_read(ps_chardevice_t* d, void* vdata,
 int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev)
 {
 
-
     memset(dev, 0, sizeof(*dev));
 
     dev->vaddr = vaddr;

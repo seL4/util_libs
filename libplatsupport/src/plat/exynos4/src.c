@@ -84,7 +84,6 @@ sysreg_swrst_enable(src_dev_t* dev)
     return 0;
 }
 
-
 void
 reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
 {
@@ -99,8 +98,6 @@ reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
         LOG_ERROR("Invalid option: %d", id);
     }
 }
-
-
 
 int
 reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)

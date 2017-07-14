@@ -28,11 +28,8 @@ acpi_print_table(const void* start);
 void
 acpi_print_table_raw(const void* start, int length);
 
-
 void
 acpi_print_regions(const RegionList_t* rl);
-
-
 
 #else
 static inline void

@@ -37,5 +37,4 @@ void ps_udelay(unsigned long us);
  */
 void ps_cpufreq_hint(unsigned long hz);
 
-
 #endif /* __PLATSUPPORT_DELAY_H__ */

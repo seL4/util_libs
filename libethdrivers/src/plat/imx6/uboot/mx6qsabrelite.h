@@ -116,5 +116,4 @@ typedef uint64_t iomux_v3_cfg_t;
 
 #define MUX_CONFIG_SION		(BIT(4))
 
-
 #endif                         /* __MX6QSABRE_COMMON_CONFIG_H */

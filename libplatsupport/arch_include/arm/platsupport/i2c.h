@@ -86,14 +86,12 @@ struct i2c_bus {
     void* priv;
 };
 
-
 struct i2c_bb {
     gpio_id_t scl;
     gpio_id_t sda;
     int speed;
     gpio_sys_t* gpio_sys;
 };
-
 
 /**
  * Initialise an I2C bus
@@ -267,8 +265,6 @@ static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size, i
  */
 int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
 
-
-
 /*********************
  *** Remote device ***
  *********************/
@@ -293,7 +289,6 @@ struct i2c_slave {
     enum kvfmt data_fmt;
     enum kvfmt address_fmt;
 };
-
 
 /**** Key-Value device ****/
 
@@ -345,7 +340,6 @@ int i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t start, void* data, int nre
  */
 int i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t start, const void* data, int nregs);
 
-
 /**** Streaming device ****/
 
 /**
@@ -357,7 +351,6 @@ int i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t start, const void* data, 
  * @return               0 on success
  */
 int i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave);
-
 
 /**
  * Read from a streaming slave device

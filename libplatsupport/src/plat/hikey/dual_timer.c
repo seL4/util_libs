@@ -69,7 +69,6 @@ typedef struct dmt {
     uint32_t irq;
 } dmt_t;
 
-
 static dmt_regs_t *
 hikey_dualtimer_get_secondary_timer(const dmt_t *dual_timer)
 {
@@ -212,7 +211,7 @@ hikey_dualtimer_get_timestamp(const pstimer_t *timer)
     uint64_t ret;
 
     /* Just return the current downcounter count value.
-     * 
+     *
      * However, convert it into nanoseconds first.
      */
     ret = dmt_regs->value;

@@ -18,7 +18,6 @@
 #include <platsupport/dma330.h>
 #include "string.h"
 
-
 //#define DMA330_DEBUG
 #ifdef DMA330_DEBUG
 #define D330(...) printf("DMA330: " __VA_ARGS__)
@@ -147,7 +146,6 @@
 /* DMAWFP<S|B|P> */
 #define DMAISZ_WMB               1
 
-
 #define APPEND_INSTRUCTION(buf, op)                   \
     do {                                              \
         uint64_t code = DMAI_##op;                    \
@@ -212,7 +210,6 @@ typedef volatile struct dma330_map {
         uint32_t pcell[4];      /* RO */
     } id;
 } dma330_map_t;
-
 
 struct channel_data {
     dma330_signal_cb cb;
@@ -447,7 +444,6 @@ dmac_print_fault(dma330_t dma330, int channel)
     }
     printf("\n");
 }
-
 
 UNUSED static void
 program_dump(void *vbin)

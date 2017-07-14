@@ -54,7 +54,6 @@
 
 #define PHY_ANEG_TIMEOUT	40000
 
-
 typedef enum {
 	PHY_INTERFACE_MODE_MII,
 	PHY_INTERFACE_MODE_GMII,
@@ -93,7 +92,6 @@ static inline const char *phy_string_for_interface(phy_interface_t i)
 
 	return phy_interface_strings[i];
 }
-
 
 struct phy_device;
 

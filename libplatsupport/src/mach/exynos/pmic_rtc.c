@@ -10,7 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
 #include <platsupport/mach/pmic_rtc.h>
 #include <platsupport/delay.h>
 #include "../../services.h"
@@ -161,7 +160,6 @@ pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm)
     }
     return pmic_rtc_get_tval(pmic_rtc, RTCREG_ALARM(id), alarm);
 }
-
 
 int
 pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm)

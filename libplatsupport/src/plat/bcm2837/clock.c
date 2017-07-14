@@ -17,7 +17,6 @@
 #include <string.h>
 #include <utils/util.h>
 
-
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 static struct clock sp804_clk = { CLK_OPS_DEFAULT(SP804) };
 
@@ -36,7 +35,6 @@ clk_print_clock_tree(clock_sys_t* sys)
     clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
-
 
 clk_t* ps_clocks[] = {
     [CLK_MASTER]   = &master_clk,

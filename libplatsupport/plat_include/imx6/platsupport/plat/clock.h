@@ -72,5 +72,4 @@ enum clock_gate {
     NCLKGATES
 };
 
-
 #endif /* _PLATSUPPORT_PLAT_CLOCK_H_ */

@@ -25,7 +25,6 @@ typedef struct acpi_rsdt {
 
 #pragma pack(pop)
 
-
 /* retrieve the number of entries in an rsdt table */
 static inline int
 acpi_rsdt_entry_count(acpi_rsdt_t* t)

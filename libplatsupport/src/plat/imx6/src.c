@@ -49,7 +49,6 @@ src_get_regs(src_dev_t* d)
     return (src_regs_t*)d->priv;
 }
 
-
 void
 reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
 {

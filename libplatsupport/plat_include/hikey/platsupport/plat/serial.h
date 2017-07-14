@@ -25,7 +25,6 @@
 #define UART3_IRQ    71
 #define UART4_IRQ    72
 
-
 enum chardev_id {
     DM_UART0,
     DM_UART1,
@@ -41,6 +40,5 @@ enum chardev_id {
     /* defaults */
     PS_SERIAL_DEFAULT = DM_UART0
 };
-
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

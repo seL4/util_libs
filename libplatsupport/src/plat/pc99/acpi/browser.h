@@ -16,7 +16,6 @@
 
 #ifdef CONFIG_LIB_SEL4_ACPI_DEBUG
 
-
 /*
  * interactively browse the ACPI table at the given address
  * User input required to traverse the tree

@@ -18,7 +18,6 @@ enum irq_combiner_id {
     NIRQ_COMBINERS
 };
 
-
 #define EXYNOS4_IRQ_COMBINER_PADDR 0x10440000
 #define EXYNOS4_IRQ_COMBINER_SIZE  0x1000
 

@@ -18,7 +18,6 @@
 #include "regions.h"
 #include "printer.h"
 
-
 #include <stdio.h>
 #include <string.h>
 
@@ -225,7 +224,6 @@ acpi_browse_tables(const acpi_rsdp_t* rsdp, size_t offset)
     _browse_tables((void*)rsdp, offset);
 }
 
-
 static int
 _browse_regions(const RegionList_t* rlist, int parent)
 {
@@ -294,7 +292,6 @@ _browse_regions(const RegionList_t* rlist, int parent)
     }
     while (1);
 }
-
 
 void
 acpi_browse_regions(const RegionList_t* rlist)

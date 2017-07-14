@@ -133,7 +133,6 @@ i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
     return 0;
 }
 
-
 /* Loop until count registers have been read or an error occurs */
 int
 i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
@@ -154,7 +153,6 @@ i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
     }
     return count - remain;
 }
-
 
 /* Loop until count registers have been written or an error occurs */
 int
@@ -194,7 +192,6 @@ i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave)
 {
     return i2c_kvslave_init(i2c_bus, address, STREAM, STREAM, i2c_slave);
 }
-
 
 int
 i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)

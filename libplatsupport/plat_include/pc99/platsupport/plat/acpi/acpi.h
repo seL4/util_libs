@@ -52,7 +52,6 @@ typedef struct acpi_header {
     uint32_t     creator_revision;
 } acpi_header_t;
 
-
 /* Generic Address Structure Format */
 typedef struct acpi_gastruct {
     uint8_t      space_id;

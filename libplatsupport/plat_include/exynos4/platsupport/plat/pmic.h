@@ -23,5 +23,4 @@
 #define LDO_TFLASH        21
 #define LDO_VDDQLCD       25
 
-
 #endif /* __PLATSUPPORT_PLAT_PMIC__ */

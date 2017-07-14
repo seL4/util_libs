@@ -10,8 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
-
 #include "clock.h"
 
 #define DIV_SEP_BITS 4
@@ -23,7 +21,6 @@
 #define PLL_LOCKED      BIT(29)
 /* CON 1*/
 #define PLL_K_MASK      MASK(16)
-
 
 /***********
  *** DIV ***

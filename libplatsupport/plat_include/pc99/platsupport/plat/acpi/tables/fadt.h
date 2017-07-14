@@ -75,5 +75,4 @@ typedef struct acpi_fadt {
     /* Physical table is 24 bytes shorter than this structure on dogfood? */
 } acpi_fadt_t;
 
-
 #pragma pack(pop)

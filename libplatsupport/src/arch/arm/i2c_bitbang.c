@@ -108,7 +108,6 @@ i2c_bb_stop(struct i2c_bb* d)
     _hold  (d);
 }
 
-
 static inline void
 i2c_bb_sendbit(struct i2c_bb* d, int bit)
 {
@@ -189,7 +188,6 @@ i2c_bb_master_stop(i2c_bus_t* bus)
     return -1;
 }
 
-
 static int
 i2c_bb_start_read(i2c_bus_t* i2c_bus, int addr, void* vdata, size_t size, i2c_callback_fn cb, void* token)
 {
@@ -263,7 +261,6 @@ i2c_bb_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, voi
     assert(!"Not implemented");
     return -1;
 }
-
 
 static long
 i2c_bb_set_speed(i2c_bus_t* i2c_bus, long speed)

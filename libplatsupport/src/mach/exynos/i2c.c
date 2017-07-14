@@ -143,7 +143,6 @@ struct exynos_i2c_regs {
     uint32_t line_control;   /* 0x0010 multi-master line control register */
 };
 
-
 struct i2c_bus_priv {
     volatile struct exynos_i2c_regs* regs;
     const char* tx_buf;
@@ -375,7 +374,6 @@ exynos_i2c_send_stop(i2c_bus_t* i2c_bus, enum i2c_stat status)
         i2c_bus->cb(i2c_bus, status, dev->tx_count, i2c_bus->token);
     }
 }
-
 
 static enum i2c_mode
 exynos_i2c_probe_aas(i2c_bus_t* i2c_bus)

@@ -101,7 +101,6 @@ typedef enum {
 
 } gpt_control_reg;
 
-
 /* bits in the interrupt/status regiser */
 enum gpt_interrupt_register_bits {
 
@@ -156,12 +155,10 @@ gpt_timer_start(const pstimer_t *timer)
 {
     gpt_t *gpt = (gpt_t*) timer->data;
 
-
     gpt->gpt_map->gptcr |= BIT(EN);
 
     return 0;
 }
-
 
 static int
 gpt_timer_stop(const pstimer_t *timer)

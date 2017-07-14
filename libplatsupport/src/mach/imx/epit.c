@@ -15,7 +15,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -84,7 +83,6 @@ typedef enum {
     CLKSRC = 24
 } epit_control_reg;
 
-
 enum IPGConstants {
     IPG_CLK = 1, IPG_CLK_HIGHFREQ = 2, IPG_CLK_32K = 3
 };
@@ -126,7 +124,6 @@ epit_timer_start(const pstimer_t *timer)
 
     return 0;
 }
-
 
 static int
 epit_timer_stop(const pstimer_t *timer)
@@ -229,7 +226,6 @@ epit_get_nth_irq(const pstimer_t *timer, uint32_t n)
 
     return 0;
 }
-
 
 static pstimer_t singleton_timer;
 static epit_t singleton_epit;

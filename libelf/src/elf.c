@@ -180,7 +180,6 @@ elf_getStringTable(void *elfFile, int string_segment)
 		: elf64_getStringTable(elfFile, string_segment);
 }
 
-
 unsigned
 elf_getNumSections(void *elfFile)
 {
@@ -228,7 +227,6 @@ elf_getSectionAddr(void *elfFile, int i)
 		? elf32_getSectionAddr(elfFile, i)
 		: elf64_getSectionAddr(elfFile, i);
 }
-
 
 void *
 elf_getSection(void *elfFile, int i)
@@ -340,7 +338,7 @@ int
 elf_loadFile(void *elfFile, int phys)
 {
 	int i;
-	
+
 	if (elf_checkFile(elfFile) != 0) {
 		return 0;
 	}

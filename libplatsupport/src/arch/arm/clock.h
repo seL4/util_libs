@@ -13,7 +13,6 @@
 #ifndef ARCH_CLOCK_H
 #define ARCH_CLOCK_H
 
-
 #include <assert.h>
 #include <platsupport/clock.h>
 
@@ -33,7 +32,6 @@
 #define CLK_OPS(name, ops, data)        _CLK_OPS(CLK_##name, #name, ops, data)
 #define CLK_OPS_CUSTOM(name, ops, data) _CLK_OPS(CLK_CUSTOM, name, ops, data)
 #define CLK_OPS_DEFAULT(clk_id)         CLK_OPS(clk_id, default_clk, NULL)
-
 
 /* Array of default frequencies */
 extern freq_t ps_freq_default[];
@@ -65,7 +63,6 @@ clk_recal(clk_t* clk)
     clk->recal(clk);
 }
 
-
 /**
  * Prints a clock tree.
  * The prefix should be based on the depth of the current root. When calling this
@@ -75,7 +72,6 @@ clk_recal(clk_t* clk)
  * @param[in] prefix  A string prefix to print before each line
  */
 void clk_print_tree(clk_t* clk, const char* prefix);
-
 
 /* Default clocks - Frequency must be defined in freq_default */
 freq_t _default_clk_get_freq(clk_t* clk);

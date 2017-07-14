@@ -188,9 +188,7 @@ struct pll2_regs {
     uint32_t res2[3];
 };
 
-
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
-
 
 /* ARM_CLK */
 static freq_t
@@ -228,7 +226,6 @@ _arm_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-
 static void
 _arm_recal(clk_t* clk UNUSED)
 {
@@ -248,7 +245,6 @@ _arm_init(clk_t* clk)
 }
 
 static struct clock arm_clk = { CLK_OPS(ARM, arm, NULL) };
-
 
 /* ENET_CLK */
 
@@ -274,7 +270,6 @@ _enet_get_freq(clk_t* clk)
         return 0 * fin;
     }
 }
-
 
 static freq_t
 _enet_set_freq(clk_t* clk, freq_t hz)
@@ -329,8 +324,6 @@ _enet_init(clk_t* clk)
 }
 
 static struct clock enet_clk = { CLK_OPS(ENET, enet, NULL) };
-
-
 
 /* PLL2_CLK */
 static freq_t
@@ -549,7 +542,6 @@ _usb_init(clk_t* clk)
 static struct clock usb1_clk = { CLK_OPS(USB1, usb, NULL) };
 static struct clock usb2_clk = { CLK_OPS(USB2, usb, NULL) };
 
-
 /* clkox */
 static freq_t
 _clko_get_freq(clk_t* clk)
@@ -677,9 +669,6 @@ clk_print_clock_tree(clock_sys_t* sys)
     clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
-
-
-
 
 clk_t* ps_clocks[] = {
     [CLK_MASTER]   = &master_clk,

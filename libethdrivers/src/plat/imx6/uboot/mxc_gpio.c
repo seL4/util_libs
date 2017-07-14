@@ -53,7 +53,6 @@ static unsigned long gpio_ports[] = {
 	[6] = 0,
 };
 
-
 static unsigned long gpio_paddr[] = {
 	[0] = GPIO1_BASE_ADDR,
 	[1] = GPIO2_BASE_ADDR,

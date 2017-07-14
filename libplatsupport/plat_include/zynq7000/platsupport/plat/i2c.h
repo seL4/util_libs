@@ -17,6 +17,4 @@ enum i2c_id {
     NI2C
 };
 
-
-
 #endif /* _PLATSUPPORT_PLAT_I2C_H_ */

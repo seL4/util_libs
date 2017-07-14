@@ -121,7 +121,6 @@ void libpci_vdevice_rebase_ioaddr_realdevice(libpci_vdevice_t* self,
     self->physical_device_passthrough = dev;
 }
 
-
 void libpci_vdevice_rebase_addr_virtdevice(libpci_vdevice_t* self,
                                            int base_addr_index,
                                            uint32_t base_addr,

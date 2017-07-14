@@ -13,7 +13,6 @@
 #ifndef _PLATSUPPORT_PLAT_CLOCK_H_
 #define _PLATSUPPORT_PLAT_CLOCK_H_
 
-
 enum clk_id {
     CLK_MASTER,
     /* PLLS */

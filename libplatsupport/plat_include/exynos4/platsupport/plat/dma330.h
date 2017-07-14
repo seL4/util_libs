@@ -13,7 +13,6 @@
 #ifndef _PLATSUPPORT_PLAT_DMA330_H
 #define _PLATSUPPORT_PLAT_DMA330_H
 
-
 #define MDMA0_PADDR 0x10800000
 #define MDMA1_PADDR 0x11C10000
 #define PDMA0_PADDR 0x121A0000
@@ -67,6 +66,5 @@ static const int dma330_abort_irq[] = {
     [PL330_PDMA0] = -1,
     [PL330_PDMA1] = -1
 };
-
 
 #endif /* _PLATSUPPORT_PLAT_DMA330_H */

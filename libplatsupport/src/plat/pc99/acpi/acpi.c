@@ -31,8 +31,6 @@
 #  endif
 #endif
 
-
-
 // sum bytes at the given location
 uint8_t
 acpi_calc_checksum(const char* start, int length)
@@ -43,8 +41,6 @@ acpi_calc_checksum(const char* start, int length)
     }
     return checksum;
 }
-
-
 
 size_t
 acpi_table_length(const void* tbl)
@@ -68,7 +64,6 @@ acpi_table_length(const void* tbl)
 
     return length;
 }
-
 
 /*
  * Split an available memory region and return the index of the
@@ -101,7 +96,6 @@ split_available(RegionList_t* dst, size_t size, int force_ptr)
     return index;
 }
 
-
 static int
 create_copy_region(const Region_t* src, RegionList_t* dlist,
                    int parent, int force_ptr)
@@ -119,9 +113,6 @@ create_copy_region(const Region_t* src, RegionList_t* dlist,
         return -1;
     }
 }
-
-
-
 
 /*
  * copy table and return relative address ready for linking

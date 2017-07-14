@@ -22,4 +22,3 @@ config LIB_PICOTCP_SOCKETS
     depends on LIB_PICOTCP && LIB_SEL4_SYNC && LIB_SEL4_VKA
     help
         Whether to build PicoTCP sockets interface.
-

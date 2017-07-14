@@ -13,13 +13,11 @@
 #ifndef __PLAT_SUPPORT_PLAT_TMU_H
 #define __PLAT_SUPPORT_PLAT_TMU_H
 
-
 #define TMU_IRQ0 COMBINER_IRQ(-1, -1)
 #define TMU_IRQ1 COMBINER_IRQ(-1, -1)
 
 #define EXYNOS_TMU_PADDR  0x0
 #define EXYNOS_TMU_SIZE   0x0
-
 
 enum tmu_id {
     TMU_CORE0_CLUSTER0,
@@ -50,7 +48,5 @@ enum tmu_id {
  * @return           0 on success
  */
 int exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu);
-
-
 
 #endif /* __PLAT_SUPPORT_PLAT_TMU_H */

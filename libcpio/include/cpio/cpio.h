@@ -35,7 +35,6 @@ struct cpio_header {
     char c_check[8];      /* Checksum. */
 };
 
-
 /**
  * Stores information about the underlying implementation.
  */
@@ -45,7 +44,6 @@ struct cpio_info {
     /// The maximum size of a file name
     unsigned int max_path_sz;
 };
-
 
 /**
  * Retrieve file information from a provided CPIO list index

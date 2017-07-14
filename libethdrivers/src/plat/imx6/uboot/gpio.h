@@ -25,7 +25,6 @@
  * MA 02111-1307 USA
  */
 
-
 #ifndef __ASM_ARCH_MX6_GPIO_H
 #define __ASM_ARCH_MX6_GPIO_H
 
@@ -54,7 +53,6 @@
  * MA 02111-1307 USA
  */
 
-
 #ifndef __ASM_ARCH_IMX_GPIO_H
 #define __ASM_ARCH_IMX_GPIO_H
 
@@ -71,10 +69,6 @@ struct gpio_regs {
 #define IMX_GPIO_NR(port, index)		((((port)-1)*32)+((index)&31))
 
 #endif
-
-
-
-
 
 /*
  * Copyright (c) 2011 The Chromium OS Authors.

@@ -78,14 +78,11 @@ static char* cpio_strcpy(char *to, const char *from) {
     return save;
 }
 
-
 static unsigned int cpio_strlen(const char *str) {
     const char *s;
     for (s = str; *s; ++s) {}
     return (s - str);
 }
-
-
 
 /*
  * Parse the header of the given CPIO entry.
@@ -210,7 +207,6 @@ int cpio_info(void *archive, struct cpio_info *info) {
 
     return 0;
 }
-
 
 void cpio_ls(void *archive, char **buf, unsigned long buf_len) {
     const char *current_filename;

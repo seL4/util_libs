@@ -16,7 +16,6 @@
 
 #pragma pack(push,1)
 
-
 /* Alert Standard Format table */
 typedef struct acpi_asf_hdr {
     acpi_header_t header;
@@ -96,7 +95,6 @@ typedef struct acpi_asf_rmcp {
     uint16_t           oem_param;
 } acpi_asf_rmcp_t;
 
-
 typedef struct acpi_asf_addr_smb {
     uint8_t smb;
 } acpi_asf_addr_smb_t;
@@ -107,7 +105,6 @@ typedef struct acpi_asf_addr {
     uint8_t            num_devices;
     // acpi_asf_addr_smbus_t smb;
 } acpi_asf_addr_t;
-
 
 #pragma pack(pop)
 
@@ -153,7 +150,6 @@ acpi_asf_alrt_next_dev(acpi_asf_alrt_t* h, acpi_asf_dev_array_t* cur)
     }
 }
 
-
 /**********************
  **** RCTL helpers ****
  ***********************/
@@ -177,7 +173,6 @@ acpi_asf_rtcl_next_ctl(acpi_asf_rctl_t* h, acpi_asf_ctl_array_t* cur)
         return NULL;
     }
 }
-
 
 /**********************
  **** ADDR helpers ****

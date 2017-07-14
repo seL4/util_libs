@@ -27,12 +27,10 @@ typedef struct acpi_bert_ber {
 // acpi_bert_ged_t ged;
 } acpi_bert_ber;
 
-
 typedef struct acpi_bert {
     acpi_header_t header;
     uint32_t      ber_length;
     uint64_t       ber;
 } acpi_bert_t;
-
 
 #pragma pack(pop)

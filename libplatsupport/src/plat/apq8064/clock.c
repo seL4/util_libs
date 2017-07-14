@@ -13,7 +13,6 @@
 #include "../../arch/arm/clock.h"
 #include "../../common.h"
 
-
 #define MXO_SRC_CLK_INV    (1U << 12)
 #define MXO_SRC_BRANCH_ENA (1U << 11)
 #define PXO_SRC_CLK_INV    (1U << 10)
@@ -35,7 +34,6 @@ struct clock_sys_regs {
     void* block2;
     void* block3;
 };
-
 
 struct clock_sys_regs clk_sys_regs;
 
@@ -143,7 +141,6 @@ clock_sys_init(ps_io_ops_t* io_ops, clock_sys_t* clk_sys)
     clk_sys->priv = d;
     return 0;
 }
-
 
 int
 apq8064_clock_sys_init(void* clk_ctl_base0, void* clk_ctl_base1,

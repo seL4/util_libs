@@ -30,8 +30,6 @@ struct combiner_gmap {
     uint32_t masked_status;
 };
 
-
-
 struct irq_combiner_map {
     struct combiner_gmap g[NGROUPS / 4];
     uint32_t res[32];
@@ -39,7 +37,6 @@ struct irq_combiner_map {
 };
 
 volatile struct irq_combiner_map *_combiner_regs = NULL;
-
 
 #define GROUP_INDEX(cirq) (COMBINER_IRQ_GET_GROUP(cirq) >> 2)
 #define GROUP_SHIFT(cirq) ((COMBINER_IRQ_GET_GROUP(cirq) & 0x3) * 8)
@@ -105,8 +102,6 @@ exynos_irq_combiner_grp_pending(irq_combiner_t* combiner, int group)
     v = regs->g[gidx].masked_status;
     return (v >> shift) & GROUP_INDEX_MASK;
 }
-
-
 
 static int
 irq_combiner_init_common(irq_combiner_t* combiner)

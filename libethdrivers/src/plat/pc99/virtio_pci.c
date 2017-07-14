@@ -221,7 +221,6 @@ static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu) {
     *mtu = 1500;
 }
 
-
 static void print_state(struct eth_driver *eth_driver) {
 }
 

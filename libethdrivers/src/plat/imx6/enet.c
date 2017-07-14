@@ -173,7 +173,6 @@ struct enet {
 
 typedef volatile struct enet_regs enet_regs_t;
 
-
 static inline enet_regs_t*
 enet_get_regs(struct enet* enet){
     return (enet_regs_t*)enet;
@@ -207,7 +206,6 @@ enet_get_regs(struct enet* enet){
 #define RCR_MII_MODE  BIT( 2) /* This field must always be set */
 #define RCR_DRT       BIT( 1) /* Don't receive while transmitting (half duplex) */
 #define RCR_LOOP      BIT( 0) /* internal loop back */
-
 
 /* Transmit control register */
 #define TCR_CRCINS    BIT( 9) /* Insert CRC on transit */
@@ -316,7 +314,6 @@ static struct clock mdc_clk = {
         .child = NULL,
     };
 
-
 void
 enet_set_speed(struct enet* enet, int speed, int full_duplex){
     enet_regs_t* regs = enet_get_regs(enet);
@@ -389,7 +386,6 @@ enet_mdio_write(struct enet * enet, uint16_t phy, uint16_t reg, uint16_t data){
     return 0;
 }
 
-
 /*******************
  *** ENET driver ***
  *******************/
@@ -407,7 +403,6 @@ int
 enet_tx_enabled(struct enet* enet){
     return enet_get_regs(enet)->tdar == TDAR_TDAR;
 }
-
 
 void
 enet_tx_enable(struct enet* enet){
@@ -474,7 +469,6 @@ enet_clr_events(struct enet * enet, uint32_t bits){
     regs->eir = e;
     return e;
 }
-
 
 struct enet *
 enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
@@ -593,8 +587,6 @@ void enet_clear_mib(struct enet* enet){
     regs->mibc &= ~MIBC_DIS;
 }
 
-
-
 void enet_print_mib(struct enet* enet){
     enet_regs_t* regs = enet_get_regs(enet);
     volatile struct mib_regs* mib = &regs->mib;
@@ -618,8 +610,6 @@ void enet_print_mib(struct enet* enet){
     printf("\n");
     regs->mibc &= ~MIBC_DIS;
 }
-
-
 
 void
 enet_print_state(struct enet * enet){

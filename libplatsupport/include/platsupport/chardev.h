@@ -20,7 +20,6 @@ typedef struct ps_chardevice ps_chardevice_t;
 
 #include <platsupport/plat/serial.h>
 
-
 enum chardev_status {
 /// Transfer completed successfully
     CHARDEV_STAT_COMPLETE,
@@ -88,7 +87,6 @@ ps_chardevice_t* ps_cdev_init(enum chardev_id id,
  */
 ps_chardevice_t* ps_cdev_new(const ps_io_ops_t* o,
                              ps_chardevice_t* d);
-
 
 /**
  * Send a character to the device. New lines will be automatically be chased

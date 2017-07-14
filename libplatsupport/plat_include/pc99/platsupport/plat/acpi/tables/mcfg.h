@@ -14,7 +14,6 @@
 #error This file should not be included directly
 #endif
 
-
 #pragma pack(push,1)
 /* These table not checked. */
 
@@ -26,7 +25,6 @@ typedef struct acpi_mcfg_desc {
     uint8_t  res[4];
 } acpi_mcfg_desc_t;
 
-
 typedef struct acpi_mcfg {
     acpi_header_t header;
     uint8_t       res[8];
@@ -34,9 +32,7 @@ typedef struct acpi_mcfg {
 //     acpi_mcfg_descriptor_t descriptor
 } acpi_mcfg_t;
 
-
 #pragma pack(pop)
-
 
 static inline acpi_mcfg_desc_t*
 acpi_mcfg_desc_first(acpi_mcfg_t* hdr)

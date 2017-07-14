@@ -25,7 +25,6 @@
 #define IMX6_OCOTP_PADDR   0x021BC000
 #define IMX6_OCOTP_SIZE    0x00004000
 
-
 #define TIMING_WAIT(x)       ((x) << 22)
 #define TIMING_SREAD(x)      ((x) << 16)
 #define TIMING_RELAX(x)      ((x) << 12)
@@ -54,7 +53,6 @@
 #define FADDR_LOCK 0x00
 #define FADDR_MAC0 0x22
 #define FADDR_MAC1 0x23
-
 
 struct ocotp_regs {
     uint32_t ctrl;            /* 000 */

@@ -88,7 +88,6 @@ enum {
         FREE_RUN_PRESCALE = 16
 } control_reg;
 
-
 #define LOAD_WIDTH 32
 #define VALUE_WIDTH 32
 #define CTRL_WIDTH 24
@@ -121,7 +120,6 @@ struct arm_data {
     uint64_t counter_start;
     sp_mode_t mode;
 };
-
 
 static pstimer_t _timers[NTIMERS];
 static struct arm_data _timer_data[NTIMERS] = {
@@ -253,8 +251,6 @@ sp_get_time(const pstimer_t *timer)
 
     return data->counter_start - ns;
 }
-
-
 
 pstimer_t *
 ps_get_timer(enum timer_id id, timer_config_t *config)

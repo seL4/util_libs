@@ -22,7 +22,6 @@
 
 #include "../../common.h"
 
-
 #define UART_DEBUG
 
 #ifdef UART_DEBUG
@@ -44,7 +43,6 @@
 /* Timeout on RX {0..15} */
 #define RX_TIMEOUT_VAL   15 /* 8*(N + 1) frames */
 
-
 #define ULCON       0x0000 /* line control */
 #define UCON        0x0004 /* control */
 #define UFCON       0x0008 /* fifo control */
@@ -61,7 +59,6 @@
 #define UINTSP      0x0034 /* interrupt source pending */
 #define UINTM       0x0038 /* interrupt mask */
 
-
 /* UTRSTAT */
 #define TRSTAT_RXTIMEOUT      BIT(3)
 #define TRSTAT_TX_EMPTY       BIT(2)
@@ -74,7 +71,6 @@
 #define FRSTAT_RXFIFO_ERR     BIT(9)
 #define FRSTAT_RXFIFO_FULL    BIT(8)
 #define FRSTAT_GET_RXFIFO(x)  (((x) >>  0) & 0xff)
-
 
 /* UCON */
 #define CON_MODE_DISABLE      0x0
@@ -104,7 +100,6 @@
 #define INT_TX    BIT(2)
 #define INT_ERR   BIT(1)
 #define INT_RX    BIT(0)
-
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
@@ -138,9 +133,6 @@ static const enum clk_id uart_clk[] = {
                                           [PS_SERIAL3] = CLK_UART3
                                       };
 
-
-
-
 #define UART_DEFN(devid) {                     \
         .id      = PS_SERIAL##devid,           \
         .paddr   = EXYNOS_UART##devid##_PADDR, \
@@ -148,7 +140,6 @@ static const enum clk_id uart_clk[] = {
         .irqs    = uart_irqs[devid],           \
         .init_fn = &uart_init                  \
     }
-
 
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(0),
@@ -291,7 +282,6 @@ exynos_uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback
         return uart_read_fifo(d, (char*)vdata, count);
     }
 }
-
 
 static void
 uart_handle_rx_irq(ps_chardevice_t* d)
@@ -553,13 +543,11 @@ serial_init(enum chardev_id id, ps_io_ops_t* ops,
     return exynos_serial_init(id, vaddr, &ops->mux_sys, clk, dev);
 }
 
-
 int
 uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
 {
     return serial_init(defn->id, (ps_io_ops_t*)ops, dev);
 }
-
 
 ps_chardevice_t*
 ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)

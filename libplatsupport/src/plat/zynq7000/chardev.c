@@ -30,7 +30,6 @@ static const int uart1_irqs[] = {UART1_IRQ, -1};
     .init_fn = &uart_init           \
 }
 
-
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(0),
     UART_DEFN(1),

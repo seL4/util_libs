@@ -10,7 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
 #ifndef _PLATSUPPORT_PLAT_SYSREG_H_
 #define _PLATSUPPORT_PLAT_SYSREG_H_
 
@@ -21,13 +20,11 @@
 #define EXYNOS5_SYSREG_PADDR   0x10050000
 #define EXYNOS5_SYSREG_SIZE    0x1000
 
-
 struct sysreg {
     void* sysreg_vaddr[1];
     void* pwrreg_vaddr[5];
 };
 typedef struct sysreg sysreg_t;
-
 
 /**
  * Initialise the system register subsystem
@@ -36,7 +33,6 @@ typedef struct sysreg sysreg_t;
  * @return             0 on success
  */
 int exynos5_sysreg_init(ps_io_ops_t* ops, sysreg_t* sysreg);
-
 
 enum usb_phy_id {
     USBPHY_USB2,
@@ -50,6 +46,5 @@ enum usb_phy_id {
  * @return            0 on success
  */
 int exynos5_sysreg_usbphy_enable(enum usb_phy_id phy_id, sysreg_t* sysreg);
-
 
 #endif /* _PLATSUPPORT_PLAT_SYSREG_H_ */

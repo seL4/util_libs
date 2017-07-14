@@ -13,7 +13,6 @@
 #ifndef _PLATSUPPORT_PLAT_I2C_H_
 #define _PLATSUPPORT_PLAT_I2C_H_
 
-
 enum i2c_id {
     I2C0,
     I2C1,

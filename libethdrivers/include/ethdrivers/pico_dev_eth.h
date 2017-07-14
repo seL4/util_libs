@@ -21,26 +21,25 @@
 #include <pico_stack.h>
 #include <pico_device.h>
 
-
 typedef struct pico_device_eth {
     // Pico device, wrapped inside this eth device
     struct pico_device pico_dev;
-    
+
     // Underlying ethernet driver struct
     struct eth_driver driver;
-    
+
     // Buffer management
     ps_dma_man_t dma_man;
     int num_free_bufs;
     dma_addr_t **bufs;
-    dma_addr_t * dma_bufs; 
+    dma_addr_t * dma_bufs;
 
     int next_free_buf;
     int *buf_pool;
     int *rx_queue;
     int *rx_lens;
-    int rx_count;    
-                                                 
+    int rx_count;
+
 } pico_device_eth;
 
 /*
@@ -57,4 +56,3 @@ static inline void ethif_pico_handle_irq(pico_device_eth *iface, int irq) {
 }
 
 #endif // CONFIG_LIB_PICOTCP
-

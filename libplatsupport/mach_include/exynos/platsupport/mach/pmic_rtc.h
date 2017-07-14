@@ -29,8 +29,6 @@ struct rtc_time {
     uint8_t date;
 };
 
-
-
 typedef struct pmic_rtc {
     i2c_slave_t i2c_slave;
 } pmic_rtc_t;

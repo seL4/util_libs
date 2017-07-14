@@ -56,10 +56,6 @@
 #define XEINT30  GPIOID(GPX3, 6)
 #define XEINT31  GPIOID(GPX3, 7)
 
-
-
-
-
 enum gpio_bank {
     GPIO_LEFT_BANK,
     GPIO_RIGHT_BANK,
@@ -125,7 +121,6 @@ enum gpio_port {
     ETC8 = GPIOPORT(AUDIO,  5), /* 0x0A0 */
     GPV4 = GPIOPORT(AUDIO,  6), /* 0x0C0 */
 };
-
 
 /**
  * Initialise the exynos GPIO system given an exynos MUX subsystem

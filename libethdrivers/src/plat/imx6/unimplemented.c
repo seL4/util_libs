@@ -10,7 +10,6 @@
  * @TAG(DATA61_GPL)
  */
 
-
 #include <stdio.h>
 #include <stdint.h>
 #include <ctype.h>

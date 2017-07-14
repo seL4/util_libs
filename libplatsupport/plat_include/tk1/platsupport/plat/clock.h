@@ -60,9 +60,6 @@
 #define PLLP_1_START 0x67c
 #define PLLP_1_END 0x684
 
-
-
-
 /* These are the input clk sources to the CAR module */
 enum ext_clk_input_sources {
     PMIC,
@@ -96,7 +93,6 @@ enum clk_sources {
     DFLLCPU,
     GPCPLL
 };
-
 
 /* Primary clocks */
 enum primary_clk_srcs {
@@ -276,7 +272,6 @@ typedef enum register_access_type {
     RST_VAL,
     NUM_ACCESS_TYPES
 } register_access_type_t;
-
 
 struct enbrst_type {
     register_bank_t rb;

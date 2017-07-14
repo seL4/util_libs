@@ -25,7 +25,6 @@ static const int gsbi5_uart_irqs[] = {GSBI5_UART_IRQ, -1};
 static const int gsbi6_uart_irqs[] = {GSBI6_UART_IRQ, -1};
 static const int gsbi7_uart_irqs[] = {GSBI7_UART_IRQ, -1};
 
-
 #define GSBI_UART_DEFN(devid) {          \
     .id      = GSBI##devid##_UART,       \
     .paddr   = GSBI##devid##_UART_PADDR, \
@@ -33,8 +32,6 @@ static const int gsbi7_uart_irqs[] = {GSBI7_UART_IRQ, -1};
     .irqs    = gsbi##devid##_uart_irqs,  \
     .init_fn = &uart_init                \
 }
-
-
 
 static const struct dev_defn dev_defn[] = {
     GSBI_UART_DEFN(3),

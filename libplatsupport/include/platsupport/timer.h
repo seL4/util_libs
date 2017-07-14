@@ -45,7 +45,6 @@ typedef struct {
     uint32_t irqs;
 } timer_properties_t;
 
-
 struct pstimer {
     /* Properties of this timer */
     timer_properties_t properties;
@@ -152,7 +151,6 @@ timer_oneshot_relative(pstimer_t* device, uint64_t ns)
 {
     return device->oneshot_relative(device, ns);
 }
-
 
 static inline int
 timer_periodic(pstimer_t* device, uint64_t ns)

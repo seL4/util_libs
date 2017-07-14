@@ -30,8 +30,6 @@
 #  define MAP_DEBUG(x) do{;}while(0)
 #endif
 
-
-
 #ifdef DBG_PKT
 #  define PKT_DEBUG(x) do{x;}while(0)
 #  ifdef DBG_PRINT_PAYLOAD
@@ -85,7 +83,6 @@
 
 #define set_colour(x) printf(x);
 
-
 #define cprintf(col, ...) do { \
         set_colour(col);       \
         ZF_LOGD(__VA_ARGS__);  \
@@ -98,8 +95,6 @@
         ZF_LOGF("unimplemented"); \
         while(1); \
     } while(0)
-
-
 
 #ifdef DBG_PKT
 
@@ -156,6 +151,5 @@ static inline void print_packet(const char* col, void* packet, int length){
     printf("\n");
 }
 #endif
-
 
 #endif /*  __DEBUG_H__ */

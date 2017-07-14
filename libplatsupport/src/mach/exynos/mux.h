@@ -29,8 +29,6 @@
 #define DGPIO(...) do{}while(0)
 #endif
 
-
-
 /* Value encodings */
 #define MUXVALUE_CPD(con, pud, drv) ((con) << 0 | (pud) << 4 | (drv) << 6)
 #define MUXVALUE_CON(mval)          (((mval) >> 0) & 0xf)
@@ -45,7 +43,6 @@
 #define DRV2X        0x2
 #define DRV3X        0x1
 #define DRV4X        0x3
-
 
 struct mux_cfg {
     uint32_t con;
@@ -87,7 +84,6 @@ struct mux_bank {
     uint32_t res10[44];
 };
 
-
 struct mux_feature_data {
     uint16_t port;
     uint8_t pin;
@@ -95,6 +91,5 @@ struct mux_feature_data {
 };
 
 extern struct mux_feature_data* feature_data[];
-
 
 #endif /* __PLATSUPPORT_MACH_MUX_H__ */

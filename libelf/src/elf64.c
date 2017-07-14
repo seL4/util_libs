@@ -217,7 +217,7 @@ elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
 		     uint64_t *p_memsz)
 {
 	struct Elf64_Phdr *segments;
-		
+
 	segments = elf64_getProgramSegmentTable(elfFile);
 	*p_vaddr = segments[segment].p_vaddr;
 	*p_paddr = segments[segment].p_paddr;
@@ -284,7 +284,6 @@ elf64_showDetails(void *elfFile, int size, char *name)
 	/*
 	 * print out info about each section
 	 */
-
 
 	/*
 	 * print out info about each program segment

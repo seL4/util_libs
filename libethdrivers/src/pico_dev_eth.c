@@ -321,7 +321,6 @@ struct pico_device *pico_eth_create_no_malloc(char *name,
     return (struct pico_device *)eth_dev;
 }
 
-
 struct pico_device *pico_eth_create(char *name,
                                     ethif_driver_init driver_init, void *driver_config, ps_io_ops_t io_ops) {
 
@@ -336,4 +335,3 @@ struct pico_device *pico_eth_create(char *name,
 }
 
 #endif // CONFIG_LIB_PICOTCP
-

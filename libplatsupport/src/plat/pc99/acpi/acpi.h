@@ -54,7 +54,6 @@
     ACPI_TABLE_TEST(table, MCFG) || \
     ACPI_TABLE_TEST(table, DSDT) )
 
-
 /***************
  *** Helpers ***
  ***************/
@@ -64,8 +63,6 @@
  */
 uint8_t
 acpi_calc_checksum(const char* start, int length);
-
-
 
 /*
  * return the length of any table

@@ -13,7 +13,6 @@
 #ifndef __PLATSUPPORT_SERIAL_H__
 #define __PLATSUPPORT_SERIAL_H__
 
-
 #include <platsupport/chardev.h>
 #include <platsupport/plat/serial.h>
 

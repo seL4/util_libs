@@ -33,7 +33,6 @@
 #define CMU_CPU2_SIZE      0x1000
 #define CMU_ISP_SIZE       0x1000
 
-
 /* Root clock frequencies */
 #define XUSBXTI_FREQ 24000000UL
 #define XXTI_FREQ    0UL /* ? */
@@ -66,8 +65,6 @@
 #define CLKID_DIVCOPY      CLKID(CPU1, 1, 0)
 #define CLKID_SCLKHPM      CLKID(CPU1, 1, 1)
 #define CLKID_ACLK_CORES   CLKID(CPU1, 1, 2)
-
-
 
 /************************
  ****       PLL      ****
@@ -196,7 +193,6 @@ _div_init(clk_t* clk)
     return clk;
 }
 
-
 static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL   , div, CLKID_SCLKAPLL)    };
 static struct clock divcore_clk   = { CLK_OPS(DIVCORE    , div, CLKID_DIVCORE)     };
 static struct clock arm_clk       = { CLK_OPS(DIVCORE2   , div, CLKID_DIVCORE2)    };
@@ -208,8 +204,6 @@ static struct clock atclk_clk     = { CLK_OPS(ATCLK      , div, CLKID_ATCLK)    
 static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG   , div, CLKID_PCLK_DBG)    };
 static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM    , div, CLKID_SCLKHPM)     };
 static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, CLKID_DIVCOPY)     };
-
-
 
 /***************
  **** MUXes ****
@@ -279,8 +273,6 @@ static struct clock sclk_mpll_userc_clk = { CLK_OPS(SCLKMPLL_USERC, mux, NULL) }
 static struct clock muxcore_clk = { CLK_OPS(MUXCORE, mux, NULL) };
 static struct clock muxhpm_clk = { CLK_OPS(MUXHPM, mux, NULL) };
 
-
-
 /***************
  ****  SPI  ****
  ***************/
@@ -349,8 +341,6 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
     return clock_sys_common_init(clock_sys);
 }
 
-
-
 void
 clk_print_clock_tree(clock_sys_t* sys UNUSED)
 {
@@ -388,7 +378,6 @@ clk_t* ps_clocks[] = {
     [CLK_SPI0_ISP]       = &spi0_isp_clk,
     [CLK_SPI1_ISP]       = &spi1_isp_clk,
 };
-
 
 /* These frequencies are NOT the recommended
  * frequencies. They are to be used when we

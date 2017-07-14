@@ -77,7 +77,6 @@ ldo_valid(pmic_t* pmic, int ldo)
     return !(nldo < 0 || ldo <= 0 || ldo > nldo);
 }
 
-
 int
 pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
 {
@@ -118,7 +117,6 @@ pmic_nldo(pmic_t* pmic)
     assert(cfg);
     return cfg->nldo;
 }
-
 
 int
 pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt)
@@ -196,7 +194,6 @@ pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode)
     }
 }
 
-
 int
 pmic_get_reset_delay(pmic_t* pmic)
 {
@@ -226,7 +223,6 @@ pmic_set_reset_delay(pmic_t* pmic, int ms)
         return data;
     }
 }
-
 
 void
 pmic_print_status(pmic_t* pmic)

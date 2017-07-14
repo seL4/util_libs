@@ -16,7 +16,6 @@
 #include <string.h>
 #include <utils/util.h>
 
-
 #define EXYNOS5_CMU_CPU_PADDR   0x10010000
 #define EXYNOS5_CMU_CORE_PADDR  0x10014000
 #define EXYNOS5_CMU_ACP_PADDR   0x10018000
@@ -79,11 +78,9 @@ static enum clk_id clk_src_peri_blk[] = {
                                             CLK_SCLKCPLL
                                         };
 
-
 volatile struct clk_regs* _clk_regs[NCLKREGS];
 
 static struct clock master_clk = { CLK_OPS(MASTER, default_clk, NULL) };
-
 
 static struct mpsk_tbl _ambcgpll_tbl[] = {
     {  200, PLL_MPS( 100,  3, 2), 0 },
@@ -136,9 +133,6 @@ static struct mpsk_tbl _vpll_tbl[] = {
     { 600, PLL_MPS( 100, 2, 1),     0 },
 };
 
-
-
-
 static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, MPS, _ambcgpll_tbl);
 static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, MPS, _ambcgpll_tbl);
 static struct pll_priv sclkcpll_priv = PLL_PRIV(SCLKCPLL, MPS, _ambcgpll_tbl);
@@ -153,9 +147,6 @@ static struct clock sclkcpll_clk  = { CLK_OPS(SCLKCPLL, pll, &sclkcpll_priv) };
 static struct clock sclkgpll_clk  = { CLK_OPS(SCLKGPLL, pll, &sclkgpll_priv) };
 static struct clock sclkepll_clk  = { CLK_OPS(SCLKEPLL, pll, &sclkepll_priv) };
 static struct clock sclkvpll_clk  = { CLK_OPS(SCLKVPLL, pll, &sclkvpll_priv) };
-
-
-
 
 /* The SPI div register is a special case as we have 2 dividers, one of which
  * is 2 nibbles wide */
@@ -254,8 +245,6 @@ static struct clock spi1_clk     = { CLK_OPS(SPI1    , spi, CLKID_SPI1    ) };
 static struct clock spi2_clk     = { CLK_OPS(SPI2    , spi, CLKID_SPI2    ) };
 static struct clock spi0_isp_clk = { CLK_OPS(SPI0_ISP, spi, CLKID_SPI0_ISP) };
 static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, CLKID_SPI1_ISP) };
-
-
 
 static freq_t
 _peric_clk_get_freq(clk_t* clk)
@@ -384,7 +373,6 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
     return clock_sys_common_init(clock_sys);
 }
 
-
 void
 clk_print_clock_tree(clock_sys_t* sys)
 {
@@ -392,7 +380,6 @@ clk_print_clock_tree(clock_sys_t* sys)
     clk_t* clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");
 }
-
 
 clk_t* ps_clocks[] = {
     [CLK_MASTER  ]   = &master_clk,

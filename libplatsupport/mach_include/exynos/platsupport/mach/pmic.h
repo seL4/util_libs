@@ -21,7 +21,6 @@
 #define MAX77686_BUSADDR  0x12
 #define MAX77802_BUSADDR  0x12
 
-
 typedef struct pmic {
     i2c_slave_t i2c_slave;
     void* priv;;
@@ -47,7 +46,6 @@ int pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic);
  * Print the status of of the PMIC and its power rails
  */
 void pmic_print_status(pmic_t* pmic);
-
 
 /**
  * Returns the number of LDOs that the PMIC controls

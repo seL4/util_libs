@@ -16,7 +16,6 @@
 
 #pragma pack(push,1)
 
-
 #define ACPI_APIC_LOCAL            0x00
 #define ACPI_APIC_IOAPIC           0x01
 #define ACPI_APIC_ISO              0x02
@@ -159,9 +158,6 @@ typedef struct acpi_madt_gicdist {
     uint8_t             res2[4];
 } acpi_madt_gicdist_t;
 
-
-
-
 /* MADT structure */
 typedef struct acpi_madt {
     acpi_header_t header;
@@ -172,7 +168,6 @@ typedef struct acpi_madt {
 } acpi_madt_t;
 
 #pragma pack(pop)
-
 
 /********************************
  **** MADT sub table helpers ****

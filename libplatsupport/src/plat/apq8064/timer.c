@@ -16,7 +16,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -121,7 +120,6 @@ get_slp_hz(void)
 #define GSSGPTSTS_TMR0_EN               TMRSTS_EN(0)
 #define GSSGPTSTS_TMR0_PEND             TMRSTS_PEND(0)
 
-
 #define RPMGPT0_DIV(x)                  ((x) - 1)
 #define RPMGPT0_DIV4                    RPMGPT0_DIV(4)
 #define RPMGPT0_DIV3                    RPMGPT0_DIV(3)
@@ -207,10 +205,8 @@ get_slp_hz(void)
         timer->get_nth_irq      = _common_get_nth_irq;          \
     }while(0)
 
-
 #define TIMER_VADDR_OFFSET(base, offset) ((void*)((uintptr_t)base + offset))
 #define TIMER_REG(base, offset)          *(volatile uint32_t *)TIMER_VADDR_OFFSET(base, offset)
-
 
 /** Timer register maps **/
 struct tmr_regs {
@@ -255,13 +251,7 @@ struct gpt_regs {
 };
 typedef volatile struct gpt_regs gpt_regs_t;
 
-
-
-
 static pstimer_t timers[NTIMERS];
-
-
-
 
 static uint32_t
 _common_get_nth_irq(const pstimer_t *timer, uint32_t n)
@@ -269,7 +259,6 @@ _common_get_nth_irq(const pstimer_t *timer, uint32_t n)
     int id = timer - timers;
     return apq8064_timer_irqs[id];
 }
-
 
 /**** GPT timer functions ****/
 static int
@@ -381,8 +370,6 @@ _gpt_handle_irq(const pstimer_t *timer, uint32_t irq)
     /* Nothing to do */
 }
 
-
-
 /* DGT timer functions */
 static int
 _dgt_timer_start(const pstimer_t *timer)
@@ -406,7 +393,6 @@ _dgt_get_time(const pstimer_t *timer)
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
     return regs->cnt;
 }
-
 
 static int
 _dgt_periodic(const pstimer_t *timer, uint64_t ns)
@@ -441,7 +427,6 @@ _dgt_handle_irq(const pstimer_t *timer, uint32_t irq)
     /* Nothing to do */
 }
 
-
 /**** TMR ****/
 static int
 _tmr_timer_start(const pstimer_t *timer)
@@ -465,7 +450,6 @@ _tmr_get_time(const pstimer_t *timer)
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     return regs->count;
 }
-
 
 static int
 _tmr_periodic(const pstimer_t *timer, uint64_t ns)
@@ -516,7 +500,6 @@ _tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
     /* Reset the IRQ */
     regs->clear_int = 0xC0FFEE;
 }
-
 
 /**** WDT ****/
 static int

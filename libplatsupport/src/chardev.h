@@ -26,7 +26,6 @@ struct dev_defn {
                    struct ps_chardevice* dev);
 };
 
-
 static inline void*
 chardev_map(const struct dev_defn* d, const ps_io_ops_t* o)
 {

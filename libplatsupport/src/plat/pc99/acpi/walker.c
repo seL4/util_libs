@@ -169,7 +169,6 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
 
     void *table_vaddr = (void *) header;
 
-
     type = acpi_sig_id(header->signature);
 
     // optimistic: remove later if the table is bad

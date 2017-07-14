@@ -41,7 +41,6 @@ typedef struct RegionList {
     size_t offset;
 } RegionList_t;
 
-
 #define REGIONLIST_INIT(_offset) (RegionList_t) \
     { \
          .region_count = 0, \
@@ -79,7 +78,6 @@ Region_t new_region(region_type_t type, void *start, size_t size, int parent)
 
     return r;
 }
-
 
 static inline int
 add_region_size(RegionList_t* region_list, region_type_t type,

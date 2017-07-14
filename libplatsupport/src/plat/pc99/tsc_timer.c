@@ -27,7 +27,6 @@ typedef struct tsc_data {
     uint64_t freq;
 } tsc_data_t;
 
-
 /* interface functions */
 static uint64_t
 tsc_get_time(const pstimer_t* device)

@@ -23,9 +23,7 @@ typedef struct acpi_xsdt {
 //    uint64_t        entry[];
 } acpi_xsdt_t;
 
-
 #pragma pack(pop)
-
 
 /* retrieve the number of entries in an xsdt table */
 static inline int

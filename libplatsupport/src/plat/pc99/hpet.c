@@ -45,7 +45,6 @@ typedef struct hpet {
     uint32_t irq;
 } hpet_t;
 
-
 /* HPET timer config bits - these can't be changed, but allow us to
  * find out details of the timer */
 
@@ -164,7 +163,6 @@ hpet_start(const pstimer_t* device)
     return 0;
 }
 
-
 static int
 hpet_stop(const pstimer_t* device)
 {
@@ -183,7 +181,6 @@ hpet_stop(const pstimer_t* device)
     COMPILER_MEMORY_RELEASE();
     return 0;
 }
-
 
 static uint64_t
 hpet_get_time(const pstimer_t* device)
@@ -218,13 +215,11 @@ hpet_oneshot_absolute(const pstimer_t *device, uint64_t absolute_ns)
     return 0;
 }
 
-
 static int
 hpet_oneshot_relative(const pstimer_t* device, uint64_t relative_ns)
 {
     return hpet_oneshot_absolute(device, hpet_get_time(device) + relative_ns);
 }
-
 
 static int
 hpet_periodic(const pstimer_t* device, uint64_t ns)

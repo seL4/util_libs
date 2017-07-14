@@ -10,7 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
@@ -84,7 +83,6 @@ typedef struct tmr {
     uint32_t                        irq;
 } tmr_t;
 
-
 static int
 tmr_start(const pstimer_t *timer)
 {
@@ -93,7 +91,6 @@ tmr_start(const pstimer_t *timer)
 
     return 0;
 }
-
 
 static int
 tmr_stop(const pstimer_t *timer)
@@ -124,7 +121,6 @@ tmr_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
     /* epit is a count-down timer, can't set relative timeouts */
     return ENOSYS;
 }
-
 
 static int
 tmr_periodic(const pstimer_t *timer, uint64_t ns)

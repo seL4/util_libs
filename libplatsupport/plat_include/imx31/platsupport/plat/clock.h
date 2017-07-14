@@ -22,6 +22,4 @@ enum clock_gate {
     NCLKGATES,
 };
 
-
-
 #endif /* _IMX31_CLOCK_H */

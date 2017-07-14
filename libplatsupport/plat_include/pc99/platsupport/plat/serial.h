@@ -57,7 +57,6 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = PC99_SERIAL_COM1
 #endif
 
-
 };
 
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H */

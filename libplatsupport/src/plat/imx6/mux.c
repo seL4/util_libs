@@ -22,7 +22,6 @@
 #define DMUX(...) do{}while(0)
 #endif
 
-
 #define IMX6_IOMUXC_PADDR 0x020E0000
 #define IMX6_IOMUXC_SIZE  0x1000
 
@@ -36,7 +35,6 @@
 /* NOTE: Daisy field is only 1 but for some registers */
 #define IOMUXC_IS_DAISY(x)   ((x) & 0x3)
 #define IOMUXC_IS_DAISY_MASK IOMUXC_IS_DAISY(0x3)
-
 
 struct imx6_iomuxc_regs {
     /*** GPR ***/
@@ -654,7 +652,6 @@ static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux)
     mux->priv = imx6_mux;
 }
 
-
 static int
 imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
@@ -799,7 +796,6 @@ imx6_mux_init_common(mux_sys_t* mux)
     return 0;
 }
 
-
 int
 imx6_mux_init(void* iomuxc, mux_sys_t* mux)
 {
@@ -808,7 +804,6 @@ imx6_mux_init(void* iomuxc, mux_sys_t* mux)
     }
     return imx6_mux_init_common(mux);
 }
-
 
 int
 mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)

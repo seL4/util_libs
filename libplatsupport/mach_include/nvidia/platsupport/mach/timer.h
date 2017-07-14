@@ -59,7 +59,6 @@ typedef enum {
 #define TMRUS_OFFSET        0x10
 #define TMR_SHARED_OFFSET   0x1a0
 
-
 /* all timers are in on 4K page */
 #define NV_TMR_PADDR    0x60005000
 #define NV_TMR_SIZE     0x1000

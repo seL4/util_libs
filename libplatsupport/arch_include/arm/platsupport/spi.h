@@ -50,7 +50,6 @@ typedef void (*spi_chipselect_fn)(const spi_slave_config_t* cfg, int state);
 
 typedef void (*spi_callback_fn)(spi_bus_t* spi_bus, int status, void* token);
 
-
 /**
  * Initialise an SPI bus
  * @param[in]  id      The id of the SPI bus to initialise

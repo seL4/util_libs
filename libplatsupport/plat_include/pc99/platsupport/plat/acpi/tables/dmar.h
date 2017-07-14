@@ -32,8 +32,6 @@ typedef struct acpi_dmar_hdr {
 //    acpi_dmar_remap_hdr_t sheader;
 } acpi_dmar_hdr_t;
 
-
-
 /*******************
  *** Entry types ***
  *******************/
@@ -43,10 +41,6 @@ typedef struct acpi_dmar_hdr {
 #define ACPI_DMAR_ATSR_TYPE 2
 #define ACPI_DMAR_RHSA_TYPE 3
 #define ACPI_DMAR_TYPE_IS_VALID(x) ((x) < 4)
-
-
-
-
 
 // device path structure
 typedef struct acpi_device_path {
@@ -78,7 +72,6 @@ typedef struct acpi_dmar_dscope {
 #define ACPI_DSCOPE_VALID(x)     \
          ((uint8_t)( (x) - ACPI_DSCOPE_PCI_ENDPOINT ) < 4)
 
-
 /******************************
  **** Sub tables of DMAR ******
  ******************************/
@@ -105,7 +98,6 @@ typedef struct acpi_dmar_drhd {
 //    acpi_dmar_dscope_t device_scope;
 } acpi_dmar_drhd_t;
 
-
 // Root Port ATS Capability Reporting
 typedef struct acpi_dmar_atsr {
     acpi_dmar_remap_hdr_t header;
@@ -125,8 +117,6 @@ typedef struct acpi_dmar_rhsa {
 } acpi_dmar_rhsa_t;
 
 #pragma pack(pop)
-
-
 
 /********************************
  **** DMAR sub table helpers ****
@@ -196,7 +186,6 @@ acpi_dmar_first_remap_type(acpi_dmar_hdr_t* tbl, int type)
     }
 }
 
-
 /***********************************
  **** DMAR device scope helpers ****
  ***********************************/
@@ -239,9 +228,6 @@ acpi_dmar_first_dscope(acpi_dmar_remap_hdr_t* h)
         return NULL;
     }
 }
-
-
-
 
 /* Retrieve the next device scope */
 static inline acpi_dmar_dscope_t*

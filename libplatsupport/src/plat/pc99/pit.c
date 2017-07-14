@@ -113,7 +113,6 @@ configure_pit(const pstimer_t *timer, uint8_t mode, uint64_t ns)
     return 0;
 }
 
-
 /* interface functions */
 
 static int
@@ -122,7 +121,6 @@ pit_start(const pstimer_t* device)
     /* we don't need to do anything to start the pit */
     return 0;
 }
-
 
 static int
 pit_stop(const pstimer_t* device)
@@ -133,7 +131,6 @@ pit_stop(const pstimer_t* device)
     ps_io_port_ops_t *ops = ((pit_data_t *) device->data)->ops;
     return set_pit_mode(ops, 0, PITCR_MODE_ONESHOT);
 }
-
 
 static uint64_t
 pit_get_time(const pstimer_t* device)
@@ -167,7 +164,6 @@ pit_oneshot_relative(const pstimer_t* device, uint64_t relative_ns)
 {
     return configure_pit(device, PITCR_MODE_ONESHOT, relative_ns);
 }
-
 
 static int
 pit_periodic(const pstimer_t* device, uint64_t ns)

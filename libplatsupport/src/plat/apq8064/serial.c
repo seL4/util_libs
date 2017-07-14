@@ -29,7 +29,6 @@
 
 #define UART_REG(base, x)    ((volatile uint32_t *)((uintptr_t)(base) + (x)))
 
-
 static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {

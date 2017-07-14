@@ -39,7 +39,6 @@ vendor = ""; vval = "";
 for line in helper_lines:
     line = line.strip();
 
-
     rv = re.search(r'^#define PCI_VENDOR_ID_([A-Z0-9_]+)\s+(\w+)', line);
     if rv:
         (vendor, vval) = (rv.group(1).lower(), rv.group(2));

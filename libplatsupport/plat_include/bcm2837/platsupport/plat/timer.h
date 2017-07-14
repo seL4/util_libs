@@ -21,7 +21,6 @@
 #define SP804_TIMER_BUSADDR    0x7E00B000
 #define SP804_TIMER_PADDR      (SP804_TIMER_BUSADDR-BUS_ADDR_OFFSET+PADDDR_OFFSET)
 
-
 /* Timers */
 enum timer_id {
     SP804,

@@ -13,7 +13,6 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-
 struct apq8064_mux_regs {
     int dummy;
 };
@@ -33,7 +32,6 @@ static inline void set_mux_priv(mux_sys_t* mux, struct apq8064_mux* apq8064_mux)
     mux->priv = apq8064_mux;
 }
 
-
 static int
 apq8064_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
@@ -50,7 +48,6 @@ apq8064_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
     }
 }
 
-
 static int
 apq8064_mux_init_common(mux_sys_t* mux)
 {
@@ -59,7 +56,6 @@ apq8064_mux_init_common(mux_sys_t* mux)
     return 0;
 }
 
-
 int
 apq8064_mux_init(void* bank1,
                  mux_sys_t* mux)
@@ -67,7 +63,6 @@ apq8064_mux_init(void* bank1,
     (void)bank1;
     return apq8064_mux_init_common(mux);
 }
-
 
 int
 mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)

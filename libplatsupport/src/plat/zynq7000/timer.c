@@ -15,7 +15,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -95,7 +94,6 @@ static freq_t _ttc_clk_get_freq(clk_t* clk);
 static freq_t _ttc_clk_set_freq(clk_t* clk, freq_t hz);
 static void _ttc_clk_recal(clk_t* clk);
 static clk_t* _ttc_clk_init(clk_t* clk);
-
 
 static pstimer_t _timers[NTIMERS];
 static struct ttc_data _timer_data[NTIMERS] = {
@@ -307,7 +305,6 @@ _ttc_periodic(const pstimer_t *timer, uint64_t ns)
         return error;
     }
 
-
     ttc_tmr_regs_t* regs = timer_get_regs(timer);
 
     *regs->interval = interval;
@@ -454,7 +451,6 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
 
     return timer;
 }
-
 
 pstimer_t*
 ps_init_timer(int _id, ps_io_ops_t* io_ops)

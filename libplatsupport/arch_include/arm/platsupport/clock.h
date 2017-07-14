@@ -65,7 +65,6 @@ struct clock {
     void (*recal)(clk_t*);
 };
 
-
 /**
  * Determine if a clock subsystem structure is valid
  * @param[in] clock_sys  A handle to the clock subsystem
@@ -75,7 +74,6 @@ static inline int clock_sys_valid(const clock_sys_t* clock_sys)
 {
     return clock_sys && clock_sys->priv;
 }
-
 
 /**
  * Initialise the clock subsystem
@@ -174,7 +172,6 @@ static inline freq_t clk_get_freq(clk_t* clk)
     assert(clk->get_freq);
     return clk->get_freq(clk);
 }
-
 
 /**
  * Register a clock as a child of another

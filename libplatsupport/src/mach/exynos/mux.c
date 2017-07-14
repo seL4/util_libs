@@ -17,10 +17,8 @@
 #include "../../services.h"
 #include "mux.h"
 
-
 #define BITFIELD_SHIFT(x, bits)    ((x) * (bits))
 #define BITFIELD_MASK(x, bits)     (MASK(bits) << BITFIELD_SHIFT(x, bits))
-
 
 #define EINTCON_LOW  0x0
 #define EINTCON_HIGH 0x1
@@ -197,7 +195,6 @@ exynos_mux_init(void* gpioleft, void* gpioright, void* gpioc2c,
     return exynos_mux_init_common(mux);
 }
 
-
 int
 mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
 {
@@ -208,7 +205,6 @@ mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
     MAP_IF_NULL(io_ops, EXYNOS_GPIOAUDIO, _bank[GPIO_AUDIO_BANK]);
     return exynos_mux_init_common(mux);
 }
-
 
 /****************** GPIO ******************/
 
@@ -226,7 +222,6 @@ gpio_get_mux(const gpio_t *gpio)
     assert(gpio);
     return gpio_sys_get_mux(gpio->gpio_sys);
 }
-
 
 static struct mux_cfg*
 get_gpio_cfg(gpio_t* gpio) {
@@ -439,7 +434,6 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
     return 0;
 }
 
-
 static int
 exynos_gpio_write(gpio_t* gpio, const char* data, int len)
 {
@@ -487,7 +481,6 @@ exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys)
         return 0;
     }
 }
-
 
 int
 gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)

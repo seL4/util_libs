@@ -29,5 +29,4 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = ZYNQ_UART1
 };
 
-
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

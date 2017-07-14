@@ -85,7 +85,6 @@ enum timer_id {
 };
 #define TMR_DEFAULT TMR_KPSS_GPT0
 
-
 static const uintptr_t apq8064_timer_paddrs[] = {
     [TMR_PPSS_XO_TMR0 ] = PPSS_XO_TIMERS_PADDR,
     [TMR_PPSS_XO_TMR1 ] = PPSS_XO_TIMERS_PADDR,
@@ -128,13 +127,10 @@ static const int apq8064_timer_irqs[] = {
     [TMR_GSS_WDT1     ] = GSS_WDT1_INTERRUPT
 };
 
-
-
 typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;
 } timer_config_t;
-
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
 

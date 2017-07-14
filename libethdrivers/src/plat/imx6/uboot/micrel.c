@@ -103,7 +103,7 @@ void print_phyregs(struct phy_device *phydev){
 	    uint16_t val = phy_read(phydev, MDIO_DEVAD_NONE, i);
         printf("%3d | 0x%04x\n", i, val);
     }
-	
+
     printf("extended\n");
     for(i = 257; i < 264; i++){
 	    uint16_t val = ksz9021_phy_extended_read(phydev, i);

@@ -13,7 +13,6 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-
 struct omap3_mux_regs {
     int dummy;
 };
@@ -33,7 +32,6 @@ static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux)
     mux->priv = omap3_mux;
 }
 
-
 static int
 omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
@@ -50,7 +48,6 @@ omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
     }
 }
 
-
 static int
 omap3_mux_init_common(mux_sys_t* mux)
 {
@@ -59,7 +56,6 @@ omap3_mux_init_common(mux_sys_t* mux)
     return 0;
 }
 
-
 int
 omap3_mux_init(void* bank1,
                mux_sys_t* mux)
@@ -67,7 +63,6 @@ omap3_mux_init(void* bank1,
     (void)bank1;
     return omap3_mux_init_common(mux);
 }
-
 
 int
 mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)

@@ -94,8 +94,6 @@ enum irq_combiner_id {
 #define XEINT14_CIRQ            COMBINER_IRQ(31, 0)
 #define XEINT15_CIRQ            COMBINER_IRQ(31, 1)
 
-
-
 #define EXYNOS5_IRQ_COMBINER_PADDR 0x10440000
 #define EXYNOS5_IRQ_COMBINER_SIZE  0x1000
 

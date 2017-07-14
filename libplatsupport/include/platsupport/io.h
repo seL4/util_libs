@@ -273,8 +273,6 @@ struct ps_io_ops {
 #endif
 };
 
-
-
 /**
  * In place reads/writes of device register bitfields
  *

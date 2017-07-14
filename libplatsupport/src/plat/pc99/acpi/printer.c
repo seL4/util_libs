@@ -35,7 +35,6 @@ pprint(char c)
     return '.';
 }
 
-
 void
 colour_bf(int i, const char* ptr)
 {
@@ -160,7 +159,6 @@ print_dscope(acpi_dmar_remap_hdr_t* head, acpi_dmar_dscope_t* dscope)
     }
 }
 
-
 static void
 print_dmar(acpi_dmar_hdr_t* dmar)
 {
@@ -217,7 +215,6 @@ print_dmar(acpi_dmar_hdr_t* dmar)
         sub = acpi_dmar_next_remap(dmar, sub);
     }
 }
-
 
 static void
 print_mcfg_desc(acpi_mcfg_desc_t* mcfg_desc)
@@ -362,7 +359,6 @@ acpi_print_table(const void* start)
     }
 }
 
-
 void
 acpi_print_regions(const RegionList_t* rl)
 {
@@ -392,6 +388,5 @@ acpi_print_regions(const RegionList_t* rl)
         printf("%3d\n", r->parent);
     }
 }
-
 
 #endif

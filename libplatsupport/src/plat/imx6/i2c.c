@@ -81,8 +81,6 @@ struct i2c_bus_priv {
     struct clock clock;
 };
 
-
-
 /********************
  *** I2C clocking ***
  ********************/
@@ -144,7 +142,6 @@ _i2c_clk_init(clk_t* clk)
     return clk;
 }
 
-
 static freq_t
 _i2c_clk_get_freq(clk_t* clk)
 {
@@ -170,7 +167,6 @@ _i2c_clk_recal(clk_t* clk)
 {
     assert(!"IMPLEMENT ME");
 }
-
 
 /***********************
  **** Device config ****
@@ -248,7 +244,6 @@ master_stop(struct i2c_bus_priv* dev)
                             I2CCON_ENABLE | I2CCON_IRQ_ENABLE);
 }
 
-
 static void
 master_start(struct i2c_bus_priv* dev, char addr)
 {
@@ -273,7 +268,6 @@ slave_init(struct i2c_bus_priv* dev, char addr)
     /* Enter slave mode TX mode */
     dev->regs->control &= ~I2CCON_MASTER;
 }
-
 
 static void
 imx6_i2c_handle_irq(i2c_bus_t* i2c_bus)
@@ -364,8 +358,6 @@ imx6_i2c_master_stop(i2c_bus_t* i2c_bus)
     return -1;
 }
 
-
-
 static int
 imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
 {
@@ -390,8 +382,6 @@ imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t le
         return len;
     }
 }
-
-
 
 static int
 imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_callback_fn cb, void* token)
@@ -420,8 +410,6 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
         return len;
     }
 }
-
-
 
 static int
 imx6_i2c_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)

@@ -30,6 +30,4 @@ enum mux_feature {
  */
 int imx6_mux_init(void* iomuxc, mux_sys_t* mux);
 
-
-
 #endif /* __PLATSUPPORT_PLAT_MUX_H__ */

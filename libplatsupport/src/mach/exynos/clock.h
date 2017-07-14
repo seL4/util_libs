@@ -28,7 +28,6 @@
             .clkid = CLKID_##pll                \
         }
 
-
 #define CLK_SRC_BITS         4
 #define CLK_SRCSTAT_BITS     4
 #define CLK_SRCMASK_BIT      1
@@ -45,7 +44,6 @@
 
 #define CLK_GATE_SKIP        0x0
 #define CLK_GATE_PASS        0x1
-
 
 #define PLL_MPS(m,p,s)       (((m) << 16) | ((p) << 8) | ((s) << 0))
 
@@ -90,7 +88,6 @@ struct pll_priv {
     int clkid;
 };
 
-
 static inline clk_regs_io_t**
 clk_sys_get_clk_regs(clock_sys_t* clock_sys)
 {
@@ -103,7 +100,6 @@ clk_get_clk_regs(clk_t* clk)
 {
     return clk_sys_get_clk_regs(clk->clk_sys);
 };
-
 
 static inline const struct pll_priv*
 exynos_clk_get_priv_pll(clk_t* clk) {
@@ -126,7 +122,6 @@ freq_t _pll_set_freq(clk_t* clk, freq_t hz);
 void   _pll_recal(clk_t* clk);
 clk_t* _pll_init(clk_t* clk);
 
-
 /**** helpers ****/
 static inline void
 clkid_decode(int clkid, int* cmu, int* reg, int* off)
@@ -148,7 +143,6 @@ clkid_change_reg(int clkid, int change)
     return clkid | ((r & 0x3f) << 3);
 }
 
-
 static inline int
 clkbf_get(volatile uint32_t* reg, int start_bit, int nbits)
 {
@@ -166,7 +160,6 @@ clkbf_set(volatile uint32_t* reg, int start_bit, int nbits, int v)
     *reg = o | v;
 }
 
-
 static inline int
 exynos_cmu_get_src(clk_regs_io_t** regs, int clkid)
 {
@@ -182,7 +175,6 @@ exynos_cmu_get_srcstat(clk_regs_io_t** regs, int clkid)
     clkid_decode(clkid, &c, &r, &o);
     return clkbf_get(&regs[c]->srcstat[r], o * CLK_SRC_BITS, CLK_SRC_BITS);
 }
-
 
 static inline void
 exynos_cmu_set_src(clk_regs_io_t** regs, int clkid, int src)
@@ -219,7 +211,6 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
     /* Wait for changes to take affect */
     while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS, CLK_DIVSTAT_BIT));
 }
-
 
 static inline int
 exynos_cmu_get_gate(clk_regs_io_t** regs, int clkid)

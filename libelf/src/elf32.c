@@ -155,7 +155,7 @@ elf32_getSectionAddr(struct Elf32_Header *elfFile, int i)
 	struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
 	return sections[i].sh_addr;
 }
-	
+
 void *
 elf32_getSection(struct Elf32_Header *elfFile, int i)
 {
@@ -199,9 +199,9 @@ elf32_printStringTable(struct Elf32_Header *elfFile)
 		printf("No sections.\n");
 		return;
 	}
-	
+
 	stringTable = ((void *)elfFile) + sections[elfFile->e_shstrndx].sh_offset;
-	
+
 	printf("File is %p; sections is %p; string table is %p\n", elfFile, sections, stringTable);
 
 	for (counter=0; counter < sections[elfFile->e_shstrndx].sh_size; counter++) {
@@ -221,7 +221,7 @@ void
 elf32_getSegmentInfo(struct Elf32_Header *elfFile, int segment, uint64_t *p_vaddr, uint64_t *p_addr, uint64_t *p_filesz, uint64_t *p_offset, uint64_t *p_memsz)
 {
 	struct Elf32_Phdr *segments;
-		
+
 	segments = elf32_getProgramSegmentTable(elfFile);
 	*p_addr = segments[segment].p_paddr;
 	*p_vaddr = segments[segment].p_vaddr;
@@ -264,7 +264,6 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 		return;
 	}
 
-
 	/*
 	 * get a pointer to the table of program segments
 	 */
@@ -282,7 +281,7 @@ elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, in
 		/*
 		 * print out info about each section
 		 */
-		
+
 	if (flags & ELF_PRINT_PROGRAM_HEADERS) {
 		/*
 		 * print out info about each program segment
