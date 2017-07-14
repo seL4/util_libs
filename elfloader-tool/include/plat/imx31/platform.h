@@ -17,5 +17,4 @@
 
 #define UART_PPTR         IMX31_UART1_BASE
 
-
 #endif /* _PLATFORM_H_ */

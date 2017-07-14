@@ -36,5 +36,3 @@ uint32_t read_cpuid_id(void)
     asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (val) :: "cc");
     return val;
 }
-
-

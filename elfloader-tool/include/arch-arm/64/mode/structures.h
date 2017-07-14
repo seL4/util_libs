@@ -7,7 +7,7 @@
  *
  * @TAG(GD_GPL)
  */
- 
+
 #ifndef __STRUCTURES_MODE_64_H_
 #define __STRUCTURES_MODE_64_H_
 

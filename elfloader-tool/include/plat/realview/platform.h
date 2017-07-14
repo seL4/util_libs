@@ -17,5 +17,4 @@
 #define UART0_PADDR 0x10009000
 #define UART_PPTR  UART0_PADDR
 
-
 #endif /* _PLATFORM_H_ */

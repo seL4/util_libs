@@ -295,7 +295,6 @@ elf64_showDetails(void *elfFile, int size, char *name)
      * print out info about each section
      */
 
-
     /*
      * print out info about each program segment
      */

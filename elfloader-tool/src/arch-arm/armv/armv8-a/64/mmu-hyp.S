@@ -9,7 +9,7 @@
  *
  * @TAG(DATA61_GPL)
  */
- 
+
 #include <assembler.h>
 #include <armv/assembler.h>
 
@@ -60,5 +60,5 @@ BEGIN_FUNC(leave_hyp)
 END_FUNC(leave_hyp)
 
 BEGIN_FUNC(arm_enable_hyp_mmu)
-    
+
 END_FUNC(arm_enable_hyp_mmu)

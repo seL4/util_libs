@@ -21,7 +21,6 @@
 #define SRC_BASE 0x30390000
 #define GPC_BASE 0x303a0000
 
-
 #define SRC_SCR             0x000
 #define SRC_GPR1            0x020
 #define BP_SRC_SCR_WARM_RESET_ENABLE    0
@@ -29,9 +28,9 @@
 #define BP_SRC_SCR_CORE1_ENABLE     22
 
 #define GPC_CPU_PGC_SW_PUP_REQ              0xf0
-#define BM_CPU_PGC_SW_PDN_PUP_REQ_CORE1_A7  0x2    
+#define BM_CPU_PGC_SW_PDN_PUP_REQ_CORE1_A7  0x2
 #define GPC_PGC_C1                          0x840
-#define BP_SRC_A7RCR1_A7_CORE1_ENABLE       1 
+#define BP_SRC_A7RCR1_A7_CORE1_ENABLE       1
 
 #define SRC_A7RCR1  0x008
 #define SRC_GPR1_V2 0x074
@@ -85,7 +84,7 @@ void init_cpus(void)
     unsigned int i, num;
 
     src_init();
-    
+
     /* get core count from L2CTLR */
     asm volatile ("mrc p15, 1, %0, c9, c0, 2": "=r"(num));
     num = ((num >> 24) & 0x3) + 1;

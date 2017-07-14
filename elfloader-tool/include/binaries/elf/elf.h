@@ -286,7 +286,6 @@ uint32_t elf_getProgramHeaderType(void *elfFile, uint16_t ph);
  */
 uint64_t elf_vtopProgramHeader(void *elfFile, uint16_t ph, uint64_t vaddr);
 
-
 /**
  *
  * \return true if the address in in this program header

@@ -39,7 +39,7 @@ extern void invalidate_icache(void);
 /* not early terminination. not implmented */
 #define SCR_NET     (6)
 
-/* secure monitor call disabled: 0 smc executes in nonsecure state; 
+/* secure monitor call disabled: 0 smc executes in nonsecure state;
  * 1 undefined instruction in nonsecure state
  */
 #define SCR_SCD     (7)
@@ -50,10 +50,9 @@ extern void invalidate_icache(void);
  */
 #define SCR_HCE     (8)
 
-/* secure instruction fetch. when in secure state, the bit disables 
+/* secure instruction fetch. when in secure state, the bit disables
  * instruction fetches from non-secure memory */
-#define SCR_SIF     (9)       
-
+#define SCR_SIF     (9)
 
 #define MONITOR_MODE        (0x16)
 #define SUPERVISOR_MODE     (0x13)
@@ -64,11 +63,9 @@ extern void invalidate_icache(void);
  * we let the seL4 handle interrupts/exceptions.
  */
 
-
 #define MONITOR_MODE        (0x16)
 #define SUPERVISOR_MODE     (0x13)
 #define HYPERVISOR_MODE     (0x1a)
-
 
 void
 arm_halt(void)
@@ -81,9 +78,9 @@ arm_halt(void)
 /* steal the last 1 MiB physical memory for monitor mode */
 
 #define MON_PA_START        (0x80000000 + 0x27f00000)
-#define MON_PA_SIZE         (1 << 20)  
+#define MON_PA_SIZE         (1 << 20)
 #define MON_PA_END          (MON_PA_START + MON_PA_SIZE)
-#define MON_PA_STACK        (MON_PA_END - 0x10)  
+#define MON_PA_STACK        (MON_PA_END - 0x10)
 #define MON_VECTOR_START    (MON_PA_START)
 #define MON_HANDLER_START   (MON_PA_START + 0x10000)
 #define LOADED_OFFSET       0x90000000
@@ -104,17 +101,17 @@ switch_to_mon_mode(void)
          */
 
         asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
-    
+
         if (scr & BIT(SCR_NS)) {
             printf("In nonsecure world, you should never see this!\n");
             arm_halt();
         }
 
-        /* enable hyper call */ 
+        /* enable hyper call */
         scr = BIT(SCR_HCE);
 
         asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
-    
+
         /* now switch to secure monitor mode */
         asm volatile ("cps %0\n\t"
                       "isb\n"
@@ -140,7 +137,7 @@ install_monitor_hook(void)
 {
     uint32_t size = arm_monitor_vector_end - arm_monitor_vector;
     /* switch monitor mode if not already */
-    switch_to_mon_mode(); 
+    switch_to_mon_mode();
     printf("Copy monitor mode vector from %x to %x size %x\n", (arm_monitor_vector), MON_VECTOR_START, size);
     memcpy((void *)MON_VECTOR_START, (void *)(arm_monitor_vector), size);
 
@@ -205,7 +202,7 @@ switch_to_ns_svc_mode(void)
 
     asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
     asm volatile ("mov sp, r0");
-    
+
     printf("Load seL4 in nonsecure SVC mode\n");
 }
 #endif
@@ -247,7 +244,6 @@ route_irqs_to_nonsecure(void)
     int nirqs = 32 * ((gicd->ic_type & 0x1f) + 1);
     printf("Number of IRQs: %d\n", nirqs);
     gicd->enable = 0;
-
 
     /* note: the security and priority initialisations in
      * non-secure mode will not work, but use the values
@@ -310,4 +306,3 @@ void platform_init(void)
 #endif
 
 }
-

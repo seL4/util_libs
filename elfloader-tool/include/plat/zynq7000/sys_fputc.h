@@ -16,4 +16,3 @@
 void enable_uart(void);
 
 #endif /* _SYS_FPUTC_H_ */
-

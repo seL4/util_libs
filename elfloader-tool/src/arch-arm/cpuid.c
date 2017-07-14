@@ -99,7 +99,6 @@ void print_cpuid(void)
     printf("\n");
 }
 
-
 int get_cortex_a_part(void)
 {
     uint32_t cpuid;

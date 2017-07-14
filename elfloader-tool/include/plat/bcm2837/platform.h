@@ -13,7 +13,6 @@
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
-
 #define MU_PADDR    0x3f215000
 #define UART_PPTR   (MU_PADDR)
 

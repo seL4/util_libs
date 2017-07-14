@@ -24,7 +24,6 @@
 #define SCU_CTRL_EN               BIT(0)
 #define SCU_CTRL_ADDRFILT_EN      BIT(1)
 
-
 /* SLCR */
 #define SLCR_BASE                 0xF8000000
 #define SLCR_LOCK_OFFSET          0x004
@@ -39,8 +38,6 @@
                                   | SLCR_OCM_CFG_RAMHI(1) \
                                   | SLCR_OCM_CFG_RAMHI(2) \
                                   | SLCR_OCM_CFG_RAMHI(3) )
-
-
 
 #define REG(a) *(volatile uint32_t*)(a)
 
@@ -75,4 +72,3 @@ void platform_init(void)
     remap_ram();
     enable_uart();
 }
-

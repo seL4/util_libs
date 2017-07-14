@@ -10,7 +10,6 @@
  * @TAG(DATA61_GPL)
  */
 
-
 #include <autoconf.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
@@ -30,7 +29,6 @@ static void *get_scu_base(void)
     asm("mrc p15, 4, %0, c15, c0, 0" : "=r" (scu));
     return scu;
 }
-
 
 static void
 boot_cpus(void (*entry)(void))

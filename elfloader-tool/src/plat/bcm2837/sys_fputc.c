@@ -33,7 +33,6 @@
 #define MU_SCRATCH  0x5C
 #define MU_CNTL     0x60
 
-
 /* This bit is set if the transmit FIFO can accept at least one byte.*/
 #define MU_LSR_TXEMPTY  BIT(5)
 /* This bit is set if the transmit FIFO is empty and the

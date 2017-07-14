@@ -15,7 +15,6 @@
 
 #if CONFIG_MAX_NUM_NODES > 1
 
-
 void init_cpus(void)
 {
     /* SMP booting for Tegra K1 to be implemented */

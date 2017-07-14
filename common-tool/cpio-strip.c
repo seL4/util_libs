@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     FILE *archive = NULL;
     void *p = NULL;
     long len = 0;
-    
+
     archive = fopen(argv[1], "r+");
     if (archive == NULL) {
         perror("failed to open archive");
@@ -142,4 +142,3 @@ fail:
     if (archive != NULL)  fclose(archive);
     return -1;
 }
-

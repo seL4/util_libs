@@ -103,7 +103,3 @@ BEGIN_FUNC(arm_enable_mmu)
 
     ldmfd   sp!, {pc}
 END_FUNC(arm_enable_mmu)
-
-
-
-

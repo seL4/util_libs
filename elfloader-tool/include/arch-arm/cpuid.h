@@ -31,4 +31,3 @@ void print_cpuid(void);
 int get_cortex_a_part(void);
 
 #endif /* _CPUID_H_ */
-

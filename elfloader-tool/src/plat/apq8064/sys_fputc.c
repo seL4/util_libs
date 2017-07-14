@@ -25,7 +25,6 @@
 extern int
 __fputc(int c, FILE *stream);
 
-
 #define USR                   0x08
 #define UTF                   0x70
 #define UNTX                  0x40
@@ -53,4 +52,3 @@ __fputc(int c, FILE *stream)
 
     return 0;
 }
-

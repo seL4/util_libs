@@ -76,7 +76,7 @@ BEGIN_FUNC(arm_enable_hyp_mmu)
     mrc     HSCTLR(r0)
     orr     r0, r0, #(1 << 2)  // enable dcache
     orr     r0, r0, #(1 << 12) // enable icache
-    orr     r0, r0, #(1 << 0)  // MMU enable 
+    orr     r0, r0, #(1 << 0)  // MMU enable
     mcr     HSCTLR(r0)
 
 #if CONFIG_MAX_NUM_NODES > 1

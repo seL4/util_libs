@@ -23,7 +23,7 @@ choice
     help
         Select ELF or EFI boot image type
 
-    config IMAGE_BINARY 
+    config IMAGE_BINARY
         bool "Binary Boot Image"
         help
             Generate binary boot image
@@ -33,7 +33,7 @@ choice
         help
             Generate ELF boot image
 
-    config IMAGE_EFI 
+    config IMAGE_EFI
         bool "EFI Boot Image"
         depends on ARCH_AARCH64
         help
@@ -95,7 +95,7 @@ menuconfig HASH_INSTRUCTIONS
 
 config ARM_MONITOR_HOOK
     bool "Install hooks in monitor mode"
-    default n 
+    default n
     depends on PLAT_TK1 || PLAT_IMX6
     help
        Install SMC call handlers in monitor mode.

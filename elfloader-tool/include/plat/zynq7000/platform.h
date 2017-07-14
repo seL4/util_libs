@@ -18,5 +18,4 @@
 
 #define UART_PPTR              ZYNQ_UART1_BASE
 
-
 #endif /* _PLATFORM_H_ */

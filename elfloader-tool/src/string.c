@@ -34,7 +34,6 @@ size_t strlen(const char *str)
 	return (s - str);
 }
 
-
 int strcmp(const char *a, const char *b)
 {
     while (1) {

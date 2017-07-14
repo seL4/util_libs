@@ -92,4 +92,3 @@ void smp_boot(void);
 uint32_t smc(uint32_t, uint32_t, uint32_t, uint32_t);
 
 #endif /* _ELFLOADER_H_ */
-

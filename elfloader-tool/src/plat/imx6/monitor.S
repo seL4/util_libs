@@ -25,7 +25,7 @@
  * 0x18: IRQ interrupt
  * 0x1c: FIQ interrupt
  */
-.arch_extension sec  
+.arch_extension sec
 .global arm_monitor_vector
 .global arm_monitor_vector_end
 .global smc_handler
@@ -38,14 +38,14 @@
  */
 .align 12
 arm_monitor_vector:
-    ldr pc, [pc, #28] 
+    ldr pc, [pc, #28]
     ldr pc, [pc, #24]
     ldr pc, [pc, #16]
-    ldr pc, [pc, #16] 
-    ldr pc, [pc, #12] 
+    ldr pc, [pc, #16]
+    ldr pc, [pc, #12]
     ldr pc, [pc, #8]
-    ldr pc, [pc, #4] 
-    ldr pc, [pc, #0] 
+    ldr pc, [pc, #4]
+    ldr pc, [pc, #0]
 
 smc_handler_addr:
 .word   VECTOR_BASE + (smc_handler - arm_monitor_vector)
@@ -61,7 +61,7 @@ smc_stack:
  */
 smc_handler:
     /* always have a valid stack */
-    ldr sp, [pc, #-12] 
+    ldr sp, [pc, #-12]
     push {lr}
     blx r0
     isb
@@ -71,11 +71,10 @@ smc_handler:
     mcr p15, 0, r5, c1, c1, 0
     pop {lr}
     isb
-    movs pc, lr 
+    movs pc, lr
 
 /* for all other exceptions, just hang */
 smc_halt:
     ldr pc, [pc, #-48]
 
 arm_monitor_vector_end:
-

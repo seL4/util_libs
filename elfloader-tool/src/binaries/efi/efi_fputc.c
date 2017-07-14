@@ -31,4 +31,3 @@ int efi_fputc(int c, FILE *stream)
 
     return 0;
 }
-

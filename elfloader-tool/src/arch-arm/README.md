@@ -19,7 +19,7 @@ Therefore, there are two ways to use the hashing algorithms:
          CONFIG_HASH_SHA (optional - remove if you want to md5 hash)
       2. Include the elf-loader's Kconfig under a new menu in your top-level Kconfig
          like this:
-    
+
          menu "Tools"
            source "tools/elfloader/Kconfig"
          endmenu
@@ -27,4 +27,3 @@ Therefore, there are two ways to use the hashing algorithms:
 Either one of these options will allow the user to select the hashing process.
 
 Please note, this process will add boottime, as hashing a very long file tends to take some time.
-

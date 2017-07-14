@@ -58,7 +58,6 @@ fi
     exit 1
 }
 
-
 trap "rm -f mtoolsrc syslinux.cfg mbr.bin" 0
 
 # Parse options

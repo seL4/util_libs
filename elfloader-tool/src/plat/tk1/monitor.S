@@ -38,14 +38,14 @@
  */
 
 arm_monitor_vector:
-    ldr pc, [pc, #28] 
+    ldr pc, [pc, #28]
     ldr pc, [pc, #24]
     ldr pc, [pc, #16]
-    ldr pc, [pc, #16] 
-    ldr pc, [pc, #12] 
+    ldr pc, [pc, #16]
+    ldr pc, [pc, #12]
     ldr pc, [pc, #8]
-    ldr pc, [pc, #4] 
-    ldr pc, [pc, #0] 
+    ldr pc, [pc, #4]
+    ldr pc, [pc, #0]
 
 smc_handler_addr:
 .word   VECTOR_BASE + (smc_handler - arm_monitor_vector)
@@ -61,20 +61,18 @@ smc_stack:
  */
 smc_handler:
     /* always have a valid stack */
-    ldr sp, [pc, #-12] 
+    ldr sp, [pc, #-12]
     push {lr}
-    blx  r0 
+    blx  r0
     mrc p15, 0, r0, c1, c1, 0
     /* set the NS bit */
     orr r0, r0, #1
     mcr p15, 0, r0, c1, c1, 0
     pop {lr}
-    movs pc, lr 
+    movs pc, lr
 
 /* for all other exceptions, just hang */
 smc_halt:
     ldr pc, [pc, #-48]
 
 arm_monitor_vector_end:
-
-

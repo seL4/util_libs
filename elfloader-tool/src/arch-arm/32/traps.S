@@ -41,8 +41,8 @@ BEGIN_FUNC(invalid_vector_entry)
     bl invalid_exception
 END_FUNC(invalid_vector_entry)
 
-/* 
- * Otherwise, we may receive some exceptions due to bootloader inappropriate 
+/*
+ * Otherwise, we may receive some exceptions due to bootloader inappropriate
  * initialization, simply ignore them:
  * - Aborting instruction only if imprecise
  * - IRQ next instruction

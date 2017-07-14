@@ -48,4 +48,3 @@ __fputc(int c, FILE *stream)
 
     return 0;
 }
-

@@ -45,7 +45,6 @@
 #define UART_CONTROL_TX_EN           (1U << 4)
 #define UART_CONTROL_TX_DIS          (1U << 5)
 
-
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
 int

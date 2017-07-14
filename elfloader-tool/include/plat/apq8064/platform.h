@@ -23,4 +23,3 @@
 #define UART_PPTR                 (GSBI7_UART_DM_PADDR)
 
 #endif /* _PLATFORM_H_ */
-

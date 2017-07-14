@@ -27,7 +27,7 @@ void init_boot_vspace(struct image_info *kernel_info)
     paddr_t first_paddr = kernel_info->phys_region_start;
 
     _boot_pgd_down[0] = ((uintptr_t)_boot_pud_down) | BIT(1) | BIT(0); /* its a page table */
-    
+
     for(i = 0; i < BIT(PUD_BITS); i++) {
         _boot_pud_down[i] = (i << ARM_1GB_BLOCK_BITS)
                             | BIT(10) /* access flag */
@@ -51,7 +51,7 @@ void init_boot_vspace(struct image_info *kernel_info)
 
 void init_hyp_boot_vspace(struct image_info *kernel_info)
 {
-    /* 
+    /*
      * The paging for EL2 has not been implemented yet!
      * Therefore, we drop to EL1 and currently kernel cannot run in 64-bit Hyp mode.
      */

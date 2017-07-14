@@ -49,5 +49,3 @@ capDL-$(ARCH_NAME)-$(PLAT): capDL-loader kernel_elf common FORCE
 		"$(IMAGE_ROOT)/kernel-$(ARCH_NAME)-$(PLAT)")
 	$(Q)$(call cp_if_changed, "$(STAGE_BASE)/bin/$<", \
 		"$(IMAGE_ROOT)/$@")
-
-

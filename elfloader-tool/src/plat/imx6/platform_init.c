@@ -15,7 +15,6 @@
 #include <printf.h>
 #include "platform.h"
 
-
 #define IMX6_SCU_PADDR          0x00a00000
 #define IMX6_SCU_SACR_PADDR     (IMX6_SCU_PADDR + 0x50)
 #define IMX6_SCU_NSACR_PADDR    (IMX6_SCU_PADDR + 0x54)
@@ -54,10 +53,8 @@
  * instruction fetches from non-secure memory */
 #define SCR_SIF     (9)
 
-
 #define MONITOR_MODE        (0x16)
 #define SUPERVISOR_MODE     (0x13)
-
 
 static int mon_init_done = 0;
 
@@ -182,7 +179,6 @@ route_irqs_to_nonsecure(void)
     int nirqs = 32 * ((gicd->ic_type & 0x1f) + 1);
     printf("Number of IRQs: %d\n", nirqs);
     gicd->enable = 0;
-
 
     /* note: the security and priority initialisations in
      * non-secure mode will not work, but use the values

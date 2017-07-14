@@ -23,8 +23,8 @@ void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table)
 
 /* Before starting the kernel we should notify the UEFI firmware about it
  * otherwise the internal watchdog may reboot us after 5 min.
- * 
- * This means boot time services are not available anymore. We should store 
+ *
+ * This means boot time services are not available anymore. We should store
  * system information e.g. current memory map and pass them to kernel.
  */
 unsigned long efi_exit_boot_services(void)
@@ -37,9 +37,9 @@ unsigned long efi_exit_boot_services(void)
 
     efi_boot_services_t *bts = get_efi_boot_services();
 
-    /* 
-     * As the number of existing memeory segments are unknown, 
-     * we need to resort to a trial and error to guess that. 
+    /*
+     * As the number of existing memeory segments are unknown,
+     * we need to resort to a trial and error to guess that.
      * We start from 32 and increase it by one until get a valid value.
      */
     map_size = sizeof(*memory_map) * 32;

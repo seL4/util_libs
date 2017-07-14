@@ -19,7 +19,7 @@
 
 void check_data_abort_exception(word_t dfsr, word_t dfar)
 {
-    //* Check if the data exception is asynchronous external abort or 
+    //* Check if the data exception is asynchronous external abort or
     //* asynchronous parity error on memory access */
     word_t fs = dfsr & DFSR_FS_MASK;
 

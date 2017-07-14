@@ -154,11 +154,9 @@ CROSS_COMPILE := $(subst ",,$(CROSS_COMPILE))
 export CROSS_COMPILE
 endif
 
-
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 		else if [ -x /bin/bash ]; then echo /bin/bash; \
 		else echo sh; fi ; fi)
-
 
 KBUILD_MODULES :=
 KBUILD_BUILTIN := 1
@@ -299,7 +297,6 @@ endif
 ifeq ($(ARCH),x86)
 include $(COMMON_PATH)/project-ia32.mk
 endif
-
 
 PHONY += $(libs)
 $(libs): lib=$(shell for lib in $(lib-dirs); do \

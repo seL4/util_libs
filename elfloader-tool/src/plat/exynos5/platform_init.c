@@ -46,7 +46,6 @@ typedef volatile struct {
     uint32_t clusterstate[2];   /* 0x54 */ /* missing on 5410 */
 } nscode_t;
 
-
 struct cso {
     uint32_t config;
     uint32_t status;
@@ -61,13 +60,11 @@ typedef volatile struct cpu_cfg {
     struct cso res[1];
 } cpu_cfg_t;
 
-
 /* U-Boot control */
 nscode_t *nsscode  = (nscode_t*)EXYNOS5_SYSRAM_NS;
 
 /* CPU configuration */
 cpu_cfg_t *cpu_cfg = (cpu_cfg_t*)EXYNOS5_POWER_CPU_CFG;
-
 
 void boot_cpu(int cpu, uintptr_t entry)
 {
@@ -85,8 +82,8 @@ void platform_init(void)
         boot_cpu(BOOTCPU, (uintptr_t)_start);
         /* Shutdown */
         for (;;) {
-            /* 
-             * Turn off interrupts before going to 
+            /*
+             * Turn off interrupts before going to
              * sleep --- otherwise they could wake us up.
              */
             asm volatile (

@@ -21,4 +21,3 @@
 #define UART_PPTR   (UART1_PADDR)
 
 #endif /* _PLATFORM_H_ */
-

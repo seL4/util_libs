@@ -55,7 +55,6 @@ void init_boot_vspace(struct image_info *kernel_info)
           | BIT(1); /* 4K page */
 }
 
-
 /**
  * Performs the same operation as init_boot_pd, but initialises
  * the LPAE page table. In this case, 3 L2 tables are concatenated.
@@ -86,5 +85,3 @@ void init_hyp_boot_vspace(struct image_info *kernel_info)
                                 | BIT(0); /* Valid */
     }
 }
-
-

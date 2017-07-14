@@ -19,12 +19,12 @@
  /*
  * This is PE32+/COFF executable file format for UEFI Spec.
  * See http://www.uefi.org/specifications
- * 
+ *
  * Note:
- * The .text section of PE32+/COFF executable file should be multiple of 
+ * The .text section of PE32+/COFF executable file should be multiple of
  * PECOFF_FILE_ALIGNMENT. We align to a page so that we could pad _edata to align
  * the image size with PECOFF_FILE_ALIGNMENT.
- */ 
+ */
 
 efi_head:
     .ascii  "MZ"                            // Magic "MZ" signature required by UEFI
@@ -51,8 +51,8 @@ coff_header:
     .long   1                               // NumberOfSymbolTable
     .short  section_table - optional_header // SizeOfOptionalHeader
     .short  0x206                           // Characteristics.
-                                            // IMAGE_FILE_DEBUG_STRIPPED | 
-                                            // IMAGE_FILE_EXECUTABLE_IMAGE | 
+                                            // IMAGE_FILE_DEBUG_STRIPPED |
+                                            // IMAGE_FILE_EXECUTABLE_IMAGE |
                                             // IMAGE_FILE_LINE_NUMS_STRIPPED
 optional_header:
     .short  0x20b                           // Magic for PE32+ format
@@ -139,7 +139,7 @@ efi_head_end:
 .text
 
 BEGIN_FUNC(efi_stub_entry)
-    bl      efi_early_init                  // Early efi driver initialization 
+    bl      efi_early_init                  // Early efi driver initialization
                                             // we do not return to firmware so FR/LR are ignored!
     b       _start                          // Jump to elfloader entry point
 END_FUNC(efi_stub_entry)
