@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <utils/util.h>
 #include <sys/types.h>
-
+#include <errno.h>
 /* For clock.h and mux.h */
 typedef struct ps_io_ops ps_io_ops_t;
 
@@ -261,6 +261,120 @@ ps_dma_cache_clean_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_CLEAN_INVALIDATE);
 }
 
+/*
+ * Allocate some heap memory for the driver to use. Basically malloc.
+ *
+ * @param cookie     Cookie for the allocator.
+ * @param size       Amount of bytes to allocate.
+ * @param[out] ptr   Pointer to store the result in.
+ *
+ * @return 0 on success, errno on error.
+ */
+typedef int (*ps_malloc_fn_t)(void *cookie, size_t size, void *ptr);
+
+/*
+ * Allocate and zero some heap memory for the driver to use. Basically calloc.
+ *
+ * @param cookie     Cookie for the allocator.
+ * @param nmemb      Amount of element to allocate.
+ * @param size       Size of each element in bytes.
+ * @param[out] ptr   Pointer to store the result in.
+ *
+ * @return 0 on success, errno on error.
+ */
+typedef int (*ps_calloc_fn_t)(void *cookie, size_t nmemb, size_t size, void *ptr);
+
+/*
+ * Free allocated heap memory.
+ *
+ * @param ptr        Pointer previously returned by alloc or calloc.
+ * @param size       Amount of bytes to free.
+ * @param cookie     Cookie for the allocator.
+ *
+ * @return 0 on success, errno on error.
+ */
+typedef int (*ps_free_fn_t)(void *cookie, size_t size, void *ptr);
+
+typedef struct {
+    ps_malloc_fn_t malloc;
+    ps_calloc_fn_t calloc;
+    ps_free_fn_t free;
+    void *cookie;
+} ps_malloc_ops_t;
+
+static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void *ptr)
+{
+    if (ops == NULL) {
+        ZF_LOGE("ops cannot be NULL");
+        return EINVAL;
+    }
+
+    if (ops->malloc == NULL) {
+        ZF_LOGE("not implemented");
+        return ENOSYS;
+    }
+
+    if (size == 0) {
+        /* nothing to do */
+        ZF_LOGW("called with size 0");
+        return 0;
+    }
+
+    if (ptr == NULL) {
+        ZF_LOGE("ptr cannot be NULL");
+        return EINVAL;
+    }
+
+    return ops->malloc(ops->cookie, size, ptr);
+}
+
+static inline int ps_calloc(ps_malloc_ops_t *ops, size_t nmemb, size_t size, void *ptr)
+{
+
+    if (ops == NULL) {
+        ZF_LOGE("ops cannot be NULL");
+        return EINVAL;
+    }
+
+    if (ops->calloc == NULL) {
+        ZF_LOGE("not implemented");
+        return ENOSYS;
+    }
+
+    if (size == 0 || nmemb == 0) {
+        /* nothing to do */
+        ZF_LOGW("called no bytes to allocate");
+        return 0;
+    }
+
+    if (ptr == NULL) {
+        ZF_LOGE("ptr cannot be NULL");
+        return EINVAL;
+    }
+
+    return ops->calloc(ops->cookie, nmemb, size, ptr);
+}
+
+static inline int ps_free(ps_malloc_ops_t *ops, size_t size, void *ptr)
+{
+    if (ops == NULL) {
+        ZF_LOGE("ops cannot be NULL");
+        return EINVAL;
+    }
+
+    if (ops->free == NULL) {
+        ZF_LOGE("not implemented");
+        return ENOSYS;
+    }
+
+    if (ptr == NULL) {
+        ZF_LOGE("ptr cannot be NULL");
+        return EINVAL;
+    }
+
+    return ops->free(ops->cookie, size, ptr);
+}
+
 /* Struct to collect all the different I/O operations together. This should contain
  * everything a driver needs to function */
 struct ps_io_ops {
@@ -271,6 +385,7 @@ struct ps_io_ops {
     clock_sys_t clock_sys;
     mux_sys_t mux_sys;
 #endif
+    ps_malloc_ops_t malloc_ops;
 };
 
 /**
