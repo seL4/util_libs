@@ -270,7 +270,7 @@ ps_dma_cache_clean_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
  *
  * @return 0 on success, errno on error.
  */
-typedef int (*ps_malloc_fn_t)(void *cookie, size_t size, void *ptr);
+typedef int (*ps_malloc_fn_t)(void *cookie, size_t size, void **ptr);
 
 /*
  * Allocate and zero some heap memory for the driver to use. Basically calloc.
@@ -282,7 +282,7 @@ typedef int (*ps_malloc_fn_t)(void *cookie, size_t size, void *ptr);
  *
  * @return 0 on success, errno on error.
  */
-typedef int (*ps_calloc_fn_t)(void *cookie, size_t nmemb, size_t size, void *ptr);
+typedef int (*ps_calloc_fn_t)(void *cookie, size_t nmemb, size_t size, void **ptr);
 
 /*
  * Free allocated heap memory.
@@ -302,7 +302,7 @@ typedef struct {
     void *cookie;
 } ps_malloc_ops_t;
 
-static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void *ptr)
+static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void **ptr)
 {
     if (ops == NULL) {
         ZF_LOGE("ops cannot be NULL");
@@ -328,7 +328,7 @@ static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void *ptr)
     return ops->malloc(ops->cookie, size, ptr);
 }
 
-static inline int ps_calloc(ps_malloc_ops_t *ops, size_t nmemb, size_t size, void *ptr)
+static inline int ps_calloc(ps_malloc_ops_t *ops, size_t nmemb, size_t size, void **ptr)
 {
 
     if (ops == NULL) {
