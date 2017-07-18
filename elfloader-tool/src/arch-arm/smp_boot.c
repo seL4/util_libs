@@ -22,9 +22,12 @@
 VISIBLE volatile word_t smp_aps_index = 1;
 static volatile int non_boot_lock = 0;
 
+void arm_disable_dcaches(void);
+
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
 {
+    arm_disable_dcaches();
     /* Spin until the first CPU has finished initialisation. */
     while (!non_boot_lock) {
         cpu_idle();
@@ -50,5 +53,6 @@ void smp_boot(void)
 {
     init_cpus();
     non_boot_lock = 1;
+    arm_disable_dcaches();
 }
 #endif /* CONFIG_MAX_NUM_NODES */

@@ -103,3 +103,31 @@ BEGIN_FUNC(arm_enable_mmu)
 
     ldmfd   sp!, {pc}
 END_FUNC(arm_enable_mmu)
+
+BEGIN_FUNC(arm_disable_dcaches)
+    stmfd   sp!, {lr}
+
+    /* Clean D-Cache if enabled */
+    mrc     SCTLR(r1)
+    and     r1, r1, #(1 << 2)
+    cmp     r1, #0
+    beq     1f
+    bl      flush_dcache
+1:
+    /* disable D-cache disabled. */
+    mrc     SCTLR(r1)
+    bic     r1, r1, #(1 << 2)       /* Disable D-Cache */
+    mcr     SCTLR(r1)
+
+    /* invalidate dcaches. */
+    bl      invalidate_dcache
+
+#if CONFIG_MAX_NUM_NODES > 1
+    /* Enable SMP */
+    mrc     ACTLR(r0)
+    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
+    mcr     ACTLR(r0)
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
+
+    ldmfd   sp!, {pc}
+END_FUNC(arm_disable_dcaches)
