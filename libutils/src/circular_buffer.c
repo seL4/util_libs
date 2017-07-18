@@ -34,7 +34,7 @@ int circ_buf_new(void *base, size_t size, circ_buf_t *cb)
 	cb->tail = 0;
 	cb->size = size;
 
-	return cb;
+	return 0;
 }
 
 void circ_buf_free(circ_buf_t *cb)
