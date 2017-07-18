@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
+#include <stdint.h>
 
 /* Circular Buffer */
 typedef struct circ_buf {
@@ -76,7 +77,7 @@ void circ_buf_put(circ_buf_t *cb, uint8_t c);
  * Get a byte
  *
  * @param cb Circular buffer to get from.
- * 
+ *
  * @return The byte received.
  */
 uint8_t circ_buf_get(circ_buf_t *cb);
