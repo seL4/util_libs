@@ -10,12 +10,14 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PC99_HPET_H
-#define _PLATSUPPORT_PC99_HPET_H
+#pragma once
 
 #include <stdint.h>
 
 #include <platsupport/timer.h>
+#include <platsupport/pmem.h>
+
+#define DEFAULT_HPET_MSI_VECTOR 0
 
 typedef struct PACKED {
     /* vaddr that HPET_BASE (parsed from acpi tables) is mapped in to.*/
@@ -26,7 +28,35 @@ typedef struct PACKED {
     int ioapic_delivery;
 } hpet_config_t;
 
-pstimer_t *hpet_get_timer(hpet_config_t *config);
+/* hpet data structures / memory maps */
+typedef struct hpet_timer {
+    uint64_t config;
+    uint64_t comparator;
+    uint64_t fsb_irr;
+    char padding[8];
+} hpet_timer_t;
+
+/* the hpet has one set of global config registers */
+typedef struct hpet {
+    /* Pointer to base address of memory mapped HPET region */
+    void *base_addr;
+    uint64_t period_ns;
+} hpet_t;
+
+static UNUSED timer_properties_t hpet_properties =
+{
+        .upcounter = true,
+        .timeouts = true,
+        .absolute_timeouts = true,
+        .bit_width = 64,
+        .irqs = 1
+};
+
+int hpet_init(hpet_t *hpet, hpet_config_t config);
+int hpet_start(const hpet_t *hpet);
+int hpet_stop(const hpet_t *hpet);
+int hpet_set_timeout(const hpet_t *hept, uint64_t absolute_ns);
+uint64_t hpet_get_time(const hpet_t *hpet);
 
 /* Queries the HPET device mapped at the provided vaddr and returns
  * whether timer0 (the timer used by hpet_get_timer) supports fsb
@@ -37,4 +67,3 @@ bool hpet_supports_fsb_delivery(void *vaddr);
  * the mask of interrupts supported by IOAPIC delivery */
 uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr);
 
-#endif /* _PLATSUPPORT_PC99_HPET_H */

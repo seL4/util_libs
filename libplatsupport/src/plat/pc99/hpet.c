@@ -25,26 +25,6 @@
 #include <utils/util.h>
 #include <utils/fence.h>
 
-/* hpet data structures / memory maps */
-typedef struct hpet_timer {
-    uint64_t config;
-    uint64_t comparator;
-    uint64_t fsb_irr;
-    char padding[8];
-} hpet_timer_t;
-
-/* the hpet has one set of global config registers */
-typedef struct hpet {
-    /* Pointer to base address of memory mapped HPET region */
-    void *base_addr;
-
-    /* Timer state */
-    double period_ns;
-    uint64_t period;
-    uint32_t periodic;
-    uint32_t irq;
-} hpet_t;
-
 /* HPET timer config bits - these can't be changed, but allow us to
  * find out details of the timer */
 
@@ -142,11 +122,9 @@ static inline hpet_timer_t *hpet_get_hpet_timer(void *vaddr, unsigned int timer)
     return ((hpet_timer_t*)((uintptr_t)vaddr + TIMERS_OFFSET)) + timer;
 }
 
-static int
-hpet_start(const pstimer_t* device)
+int hpet_start(const hpet_t *hpet)
 {
 
-    hpet_t *hpet = (hpet_t *) device->data;
     hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     /* enable the global timer */
     *hpet_get_general_config(hpet->base_addr) |= BIT(ENABLE_CNF);
@@ -163,12 +141,8 @@ hpet_start(const pstimer_t* device)
     return 0;
 }
 
-static int
-hpet_stop(const pstimer_t* device)
+int hpet_stop(const hpet_t *hpet)
 {
-    hpet_t *hpet = (hpet_t *) device->data;
-
-    hpet->periodic = false;
     hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
 
     /* turn off timer0 */
@@ -182,11 +156,9 @@ hpet_stop(const pstimer_t* device)
     return 0;
 }
 
-static uint64_t
-hpet_get_time(const pstimer_t* device)
+uint64_t hpet_get_time(const hpet_t *hpet)
 {
     uint64_t time;
-    hpet_t *hpet = (hpet_t *) device->data;
 
     do {
         time = *hpet_get_main_counter(hpet->base_addr);
@@ -197,126 +169,40 @@ hpet_get_time(const pstimer_t* device)
     return time * hpet->period_ns;
 }
 
-int
-hpet_oneshot_absolute(const pstimer_t *device, uint64_t absolute_ns)
+int hpet_set_timeout(const hpet_t *hpet, uint64_t absolute_ns)
 {
-    hpet_t *hpet = (hpet_t *) device->data;
     hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     uint64_t absolute_fs = absolute_ns / hpet->period_ns;
 
-    hpet->periodic = false;
     timer->comparator = absolute_fs;
     COMPILER_MEMORY_RELEASE();
 
-    if (hpet_get_time(device) > absolute_ns) {
+    if (hpet_get_time(hpet) > absolute_ns) {
         return ETIME;
     }
 
     return 0;
 }
 
-static int
-hpet_oneshot_relative(const pstimer_t* device, uint64_t relative_ns)
-{
-    return hpet_oneshot_absolute(device, hpet_get_time(device) + relative_ns);
-}
-
-static int
-hpet_periodic(const pstimer_t* device, uint64_t ns)
-{
-    hpet_t *hpet = (hpet_t *) device->data;
-
-    hpet->period = ns;
-
-    int error = hpet_oneshot_relative(device, ns);
-    if (error != 0) {
-        hpet->periodic = false;
-        return error;
-    }
-
-    hpet->periodic = true;
-
-    return 0;
-}
-
-static void
-hpet_handle_irq(const pstimer_t* device, uint32_t irq UNUSED)
-{
-    /* hpet does not need an ack, kernel acks in APIC for us */
-
-    /* but if we are periodic, need to set the next irq */
-    hpet_t *hpet = (hpet_t *) device->data;
-
-    if (hpet->periodic) {
-        int error = hpet_periodic(device, hpet->period);
-        if (error != 0) {
-            ZF_LOGE("Repeat periodic timeout failed. Period: %"PRIu64"", hpet->period);
-            assert(error == 0);
-        }
-    }
-
-}
-
-static uint32_t
-hpet_get_nth_irq(const pstimer_t *device, uint32_t n)
-{
-    uint32_t irq = 0;
-
-    if (n == 0) {
-        irq = ((hpet_t *) device)->irq;
-    }
-
-    assert(n == 0);
-    return irq;
-}
-
-static pstimer_t singleton_timer;
-static hpet_t singleton_hpet;
-
-bool
-hpet_supports_fsb_delivery(void *vaddr)
+bool hpet_supports_fsb_delivery(void *vaddr)
 {
     hpet_timer_t *timer0 = hpet_get_hpet_timer(vaddr, 0);
     uint32_t timer0_config_low = timer0->config;
     return !!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP));
 }
 
-uint32_t
-hpet_ioapic_irq_delivery_mask(void *vaddr)
+uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr)
 {
     hpet_timer_t *timer0 = hpet_get_hpet_timer(vaddr, 0);
     uint32_t irq_mask = timer0->config >> TN_INT_ROUTE_CAP;
     return irq_mask;
 }
 
-pstimer_t *
-hpet_get_timer(hpet_config_t *config)
 {
 
-    pstimer_t *timer = &singleton_timer;
-    hpet_t *hpet = &singleton_hpet;
-
-    timer->data = (void *) hpet;
-    timer->start = hpet_start;
-    timer->stop = hpet_stop;
-    timer->get_time = hpet_get_time;
-    timer->oneshot_absolute = hpet_oneshot_absolute;
-    timer->oneshot_relative = hpet_oneshot_relative;
-    timer->periodic = hpet_periodic;
-    timer->handle_irq = hpet_handle_irq;
-    timer->get_nth_irq = hpet_get_nth_irq;
-
-    timer->properties = (timer_properties_t) {
-        .upcounter = true,
-        .timeouts = true,
-        .periodic_timeouts = true,
-        .relative_timeouts = true,
-        .absolute_timeouts = true,
-        .bit_width = 64,
-        .irqs = 1
-    };
-
-    hpet->base_addr = config->vaddr;
+int hpet_init(hpet_t *hpet, hpet_config_t config)
+{
+    hpet->base_addr = config.vaddr;
     hpet_timer_t *hpet_timer = hpet_get_hpet_timer(hpet->base_addr, 0);
 
     uint32_t timer0_config_low = (uint32_t) hpet_timer->config;
@@ -324,23 +210,21 @@ hpet_get_timer(hpet_config_t *config)
     /* check that this timer is edge triggered */
     if (timer0_config_low & BIT(TN_INT_TYPE_CNF)) {
         ZF_LOGE("This driver expects the timer to be edge triggered");
-        return NULL;
+        return -1;
     }
 
     /* check that this timer is 64 bit */
     if (!(timer0_config_low & BIT(TN_SIZE_CAP))) {
         ZF_LOGE("This driver expects hpet timer0 to be 64bit");
-        return NULL;
+        return -1;
     }
 
-    hpet->irq = config->irq;
-
-    if (config->ioapic_delivery) {
+    if (config.ioapic_delivery) {
         /* Check if this IO/APIC offset is valid */
         uint32_t irq_mask = hpet_timer->config >> TN_INT_ROUTE_CAP;
-        if (!(BIT(config->irq) & irq_mask)) {
-            ZF_LOGE("IRQ %d not in the support mask 0x%x", config->irq, irq_mask);
-            return NULL;
+        if (!(BIT(config.irq) & irq_mask)) {
+            ZF_LOGE("IRQ %d not in the support mask 0x%x", config.irq, irq_mask);
+            return -1;
         }
         /* Remove any legacy replacement route so our interrupts go where we want them
          * NOTE: PIT will cease to function from here on */
@@ -350,12 +234,12 @@ hpet_get_timer(hpet_config_t *config)
         /* Put the IO/APIC offset in (this is called an irq, but in reality it is
          * an index into whichever IO/APIC the HPET delivers to */
         hpet_timer->config &= ~(MASK(5) << TN_INT_ROUTE_CNF);
-        hpet_timer->config |= config->irq << TN_INT_ROUTE_CNF;
+        hpet_timer->config |= config.irq << TN_INT_ROUTE_CNF;
     } else {
         /* check that this timer supports front size bus delivery */
         if (!(timer0_config_low & BIT(TN_FSB_INT_DEL_CAP))) {
             ZF_LOGE("Requested fsb delivery, but timer0 does not support");
-            return NULL;
+            return ENOSYS;
         }
 
         /* set timer 0 to delivery interrupts via the front side bus (using MSIs) */
@@ -367,7 +251,7 @@ hpet_get_timer(hpet_config_t *config)
             /* top 32 bits is the message address register */
             ((0x0FEEllu << FIXED) << 32llu)
             /* bottom 32 bits is the message value register */
-            | config->irq;
+            | config.irq;
     }
     COMPILER_MEMORY_RELEASE();
 
@@ -375,5 +259,5 @@ hpet_get_timer(hpet_config_t *config)
     uint32_t tick_period_fs = (uint32_t) (*hpet_get_cap_id(hpet->base_addr) >> 32llu);
     hpet->period_ns = tick_period_fs / 1000000.0f;
 
-    return timer;
+    return 0;
 }
