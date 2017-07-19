@@ -17,11 +17,8 @@
 
 #include <utils/util.h>
 
-#include <platsupport/timer.h>
 #include <platsupport/mach/epit.h>
 #include <platsupport/plat/timer.h>
-
-#include "../../stubtimer.h"
 
 /* EPIT CONTROL REGISTER BITS */
 typedef enum {
@@ -101,45 +98,15 @@ struct epit_map {
     uint32_t epitcnt;
 };
 
-typedef enum {
-    PERIODIC,
-    ONESHOT
-} epit_mode_t;
-
-typedef struct epit {
-    volatile struct epit_map *epit_map;
-    uint64_t counter_start;
-    int mode;
-    uint32_t irq;
-    uint32_t prescaler;
-} epit_t;
-
-static int
-epit_timer_start(const pstimer_t *timer)
+int epit_stop(epit_t *epit)
 {
-    epit_t *epit = (epit_t*) timer->data;
-
-    /* Enable EPIT. */
-    epit->epit_map->epitcr |= 1;
-
-    return 0;
-}
-
-static int
-epit_timer_stop(const pstimer_t *timer)
-{
-    epit_t *epit = (epit_t*) timer->data;
     /* Disable timer irq. */
     epit->epit_map->epitcr &= ~(BIT(EN));
-
     return 0;
 }
 
-static int
-configure_epit(const pstimer_t *timer, uint64_t ns)
+int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
 {
-    epit_t *epit = (epit_t*) timer->data;
-
     /* Set counter modulus - this effectively sets the timeouts to us but doesn't
      * overflow as fast. */
     uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
@@ -149,7 +116,15 @@ configure_epit(const pstimer_t *timer, uint64_t ns)
         return EINVAL;
     }
 
-    epit->counter_start = ns;
+
+    /* configure it and turn it on */
+    uint32_t reload_val = periodic ? BIT(RLD) : 0;
+    epit->epit_map->epitcr = reload_val | (IPG_CLK << CLKSRC) | /* Clock source = IPG */
+                             (epit->prescaler << PRESCALER) | /* Set the prescaler */
+                             BIT(IOVW) | /* Overwrite counter immediately on write */
+                             BIT(OCIEN) | /* Enable interrupt on comparison event */
+                             BIT(ENMOD) | /* Count from modulus on restart */
+                             BIT(EN);
 
     /* hardware has a race condition where the epitlr won't be set properly
      * - keep trying until it works
@@ -159,127 +134,41 @@ configure_epit(const pstimer_t *timer, uint64_t ns)
         epit->epit_map->epitlr = counterValue;
     }
 
-    /* turn it on (just in case it was off) */
-    epit->epit_map->epitcr |= BIT(EN);
     return 0;
 }
 
-static int
-epit_periodic(const pstimer_t *timer, uint64_t ns)
+int epit_handle_irq(epit_t *epit)
 {
-    epit_t *epit = (epit_t*) timer->data;
-
-    epit->mode = PERIODIC;
-    return configure_epit(timer, ns);
-}
-
-static int
-epit_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    epit_t *epit = (epit_t*) timer->data;
-
-    epit->mode = ONESHOT;
-    return configure_epit(timer, ns);
-}
-
-static void
-epit_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    epit_t *epit = (epit_t*) timer->data;
-
-    assert(irq == epit->irq);
-
     if (epit->epit_map->epitsr) {
+        /* ack the irq */
         epit->epit_map->epitsr = 1;
-
-        if (epit->mode != PERIODIC) {
-            /* disable the epit if we don't want it to be periodic */
-            /* this has to be done as the epit is configured to
-             * reload the timer value after irq - this isn't desired
-             * if we are periodic */
-            epit->epit_map->epitcr &= ~(BIT(EN));
-        }
-    }
-}
-
-static uint64_t
-epit_get_time(const pstimer_t *timer)
-{
-    epit_t *epit = (epit_t*) timer->data;
-    uint64_t value;
-
-    /* read the epit */
-    value = epit->epit_map->epitcnt;
-    uint64_t ns = (value / (uint64_t)IPG_FREQ) * NS_IN_US * (epit->prescaler + 1);
-
-    return epit->counter_start - ns;
-}
-
-static uint32_t
-epit_get_nth_irq(const pstimer_t *timer, uint32_t n)
-{
-    epit_t *epit = (epit_t*) timer->data;
-
-    if (n == 0) {
-        return epit->irq;
     }
 
     return 0;
 }
 
-static pstimer_t singleton_timer;
-static epit_t singleton_epit;
-
-pstimer_t *
-epit_get_timer(epit_config_t *config)
+int epit_init(epit_t *epit, epit_config_t config)
 {
+    if (epit == NULL) {
+        ZF_LOGE("Epit cannot be NULL, must be preallocated");
+        return EINVAL;
+    }
 
     /* check the irq */
-    if (config->irq != EPIT1_INTERRUPT && config->irq != EPIT2_INTERRUPT) {
-        fprintf(stderr, "Invalid irq %u for epit, expected %u or %u\n", config->irq,
+    if (config.irq != EPIT1_INTERRUPT && config.irq != EPIT2_INTERRUPT) {
+        ZF_LOGE("Invalid irq %u for epit, expected %u or %u\n", config.irq,
                 EPIT1_INTERRUPT, EPIT2_INTERRUPT);
-        return NULL;
+        return EINVAL;
     }
 
-    pstimer_t *timer = &singleton_timer;
-    epit_t *epit = &singleton_epit;
-
-    timer->properties.upcounter = false;
-    timer->properties.timeouts = true;
-    timer->properties.relative_timeouts = true;
-    timer->properties.absolute_timeouts = false;
-    timer->properties.periodic_timeouts = true;
-    timer->properties.bit_width = 32;
-    timer->properties.irqs = 1;
-
-    timer->data = (void *) epit;
-    timer->start = epit_timer_start;
-    timer->stop = epit_timer_stop;
-    timer->get_time = epit_get_time;
-    timer->oneshot_absolute = stub_timer_timeout;
-    timer->oneshot_relative = epit_oneshot_relative;
-    timer->periodic = epit_periodic;
-    timer->handle_irq = epit_handle_irq;
-    timer->get_nth_irq = epit_get_nth_irq;
-
-    epit->irq = config->irq;
-    epit->epit_map = (volatile struct epit_map*)config->vaddr;
-    epit->prescaler = config->prescaler;
+    epit->epit_map = (volatile struct epit_map*)config.vaddr;
+    epit->prescaler = config.prescaler;
 
     /* Disable EPIT. */
     epit->epit_map->epitcr = 0;
 
-    /* Configure EPIT. */
-    epit->epit_map->epitcr = (IPG_CLK << CLKSRC) | /* Clock source = IPG */
-                             (config->prescaler << PRESCALER) | /* Set the prescaler */
-                             BIT(IOVW) | /* Overwrite counter immediately on write */
-                             BIT(RLD) | /* Reload counter from modulus register on overflow */
-                             BIT(OCIEN) | /* Enable interrupt on comparison event */
-                             BIT(ENMOD) | /* Count from modulus on restart */
-                             0;
-
     /* Interrupt when compare with 0. */
     epit->epit_map->epitcmpr = 0;
 
-    return timer;
+    return 0;
 }

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_EPIT_H
-#define __PLAT_SUPPORT_EPIT_H
+#pragma once
 
 #include <platsupport/plat/epit_constants.h>
 #include <platsupport/timer.h>
@@ -27,6 +26,31 @@ typedef struct {
     uint32_t prescaler;
 } epit_config_t;
 
-pstimer_t *epit_get_timer(epit_config_t *config);
+struct epit_map;
+typedef struct epit {
+    volatile struct epit_map *epit_map;
+    uint32_t prescaler;
+} epit_t;
 
-#endif /* __PLAT_SUPPORT_EPIT_H */
+static inline timer_properties_t
+epit_timer_properties(void)
+{
+   return (timer_properties_t) {
+     .upcounter = false,
+     .timeouts = true,
+     .relative_timeouts = true,
+     .absolute_timeouts = false,
+     .periodic_timeouts = true,
+     .bit_width = 32,
+     .irqs = 1,
+   };
+}
+
+/* initialise an epit struct */
+int epit_init(epit_t *epit, epit_config_t config);
+/* turn off any pending irqs */
+int epit_stop(epit_t *epit);
+/* set a relative timeout */
+int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic);
+/* handle an irq */
+int epit_handle_irq(epit_t *epit);
