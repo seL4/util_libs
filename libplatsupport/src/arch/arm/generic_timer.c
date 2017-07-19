@@ -17,10 +17,7 @@
 
 #include <utils/util.h>
 
-#include <platsupport/timer.h>
-#include <platsupport/plat/timer.h>
-
-#include "../../stubtimer.h"
+#include <platsupport/arch/generic_timer.h>
 
 #ifdef CONFIG_EXPORT_PCNT_USER
 
@@ -45,51 +42,41 @@
 #define CNTPCT     " p15, 0, %Q0, %R0, c14" /* 64-bit RO Physical Count register */
 #define CNTKCTL    " p15, 0,  %0, c14,  c1, 0" /* 32-bit RW Timer PL1 Control register */
 
-static uint64_t
-generic_timer_get_time(const pstimer_t *timer)
+uint64_t generic_timer_get_time(generic_timer_t *timer)
 {
     uint64_t time;
-    uint32_t freq = (uint32_t) timer->data;
 
     MRRC(CNTPCT, time);
 
     /* convert to ns */
-    return time / (uint64_t) freq * NS_IN_US;
+    return time / (uint64_t) timer->freq * NS_IN_US;
 }
 
-static pstimer_t singleton_timer;
-
-pstimer_t *
-generic_timer_get_timer(void)
+int generic_timer_get_init(generic_timer_t *timer)
 {
-    pstimer_t *timer = &singleton_timer;
-    uint32_t freq = 0;
+
+    if (timer == NULL) {
+        ZF_LOGE("Must provide memory for generic timer");
+        return EINVAL;
+    }
+
+    timer->freq = 0;
 
     /* try to read the frequency */
-    MRC(CNTFRQ, freq);
+    MRC(CNTFRQ, timer->freq);
 
 #ifdef PCT_TICKS_PER_US
-    if (freq == 0) {
+    if (timer->freq == 0) {
         freq = PCT_TICKS_PER_US;
     }
 #endif
 
-    if (freq == 0) {
+    if (timer->freq == 0) {
         /* fail init, we don't know what the frequency of the timer is */
-        return NULL;
+        ZF_LOGE("Failed to find generic timer frequency");
+        return ENXIO;
     }
 
-    stub_timer_get_timer(timer);
-
-    timer->data = (void *) freq;
-    timer->properties.upcounter = true;
-    timer->properties.timeouts = false;
-    timer->properties.bit_width = 64;
-    timer->properties.irqs = 0;
-
-    timer->get_time = generic_timer_get_time;
-
-    return timer;
+    return 0;
 }
-
 #endif /* CONFIG_EXPORT_PCNT_USER */
