@@ -9,11 +9,11 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_TSC_H
-#define _PLATSUPPORT_TSC_H
+#pragma once
 
 #include <utils/attribute.h>
-#include <platsupport/timer.h>
+#include <platsupport/plat/hpet.h>
+#include <platsupport/plat/pit.h>
 
 /* just read the tsc. This may be executed out of order as it is unserialised */
 static inline uint64_t
@@ -64,28 +64,15 @@ rdtsc_cpuid(void)
 /**
  * Calculates number of ticks per second of the time stamp counter
  * This function takes complete control of the given timer for
- * the duraction of the calculation and will repogram it. It
+ * the duraction of the calculation and will reprogram it. It
  * may also leave un-acked interrupts
  *
- * @param timer Timer to use for calculating frequency
  * @return Ticks per second, or 0 on error
  */
-uint64_t tsc_calculate_frequency(pstimer_t *timer);
+uint64_t tsc_calculate_frequency_hpet(const hpet_t *hpet);
+uint64_t tsc_calculate_frequency_pit(pit_t *pit);
 
-/*
- * Get a tsc-based implementation of pstimer (acts as an up counting clock)
- *
- * @param timer a timeout timer to use to calculate tsc frequency.
- * @return NULL on error.
- */
-pstimer_t *tsc_get_timer(pstimer_t *timer);
-
-/*
- * Get a tsc-based implementation of pstimer with a previously established freqency.
- *
- * @return NULL on error.
- */
-pstimer_t *
-tsc_get_timer_with_freq(uint64_t freq);
-
-#endif /* _PLATSUPPORT_TSC_H */
+static inline uint64_t tsc_get_time(uint64_t freq)
+{
+    return TSC_TICKS_TO_NS(freq);
+}
