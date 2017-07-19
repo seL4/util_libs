@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_GPT_H
-#define __PLAT_SUPPORT_GPT_H
+#pragma once
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/gpt_constants.h>
@@ -25,6 +24,41 @@ typedef struct {
     uint32_t prescaler;
 } gpt_config_t;
 
-pstimer_t *gpt_get_timer(gpt_config_t *config);
+struct gpt_map;
 
-#endif /* __PLAT_SUPPORT_GPT_H */
+typedef struct gpt {
+    volatile struct gpt_map *gpt_map;
+    uint32_t prescaler;
+    uint32_t high_bits;
+} gpt_t;
+
+/* More can be done with this timer
+ * but this driver can only count up
+ * currently.
+ */
+static inline timer_properties_t
+gpt_get_properies(void) {
+    return (timer_properties_t) {
+		.upcounter = true,
+        .timeouts = false,
+        .absolute_timeouts = false,
+        .relative_timeouts = false,
+        .periodic_timeouts = false,
+        .bit_width = 32,
+        .irqs = 1,
+	};
+}
+
+/*
+ * Initialise a passed in gpt struct with the provided config
+ */
+int gpt_init(gpt_t *gpt, gpt_config_t config);
+
+/* start the gpt */
+int gpt_start(gpt_t *gpt);
+/* stop the gpt */
+int gpt_stop(gpt_t  *gpt);
+/* handle an irq */
+void gpt_handle_irq(gpt_t *gpt);
+/* read the value of the current time in ns */
+uint64_t gpt_get_time(gpt_t *gpt);

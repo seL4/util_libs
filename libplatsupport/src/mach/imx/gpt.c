@@ -15,8 +15,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "../../stubtimer.h"
-
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -138,96 +136,52 @@ struct gpt_map {
     uint32_t gptcnt;
 };
 
-typedef enum {
-    PERIODIC,
-    ONESHOT,
-} gpt_mode_t;
-
-typedef struct gpt {
-    volatile struct gpt_map *gpt_map;
-    int mode;
-    uint32_t irq;
-    uint32_t prescaler;
-} gpt_t;
-
-static int
-gpt_timer_start(const pstimer_t *timer)
+int gpt_start(gpt_t *gpt)
 {
-    gpt_t *gpt = (gpt_t*) timer->data;
-
     gpt->gpt_map->gptcr |= BIT(EN);
-
+    gpt->high_bits = 0;
     return 0;
 }
 
-static int
-gpt_timer_stop(const pstimer_t *timer)
+int gpt_stop(gpt_t *gpt)
 {
-    gpt_t *gpt = (gpt_t*) timer->data;
     /* Disable timer. */
     gpt->gpt_map->gptcr &= ~(BIT(EN));
-
+    gpt->high_bits = 0;
     return 0;
 }
 
-static void
-gpt_handle_irq(const pstimer_t *timer, uint32_t irq UNUSED)
+void gpt_handle_irq(gpt_t *gpt)
 {
-    gpt_t *gpt = (gpt_t*) timer->data;
-
-    /* clear the interrupt status register, regardless of interrupt reason. */
+    /* we've only set the GPT to interrupt on overflow */
+    gpt->high_bits++;
+    /* clear the interrupt status register */
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 }
 
-static uint64_t
-gpt_get_time(const pstimer_t *timer)
+uint64_t gpt_get_time(gpt_t *gpt)
 {
-    gpt_t *gpt = (gpt_t*) timer->data;
-    uint64_t value;
+    uint32_t low_bits = gpt->gpt_map->gptcnt;
+    uint32_t high_bits = gpt->high_bits;
+    if (gpt->gpt_map->gptsr) {
+        /* irq has come in */
+        high_bits++;
+    }
 
-    value = gpt->gpt_map->gptcnt;
+    uint64_t value = ((uint64_t) high_bits << 32llu) + low_bits;
+    /* convert to ns */
     uint64_t ns = (value / (uint64_t)IPG_FREQ) * NS_IN_US * (gpt->prescaler + 1);
     return ns;
 }
 
-static uint32_t
-gpt_get_nth_irq(const pstimer_t *timer UNUSED, uint32_t n UNUSED)
+int gpt_init(gpt_t *gpt, gpt_config_t config)
 {
-    return GPT1_INTERRUPT;
-}
+    if (gpt == NULL) {
+        return EINVAL;
+    }
 
-static pstimer_t singleton_timer;
-static gpt_t singleton_gpt;
-
-pstimer_t *
-gpt_get_timer(gpt_config_t *config)
-{
-    pstimer_t *timer = &singleton_timer;
-    gpt_t *gpt = &singleton_gpt;
-
-    timer->properties.upcounter = true;
-    /* More can probably be done with this timer
-     * but this driver can only count up
-     */
-    timer->properties.timeouts = false;
-    timer->properties.absolute_timeouts = false;
-    timer->properties.relative_timeouts = false;
-    timer->properties.periodic_timeouts = false;
-    timer->properties.bit_width = 32;
-    timer->properties.irqs = 1;
-
-    timer->data = (void *) gpt;
-    timer->start = gpt_timer_start;
-    timer->stop = gpt_timer_stop;
-    timer->get_time = gpt_get_time;
-    timer->oneshot_absolute = stub_timer_timeout;
-    timer->oneshot_relative = stub_timer_timeout;
-    timer->periodic = stub_timer_timeout;
-    timer->handle_irq = gpt_handle_irq;
-    timer->get_nth_irq = gpt_get_nth_irq;
-
-    gpt->gpt_map = (volatile struct gpt_map*)config->vaddr;
-    gpt->prescaler = config->prescaler;
+    gpt->gpt_map = config.vaddr;
+    gpt->prescaler = config.prescaler;
 
     /* Disable GPT. */
     gpt->gpt_map->gptcr = 0;
@@ -239,7 +193,7 @@ gpt_get_timer(gpt_config_t *config)
     gpt->gpt_map->gptcr = BIT(FRR) | BIT(CLKSRC) | BIT(ENMOD); /* GPT can do more but for this just
             set it as free running  so we can tell the time */
     gpt->gpt_map->gptir = BIT(ROV); /* Interrupt when the timer overflows */
-    gpt->gpt_map->gptpr = config->prescaler; /* Set the prescaler */
-
-    return timer;
+    gpt->gpt_map->gptpr = config.prescaler; /* Set the prescaler */
+    gpt->high_bits = 0;
+    return 0;
 }
