@@ -199,7 +199,11 @@ uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr)
     return irq_mask;
 }
 
+uint32_t hpet_level(void *vaddr)
 {
+    hpet_timer_t *timer0 = hpet_get_hpet_timer(vaddr, 0);
+    return timer0->config & BIT(TN_INT_TYPE_CNF);
+}
 
 int hpet_init(hpet_t *hpet, hpet_config_t config)
 {

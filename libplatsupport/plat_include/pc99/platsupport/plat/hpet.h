@@ -68,6 +68,10 @@ bool hpet_supports_fsb_delivery(void *vaddr);
  * the mask of interrupts supported by IOAPIC delivery */
 uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr);
 
+/* Queries the HPET device mapped at the provided vaddr and returns
+ * the level bit */
+uint32_t hpet_level(void *vaddr);
+
 /*
  * Find the HPET details from the ACPI tables.
  *
