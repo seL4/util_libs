@@ -51,8 +51,8 @@ void non_boot_main(void)
 
 void smp_boot(void)
 {
+    arm_disable_dcaches();
     init_cpus();
     non_boot_lock = 1;
-    arm_disable_dcaches();
 }
 #endif /* CONFIG_MAX_NUM_NODES */

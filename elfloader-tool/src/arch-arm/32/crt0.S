@@ -12,6 +12,7 @@
 
 #include <autoconf.h>
 #include <assembler.h>
+#include <armv/assembler.h>
 
 .extern main
 .extern non_boot_main
@@ -19,12 +20,31 @@
 .section ".text.start"
 
 BEGIN_FUNC(_start)
+
+    /* Disable Async aborts that might be pending from bootloader */
+    cpsid   ifa
+
+#if CONFIG_MAX_NUM_NODES > 1
+    /* Enable SMP */
+    mrc     ACTLR(r0)
+    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
+    mcr     ACTLR(r0)
+#endif /* CONFIG_MAX_NUM_NODES > 1 */
+
     ldr     sp, =core_stack_alloc + 0xff0
     b       main
 END_FUNC(_start)
 
 #if CONFIG_MAX_NUM_NODES > 1
 BEGIN_FUNC(non_boot_core)
+    /* Disable Async aborts that might be pending from bootloader */
+    cpsid   ifa
+
+    /* Enable SMP */
+    mrc     ACTLR(r0)
+    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
+    mcr     ACTLR(r0)
+
     ldr     r0, =smp_aps_index
 1:  ldrex   r1, [r0]
     add     r1, r1, #1

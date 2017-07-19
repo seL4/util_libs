@@ -94,13 +94,6 @@ BEGIN_FUNC(arm_enable_mmu)
     isb
     cpsid   a
 
-#if CONFIG_MAX_NUM_NODES > 1
-    /* Enable SMP */
-    mrc     ACTLR(r0)
-    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
-    mcr     ACTLR(r0)
-#endif /* CONFIG_MAX_NUM_NODES > 1 */
-
     ldmfd   sp!, {pc}
 END_FUNC(arm_enable_mmu)
 
@@ -121,13 +114,6 @@ BEGIN_FUNC(arm_disable_dcaches)
 
     /* invalidate dcaches. */
     bl      invalidate_dcache
-
-#if CONFIG_MAX_NUM_NODES > 1
-    /* Enable SMP */
-    mrc     ACTLR(r0)
-    orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
-    mcr     ACTLR(r0)
-#endif /* CONFIG_MAX_NUM_NODES > 1 */
 
     ldmfd   sp!, {pc}
 END_FUNC(arm_disable_dcaches)
