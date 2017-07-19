@@ -9,12 +9,11 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PIT_H
-#define _PLATSUPPORT_PIT_H
+#pragma once
 
 #include <autoconf.h>
-#include <platsupport/timer.h>
 #include <platsupport/io.h>
+#include <platsupport/timer.h>
 
 #ifdef CONFIG_IRQ_PIC
 #define PIT_INTERRUPT       0
@@ -22,12 +21,30 @@
 #define PIT_INTERRUPT       2
 #endif
 
+typedef struct {
+    ps_io_port_ops_t ops;
+} pit_t;
+
+static inline timer_properties_t get_pit_properties(void)
+{
+   return (timer_properties_t) {
+        .upcounter = false,
+        .timeouts = true,
+        .relative_timeouts = true,
+        .periodic_timeouts = true,
+        .absolute_timeouts = false,
+        .bit_width = 16,
+        .irqs = 1
+    };
+}
+
 /*
  * Get the pit interface. This may only be called once.
  *
  * @param io_port_ops io port operations. This is all the pit requires.
  * @return initialised interface, NULL on error.
  */
-pstimer_t * pit_get_timer(ps_io_port_ops_t *io_port_ops);
-
-#endif /* _PLATSUPPORT_PIT_H */
+int pit_init(pit_t *pit, ps_io_port_ops_t io_port_ops);
+int pit_cancel_timeout(pit_t *pit);
+uint64_t pit_get_time(pit_t *pit);
+int pit_set_timeout(pit_t *pit, uint64_t ns, bool periodic);
