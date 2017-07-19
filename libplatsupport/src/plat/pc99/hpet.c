@@ -15,6 +15,7 @@
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/hpet.h>
+#include <platsupport/plat/acpi/acpi.h>
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -259,5 +260,23 @@ int hpet_init(hpet_t *hpet, hpet_config_t config)
     uint32_t tick_period_fs = (uint32_t) (*hpet_get_cap_id(hpet->base_addr) >> 32llu);
     hpet->period_ns = tick_period_fs / 1000000.0f;
 
+    return 0;
+}
+
+int hpet_parse_acpi(acpi_t *acpi, pmem_region_t *region)
+{
+    if (!acpi || !region) {
+        ZF_LOGE("arguments cannot be NULL");
+        return EINVAL;
+    }
+
+    acpi_hpet_t *header = (acpi_hpet_t *) acpi_find_region(acpi, ACPI_HPET);
+    if (header == NULL) {
+        ZF_LOGE("Could not find HPET ACPI header");
+        return ENOSYS;
+    }
+
+    region->base_addr = header->base_address.address;
+    region->length = header->header.length;
     return 0;
 }

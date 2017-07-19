@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 #include <platsupport/timer.h>
+#include <platsupport/plat/acpi/acpi.h>
 #include <platsupport/pmem.h>
 
 #define DEFAULT_HPET_MSI_VECTOR 0
@@ -66,4 +67,13 @@ bool hpet_supports_fsb_delivery(void *vaddr);
 /* Queries the HPET device mapped at the provided vaddr and returns
  * the mask of interrupts supported by IOAPIC delivery */
 uint32_t hpet_ioapic_irq_delivery_mask(void *vaddr);
+
+/*
+ * Find the HPET details from the ACPI tables.
+ *
+ * @param ops  io_ops to use to parse and map acpi,
+ * @param[out] region to populate with details,
+ * @return     0 on success.
+ */
+int hpet_parse_acpi(acpi_t *acpi, pmem_region_t *region);
 
