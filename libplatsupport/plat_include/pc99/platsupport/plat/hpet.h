@@ -75,7 +75,7 @@ uint32_t hpet_level(void *vaddr);
 /*
  * Find the HPET details from the ACPI tables.
  *
- * @param ops  io_ops to use to parse and map acpi,
+ * @param acpi initialised acpi to find hpet table in,
  * @param[out] region to populate with details,
  * @return     0 on success.
  */
