@@ -21,6 +21,9 @@
 #define PIT_INTERRUPT       2
 #endif
 
+#define PIT_IO_PORT_MIN 0x40
+#define PIT_IO_PORT_MAX 0x43
+
 typedef struct {
     ps_io_port_ops_t ops;
 } pit_t;
