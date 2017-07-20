@@ -19,9 +19,6 @@
 
 #include <platsupport/timer.h>
 #include <platsupport/mach/pwm.h>
-#include <platsupport/plat/timer.h>
-
-#include "../../stubtimer.h"
 
 #define ACLK_66 66 /* MHz */
 
@@ -51,42 +48,12 @@
 #define INT_ENABLE_ALL     ( INT_ENABLE(0) | INT_ENABLE(1) | INT_ENABLE(2) \
                            | INT_ENABLE(3) | INT_ENABLE(4)                 )
 
-#define NS_IN_SEC (1000000000)
 static uint64_t time_h = 0;
 static uint32_t prescale0;
-
-/* Memory map for pwm */
-struct pwm_map {
-    uint32_t tcfg0;
-    uint32_t tcfg1;
-    uint32_t tcon;
-    uint32_t tcntB0;
-    uint32_t tcmpB0;
-    uint32_t tcntO0;
-    uint32_t tcntB1;
-    uint32_t tcmpB1;
-    uint32_t tcntO1;
-    uint32_t tcntB2;
-    uint32_t tcmpB2;
-    uint32_t tcntO2;
-    uint32_t tcntB3;
-    uint32_t tcmpB3;
-    uint32_t tcntO3;
-    uint32_t tcntB4;
-    uint32_t tcntO4;
-    uint32_t tint_cstat;
-};
-
-typedef struct pwm {
-    volatile struct pwm_map *pwm_map;
-} pwm_t;
-
-void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
+void configure_timeout(pwm_t *pwm, uint64_t ns, int timer_number, bool periodic)
 {
     assert((timer_number == 0) | (timer_number == 4)); // Only these timers are currently supported
     uint32_t v;
-
-    pwm_t *pwm = (pwm_t*) timer->data;
 
     /* Disable timer. */
     if (timer_number == 4) {
@@ -147,29 +114,31 @@ void configure_timeout(const pstimer_t *timer, uint64_t ns, int timer_number)
         v = (v & INT_ENABLE_ALL) | INT_STAT(0);
     }
     pwm->pwm_map->tint_cstat = v;
+
+    if (periodic) {
+        if (timer_number == 4) {
+            pwm->pwm_map->tcon |= T4_AUTORELOAD;
+        } else {
+            pwm->pwm_map->tcon |= T0_AUTORELOAD;
+        }
+    }
 }
 
-static int
-pwm_timer_start(const pstimer_t *timer)
+int pwm_start(pwm_t *pwm)
 {
-    pwm_t *pwm = (pwm_t *) timer->data;
-
     /* start the timer */
     pwm->pwm_map->tcon |= T4_ENABLE;
 
     /* Start timer0 for get_time */
-    configure_timeout(timer, NS_IN_SEC, 0);
+    configure_timeout(pwm, NS_IN_S, 0, true);
     /* Set autoreload and start the timer. */
-    pwm->pwm_map->tcon |= T0_AUTORELOAD | T0_ENABLE;
+    pwm->pwm_map->tcon |= T0_ENABLE;
 
     return 0;
 }
 
-static int
-pwm_timer_stop(const pstimer_t *timer)
+int pwm_stop(pwm_t *pwm)
 {
-    pwm_t *pwm = (pwm_t*) timer->data;
-
     /* Disable timer. */
     pwm->pwm_map->tcon &= ~(T4_ENABLE | T0_ENABLE);
 
@@ -188,36 +157,18 @@ pwm_timer_stop(const pstimer_t *timer)
     return 0;
 }
 
-static int
-pwm_periodic(const pstimer_t *timer, uint64_t ns)
+int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 {
-    pwm_t *pwm = (pwm_t*) timer->data;
+    configure_timeout(pwm, ns, 4, periodic);
 
-    configure_timeout(timer, ns, 4);
-
-    /* Set autoreload and start the timer. */
-    pwm->pwm_map->tcon |= T4_AUTORELOAD | T4_ENABLE;
-
-    return 0;
-}
-
-static int
-pwm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    pwm_t *pwm = (pwm_t*) timer->data;
-
-    configure_timeout(timer, ns, 4);
-
-    /* Start the timer. */
+    /* start the timer. */
     pwm->pwm_map->tcon |= T4_ENABLE;
 
     return 0;
 }
 
-static void
-pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
+void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 {
-    pwm_t *pwm = (pwm_t*) timer->data;
     uint32_t v;
     v = pwm->pwm_map->tint_cstat;
     if (irq == PWM_T4_INTERRUPT) {
@@ -233,49 +184,15 @@ pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
     pwm->pwm_map->tint_cstat = v;
 }
 
-static uint64_t
-pwm_get_time(const pstimer_t *timer)
+uint64_t pwm_get_time(pwm_t *pwm)
 {
-    pwm_handle_irq(timer, 0); // Ensure the time is up to date
-    pwm_t *pwm = (pwm_t*) timer->data;
+    pwm_handle_irq(pwm, 0); // Ensure the time is up to date
     uint64_t time_l = (pwm->pwm_map->tcntO0 / (ACLK_66 / 1000.0)); // Clk is in MHz
-    return time_h * NS_IN_SEC + (NS_IN_SEC - time_l);
+    return pwm->time_h * NS_IN_S + (NS_IN_S - time_l);
 }
 
-static uint32_t
-pwm_get_nth_irq(const pstimer_t *timer, uint32_t n)
+int pwm_init(pwm_t *pwm, pwm_config_t config)
 {
-    return PWM_T4_INTERRUPT;
-}
-
-static pstimer_t singleton_timer;
-static pwm_t singleton_pwm;
-
-pstimer_t *
-pwm_get_timer(pwm_config_t *config)
-{
-    pstimer_t *timer = &singleton_timer;
-    pwm_t *pwm = &singleton_pwm;
-
-    timer->properties.upcounter = false;
-    timer->properties.timeouts = true;
-    timer->properties.bit_width = 32;
-    timer->properties.irqs = 1;
-    timer->properties.absolute_timeouts = false;
-    timer->properties.relative_timeouts = true;
-    timer->properties.periodic_timeouts = true;
-
-    timer->data = (void *) pwm;
-    timer->start = pwm_timer_start;
-    timer->stop = pwm_timer_stop;
-    timer->get_time = pwm_get_time;
-    timer->oneshot_absolute = stub_timer_timeout;
-    timer->oneshot_relative = pwm_oneshot_relative;
-    timer->periodic = pwm_periodic;
-    timer->handle_irq = pwm_handle_irq;
-    timer->get_nth_irq = pwm_get_nth_irq;
-
-    pwm->pwm_map = (volatile struct pwm_map*) config->vaddr;
-
-    return timer;
+    pwm->pwm_map = (volatile struct pwm_map*) config.vaddr;
+    return 0;
 }

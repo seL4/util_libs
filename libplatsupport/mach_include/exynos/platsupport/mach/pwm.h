@@ -22,5 +22,45 @@ typedef struct {
     void *vaddr;
 } pwm_config_t;
 
-pstimer_t *pwm_get_timer(pwm_config_t *config);
+/* Memory map for pwm */
+struct pwm_map {
+    uint32_t tcfg0;
+    uint32_t tcfg1;
+    uint32_t tcon;
+    uint32_t tcntB0;
+    uint32_t tcmpB0;
+    uint32_t tcntO0;
+    uint32_t tcntB1;
+    uint32_t tcmpB1;
+    uint32_t tcntO1;
+    uint32_t tcntB2;
+    uint32_t tcmpB2;
+    uint32_t tcntO2;
+    uint32_t tcntB3;
+    uint32_t tcmpB3;
+    uint32_t tcntO3;
+    uint32_t tcntB4;
+    uint32_t tcntO4;
+    uint32_t tint_cstat;
+};
 
+typedef struct pwm {
+    volatile struct pwm_map *pwm_map;
+} pwm_t;
+
+static UNUSED timer_properties_t pwm_properties = {
+    .upcounter = false,
+    .bit_width = 32,
+    .irqs = 2,
+    .periodic_timeouts = true,
+    .relative_timeouts = true,
+    .absolute_timeouts = false,
+    .timeouts = true,
+};
+
+int pwm_start(pwm_t *pwm);
+int pwm_stop(pwm_t *pwm);
+void pwm_handle_irq(pwm_t *pwm, uint32_t irq);
+uint64_t pwm_get_time(pwm_t *pwm);
+int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic);
+int pwm_init(pwm_t *pwm, pwm_config_t config);
