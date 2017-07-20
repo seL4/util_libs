@@ -14,12 +14,43 @@
 
 #if CONFIG_MAX_NUM_NODES > 1
 
-#define CPU_JUMP_PTR              0xFFFFFFF0
-
 #include <printf.h>
 #include <types.h>
 #include <scu.h>
 #include <abort.h>
+#include <armv/machine.h>
+
+#define BIT(x) (1U << (x))
+
+#define CPU_JUMP_PTR              0xFFFFFFF0
+
+/*
+ * A9_CPU_RST_CTRL Register definitions.
+ * See TRM B.28 System Level Control Registers (slcr)
+ */
+#define A9_CPU_RST_CTRL     0xF8000244
+#define PERI_RST_BIT        8
+#define A9_CLKSTOP1_BIT     5
+#define A9_CLKSTOP0_BIT     4
+#define A9_RST1_BIT         1
+#define A9_RST0_BIT         0
+
+#define REG(base) *((volatile uint32_t*)(((uint32_t)(base))))
+
+/* See TRM 3.7 Application Processing Unit (APU) Reset */
+static void zynq_stop_core1(void) {
+    REG(A9_CPU_RST_CTRL) |= BIT(A9_RST1_BIT);
+    dsb();
+    REG(A9_CPU_RST_CTRL) |= BIT(A9_CLKSTOP1_BIT);
+    dsb();
+}
+
+static void zynq_start_core1(void) {
+    REG(A9_CPU_RST_CTRL) &= ~BIT(A9_RST1_BIT);
+    dsb();
+    REG(A9_CPU_RST_CTRL) &= ~BIT(A9_CLKSTOP1_BIT);
+    dsb();
+}
 
 extern void non_boot_core(void);
 
@@ -33,8 +64,11 @@ static void *get_scu_base(void)
 static void
 boot_cpus(void (*entry)(void))
 {
-    *((volatile uint32_t*)CPU_JUMP_PTR) = (uint32_t)entry;
-    asm volatile ("dsb;");
+    /* Zynq only has 2 cores, we only need to reset core 1 */
+    zynq_stop_core1();
+    *((volatile uint32_t*)CPU_JUMP_PTR) = (uint32_t) entry;
+    zynq_start_core1();
+    dsb();
     asm volatile ("sev;");
 }
 
