@@ -17,9 +17,6 @@
 
 #include <stdint.h>
 
-#define PWM_TIMER0 0
-#define PWM_TIMER4 4
-
 typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;

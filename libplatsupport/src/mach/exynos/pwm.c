@@ -220,12 +220,12 @@ pwm_handle_irq(const pstimer_t *timer, uint32_t irq)
     pwm_t *pwm = (pwm_t*) timer->data;
     uint32_t v;
     v = pwm->pwm_map->tint_cstat;
-    if (irq == PWM_TIMER0) {
+    if (irq == PWM_T4_INTERRUPT) {
         if (v & INT_STAT(0)) {
             ++time_h;
             v = (v & INT_ENABLE_ALL) | INT_STAT(0);
         }
-    } else if (irq == PWM_TIMER4) {
+    } else if (irq == PWM_T0_INTERRUPT) {
         if (v & INT_STAT(4)) {
             v = (v & INT_ENABLE_ALL) | INT_STAT(4);
         }
