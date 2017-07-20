@@ -30,24 +30,24 @@
 #define AXI_UARTLITE_SR_FRAME_ERROR     BIT(6)
 #define AXI_UARTLITE_SR_PARITY_ERROR    BIT(7)
 
-struct zynq7000_axi_uartlite_regs {
+struct zynq_axi_uartlite_regs {
     uint32_t rx_fifo;   /* 0x0 Receive FIFO */
     uint32_t tx_fifo;   /* 0x4 Transmit FIFO */
     uint32_t sr;        /* 0x8 Status Register */
     uint32_t cr;        /* 0xC Control Register */
 };
-typedef volatile struct zynq7000_axi_uartlite_regs zynq7000_axi_uartlite_regs_t;
+typedef volatile struct zynq_axi_uartlite_regs zynq_axi_uartlite_regs_t;
 
-static inline zynq7000_axi_uartlite_regs_t*
-zynq7000_axi_uartlite_get_priv(ps_chardevice_t *d)
+static inline zynq_axi_uartlite_regs_t*
+zynq_axi_uartlite_get_priv(ps_chardevice_t *d)
 {
-    return (zynq7000_axi_uartlite_regs_t*)d->vaddr;
+    return (zynq_axi_uartlite_regs_t*)d->vaddr;
 }
 
 static int axi_uartlite_getchar(ps_chardevice_t *d)
 {
-    zynq7000_axi_uartlite_regs_t *regs =
-        zynq7000_axi_uartlite_get_priv(d);
+    zynq_axi_uartlite_regs_t *regs =
+        zynq_axi_uartlite_get_priv(d);
 
     int c = -1;
 
@@ -64,8 +64,8 @@ static int axi_uartlite_putchar(ps_chardevice_t *d, int c)
 
     static int needs_newline = 0;
 
-    zynq7000_axi_uartlite_regs_t *regs =
-        zynq7000_axi_uartlite_get_priv(d);
+    zynq_axi_uartlite_regs_t *regs =
+        zynq_axi_uartlite_get_priv(d);
 
     /* check if fifo is full */
     if (regs->sr & AXI_UARTLITE_SR_TX_FIFO_FULL) {
@@ -135,7 +135,7 @@ int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev)
     dev->read  = &axi_uartlite_read;
     dev->write = &axi_uartlite_write;
 
-    zynq7000_axi_uartlite_regs_t *regs = zynq7000_axi_uartlite_get_priv(dev);
+    zynq_axi_uartlite_regs_t *regs = zynq_axi_uartlite_get_priv(dev);
 
     // clear the fifos
     regs->cr |= (AXI_UARTLITE_CR_RST_TX_FIFO | AXI_UARTLITE_CR_RST_RX_FIFO);

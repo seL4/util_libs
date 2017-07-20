@@ -143,7 +143,7 @@
 #define UART_TX_FIFO_SIZE 64
 #define UART_RX_FIFO_SIZE 64
 
-struct zynq7000_uart_regs {
+struct zynq_uart_regs {
     uint32_t cr;            /* 0x00 Control Register */
     uint32_t mr;            /* 0x04 Mode Register */
     uint32_t ier;           /* 0x08 Interrupt Enable Register */
@@ -162,23 +162,23 @@ struct zynq7000_uart_regs {
     uint32_t pad[2];
     uint32_t txwm;          /* 0x44 Transmitter FIFO Trigger Level Register */
 };
-typedef volatile struct zynq7000_uart_regs zynq7000_uart_regs_t;
+typedef volatile struct zynq_uart_regs zynq_uart_regs_t;
 
-static inline zynq7000_uart_regs_t*
-zynq7000_uart_get_priv(ps_chardevice_t *d)
+static inline zynq_uart_regs_t*
+zynq_uart_get_priv(ps_chardevice_t *d)
 {
-    return (zynq7000_uart_regs_t*)d->vaddr;
+    return (zynq_uart_regs_t*)d->vaddr;
 }
 
 static inline void
-zynq7000_uart_enable_tx(zynq7000_uart_regs_t* regs)
+zynq_uart_enable_tx(zynq_uart_regs_t* regs)
 {
     regs->cr &= ~UART_CR_TXDIS;
     regs->cr |= UART_CR_TXEN;
 }
 
 static inline void
-zynq7000_uart_enable_rx(zynq7000_uart_regs_t* regs)
+zynq_uart_enable_rx(zynq_uart_regs_t* regs)
 {
     regs->cr &= ~UART_CR_RXDIS;
     regs->cr |= UART_CR_RXEN;
@@ -186,7 +186,7 @@ zynq7000_uart_enable_rx(zynq7000_uart_regs_t* regs)
 
 int uart_getchar(ps_chardevice_t *d)
 {
-    zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
+    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
     int c = -1;
 
     if (!(regs->sr & UART_SR_REMPTY)) {
@@ -202,7 +202,7 @@ int uart_getchar(ps_chardevice_t *d)
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
-    zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
+    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
 
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         /* check if 2 bytes are free - tx trigger level is 63 and
@@ -239,7 +239,7 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
  * @return      : The actual baud rate based on the calculated values
  */
 static long
-zynq7000_uart_calc_baud_divs(long clk, long baud, unsigned int* rdiv8, uint32_t* rcd, uint32_t* rbdiv)
+zynq_uart_calc_baud_divs(long clk, long baud, unsigned int* rdiv8, uint32_t* rcd, uint32_t* rbdiv)
 {
     /* Safety checks */
     assert(rdiv8 != NULL);
@@ -294,14 +294,14 @@ zynq7000_uart_calc_baud_divs(long clk, long baud, unsigned int* rdiv8, uint32_t*
  * BAUDGEN.CD is 16 bit, BAUDDIV.BDIV is 8 bit
  */
 static void
-zynq7000_uart_set_baud(ps_chardevice_t* d, long bps)
+zynq_uart_set_baud(ps_chardevice_t* d, long bps)
 {
-    zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
+    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
     uint32_t cd = 0;
     uint32_t bdiv = 0;
     unsigned int div8;
 
-    zynq7000_uart_calc_baud_divs(UART_REF_CLK, bps, &div8, &cd, &bdiv);
+    zynq_uart_calc_baud_divs(UART_REF_CLK, bps, &div8, &cd, &bdiv);
 
     /* Disable the Rx path */
     regs->cr &= ~UART_CR_RXEN;
@@ -324,16 +324,16 @@ zynq7000_uart_set_baud(ps_chardevice_t* d, long bps)
     while (regs->cr & (UART_CR_TXRES | UART_CR_RXRES));
 
     /* Enable the Rx path */
-    zynq7000_uart_enable_rx(regs);
+    zynq_uart_enable_rx(regs);
 
     /* Enable the Tx path */
-    zynq7000_uart_enable_tx(regs);
+    zynq_uart_enable_tx(regs);
 }
 
 int
 serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
-    zynq7000_uart_regs_t* regs = zynq7000_uart_get_priv(d);
+    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
     uint32_t mr;
 
     /* Character size */
@@ -376,7 +376,7 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     /* Apply the changes */
     regs->mr = mr;
     /* Now set the board rate */
-    zynq7000_uart_set_baud(d, bps);
+    zynq_uart_set_baud(d, bps);
     return 0;
 }
 
@@ -384,7 +384,7 @@ int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
               ps_chardevice_t* dev)
 {
-    zynq7000_uart_regs_t* regs;
+    zynq_uart_regs_t* regs;
 
     /* Attempt to map the virtual address, assure this works */
     void* vaddr = chardev_map(defn, ops);
@@ -404,7 +404,7 @@ int uart_init(const struct dev_defn* defn,
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
 
-    regs = zynq7000_uart_get_priv(dev);
+    regs = zynq_uart_get_priv(dev);
 
     /* Software reset */
     // TODO - UART software reset is done through a different register (UART_RST_CTRL)
@@ -427,8 +427,8 @@ int uart_init(const struct dev_defn* defn,
     /* Enable the controller */
     regs->cr |= UART_CR_TXRES;              /* Reset Tx path */
     regs->cr |= UART_CR_RXRES;              /* Reset Rx path */
-    zynq7000_uart_enable_rx(regs);          /* Enable the Rx path */
-    zynq7000_uart_enable_tx(regs);          /* Enable the Tx path */
+    zynq_uart_enable_rx(regs);              /* Enable the Rx path */
+    zynq_uart_enable_tx(regs);              /* Enable the Tx path */
     regs->cr |= UART_CR_RSTTO;              /* Restart the receiver timeout counter */
     regs->cr &= ~UART_CR_STTBRK;            /* Do not start to transmit a break */
     regs->cr |= UART_CR_STPBRK;             /* Stop break transmitter */
