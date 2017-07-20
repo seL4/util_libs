@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+#pragma once
 
 /* Default ipg_clk configuration:
  *
@@ -26,5 +25,3 @@
 
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
-
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */

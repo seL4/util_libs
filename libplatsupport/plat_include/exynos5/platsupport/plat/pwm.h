@@ -9,10 +9,8 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef __PLATSUPPORT_PLAT_PWM_H
-#define __PLATSUPPORT_PLAT_PWM_H
+#pragma once
 
 #define PWM_TIMER_PADDR   0x12DD0000
 #define PWM_T4_INTERRUPT 72
 
-#endif /* __PLATSUPPORT_PLAT_PWM_H */

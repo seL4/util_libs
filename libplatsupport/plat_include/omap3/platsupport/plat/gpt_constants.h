@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_OMAP3_H
-#define __PLAT_SUPPORT_OMAP3_H
+#pragma once
 
 /**
  * Address at which the GPT should be in the initial
@@ -81,4 +80,3 @@ static inline int omap_get_gpt_irq(int n)
 /* confiugured by uboot. This is only correct for GPT1-9 */
 #define CLK_HZ 13000000llu
 #define CLK_MHZ (CLK_HZ / US_IN_S)
-#endif /* __PLAT_SUPPORT_OMAP3_H */

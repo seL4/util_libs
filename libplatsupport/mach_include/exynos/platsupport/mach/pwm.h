@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_PWM_H
-#define __PLAT_SUPPORT_PWM_H
+#pragma once
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/pwm.h>
@@ -28,4 +27,3 @@ typedef struct {
 
 pstimer_t *pwm_get_timer(pwm_config_t *config);
 
-#endif /* __PLAT_SUPPORT_PWM_H */

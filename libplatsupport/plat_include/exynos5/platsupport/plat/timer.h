@@ -9,12 +9,9 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+#pragma once
 
 #include <platsupport/mach/pwm.h>
 
 /* frequency of the generic timer */
 #define PCT_TICKS_PER_US 24llu
-
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */

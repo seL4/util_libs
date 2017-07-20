@@ -9,12 +9,9 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+#pragma once
 
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 
 #define IPG_FREQ (532/16) /*x10^5 */
-
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */

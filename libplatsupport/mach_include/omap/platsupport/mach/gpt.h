@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_GPT_H
-#define __PLAT_SUPPORT_GPT_H
+#pragma once
 
 #include <platsupport/timer.h>
 #include <stdint.h>
@@ -51,4 +50,3 @@ gpt_get_timer(gpt_config_t *config) {
     return rel_gpt_get_timer(config);
 }
 
-#endif /* __PLAT_SUPPORT_GPT_H */

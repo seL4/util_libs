@@ -10,8 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 /* @AUTHOR(akroh@ertos.nicta.com.au) */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+
+#pragma once
 
 #include <platsupport/timer.h>
 
@@ -134,4 +134,3 @@ typedef struct {
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
 
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */

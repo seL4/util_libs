@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+#pragma once
 
 /* Memory maps */
 #define DMTIMER2_PADDR 0x48040000
@@ -66,4 +65,3 @@ typedef struct {
 
 pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
 
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */
