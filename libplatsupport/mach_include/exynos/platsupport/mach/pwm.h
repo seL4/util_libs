@@ -46,6 +46,7 @@ struct pwm_map {
 
 typedef struct pwm {
     volatile struct pwm_map *pwm_map;
+    uint64_t time_h;
 } pwm_t;
 
 static UNUSED timer_properties_t pwm_properties = {

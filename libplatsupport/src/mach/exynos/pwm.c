@@ -48,8 +48,6 @@
 #define INT_ENABLE_ALL     ( INT_ENABLE(0) | INT_ENABLE(1) | INT_ENABLE(2) \
                            | INT_ENABLE(3) | INT_ENABLE(4)                 )
 
-static uint64_t time_h = 0;
-static uint32_t prescale0;
 void configure_timeout(pwm_t *pwm, uint64_t ns, int timer_number, bool periodic)
 {
     assert((timer_number == 0) | (timer_number == 4)); // Only these timers are currently supported
@@ -94,7 +92,6 @@ void configure_timeout(pwm_t *pwm, uint64_t ns, int timer_number, bool periodic)
         pwm->pwm_map->tcfg0 |= T01_PRESCALE(prescale);
         pwm->pwm_map->tcfg1 &= T0_DIVISOR(div);
         pwm->pwm_map->tcntB0 = cnt;
-        prescale0 = prescale + 1;
     }
 
     /* load tcntB4 by flushing the double buffer */
@@ -173,7 +170,7 @@ void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
     v = pwm->pwm_map->tint_cstat;
     if (irq == PWM_T4_INTERRUPT) {
         if (v & INT_STAT(0)) {
-            ++time_h;
+            pwm->time_h++;
             v = (v & INT_ENABLE_ALL) | INT_STAT(0);
         }
     } else if (irq == PWM_T0_INTERRUPT) {
