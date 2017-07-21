@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils/util.h>
+#include <inttypes.h>
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
@@ -49,8 +50,14 @@
 #define PRESCALE_MAX       0xf
 #define PCLK_FREQ          111110000U
 
+#ifdef CONFIG_PLAT_ZYNQMP
+#define CNT_WIDTH 32
+#define CNT_MAX ((1ULL << CNT_WIDTH) - 1)
+#else
 #define CNT_WIDTH 16
 #define CNT_MAX (BIT(CNT_WIDTH) - 1)
+#endif
+
 
 /* Byte offsets into a field of ttc_tmr_regs_t for each ttc */
 #define TTCX_TIMER1_OFFSET 0x0
@@ -200,7 +207,7 @@ _ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
          * run slow enough. In this case, the clock driver reported the minimum
          * rate it can run at, and we can use that to calculate a maximum time.
          */
-        ZF_LOGE("Timeout too big for timer, max %llu, got %llu\n",
+        ZF_LOGE("Timeout too big for timer, max %"PRIu64", got %"PRIu64"\n",
                             freq_cycles_and_hz_to_ns(CNT_MAX, fin), ns);
 
         return ETIME;
@@ -284,7 +291,11 @@ _ttc_oneshot_relative(ttc_tmr_regs_t *regs, uint64_t interval)
      * current_time + interval, allowing the addition to wrap around (16 bits).
      */
 
+#ifdef CONFIG_PLAT_ZYNQMP
+    *regs->match[0] = (interval + *regs->cnt_val);
+#else
     *regs->match[0] = (interval + *regs->cnt_val) % BIT(CNT_WIDTH);
+#endif
 
     /* Overflow mode: Continuously count from 0 to 0xffff (this is a 16 bit ttc).
      * In this mode no interrval interrupts. A match interrupt (MATCH0) will be used
@@ -331,14 +342,26 @@ int ttc_init(ttc_t *ttc, ttc_config_t config)
     switch (config.id) {
     case TTC0_TIMER1:
     case TTC1_TIMER1:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER1:
+    case TTC3_TIMER1:
+#endif
         config.vaddr += TTCX_TIMER1_OFFSET;
         break;
     case TTC0_TIMER2:
     case TTC1_TIMER2:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER2:
+    case TTC3_TIMER2:
+#endif
         config.vaddr += TTCX_TIMER2_OFFSET;
         break;
     case TTC0_TIMER3:
     case TTC1_TIMER3:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER3:
+    case TTC3_TIMER3:
+#endif
         config.vaddr += TTCX_TIMER3_OFFSET;
         break;
     default:

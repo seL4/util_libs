@@ -9,5 +9,6 @@
  *
  * @TAG(DATA61_BSD)
  */
+
 #pragma once
-#include <platsupport/mach/timer.h>
+#include <platsupport/mach/gpio.h>
