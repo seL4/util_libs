@@ -10,5 +10,11 @@
  * @TAG(DATA61_BSD)
  */
 
-#pragma once
-#include <platsupport/mach/gpio.h>
+#ifndef __PLATSUPPORT_PLAT_MUX_H__
+#define __PLATSUPPORT_PLAT_MUX_H__
+
+enum mux_feature {
+    NMUX_FEATURES
+};
+
+#endif /* __PLATSUPPORT_PLAT_MUX_H__ */

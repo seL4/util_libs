@@ -10,5 +10,14 @@
  * @TAG(DATA61_BSD)
  */
 
-#pragma once
-#include <platsupport/mach/gpio.h>
+#ifndef _PLATSUPPORT_PLAT_GPIO_H
+#define _PLATSUPPORT_PLAT_GPIO_H
+
+#include <platsupport/gpio.h>
+#include <platsupport/mux.h>
+
+enum gpio_port {
+    GPIO_NBANKS
+};
+
+#endif /* _PLATSUPPORT_PLAT_GPIO_H */
