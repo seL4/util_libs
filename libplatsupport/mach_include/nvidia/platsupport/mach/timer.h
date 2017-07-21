@@ -64,10 +64,50 @@ typedef enum {
 #define NV_TMR_SIZE     0x1000
 
 typedef struct {
-    void        *vaddr;
-    void        *tmrus_vaddr;
-    void        *shared_vaddr;
-    uint32_t    irq;
+    uintptr_t vaddr;
+    nv_tmr_id_t id;
 } nv_tmr_config_t;
 
-pstimer_t *nv_get_timer(nv_tmr_config_t *config);
+struct tmr_map {
+    uint32_t pvt;    /* present trigger value */
+    uint32_t pcr;    /* present count value */
+};
+
+struct tmr_shared_map {
+    uint32_t intr_status;
+    uint32_t secure_cfg;
+};
+
+struct tmrus_map {
+    /* A free-running read-only counter changes once very microsecond */
+    uint32_t cntr_1us;
+    /* configure this regsiter by telling what fraction of 1 microsecond
+     * each clk_m represents. if the clk_m is running at 12 MHz, then
+     * each clm_m represent 1/12 of a microsecond.*/
+    uint32_t usec_cfg;
+    uint32_t cntr_freeze;
+};
+
+typedef struct nv_tmr {
+    volatile struct tmr_map         *tmr_map;
+    volatile struct tmrus_map       *tmrus_map;
+    volatile struct tmr_shared_map  *tmr_shared_map;
+    uint64_t                        counter_start;
+} nv_tmr_t;
+
+static UNUSED timer_properties_t tmr_properties = {
+    .upcounter = false,
+    .timeouts = true,
+    .irqs = 1,
+    .relative_timeouts = true,
+    .periodic_timeouts = false,
+    .absolute_timeouts = false,
+};
+
+int nv_tmr_start(nv_tmr_t *tmr);
+int nv_tmr_stop(nv_tmr_t *tmr);
+int nv_tmr_set_timeout(nv_tmr_t *tmr, uint64_t ns);
+void nv_tmr_handle_irq(nv_tmr_t *tmr);
+uint64_t nv_tmr_get_time(nv_tmr_t *tmr);
+long nv_tmr_get_irq(nv_tmr_id_t n);
+int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config);

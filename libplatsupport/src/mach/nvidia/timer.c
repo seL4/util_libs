@@ -18,7 +18,7 @@
 #include <inttypes.h>
 
 #include <platsupport/timer.h>
-#include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 
 /* enable bit */
 #define PVT_E_BIT           31
@@ -49,55 +49,15 @@
 #define CLK_FREQ_MHZ        1
 #define CLK_FREQ_HZ         CLK_FREQ_MHZ * US_IN_S
 
-struct tmr_map {
-    uint32_t    pvt;    /* present trigger value */
-    uint32_t    pcr;    /* present count value */
-};
-
-struct tmr_shared_map {
-    uint32_t    intr_status;
-    uint32_t    secure_cfg;
-};
-
-struct tmrus_map {
-    /* A free-running read-only counter changes once very microsecond */
-    uint32_t    cntr_1us;
-    /* configure this regsiter by telling what fraction of 1 microsecond
-     * each clk_m represents. if the clk_m is running at 12 MHz, then
-     * each clm_m represent 1/12 of a microsecond.*/
-    uint32_t    usec_cfg;
-    uint32_t    cntr_freeze;
-};
-
-typedef enum {
-    PERIODIC,
-    ONESHOT
-} tmr_mode_t;
-
-typedef struct tmr {
-    volatile struct tmr_map         *tmr_map;
-    volatile struct tmrus_map       *tmrus_map;
-    volatile struct tmr_shared_map  *tmr_shared_map;
-    uint64_t                        counter_start;
-    int                             mode;
-    uint32_t                        irq;
-} tmr_t;
-
-static int
-tmr_start(const pstimer_t *timer)
+int nv_tmr_start(nv_tmr_t *tmr)
 {
-    tmr_t *tmr = (tmr_t *)timer->data;
     tmr->tmr_map->pvt |= BIT(PVT_E_BIT);
-
     return 0;
 }
 
-static int
-tmr_stop(const pstimer_t *timer)
+int nv_tmr_stop(nv_tmr_t *tmr)
 {
-    tmr_t *tmr = (tmr_t *)timer->data;
     tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
-
     return 0;
 }
 
@@ -115,60 +75,31 @@ get_ticks(uint64_t ns)
     return (uint32_t)ticks;
 }
 
-static int
-tmr_oneshot_absolute(const pstimer_t *timer UNUSED, uint64_t ns UNUSED)
+int nv_tmr_set_timeout(nv_tmr_t *tmr, uint64_t ns)
 {
-    /* epit is a count-down timer, can't set relative timeouts */
-    return ENOSYS;
-}
-
-static int
-tmr_periodic(const pstimer_t *timer, uint64_t ns)
-{
-    tmr_t *tmr = (tmr_t *)timer->data;
     uint32_t ticks = get_ticks(ns);
     if (ticks == INVALID_PVT_VAL) {
+        ZF_LOGE("Invalid PVT val");
         return EINVAL;
     }
-    tmr->mode = PERIODIC;
-    tmr->tmr_map->pvt = BIT(PVT_E_BIT) | BIT(PVT_PERIODIC_E_BIT) | ticks;
-    return 0;
-}
-
-static int
-tmr_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    tmr_t *tmr = (tmr_t *)timer->data;
-    uint32_t ticks = get_ticks(ns);
-    if (ticks == INVALID_PVT_VAL) {
-        return EINVAL;
-    }
-    tmr->mode = ONESHOT;
+    /* ack any pending irqs */
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
     tmr->tmr_map->pvt = BIT(PVT_E_BIT) | ticks;
     return 0;
 }
 
-static void
-tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
+void nv_tmr_handle_irq(nv_tmr_t *tmr)
 {
-    tmr_t *tmr = (tmr_t *)timer->data;
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
-    if (tmr->mode != PERIODIC) {
-        tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
-    }
+    tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
 }
 
-static uint64_t
-tmr_get_time(const pstimer_t *timer)
+uint64_t nv_tmr_get_time(nv_tmr_t *tmr)
 {
-    tmr_t *tmr = (tmr_t *)timer->data;
-
     return (uint64_t)tmr->tmrus_map->cntr_1us * NS_IN_US;
 }
 
-static uint32_t
-tmr_get_nth_irq(const pstimer_t *timer, uint32_t n)
+long nv_tmr_get_irq(nv_tmr_id_t n)
 {
     switch (n) {
         case TMR0:
@@ -197,55 +128,52 @@ tmr_get_nth_irq(const pstimer_t *timer, uint32_t n)
     }
 }
 
-static pstimer_t singleton_timer;
-static tmr_t     singleton_tmr;
-
 #define TMRUS_USEC_CFG_DEFAULT   0xb
 
-pstimer_t *
-nv_get_timer(nv_tmr_config_t *config)
+int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
 {
-    switch (config->irq) {
-
-        case INT_NV_TMR0:
-        case INT_NV_TMR1:
-        case INT_NV_TMR2:
-        case INT_NV_TMR3:
-        case INT_NV_TMR4:
-        case INT_NV_TMR5:
-        case INT_NV_TMR6:
-        case INT_NV_TMR7:
-        case INT_NV_TMR8:
-        case INT_NV_TMR9:
-             break;
-
-        default:
-             fprintf(stderr, "Invalid irq %u for NV timer\n", config->irq);
-             return NULL;
+    if (config.id < TMR0 || config.id > TMR_LAST) {
+        return EINVAL;
     }
 
-    pstimer_t *timer = &singleton_timer;
-    tmr_t *tmr = &singleton_tmr;
+    uintptr_t offset;
+    switch (config.id)
+    {
+    case TMR0:
+        offset = TMR0_OFFSET;
+        break;
+    case TMR1:
+        offset = TMR1_OFFSET;
+        break;
+    case TMR2:
+        offset = TMR2_OFFSET;
+        break;
+    case TMR3:
+        offset = TMR3_OFFSET;
+        break;
+    case TMR4:
+        offset = TMR4_OFFSET;
+        break;
+    case TMR5:
+        offset = TMR5_OFFSET;
+        break;
+    case TMR6:
+        offset = TMR6_OFFSET;
+        break;
+    case TMR7:
+        offset = TMR7_OFFSET;
+        break;
+    case TMR8:
+        offset = TMR8_OFFSET;
+        break;
+    case TMR9:
+        offset = TMR9_OFFSET;
+        break;
+    };
 
-    timer->properties.upcounter = false;
-    timer->properties.timeouts = true;
-    timer->properties.bit_width = 0;
-    timer->properties.irqs = 1;
-
-    timer->data = (void *)tmr;
-    timer->start = tmr_start;
-    timer->stop = tmr_stop;
-    timer->get_time = tmr_get_time;
-    timer->oneshot_absolute = tmr_oneshot_absolute;
-    timer->oneshot_relative = tmr_oneshot_relative;
-    timer->periodic = tmr_periodic;
-    timer->handle_irq = tmr_handle_irq;
-    timer->get_nth_irq = tmr_get_nth_irq;
-
-    tmr->irq = config->irq;
-    tmr->tmr_map = (volatile struct tmr_map *)config->vaddr;
-    tmr->tmrus_map = (volatile struct tmrus_map *)config->tmrus_vaddr;
-    tmr->tmr_shared_map = (volatile struct tmr_shared_map *)config->shared_vaddr;
+    tmr->tmr_map = (void *) (config.vaddr + offset);
+    tmr->tmrus_map = (void *) (config.vaddr + TMRUS_OFFSET);
+    tmr->tmr_shared_map = (void *) config.vaddr;
 
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
@@ -260,57 +188,5 @@ nv_get_timer(nv_tmr_config_t *config)
      */
     tmr->tmrus_map->usec_cfg = TMRUS_USEC_CFG_DEFAULT;
 
-    return timer;
-}
-
-pstimer_t *ps_init_timer(int id, ps_io_ops_t* io_ops)
-{
-    nv_tmr_config_t nv_timer_config;
-    uintptr_t paddr;
-
-    switch (id)
-    {
-    case TMR0:
-        paddr = NV_TMR_PADDR + TMR0_OFFSET;
-        break;
-    case TMR1:
-        paddr = NV_TMR_PADDR + TMR1_OFFSET;
-        break;
-    case TMR2:
-        paddr = NV_TMR_PADDR + TMR2_OFFSET;
-        break;
-    case TMR3:
-        paddr = NV_TMR_PADDR + TMR3_OFFSET;
-        break;
-    case TMR4:
-        paddr = NV_TMR_PADDR + TMR4_OFFSET;
-        break;
-    case TMR5:
-        paddr = NV_TMR_PADDR + TMR5_OFFSET;
-        break;
-    case TMR6:
-        paddr = NV_TMR_PADDR + TMR6_OFFSET;
-        break;
-    case TMR7:
-        paddr = NV_TMR_PADDR + TMR7_OFFSET;
-        break;
-    case TMR8:
-        paddr = NV_TMR_PADDR + TMR8_OFFSET;
-        break;
-    case TMR9:
-        paddr = NV_TMR_PADDR + TMR9_OFFSET;
-        break;
-    default:
-        ZF_LOGE("NV: ps_init_timer: Invalid timer device ID %d requested. Returning NULL.", id);
-        return NULL;
-    };
-
-    nv_timer_config.vaddr = ps_io_map(&io_ops->io_mapper,
-                             paddr, NV_TMR_SIZE, 0, PS_MEM_NORMAL);
-    nv_timer_config.tmrus_vaddr = ps_io_map(&io_ops->io_mapper,
-                                   NV_TMR_PADDR + TMRUS_OFFSET, NV_TMR_SIZE,
-                                   0, PS_MEM_NORMAL);
-    nv_timer_config.shared_vaddr = NULL;
-
-    return nv_get_timer(&nv_timer_config);
+    return 0;
 }
