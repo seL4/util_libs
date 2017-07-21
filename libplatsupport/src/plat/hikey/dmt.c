@@ -11,14 +11,12 @@
  */
 #include <stdio.h>
 #include <assert.h>
+#include <errno.h>
 
 #include <utils/util.h>
 #include <utils/time.h>
 
-#include <platsupport/timer.h>
-#include <platsupport/plat/timer.h>
-
-#include "timer_priv.h"
+#include <platsupport/plat/dmt.h>
 
 /* Driver for the HiSilison hi6220 hikey Dual-timer devices.
  *
@@ -34,8 +32,8 @@
 #define TCLR_ONESHOT	BIT(0)
 #define TCLR_VALUE_32	BIT(1)
 #define TCLR_INTENABLE  BIT(5)
+#define TCLR_AUTORELOAD BIT(6)
 #define TCLR_STARTTIMER BIT(7)
-
 #define TICKS_PER_SECOND 19200000
 
 /* The dual timers only have up to microsec accuracy.
@@ -63,75 +61,52 @@ typedef volatile struct dmt_regs {
 	uint32_t bgload;
 } dmt_regs_t;
 
-typedef struct dmt {
-    dmt_regs_t *regs;
-    int timer_id;
-    uint32_t irq;
-} dmt_t;
-
-static dmt_regs_t *
-hikey_dualtimer_get_secondary_timer(const dmt_t *dual_timer)
+static dmt_regs_t *get_regs(dmt_t *dmt)
 {
-    dmt_regs_t *ret;
-
-    /* So there are two downcounters for each of the dualtimers.
-     * Hitherto we were ignoring the existence of the second one.
-     *
-     * Now we're using it.
-     */
-    ret = (dmt_regs_t *)((uintptr_t)dual_timer->regs
-          + HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET);
-
-    return ret;
+    return dmt->regs;
 }
 
-static dmt_regs_t *
-hikey_dualtimer_get_regs(const pstimer_t *timer)
+static void dmt_timer_reset(dmt_t *dmt)
 {
-    dmt_t *dmt = (dmt_t*)timer->data;
-
-    /* Even numbered device IDs are at offset 0, odd-numbered device IDs are
-     * at offset 0x20 within the same page.
-     */
-    if (dmt->timer_id / 2 == 0) {
-        return dmt->regs;
-    } else {
-        return hikey_dualtimer_get_secondary_timer(dmt);
-    }
-}
-
-static void
-dm_timer_reset(const pstimer_t *timer)
-{
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
-
+    dmt_regs_t *dmt_regs = get_regs(dmt);
     dmt_regs->control = 0;
 }
 
-static int
-dm_timer_stop(const pstimer_t *timer)
+int dmt_stop(dmt_t *dmt)
 {
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
-
+    if (dmt == NULL) {
+        return EINVAL;
+    }
+    dmt_regs_t *dmt_regs = get_regs(dmt);
     dmt_regs->control = dmt_regs->control & ~TCLR_STARTTIMER;
     return 0;
 }
 
-static int
-dm_timer_start(const pstimer_t *timer)
+int dmt_start(dmt_t *dmt)
 {
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
-
+    if (dmt == NULL) {
+        return EINVAL;
+    }
+    dmt_regs_t *dmt_regs = get_regs(dmt);
     dmt_regs->control = dmt_regs->control | TCLR_STARTTIMER;
     return 0;
 }
 
-/* This is exported so it can be reused in virtual_upcounter.c */
-int
-dm_set_timeo(const pstimer_t *timer, uint64_t ns, int otherFlags)
+
+int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
 {
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
-    uint32_t ticks = NS_TO_TICKS(ns);
+    if (dmt == NULL) {
+        return EINVAL;
+    }
+    int flags = periodic ? TCLR_AUTORELOAD : TCLR_ONESHOT;
+    flags |= irqs ? TCLR_INTENABLE : 0;
+
+    dmt_regs_t *dmt_regs = get_regs(dmt);
+    uint64_t ticks64 = NS_TO_TICKS(ns);
+    if (ticks64 > UINT32_MAX) {
+        return ETIME;
+    }
+    uint32_t ticks = (uint32_t) ticks64;
 
     dmt_regs->control = 0;
 
@@ -144,7 +119,7 @@ dm_set_timeo(const pstimer_t *timer, uint64_t ns, int otherFlags)
      * If the user supplies 0 as the argument, they'll just get an IRQ
      * immediately.
      */
-    if (otherFlags & TCLR_AUTORELOAD) {
+    if (flags & TCLR_AUTORELOAD) {
         /* Hikey Application Processor Function Description, section 2.3, "TIMERN_BGLOAD":
          *   "TIMERN_BGLOAD is an initial count value register in periodic mode.
          *
@@ -167,47 +142,26 @@ dm_set_timeo(const pstimer_t *timer, uint64_t ns, int otherFlags)
 
     /* The TIMERN_VALUE register is read-only. */
     dmt_regs->control = TCLR_STARTTIMER| TCLR_VALUE_32
-                        | otherFlags;
+                        | flags;
 
     return 0;
 }
 
-static int
-dm_periodic(const pstimer_t *timer, uint64_t ns)
+void dmt_handle_irq(dmt_t *dmt)
 {
-    return dm_set_timeo(timer, ns, TCLR_AUTORELOAD | TCLR_INTENABLE );
-}
-
-static int
-dm_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    return ENOSYS;
-}
-
-static int
-dm_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    return dm_set_timeo(timer, ns, TCLR_ONESHOT | TCLR_INTENABLE );
-}
-
-static void
-dm_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
+    if (dmt == NULL) {
+        return;
+    }
+    dmt_regs_t *dmt_regs = get_regs(dmt);
     dmt_regs->intclr = 0x1;
 }
 
-static uint32_t
-dm_get_nth_irq(const pstimer_t *timer, uint32_t n)
+uint64_t dmt_get_time(dmt_t *dmt)
 {
-    dmt_t *dmt = (dmt_t*)timer->data;
-    return dmt->irq;
-}
-
-static uint64_t
-hikey_dualtimer_get_timestamp(const pstimer_t *timer)
-{
-    dmt_regs_t *dmt_regs = hikey_dualtimer_get_regs(timer);
+    if (dmt == NULL) {
+        return 0;
+    }
+    dmt_regs_t *dmt_regs = get_regs(dmt);
     uint64_t ret;
 
     /* Just return the current downcounter count value.
@@ -219,57 +173,28 @@ hikey_dualtimer_get_timestamp(const pstimer_t *timer)
     return ret;
 }
 
-static timer_properties_t dmtimer_props = {
-    .upcounter = false,
-    .timeouts = true,
-    .absolute_timeouts = false,
-    .relative_timeouts = true,
-    .periodic_timeouts = true,
-
-    .bit_width = 32,
-    .irqs = 1
-};
-
-typedef struct hikey_dualtimer_descriptor {
-    pstimer_t apihandle;
-    dmt_t priv;
-} hikey_dualtimer_descriptor_t;
-
-static hikey_dualtimer_descriptor_t hikey_dualtimers[NUM_DMTIMERS];
-
-pstimer_t *
-hikey_dualtimer_get_timer(int timer_id, timer_config_t *config)
+int dmt_init(dmt_t *dmt, dmt_config_t config)
 {
-    pstimer_t *timer;
-
-    if (timer_id > DMTIMER17) {
+    if (config.id > DMTIMER17) {
         ZF_LOGE("Invalid timer device ID for a hikey dual-timer.");
-        return NULL;
+        return EINVAL;
     }
 
-    if (config == NULL || config->vaddr == NULL) {
+    if (config.vaddr == NULL || dmt == NULL) {
         ZF_LOGE("Vaddr for the mapped dual-timer device register frame is"
                 " required.");
-        return NULL;
+        return EINVAL;
     }
 
-    timer = &hikey_dualtimers[timer_id].apihandle;
-    timer->data = &hikey_dualtimers[timer_id].priv;
-    timer->properties = dmtimer_props;
+    /* Even numbered device IDs are at offset 0, odd-numbered device IDs are
+     * at offset 0x20 within the same page.
+     */
+    if (config.id / 2 == 0) {
+        dmt->regs = config.vaddr;
+    } else {
+        dmt->regs = (void *) ((uintptr_t ) config.vaddr) + HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET;
+    }
 
-    hikey_dualtimers[timer_id].priv.timer_id = timer_id;
-    hikey_dualtimers[timer_id].priv.regs = config->vaddr;
-    hikey_dualtimers[timer_id].priv.irq = config->irq;
-
-    timer->start = dm_timer_start;
-    timer->stop = dm_timer_stop;
-    timer->get_time = hikey_dualtimer_get_timestamp;
-    timer->oneshot_absolute = dm_oneshot_absolute;
-    timer->oneshot_relative = dm_oneshot_relative;
-    timer->periodic = dm_periodic;
-    timer->handle_irq = dm_handle_irq;
-    timer->get_nth_irq = dm_get_nth_irq;
-
-    dm_timer_reset(timer);
-    return timer;
+    dmt_timer_reset(dmt);
+    return 0;
 }

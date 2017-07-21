@@ -9,8 +9,9 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_TIMER_H
-#define _PLATSUPPORT_PLAT_TIMER_H
+#pragma once
+
+#include <platsupport/timer.h>
 
 /* Memory maps */
 #define DMTIMER0_PADDR 0xF8008000
@@ -31,8 +32,6 @@
 #define DMTIMER15_PADDR DMTIMER7_PADDR
 #define DMTIMER16_PADDR 0xF8010000
 #define DMTIMER17_PADDR DMTIMER8_PADDR
-#define RTC0_PADDR 0xF8003000
-#define RTC1_PADDR 0xF8004000
 
 /* IRQs */
 #define DMTIMER0_INTERRUPT 46
@@ -53,11 +52,9 @@
 #define DMTIMER15_INTERRUPT 61
 #define DMTIMER16_INTERRUPT 62
 #define DMTIMER17_INTERRUPT 63
-#define RTC0_INTERRUPT 44
-#define RTC1_INTERRUPT 40
 
 /* Timers */
-enum timer_id {
+typedef enum timer_id {
     DMTIMER0,
     /* The virtual upcounter uses DMTIMER1 internally, so give them
      * the same ID.
@@ -79,13 +76,8 @@ enum timer_id {
     DMTIMER15,
     DMTIMER16,
     DMTIMER17,
-    RTC0,
-    RTC1,
-    VIRTUAL_UPCOUNTER,
     NUM_DMTIMERS = 18,
-    NUM_RTCS = 2,
-    NUM_TIMERS = 21
-};
+} dmt_id_t;
 
 #define TMR_DEFAULT DMTIMER0
 
@@ -108,11 +100,9 @@ static const uintptr_t dm_timer_paddrs[] = {
     [DMTIMER15] = DMTIMER15_PADDR,
     [DMTIMER16] = DMTIMER16_PADDR,
     [DMTIMER17] = DMTIMER17_PADDR,
-    [RTC0] = RTC0_PADDR,
-    [RTC1] = RTC1_PADDR
 };
 
-static const int dm_timer_irqs[] = {
+static const long dm_timer_irqs[] = {
     [DMTIMER0] = DMTIMER0_INTERRUPT,
     [DMTIMER1] = DMTIMER1_INTERRUPT,
     [DMTIMER2] = DMTIMER2_INTERRUPT,
@@ -131,41 +121,46 @@ static const int dm_timer_irqs[] = {
     [DMTIMER15] = DMTIMER15_INTERRUPT,
     [DMTIMER16] = DMTIMER16_INTERRUPT,
     [DMTIMER17] = DMTIMER17_INTERRUPT,
-    /* We don't use the RTC's alarm IRQ feature */
-    [RTC0] = RTC0_INTERRUPT,
-    [RTC1] = RTC1_INTERRUPT
 };
 
-/* These two must be populated by the caller of
- * ps_get_timer(), with two pstimer_t* pointers
- * to two pstimer_t handles that were previously
- * returned by a successful call to ps_get_timer().
- *
- * In other words, first call ps_get_timer() on the
- * two timers you plan to use as the back-end for the
- * virtual upcounter, and then finally fill out the
- * two handles you got from those previous two calls,
- * and pass those two (using this struct member) into
- * your call to ps_get_timer(VIRTUAL_UPCOUNTER).
- */
-struct pstimer;
+static inline void *dmt_get_paddr(dmt_id_t id)
+{
+    if (id < NUM_DMTIMERS && id >= DMTIMER0) {
+        return (void *) dm_timer_paddrs[id];
+    }
+    return NULL;
+}
+
+static inline long dmt_get_irq(dmt_id_t id)
+{
+    if (id < NUM_DMTIMERS && id >= DMTIMER0) {
+        return dm_timer_irqs[id];
+    }
+    return 0;
+}
+
+static UNUSED timer_properties_t dmtimer_props = {
+    .upcounter = false,
+    .timeouts = true,
+    .absolute_timeouts = false,
+    .relative_timeouts = true,
+    .periodic_timeouts = true,
+    .bit_width = 32,
+    .irqs = 1
+};
 
 typedef struct {
-    struct pstimer *rtc_timer, *dualtimer_timer;
-} hikey_vupcounter_timer_config_t;
+    void *regs;
+} dmt_t;
 
 typedef struct {
     void *vaddr;
-    uint32_t irq;
+    int id;
+} dmt_config_t;
 
-    /* When initializing the virtual upcounter, these two
-     * IDs state which other two devices you want to use
-     * to provide its underlying functionality.
-     */
-    int rtc_id, dualtimer_id;
-    hikey_vupcounter_timer_config_t vupcounter_config;
-} timer_config_t;
-
-pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
-
-#endif /* _PLATSUPPORT_PLAT_TIMER_H */
+int dmt_init(dmt_t *dmt, dmt_config_t config);
+void dmt_handle_irq(dmt_t *dmt);
+int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs);
+int dmt_start(dmt_t *dmt);
+int dmt_stop(dmt_t *dmt);
+uint64_t dmt_get_time(dmt_t *dmt);
