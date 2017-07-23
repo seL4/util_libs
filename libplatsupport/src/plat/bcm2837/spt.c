@@ -104,7 +104,7 @@ int spt_start(spt_t *spt)
         return EINVAL;
     }
     /* Enable timer */
-    spt->regs->ctrl |= BIT(TIMER_ENABLE);
+    spt->regs->ctrl |= BIT(TIMER_ENABLE) | BIT(FREE_RUN_ENABLE);
     return 0;
 }
 
@@ -156,7 +156,7 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
     /* Configure timer */
     spt->regs->ctrl = 0;
     spt->regs->ctrl = BIT(COUNTER_WIDTH_BIT) | (prescale_bits << PRESCALE_BIT) |
-                        BIT(TIMER_INTERRUPT_ENABLE);
+                        BIT(TIMER_INTERRUPT_ENABLE) | BIT(FREE_RUN_ENABLE);
     spt->regs->load = ticks;
     spt->regs->pre_divider = 0;
     spt->regs->irq_clear = 1;
@@ -182,10 +182,9 @@ int spt_handle_irq(spt_t *spt)
 
 uint64_t spt_get_time(spt_t *spt)
 {
-    uint64_t value = spt->regs->value;
+    uint64_t value = spt->regs->free_run_count;
     uint64_t ns = (value / (spt->freq / MHZ)) * NS_IN_US * (spt->prescaler);
-
-    return spt->counter_start - ns;
+    return ns;
 }
 
 int spt_init(spt_t *spt, spt_config_t config)
