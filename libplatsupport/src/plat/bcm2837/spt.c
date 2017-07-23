@@ -174,7 +174,7 @@ int spt_handle_irq(spt_t *spt)
         spt->regs->irq_clear = 1;
         spt->regs->ctrl &= ~(BIT(TIMER_ENABLE));
     } else {
-        ZF_LOGE("handle irq called when no interrupt pending\n");
+        ZF_LOGW("handle irq called when no interrupt pending\n");
         return EINVAL;
     }
     return 0;
@@ -202,5 +202,7 @@ int spt_init(spt_t *spt, spt_config_t config)
     clk = clk_get_clock(&clk_sys, CLK_SP804);
     spt->freq = clk_get_freq(clk);
 
+    /* handle any pending irqs */
+    spt_handle_irq(spt);
     return 0;
 }
