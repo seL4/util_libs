@@ -30,7 +30,7 @@ typedef struct arm_timer {
     uint32_t masked_irq;        /* Logical and of interrupt pending and interrupt enable */
     uint32_t reload;            /* Also timer reload value, only it doesn't force a reload */
     uint32_t pre_divider;       /* Prescaler, reset value is 0x7D  */
-    uint32_t free_run_count;    /* Read only invrementing counter */
+    uint32_t free_run_count;    /* Read only incrementing counter */
 } arm_timer_t;
 
 typedef struct {
