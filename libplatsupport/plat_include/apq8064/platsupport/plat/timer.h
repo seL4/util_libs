@@ -130,7 +130,36 @@ static const int apq8064_timer_irqs[] = {
 typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;
+    int id;
 } timer_config_t;
 
-pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
+typedef struct {
+   void *data;
+   int id;
+} timer_t;
 
+int gpt_timer_start(timer_t *timer);
+int gpt_timer_stop(timer_t *timer);
+uint64_t gpt_get_time(timer_t *timer);
+void gpt_handle_irq(timer_t *timer);
+int gpt_periodic(timer_t *timer, uint64_t ns);
+
+
+int dgt_timer_start(timer_t *timer);
+int dgt_timer_stop(timer_t *timer);
+uint64_t dpt_get_time(timer_t *timer);
+int dgt_periodic(timer_t *timer, uint64_t ns);
+void dgt_handle_irq(timer_t *timer);
+
+
+int tmr_timer_start(timer_t *timer);
+int tmr_timer_stop(timer_t *timer);
+uint64_t tmr_get_time(timer_t *timer);
+int tmr_periodic(timer_t *timer, uint64_t ns);
+void tmr_handle_irq(timer_t *timer);
+
+int wdt_timer_start(timer_t *timer);
+uint64_t wdt_get_time(timer_t *timer);
+int wdt_periodic(timer_t *timer, uint64_t ns);
+
+int timer_init(timer_t *timer, timer_config_t config);

@@ -18,10 +18,7 @@
 
 #include <utils/util.h>
 
-#include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
-
-#include "../../stubtimer.h"
 
 #define XOTMR_FIN                19200000UL
 #define SLPTMR_FIN                  32768UL
@@ -181,30 +178,6 @@ get_slp_hz(void)
 #define GPTEN_EN                        (1U << 0)
 
 /** Helpers **/
-#define TIMER_OPS_INIT(timer, prefix)                           \
-    do {                                                        \
-        timer->start            = _##prefix##_timer_start;      \
-        timer->periodic         = _##prefix##_periodic;         \
-        timer->handle_irq       = _##prefix##_handle_irq;       \
-        timer->stop             = _##prefix##_timer_stop;       \
-        timer->get_time         = _##prefix##_get_time;         \
-        timer->oneshot_absolute = stub_timer_timeout; \
-        timer->oneshot_relative = _##prefix##_oneshot_relative; \
-        timer->get_nth_irq      = _common_get_nth_irq;          \
-    }while(0)
-
-#define TIMER_DEFAULT_OPS_INIT(timer)                           \
-    do {                                                        \
-        timer->start            = _timer_start;                 \
-        timer->periodic         = _periodic;                    \
-        timer->handle_irq       = _handle_irq;                  \
-        timer->stop             = _timer_stop;                  \
-        timer->oneshot_absolute = stub_timer_timeout;            \
-        timer->oneshot_relative = _oneshot_relative;            \
-        timer->get_time         = _get_time;                    \
-        timer->get_nth_irq      = _common_get_nth_irq;          \
-    }while(0)
-
 #define TIMER_VADDR_OFFSET(base, offset) ((void*)((uintptr_t)base + offset))
 #define TIMER_REG(base, offset)          *(volatile uint32_t *)TIMER_VADDR_OFFSET(base, offset)
 
@@ -251,48 +224,38 @@ struct gpt_regs {
 };
 typedef volatile struct gpt_regs gpt_regs_t;
 
-static pstimer_t timers[NTIMERS];
-
-static uint32_t
-_common_get_nth_irq(const pstimer_t *timer, uint32_t n)
-{
-    int id = timer - timers;
-    return apq8064_timer_irqs[id];
-}
-
 /**** GPT timer functions ****/
-static int
-_gpt_timer_start(const pstimer_t *timer)
+int
+gpt_timer_start(timer_t *timer)
 {
     gpt_regs_t* regs = (gpt_regs_t*)timer->data;
     regs->en |= GPTEN_EN;
     return 0;
 }
 
-static int
-_gpt_timer_stop(const pstimer_t *timer)
+int
+gpt_timer_stop(timer_t *timer)
 {
     gpt_regs_t* regs = (gpt_regs_t*)timer->data;
     regs->en &= ~GPTEN_EN;
     return 0;
 }
 
-static uint64_t
-_gpt_get_time(const pstimer_t *timer)
+uint64_t
+gpt_get_time(timer_t *timer)
 {
     gpt_regs_t* regs = (gpt_regs_t*)timer->data;
     return regs->cnt;
 }
 
-static int
-_gpt_periodic(const pstimer_t *timer, uint64_t ns)
+int
+gpt_periodic(timer_t *timer, uint64_t ns)
 {
     gpt_regs_t* regs = (gpt_regs_t*)timer->data;
     uintptr_t sts_base = (uintptr_t)timer->data & ~0xfff;
     volatile uint32_t* sts = (volatile uint32_t*)sts_base;
-    int id = timer - timers;
     uint64_t fin;
-    switch (timer - timers) {
+    switch (timer->id) {
     case TMR_RPM_GPT0 :
         fin = get_xo_hz() / 4;
         break;
@@ -310,7 +273,7 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     /* Clear the timer on match */
 
     regs->en = GPTEN_CLR_ON_MTCH_EN;
-    switch (id) {
+    switch (timer->id) {
     case TMR_RPM_GPT0 :
         while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR0_WR_PEND);
         break;
@@ -333,7 +296,7 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     /* Configure match value */
     regs->mtch = (fin * ns) / (1000UL * 1000 * 1000);
 
-    switch (id) {
+    switch (timer->id) {
     case TMR_RPM_GPT0 :
         while (sts[RPMTMRSTS_OFFSET / 4] & RPMTMRSTS_TMR0_PEND);
         break;
@@ -355,47 +318,38 @@ _gpt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int
-_gpt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+void
+gpt_handle_irq(UNUSED timer_t *timer)
 {
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-_gpt_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    (void)timer;
-    (void)irq;
     /* Nothing to do */
 }
 
 /* DGT timer functions */
-static int
-_dgt_timer_start(const pstimer_t *timer)
+int
+dgt_timer_start(timer_t *timer)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
     regs->en |= DGTTMR_EN_EN;
     return 0;
 }
 
-static int
-_dgt_timer_stop(const pstimer_t *timer)
+int
+dgt_timer_stop(timer_t *timer)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
     regs->en &= ~DGTTMR_EN_EN;
     return 0;
 }
 
-static uint64_t
-_dgt_get_time(const pstimer_t *timer)
+uint64_t
+dgt_get_time(timer_t *timer)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
     return regs->cnt;
 }
 
-static int
-_dgt_periodic(const pstimer_t *timer, uint64_t ns)
+int
+dgt_periodic(timer_t *timer, uint64_t ns)
 {
     dgt_regs_t* regs = (dgt_regs_t*)timer->data;
     uint64_t fin_hz = get_tcxo_hz();
@@ -412,54 +366,43 @@ _dgt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int
-_dgt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+void
+dgt_handle_irq(UNUSED timer_t *timer)
 {
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-_dgt_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    (void)timer;
-    (void)irq;
     /* Nothing to do */
 }
 
 /**** TMR ****/
-static int
-_tmr_timer_start(const pstimer_t *timer)
+int
+tmr_timer_start(timer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     regs->control |= ~TMR_CTRL_EN;
     return 0;
 }
 
-static int
-_tmr_timer_stop(const pstimer_t *timer)
+int
+tmr_timer_stop(timer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     regs->control &= ~TMR_CTRL_EN;
     return 0;
 }
 
-static uint64_t
-_tmr_get_time(const pstimer_t *timer)
+uint64_t
+tmr_get_time(timer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     return regs->count;
 }
 
-static int
-_tmr_periodic(const pstimer_t *timer, uint64_t ns)
+int
+tmr_periodic(timer_t *timer, uint64_t ns)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
     uint64_t fin_hz;
-    int id;
     /* Find input clock frequency */
-    id = timer - timers;
-    switch (id) {
+    switch (timer->id) {
     case TMR_PPSS_XO_TMR0:
     case TMR_PPSS_XO_TMR1:
         fin_hz = get_tcxo_hz();
@@ -485,25 +428,17 @@ _tmr_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int
-_tmr_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-_tmr_handle_irq(const pstimer_t *timer, uint32_t irq)
+void
+tmr_handle_irq(timer_t *timer)
 {
     tmr_regs_t* regs = (tmr_regs_t*)timer->data;
-    (void)irq;
     /* Reset the IRQ */
     regs->clear_int = 0xC0FFEE;
 }
 
 /**** WDT ****/
-static int
-_wdt_timer_start(const pstimer_t *timer)
+int
+wdt_timer_start(timer_t *timer)
 {
     wdt_regs_t* regs = (wdt_regs_t*)timer->data;
     /* Don't send a reset */
@@ -514,22 +449,15 @@ _wdt_timer_start(const pstimer_t *timer)
     return 0;
 }
 
-static int
-_wdt_timer_stop(const pstimer_t *timer)
-{
-    assert(!"Not yet implemented");
-    return 0;
-}
-
-static uint64_t
-_wdt_get_time(const pstimer_t *timer)
+uint64_t
+wdt_get_time(timer_t *timer)
 {
     wdt_regs_t* regs = (wdt_regs_t*)timer->data;
     return WDTSTAT_GETCOUNT(regs->status);
 }
 
-static int
-_wdt_periodic(const pstimer_t *timer, uint64_t ns)
+int
+wdt_periodic(timer_t *timer, uint64_t ns)
 {
     wdt_regs_t* regs = (wdt_regs_t*)timer->data;
     uint64_t fin_hz = get_slp_hz();
@@ -547,169 +475,80 @@ _wdt_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static int
-_wdt_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+int timer_init(timer_t *timer, timer_config_t config)
 {
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-_wdt_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    (void)timer;
-    (void)irq;
-    /* Nothing to do */
-    assert(!"Not yet implemented");
-}
-
-/**** STUBS ****/
-/* Stub functions */
-static int
-_timer_start(const pstimer_t *timer)
-{
-    assert(!"Not supported");
-
-    return ENOSYS;
-}
-
-static int
-_timer_stop(const pstimer_t *timer)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static int
-_periodic(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static int
-_oneshot_relative(const pstimer_t *timer, uint64_t ns)
-{
-    assert(!"Not supported");
-    return ENOSYS;
-}
-
-static void
-_handle_irq(const pstimer_t *timer, uint32_t irq)
-{
-    assert(!"Not supported");
-}
-
-static uint64_t
-_get_time(const pstimer_t *timer)
-{
-    assert(!"Not yet implemented");
-    return 0;
-}
-
-pstimer_t *
-ps_get_timer(enum timer_id id, timer_config_t *config)
-{
-    if (id < 0 || id >= NTIMERS) {
-        return NULL;
+    if (config.id < 0 || config.id >= NTIMERS) {
+        return EINVAL;
     }
 
-    pstimer_t *timer = &timers[id];
+    timer->id = config.id;
 
-    timer->properties.upcounter = true;
-    timer->properties.timeouts = true;
-    timer->properties.absolute_timeouts = false;
-    timer->properties.relative_timeouts = false;
-    timer->properties.periodic_timeouts = true;
-    timer->properties.bit_width = 32;
-    timer->properties.irqs = 1;
-
-    TIMER_DEFAULT_OPS_INIT(timer);
     /* Default handlers */
-    switch (id) {
+    switch (config.id) {
     case TMR_PPSS_XO_TMR0:
-        TIMER_OPS_INIT(timer, tmr);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSXOTMR0_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, PPSSXOTMR0_OFFSET);
         break;
     case TMR_PPSS_XO_TMR1:
-        TIMER_OPS_INIT(timer, tmr);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSXOTMR1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, PPSSXOTMR1_OFFSET);
         break;
     case TMR_PPSS_SLP_TMR0:
-        TIMER_OPS_INIT(timer, tmr);
-        TIMER_REG(config->vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_SLPON;
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSTMR0_OFFSET);
+        TIMER_REG(config.vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_SLPON;
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, PPSSTMR0_OFFSET);
         break;
     case TMR_PPSS_SLP_TMR1:
-        TIMER_OPS_INIT(timer, tmr);
-        TIMER_REG(config->vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_SLPON;
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSTMR1_OFFSET);
+        TIMER_REG(config.vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_SLPON;
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, PPSSTMR1_OFFSET);
         break;
     case TMR_PPSS_SLP_WDOG:
-        TIMER_OPS_INIT(timer, wdt);
-        TIMER_REG(config->vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_WDGON;
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, PPSSWDT_OFFSET);
-        timer->properties.bit_width = 14;
+        TIMER_REG(config.vaddr, PPSSCLKCTNTL_OFFSET) |= PPSSCLKCTNTL_WDGON;
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, PPSSWDT_OFFSET);
         break;
         /* KPSS */
     case TMR_KPSS_GPT0:
-        TIMER_OPS_INIT(timer, gpt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT0_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, KPSSGPT0_OFFSET);
         break;
     case TMR_KPSS_GPT1:
-        TIMER_OPS_INIT(timer, gpt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, KPSSGPT1_OFFSET);
         break;
     case TMR_KPSS_DGT:
-        TIMER_OPS_INIT(timer, dgt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSDGT_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, KPSSDGT_OFFSET);
         break;
     case TMR_KPSS_WDT0:
-        TIMER_OPS_INIT(timer, wdt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT0_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, KPSSGPT0_OFFSET);
         break;
     case TMR_KPSS_WDT1:
-        TIMER_OPS_INIT(timer, wdt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, KPSSGPT1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, KPSSGPT1_OFFSET);
         break;
         /* GSS */
     case TMR_GSS_GPT0:
-        TIMER_OPS_INIT(timer, gpt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT0_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, GSSGPT0_OFFSET);
         break;
     case TMR_GSS_GPT1:
-        TIMER_OPS_INIT(timer, gpt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, GSSGPT1_OFFSET);
         break;
     case TMR_GSS_DGT:
-        TIMER_OPS_INIT(timer, dgt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSDGT_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, GSSDGT_OFFSET);
         break;
     case TMR_GSS_WDT0:
-        TIMER_OPS_INIT(timer, wdt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT0_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, GSSGPT0_OFFSET);
         break;
     case TMR_GSS_WDT1:
-        TIMER_OPS_INIT(timer, wdt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, GSSGPT1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, GSSGPT1_OFFSET);
         break;
         /* RPM */
     case TMR_RPM_GPT0:
-        TIMER_OPS_INIT(timer, gpt);
-        TIMER_REG(config->vaddr, RPMGPT0_CLK_CTL) = RPMGPT0_DIV4;
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, RPMGPT0_OFFSET);
+        TIMER_REG(config.vaddr, RPMGPT0_CLK_CTL) = RPMGPT0_DIV4;
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, RPMGPT0_OFFSET);
         break;
     case TMR_RPM_GPT1:
-        TIMER_OPS_INIT(timer, gpt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, RPMGPT1_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, RPMGPT1_OFFSET);
         break;
     case TMR_RPM_WDOG:
-        TIMER_OPS_INIT(timer, wdt);
-        timer->data = TIMER_VADDR_OFFSET(config->vaddr, RPMWDT_OFFSET);
+        timer->data = TIMER_VADDR_OFFSET(config.vaddr, RPMWDT_OFFSET);
         break;
     default:
-        return NULL;
+        return EINVAL;
     }
 
-    return timer;
+    return 0;
 }
