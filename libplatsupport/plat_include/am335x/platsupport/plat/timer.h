@@ -28,7 +28,7 @@
 #define DMTIMER7_INTERRUPT 95
 
 /* Timers */
-enum timer_id {
+typedef enum timer_id {
     DMTIMER2,
     DMTIMER3,
     DMTIMER4,
@@ -36,10 +36,10 @@ enum timer_id {
     DMTIMER6,
     DMTIMER7,
     NTIMERS
-};
+} dmt_id_t;
 #define TMR_DEFAULT DMTIMER2
 
-static const uintptr_t dm_timer_paddrs[] = {
+static const uintptr_t dmt_paddrs[] = {
     [DMTIMER2] = DMTIMER2_PADDR,
     [DMTIMER3] = DMTIMER3_PADDR,
     [DMTIMER4] = DMTIMER4_PADDR,
@@ -48,7 +48,7 @@ static const uintptr_t dm_timer_paddrs[] = {
     [DMTIMER7] = DMTIMER7_PADDR,
 };
 
-static const int dm_timer_irqs[] = {
+static const int dmt_irqs[] = {
     [DMTIMER2] = DMTIMER2_INTERRUPT,
     [DMTIMER3] = DMTIMER3_INTERRUPT,
     [DMTIMER4] = DMTIMER4_INTERRUPT,
@@ -57,11 +57,65 @@ static const int dm_timer_irqs[] = {
     [DMTIMER7] = DMTIMER7_INTERRUPT,
 };
 
+static UNUSED timer_properties_t dmt_properties = {
+    .upcounter = false,
+    .timeouts = true,
+    .relative_timeouts = true,
+    .periodic_timeouts = true,
+    .bit_width = 32,
+    .irqs = 1
+};
+
 typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;
-    uint32_t irq;
-} timer_config_t;
+    dmt_id_t id;
+} dmt_config_t;
 
-pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
+struct dmt_map {
+    uint32_t tidr; // 00h TIDR Identification Register
+    uint32_t padding1[3];
+    uint32_t cfg; // 10h TIOCP_CFG Timer OCP Configuration Register
+    uint32_t padding2[3];
+    uint32_t tieoi; // 20h IRQ_EOI Timer IRQ End-Of-Interrupt Register
+    uint32_t tisrr; // 24h IRQSTATUS_RAW Timer IRQSTATUS Raw Register
+    uint32_t tisr; // 28h IRQSTATUS Timer IRQSTATUS Register
+    uint32_t tier; // 2Ch IRQENABLE_SET Timer IRQENABLE Set Register
+    uint32_t ticr; // 30h IRQENABLE_CLR Timer IRQENABLE Clear Register
+    uint32_t twer; // 34h IRQWAKEEN Timer IRQ Wakeup Enable Register
+    uint32_t tclr; // 38h TCLR Timer Control Register
+    uint32_t tcrr; // 3Ch TCRR Timer Counter Register
+    uint32_t tldr; // 40h TLDR Timer Load Register
+    uint32_t ttgr; // 44h TTGR Timer Trigger Register
+    uint32_t twps; // 48h TWPS Timer Write Posted Status Register
+    uint32_t tmar; // 4Ch TMAR Timer Match Register
+    uint32_t tcar1; // 50h TCAR1 Timer Capture Register
+    uint32_t tsicr; // 54h TSICR Timer Synchronous Interface Control Register
+    uint32_t tcar2; // 58h TCAR2 Timer Capture Register
+};
 
+typedef struct dmt {
+    volatile struct dmt_map *hw;
+} dmt_t;
+
+static inline void *dmt_paddr(dmt_id_t id) {
+    if (id <= DMTIMER7 && id >= DMTIMER2) {
+        return  (void *) dmt_paddrs[id];
+    } else {
+        return NULL;
+    }
+}
+
+static inline long dmt_irq(dmt_id_t id) {
+    if (id <= DMTIMER7 && id >= DMTIMER2) {
+        return dmt_irqs[id];
+    } else {
+        return 0;
+    }
+}
+
+int dmt_init(dmt_t *dmt, dmt_config_t config);
+int dmt_start(dmt_t *dmt);
+int dmt_stop(dmt_t *dmt);
+int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic);
+void dmt_handle_irq(dmt_t *dmt);
