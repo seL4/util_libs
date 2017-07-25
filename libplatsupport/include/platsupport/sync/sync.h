@@ -84,4 +84,3 @@ static inline int ps_mutex_destroy(ps_mutex_ops_t *ops, void *m)
 	}
 	return ops->mutex_destroy(m);
 }
-

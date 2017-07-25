@@ -144,13 +144,11 @@ uint64_t gpt_get_time(timer_t *timer);
 void gpt_handle_irq(timer_t *timer);
 int gpt_periodic(timer_t *timer, uint64_t ns);
 
-
 int dgt_timer_start(timer_t *timer);
 int dgt_timer_stop(timer_t *timer);
 uint64_t dpt_get_time(timer_t *timer);
 int dgt_periodic(timer_t *timer, uint64_t ns);
 void dgt_handle_irq(timer_t *timer);
-
 
 int tmr_timer_start(timer_t *timer);
 int tmr_timer_stop(timer_t *timer);

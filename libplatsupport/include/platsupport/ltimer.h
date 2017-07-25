@@ -28,7 +28,6 @@ typedef enum {
     TIMEOUT_RELATIVE
 } timeout_type_t;
 
-
 /* logical timers are the interface used by the timer manager to multiplex
  * timer requests from clients - only one timeout can be registered at a time.
  * logical timers may be backed by several timer drivers to implement the

@@ -186,7 +186,6 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         error = dmt_init(&dmt_ltimer->dmts[i], config);
     }
 
-
     /* start the timeout dmt */
     if (!error) {
         error = dmt_start(&dmt_ltimer->dmts[TIMEOUT_DMT]);

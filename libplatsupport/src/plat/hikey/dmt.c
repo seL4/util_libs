@@ -92,7 +92,6 @@ int dmt_start(dmt_t *dmt)
     return 0;
 }
 
-
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
 {
     if (dmt == NULL) {

@@ -16,7 +16,6 @@
 #include <platsupport/plat/pit.h>
 #include <platsupport/plat/hpet.h>
 
-
 /* Using the default function, the pc99 ltimer will try to use the HPET and then fall back to the PIT,
  * using the TSC for timestamps
  *

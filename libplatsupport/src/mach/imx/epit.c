@@ -116,7 +116,6 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
         return EINVAL;
     }
 
-
     /* configure it and turn it on */
     uint32_t reload_val = periodic ? BIT(RLD) : 0;
     epit->epit_map->epitcr = reload_val | (IPG_CLK << CLKSRC) | /* Clock source = IPG */

@@ -221,7 +221,6 @@ static void gpt_init(gpt_t *gpt)
     }
 }
 
-
 /* Relative timeout driver for the gpt.
  *
  * This driver sets up the gpt for relative timeouts (oneshot or periodic) only.

@@ -80,4 +80,3 @@ uint32_t hpet_level(void *vaddr);
  * @return     0 on success.
  */
 int hpet_parse_acpi(acpi_t *acpi, pmem_region_t *region);
-
