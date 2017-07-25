@@ -30,7 +30,7 @@
 #define TTC1_TIMER3_IRQ          71
 
 /* Timers */
-enum timer_id {
+typedef enum {
     TTC0_TIMER1,
     TTC0_TIMER2,
     TTC0_TIMER3,
@@ -38,7 +38,7 @@ enum timer_id {
     TTC1_TIMER2,
     TTC1_TIMER3,
     NTIMERS
-};
+} ttc_id_t;
 #define TMR_DEFAULT TTC0_TIMER1
 
 static const uintptr_t zynq_timer_paddrs[] = {
@@ -63,7 +63,46 @@ typedef struct {
     /* vaddr pwm is mapped to */
     void *vaddr;
     clk_t* clk_src;
-} timer_config_t;
+    ttc_id_t id;
+} ttc_config_t;
 
-pstimer_t *ps_get_timer(enum timer_id id, timer_config_t *config);
+typedef struct {
+    void *regs;
+    clk_t clk;
+    freq_t freq;
+    ttc_id_t id;
+} ttc_t;
 
+static UNUSED timer_properties_t ttc_properties = {
+    .upcounter = true,
+    .timeouts = true,
+    .bit_width = 16,
+    .irqs = 1,
+    .relative_timeouts = true,
+    .absolute_timeouts = true
+};
+
+static inline uintptr_t ttc_paddr(ttc_id_t id)
+{
+    if (id >= TTC0_TIMER1 && id < NTIMERS) {
+        return zynq_timer_paddrs[id];
+    } else {
+        return 0;
+    }
+}
+
+static inline int ttc_irq(ttc_id_t id)
+{
+    if (id >= TTC0_TIMER1 && id < NTIMERS) {
+        return zynq_timer_irqs[id];
+    } else {
+        return 0;
+    }
+}
+
+int ttc_init(ttc_t *ttc, ttc_config_t config);
+int ttc_start(ttc_t *ttc);
+int ttc_stop(ttc_t *ttc);
+int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic);
+void ttc_handle_irq(ttc_t *ttc);
+uint64_t ttc_get_time(ttc_t *ttc);

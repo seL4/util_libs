@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
@@ -52,21 +52,7 @@
 #define CNT_WIDTH 16
 #define CNT_MAX (BIT(CNT_WIDTH) - 1)
 
-#define TTC_CLK_DATA(id) {              \
-        .name = #id,                    \
-        .req_freq = 0,                  \
-        .parent = NULL,                 \
-        .sibling = NULL,                \
-        .child = NULL,                  \
-        .clk_sys = NULL,                \
-        .get_freq = _ttc_clk_get_freq,  \
-        .set_freq = _ttc_clk_set_freq,  \
-        .recal = _ttc_clk_recal,        \
-        .init = _ttc_clk_init,          \
-        .priv = (void*)&_timers[id]     \
-    }
-
-/* Byte offsets into a field of ttc_tmr_regs_t for each timer */
+/* Byte offsets into a field of ttc_tmr_regs_t for each ttc */
 #define TTCX_TIMER1_OFFSET 0x0
 #define TTCX_TIMER2_OFFSET 0x4
 #define TTCX_TIMER3_OFFSET 0x8
@@ -84,58 +70,31 @@ struct ttc_tmr_regs {
 };
 typedef volatile struct ttc_tmr_regs ttc_tmr_regs_t;
 
-struct ttc_data {
-    clk_t clk;
-    freq_t freq;
-    ttc_tmr_regs_t* regs;
-};
-
 static freq_t _ttc_clk_get_freq(clk_t* clk);
 static freq_t _ttc_clk_set_freq(clk_t* clk, freq_t hz);
 static void _ttc_clk_recal(clk_t* clk);
 static clk_t* _ttc_clk_init(clk_t* clk);
 
-static pstimer_t _timers[NTIMERS];
-static struct ttc_data _timer_data[NTIMERS] = {
-    [TTC0_TIMER1] = { .clk = TTC_CLK_DATA(TTC0_TIMER1), .freq = 0, .regs = NULL },
-    [TTC0_TIMER2] = { .clk = TTC_CLK_DATA(TTC0_TIMER2), .freq = 0, .regs = NULL },
-    [TTC0_TIMER3] = { .clk = TTC_CLK_DATA(TTC0_TIMER3), .freq = 0, .regs = NULL },
-    [TTC1_TIMER1] = { .clk = TTC_CLK_DATA(TTC1_TIMER1), .freq = 0, .regs = NULL },
-    [TTC1_TIMER2] = { .clk = TTC_CLK_DATA(TTC1_TIMER2), .freq = 0, .regs = NULL },
-    [TTC1_TIMER3] = { .clk = TTC_CLK_DATA(TTC1_TIMER3), .freq = 0, .regs = NULL },
-};
-
-static inline enum timer_id
-timer_get_id(const pstimer_t *timer)
-{
-    return timer - _timers;
-}
-
-static inline struct ttc_data*
-timer_get_data(const pstimer_t *timer) {
-    return (struct ttc_data*)timer->data;
-}
-
 static inline ttc_tmr_regs_t*
-timer_get_regs(const pstimer_t *timer)
+ttc_get_regs(ttc_t *ttc)
 {
-    return timer_get_data(timer)->regs;
+    return ttc->regs;
 }
 
 /****************** Clocks ******************/
 
-static pstimer_t*
+static ttc_t*
 ttc_clk_get_priv(clk_t* clk)
 {
-    return (pstimer_t*)clk->priv;
+    return (ttc_t*)clk->priv;
 }
 
 /* FPGA PL Clocks */
 static freq_t
 _ttc_clk_get_freq(clk_t* clk)
 {
-    pstimer_t* timer = ttc_clk_get_priv(clk);
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_t *ttc = ttc_clk_get_priv(clk);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     uint32_t clk_ctrl;
     freq_t fin, fout;
     /* Get the parent frequency */
@@ -158,8 +117,8 @@ _ttc_clk_get_freq(clk_t* clk)
 static freq_t
 _ttc_clk_set_freq(clk_t* clk, freq_t hz)
 {
-    pstimer_t* timer = ttc_clk_get_priv(clk);
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_t *ttc = ttc_clk_get_priv(clk);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     uint32_t v;
     freq_t fin;
     int ps;
@@ -198,18 +157,16 @@ _ttc_clk_init(clk_t* clk)
 }
 
 static inline freq_t
-_ttc_get_freq(const pstimer_t* timer)
+_ttc_get_freq(ttc_t *ttc)
 {
-    struct ttc_data* data = timer_get_data(timer);
-    return data->freq;
+    return ttc->freq;
 }
 
 static inline freq_t
-_ttc_set_freq(const pstimer_t* timer, freq_t hz)
+_ttc_set_freq(ttc_t *ttc, freq_t hz)
 {
-    struct ttc_data* data = timer_get_data(timer);
-    data->freq = clk_set_freq(&data->clk, hz);
-    return data->freq;
+    ttc->freq = clk_set_freq(&ttc->clk, hz);
+    return ttc->freq;
 }
 
 /********************************************/
@@ -228,7 +185,7 @@ _ttc_set_freq(const pstimer_t* timer, freq_t hz)
  * requested time to pass (ie. the interval) is computed and
  * returned via an argument (interval). */
 static inline int
-_ttc_set_freq_for_ns(const pstimer_t *timer, uint64_t ns, uint64_t *interval)
+_ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
 {
     freq_t fin, f;
     uint64_t interval_value;
@@ -237,7 +194,7 @@ _ttc_set_freq_for_ns(const pstimer_t *timer, uint64_t ns, uint64_t *interval)
      * 1 / (fin / max_cnt) > interval
      * fin < max_cnt / interval */
     f = freq_cycles_and_ns_to_hz(CNT_MAX, ns);
-    fin = _ttc_set_freq(timer, f);
+    fin = _ttc_set_freq(ttc, f);
     if (fin > f) {
         /* This happens when the requested time is so long that the clock can't
          * run slow enough. In this case, the clock driver reported the minimum
@@ -260,53 +217,27 @@ _ttc_set_freq_for_ns(const pstimer_t *timer, uint64_t ns, uint64_t *interval)
     return 0;
 }
 
-static uint32_t
-_ttc_get_nth_irq(const pstimer_t *timer, uint32_t n)
+int ttc_start(ttc_t *ttc)
 {
-    int id = timer_get_id(timer);
-    return zynq_timer_irqs[id];
-}
-
-static int
-_ttc_timer_start(const pstimer_t *timer)
-{
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl &= ~CNTCTRL_STOP;
     return 0;
 }
 
-static int
-_ttc_timer_stop(const pstimer_t *timer)
+int ttc_stop(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl |= CNTCTRL_STOP;
+    ttc_handle_irq(ttc);
     return 0;
 }
 
-static int
-_ttc_oneshot_absolute(const pstimer_t *timer, uint64_t ns)
-{
-    /* As this is a 16 bit timer, it overflows too frequently
-     * for setting absolute timeouts to be useful. */
-    return ENOSYS;
-}
-
-/* Set up the timer to fire an interrupt every ns nanoseconds.
+/* Set up the ttc to fire an interrupt every ns nanoseconds.
  * The first such interrupt may arrive before ns nanoseconds
  * have passed since calling. */
 static int
-_ttc_periodic(const pstimer_t *timer, uint64_t ns)
+_ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
 {
-    uint64_t interval;
-
-    /* Program the clock and compute the interval value */
-    int error = _ttc_set_freq_for_ns(timer, ns, &interval);
-    if (error) {
-        return error;
-    }
-
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
-
     *regs->interval = interval;
 
     /* Interval mode: Continuously count from 0 to value in interval register,
@@ -322,10 +253,9 @@ _ttc_periodic(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-static void
-_ttc_handle_irq(const pstimer_t *timer, uint32_t irq)
+void ttc_handle_irq(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
 
     /* The MATCH0 interrupt is used in oneshot mode. It is enabled when a
      * oneshot function is called, and disabled here so only one interrupt
@@ -335,38 +265,28 @@ _ttc_handle_irq(const pstimer_t *timer, uint32_t irq)
     FORCE_READ(regs->int_sts); /* Clear on read */
 }
 
-static uint64_t
-_ttc_get_time(const pstimer_t *timer)
+uint64_t ttc_get_time(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     uint32_t cnt = *regs->cnt_val;
-    uint32_t fin = _ttc_get_freq(timer);
+    uint32_t fin = _ttc_get_freq(ttc);
     return freq_cycles_and_hz_to_ns(cnt, fin);
 }
 
-/* Set up the timer to fire an interrupt ns nanoseconds after this
+/* Set up the ttc to fire an interrupt ns nanoseconds after this
  * function is called. */
 static int
-_ttc_oneshot_relative(const pstimer_t *timer, uint64_t ns)
+_ttc_oneshot_relative(ttc_tmr_regs_t *regs, uint64_t interval)
 {
-    uint64_t interval;
 
-    /* Program the clock and compute the interval value */
-    int error = _ttc_set_freq_for_ns(timer, ns, &interval);
-    if (error) {
-        return error;
-    }
-
-    ttc_tmr_regs_t* regs = timer_get_regs(timer);
-
-    /* In overflow mode the timer will continuously count up to 0xffff and reset to 0.
-     * The timer will be programmed to interrupt when the counter reaches
+    /* In overflow mode the ttc will continuously count up to 0xffff and reset to 0.
+     * The ttc will be programmed to interrupt when the counter reaches
      * current_time + interval, allowing the addition to wrap around (16 bits).
      */
 
     *regs->match[0] = (interval + *regs->cnt_val) % BIT(CNT_WIDTH);
 
-    /* Overflow mode: Continuously count from 0 to 0xffff (this is a 16 bit timer).
+    /* Overflow mode: Continuously count from 0 to 0xffff (this is a 16 bit ttc).
      * In this mode no interrval interrupts. A match interrupt (MATCH0) will be used
      * in this mode. */
     *regs->cnt_ctrl &= ~CNTCTRL_INT;
@@ -380,68 +300,69 @@ _ttc_oneshot_relative(const pstimer_t *timer, uint64_t ns)
     return 0;
 }
 
-pstimer_t *
-ps_get_timer(enum timer_id id, timer_config_t *config)
+int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic)
 {
-    ttc_tmr_regs_t* regs;
-    pstimer_t *timer;
-    clk_t* clk;
-    struct ttc_data *timer_data;
-    void* vaddr;
+    if (ttc == NULL) {
+        return EINVAL;
+    }
 
+    /* Program the clock and compute the interval value */
+    uint64_t interval;
+    int error = _ttc_set_freq_for_ns(ttc, ns, &interval);
+    if (error) {
+        return error;
+    }
+
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    if (periodic) {
+        return _ttc_periodic(regs, interval);
+    } else {
+        return _ttc_oneshot_relative(regs, interval);
+    }
+}
+
+int ttc_init(ttc_t *ttc, ttc_config_t config)
+{
     /* This sets the base of the ttc_tmr_regs_t pointer to
-     * an offset into the timer's mmio region such that
+     * an offset into the ttc's mmio region such that
      * ((ttc_tmr_regs_t*)vaddr)->clk_ctrl
      * (and all other registers) refers to the address of the
-     * register relevant for the specified timer device. */
-    vaddr = config->vaddr;
-    switch (id) {
+     * register relevant for the specified ttc device. */
+    switch (config.id) {
     case TTC0_TIMER1:
     case TTC1_TIMER1:
-        vaddr += TTCX_TIMER1_OFFSET;
+        config.vaddr += TTCX_TIMER1_OFFSET;
         break;
     case TTC0_TIMER2:
     case TTC1_TIMER2:
-        vaddr += TTCX_TIMER2_OFFSET;
+        config.vaddr += TTCX_TIMER2_OFFSET;
         break;
     case TTC0_TIMER3:
     case TTC1_TIMER3:
-        vaddr += TTCX_TIMER3_OFFSET;
+        config.vaddr += TTCX_TIMER3_OFFSET;
         break;
     default:
-        return NULL;
+        return EINVAL;
     }
 
-    timer = &_timers[id];
-    timer_data = &_timer_data[id];
-    timer->data = timer_data;
-    timer_data->regs = vaddr;
+    ttc->regs = config.vaddr;
+    ttc->id = config.id;
 
     /* Configure clock source */
-    clk = &timer_data->clk;
-    if (config->clk_src) {
-        clk_register_child(config->clk_src, clk);
+    memset(&ttc->clk, 0, sizeof(ttc->clk));
+    ttc->clk.name = STRINGIFY(config.id);
+    ttc->clk.get_freq = _ttc_clk_get_freq;
+    ttc->clk.set_freq = _ttc_clk_set_freq;
+    ttc->clk.recal = _ttc_clk_recal;
+    ttc->clk.init = _ttc_clk_init;
+    ttc->clk.priv = ttc;
+
+    if (config.clk_src) {
+        clk_register_child(config.clk_src, &ttc->clk);
     }
-    timer_data->freq = clk_get_freq(clk);
+    ttc->freq = clk_get_freq(&ttc->clk);
 
-    timer->properties.upcounter = true;
-    timer->properties.timeouts = true;
-    timer->properties.bit_width = 16;
-    timer->properties.irqs = 1;
-    timer->properties.absolute_timeouts = false;
-    timer->properties.relative_timeouts = true;
-    timer->properties.periodic_timeouts = true;
-
-    timer->start = _ttc_timer_start;
-    timer->stop = _ttc_timer_stop;
-    timer->get_time = _ttc_get_time;
-    timer->oneshot_absolute = _ttc_oneshot_absolute;
-    timer->oneshot_relative = _ttc_oneshot_relative;
-    timer->periodic = _ttc_periodic;
-    timer->handle_irq = _ttc_handle_irq;
-    timer->get_nth_irq = _ttc_get_nth_irq;
-
-    regs = timer_get_regs(timer);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     *regs->int_en = 0;
     FORCE_READ(regs->int_sts); /* Clear on read */
     *regs->cnt_ctrl = CNTCTRL_RST | CNTCTRL_STOP | CNTCTRL_INT | CNTCTRL_MATCH;
@@ -449,37 +370,5 @@ ps_get_timer(enum timer_id id, timer_config_t *config)
     *regs->int_en = INT_INTERVAL;
     *regs->interval = CNT_MAX;
 
-    return timer;
-}
-
-pstimer_t*
-ps_init_timer(int _id, ps_io_ops_t* io_ops)
-{
-    enum timer_id id = (enum timer_id)_id;
-    timer_config_t tc;
-    pstimer_t *timer;
-    uintptr_t paddr;
-
-    /* Find the physical address */
-    if (id < 0 || id >= NTIMERS) {
-        return NULL;
-    }
-    paddr = zynq_timer_paddrs[id];
-    /* Map in the timer */
-    tc.vaddr = ps_io_map(&io_ops->io_mapper, paddr, TTC_TIMER_SIZE, 0, PS_MEM_NORMAL);
-    if (tc.vaddr == NULL) {
-        return NULL;
-    }
-    /* Grab the default clock source */
-    if (clock_sys_valid(&io_ops->clock_sys)) {
-        tc.clk_src = clk_get_clock(&io_ops->clock_sys, CLK_CPU_1X);
-    } else {
-        tc.clk_src = NULL;
-    }
-    /* Initialise the timer */
-    timer = ps_get_timer(id, &tc);
-    if (timer == NULL) {
-        return NULL;
-    }
-    return timer;
+    return 0;
 }
