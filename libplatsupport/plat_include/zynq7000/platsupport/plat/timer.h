@@ -10,7 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 #pragma once
-
+#include <platsupport/timer.h>
 #include <platsupport/clock.h>
 
 /* Memory maps */
