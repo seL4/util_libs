@@ -67,7 +67,11 @@ static int get_time(void *data, uint64_t *time)
 {
     assert(data != NULL);
     assert(time != NULL);
-    return ENOSYS;
+
+    ttc_t * ttc0_timer1 = (ttc_t *) data;
+    *time = ttc_get_time(ttc0_timer1);
+
+    return 0;
 }
 
 static int get_resolution(void *data, uint64_t *resolution)
