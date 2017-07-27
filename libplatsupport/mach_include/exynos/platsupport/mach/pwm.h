@@ -15,7 +15,9 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/pwm.h>
 
+#include <utils/util.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
     /* vaddr pwm is mapped to */
