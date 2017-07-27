@@ -154,15 +154,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         .id = TTC_ID,
     };
 
-    if (!error) {
-        //TODO clk_get_clock currently faulting
-        //if (clock_sys_valid(&ops.clock_sys)) {
-        //    config.clk_src = clk_get_clock(&ops.clock_sys, CLK_CPU_1X);
-        //} else {
-            config.clk_src = NULL;
-        //}
-        error = ttc_init(&ttc_ltimer->ttc, config);
-    }
+    error = ttc_init(&ttc_ltimer->ttc ,config);
 
     if (!error) {
         error = ttc_start(&ttc_ltimer->ttc);
