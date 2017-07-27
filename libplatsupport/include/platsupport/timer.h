@@ -13,6 +13,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /* Properties of a single timer device */
 typedef struct {
