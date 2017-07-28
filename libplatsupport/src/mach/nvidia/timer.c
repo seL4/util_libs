@@ -51,6 +51,7 @@
 
 int nv_tmr_start(nv_tmr_t *tmr)
 {
+    tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
     tmr->tmr_map->pvt |= BIT(PVT_E_BIT);
     return 0;
 }
