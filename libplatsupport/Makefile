@@ -13,21 +13,21 @@
 # Targets
 TARGETS := libplatsupport.a
 
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/mach/$(MACH)/*.c))
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/*.c))
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/$(ARCH)/*.c))
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/acpi/*.c))
-CFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/mach/$(MACH)/*.c)))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/*.c)))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/$(ARCH)/*.c)))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/acpi/*.c)))
+CFILES += $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c)))
 
 INCLUDE_DIRS += $(SOURCE_DIR)/plat_include/$(PLAT)
 
 # Header files/directories this library provides
-HDRFILES := $(wildcard ${SOURCE_DIR}/include/*) \
-            $(wildcard ${SOURCE_DIR}/plat_include/$(PLAT)/*) \
-            $(wildcard ${SOURCE_DIR}/arch_include/$(ARCH)/*)
+HDRFILES := $(sort $(wildcard ${SOURCE_DIR}/include/*)) \
+            $(sort $(wildcard ${SOURCE_DIR}/plat_include/$(PLAT)/*)) \
+            $(sort $(wildcard ${SOURCE_DIR}/arch_include/$(ARCH)/*))
 
 ifneq ($(MACH),)
-HDRFILES += $(wildcard ${SOURCE_DIR}/mach_include/$(MACH)/*)
+HDRFILES += $(sort $(wildcard ${SOURCE_DIR}/mach_include/$(MACH)/*))
 endif
 
 include $(SEL4_COMMON)/common.mk
