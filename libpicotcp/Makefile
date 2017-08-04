@@ -43,6 +43,8 @@ CORE_OBJ= stack/pico_stack.o \
 HDRFILES := $(sort $(wildcard $(SOURCE_DIR)/include/*))
 HDRFILES += $(sort $(wildcard $(SOURCE_DIR)/include/arch/*))
 HDRFILES += $(sort $(wildcard $(SOURCE_DIR)/modules/*.h))
-# picoopts.h will be copied to include/pico_defines.h by manifest
+HDRFILES += $(sort $(wildcard $(SOURCE_DIR)/pico_defines.h))
+# picoopts.h will be copied to $(SOURCE_DIR)/pico_defines.h by manifest
+
 
 include $(SEL4_COMMON)/common.mk
