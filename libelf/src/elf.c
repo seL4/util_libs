@@ -164,6 +164,14 @@ elf_getProgramHeaderOffset(void *elfFile, uint16_t ph)
 		: elf64_getProgramHeaderOffset(elfFile, ph);
 }
 
+uint32_t
+elf_getProgramHeaderAlign(void *elfFile, uint16_t ph)
+{
+    return ISELF32 (elfFile)
+        ? elf32_getProgramHeaderAlign(elfFile, ph)
+        : elf64_getProgramHeaderAlign(elfFile, ph);
+}
+
 char *
 elf_getSegmentStringTable(void *elfFile)
 {

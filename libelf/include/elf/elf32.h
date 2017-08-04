@@ -251,4 +251,10 @@ elf32_getProgramHeaderOffset(struct Elf32_Header *file, uint16_t ph)
 	return elf32_getProgramHeaderTable(file)[ph].p_offset;
 }
 
+static inline uint32_t
+elf32_getProgramHeaderAlign(struct Elf32_Header *file, uint16_t ph)
+{
+    return elf32_getProgramHeaderTable(file)[ph].p_align;
+}
+
 #endif /* __ELF_ELF_32_H__ */

@@ -250,4 +250,10 @@ elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
 	return elf64_getProgramHeaderTable(file)[ph].p_offset;
 }
 
+static inline uint32_t
+elf64_getProgramHeaderAlign(struct Elf64_Header *file, uint16_t ph)
+{
+    return elf64_getProgramHeaderTable(file)[ph].p_align;
+}
+
 #endif /* __LIBELF_64_H__ */

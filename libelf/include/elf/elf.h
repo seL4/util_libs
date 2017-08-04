@@ -214,6 +214,16 @@ uint32_t elf_getProgramHeaderFlags(void *elfFile, uint16_t ph);
 uint32_t elf_getProgramHeaderType(void *elfFile, uint16_t ph);
 
 /**
+ * Return the alignemt for a given program header
+ *
+ * @param elfFile Pointer to a valid ELF header
+ * @param ph Index of the program header
+ *
+ * \return The alignment of the given program header
+ */
+uint32_t elf_getProgramHeaderAlign(void *elfFile, uint16_t ph);
+
+/**
  * Return the physical translation of a physical address, with respect
  * to a given program header
  *
