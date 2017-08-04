@@ -147,6 +147,11 @@ endif
 
 ARCHIVES += $(LIBS:%=lib%.a)
 
+# See if we should set defaults for a rootserver or not
+ifeq (${APP_IS_ROOTSERVER},y)
+	ENTRY_POINT ?= _sel4_start
+endif
+
 ENTRY_POINT ?= _start
 
 # Force start symbol to be linked in if need be - the user may already have it in a
