@@ -37,6 +37,8 @@ ifeq ($(CONFIG_ARCH_X86),y)
 	export RUST_ENV = gnu
 	ccflags-y += $(call cc-option,-fno-pic)
 	ldflags-y += -static
+
+	NK_CFLAGS += -mtls-direct-seg-refs
 endif
 
 ifeq ($(CONFIG_ARCH_ARM),y)
