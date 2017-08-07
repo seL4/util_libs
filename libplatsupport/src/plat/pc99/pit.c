@@ -65,14 +65,14 @@ configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
     uint64_t ticks = ns * TICKS_PER_SECOND / NS_IN_S;
     if (ticks < 2) {
         /* ns is too low */
-        ZF_LOGE("Ticks too low\n");
+        ZF_LOGW("Ticks too low\n");
         return ETIME;
     }
 
     /* pit is only 16 bits */
     if (ticks > 0xFFFF) {
         /* ticks too high */
-        ZF_LOGE("Ticks too high\n");
+        ZF_LOGW("Ticks too high\n");
         return EINVAL;
     }
 
