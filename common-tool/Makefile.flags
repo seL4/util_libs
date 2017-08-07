@@ -19,7 +19,7 @@ CXXFLAGS :=
 CCFLAGS :=
 
 # NON-KERNEL BUILD CFLAGS used by common.mk
-NK_CFLAGS =
+NK_CFLAGS = $(call cc-option,-ftls-model=local-exec)
 NK_CXXFLAGS =
 NK_LDFLAGS =
 NK_ASFLAGS =
