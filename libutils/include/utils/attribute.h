@@ -71,6 +71,7 @@
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #define WEAK         __attribute__((weak))
+#define WEAK_ALIAS(to) __attribute__((weak, alias(#to)))
 
 #define CONSTRUCTOR_MIN_PRIORITY 101
 #define CONSTRUCTOR_MAX_PRIORITY 65535
