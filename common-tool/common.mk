@@ -150,6 +150,7 @@ ARCHIVES += $(LIBS:%=lib%.a)
 # See if we should set defaults for a rootserver or not
 ifeq (${APP_IS_ROOTSERVER},y)
 	ENTRY_POINT ?= _sel4_start
+	LDFLAGS += -T $(COMMON_PATH)/tls_rootserver.lds
 endif
 
 ENTRY_POINT ?= _start
