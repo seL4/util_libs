@@ -324,7 +324,8 @@ int ltimer_hpet_describe_with_region(ltimer_t *ltimer, ps_io_ops_t ops, pmem_reg
         irq->type = PS_IOAPIC;
         irq->ioapic.pin = FFS(hpet_ioapic_irq_delivery_mask(vaddr)) - 1;
         irq->ioapic.level = hpet_level(vaddr);
-        irq->ioapic.polarity = irq->ioapic.level;
+        /* HPET is always active high polarity */
+        irq->ioapic.polarity = 1;
         irq->ioapic.ioapic = 0; /* TODO how to work these out properly */
         irq->ioapic.vector = 0; /* TODO how to work this out properly */
     }
