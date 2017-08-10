@@ -326,7 +326,8 @@ int ltimer_hpet_describe_with_region(ltimer_t *ltimer, ps_io_ops_t ops, pmem_reg
         irq->ioapic.level = hpet_level(vaddr);
         /* HPET is always active high polarity */
         irq->ioapic.polarity = 1;
-        irq->ioapic.ioapic = 0; /* TODO how to work these out properly */
+        /* HPET always delivers to the first I/O APIC */
+        irq->ioapic.ioapic = 0;
         irq->ioapic.vector = 0; /* TODO how to work this out properly */
     }
 
