@@ -13,14 +13,16 @@
  *
  * We try to use the HPET, but if that doesn't work we use the PIT.
  */
-/* this should eventually go away, but we need IRQ_OFFSET from it for now */
-#include <sel4/arch/constants.h>
 #include <platsupport/plat/timer.h>
 #include <platsupport/arch/tsc.h>
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 #include <platsupport/plat/acpi/acpi.h>
 #include <platsupport/plat/hpet.h>
+
+/* This is duplicated from constants.h in libsel4 for the moment. Interrupt allocation
+   shouldn't be happening here in this driver, until that is fixed this hack is needed */
+#define IRQ_OFFSET (0x20 + 16)
 
 typedef enum {
     HPET,
