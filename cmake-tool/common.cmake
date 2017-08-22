@@ -53,10 +53,13 @@ function(MakeCPIO output_name input_files)
     )
 endfunction(MakeCPIO)
 
+# We need to the real non symlinked list path in order to find the linker script that is in
+# the common-tool directory
+get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
+
 function(DeclareRootserver rootservername)
     mark_as_advanced(IMAGE_NAME KERNEL_IMAGE_NAME)
     SetSeL4Start(${rootservername})
-    get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
     set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS " -T ${real_list}/../common-tool/tls_rootserver.lds ")
     if("${KernelArch}" STREQUAL "x86")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelSel4Arch}-${KernelPlatform}" CACHE STRING "")
