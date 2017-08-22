@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 # Helper function for modifying the linker flags of a target to set the entry point as _sel4_start
 function(SetSeL4Start target)
-    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS "-u _sel4_start -e _sel4_start")
+    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " -u _sel4_start -e _sel4_start ")
 endfunction(SetSeL4Start)
 
 if(KernelSel4ArchIA32)
@@ -57,7 +57,7 @@ function(DeclareRootserver rootservername)
     mark_as_advanced(IMAGE_NAME KERNEL_IMAGE_NAME)
     SetSeL4Start(${rootservername})
     get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
-    set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS "-T ${real_list}/../common-tool/tls_rootserver.lds")
+    set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS " -T ${real_list}/../common-tool/tls_rootserver.lds ")
     if("${KernelArch}" STREQUAL "x86")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelSel4Arch}-${KernelPlatform}" CACHE STRING "")
         set(KERNEL_IMAGE_NAME "${CMAKE_BINARY_DIR}/images/kernel-${KernelSel4Arch}-${KernelPlatform}" CACHE STRING "")
