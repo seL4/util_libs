@@ -35,7 +35,7 @@
 #include "phy.h"
 
 #include "list.h"
-#include "fec_mxc.h"
+#include "net.h"
 #include <stdlib.h>
 #include <string.h>
 #include "../unimplemented.h"

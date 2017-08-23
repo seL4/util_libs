@@ -200,7 +200,7 @@ static inline int phy_read(struct phy_device *phydev, int devad, int regnum)
 }
 
 static inline int phy_write(struct phy_device *phydev, int devad, int regnum,
-			u16 val)
+			uint16_t val)
 {
 	struct mii_dev *bus = phydev->bus;
 

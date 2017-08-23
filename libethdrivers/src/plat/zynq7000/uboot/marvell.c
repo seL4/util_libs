@@ -6,9 +6,9 @@
  * Copyright 2010-2011 Freescale Semiconductor, Inc.
  * author Andy Fleming
  */
-#include <config.h>
-#include <common.h>
-#include <phy.h>
+#include "config.h"
+#include "common.h"
+#include "phy.h"
 
 #define PHY_AUTONEGOTIATE_TIMEOUT 5000
 
@@ -124,7 +124,7 @@ static uint m88e1xxx_parse_status(struct phy_device *phydev)
 			}
 
 			if ((i++ % 1000) == 0)
-				putc('.');
+				puts(".");
 			udelay(1000);
 			mii_reg = phy_read(phydev, MDIO_DEVAD_NONE,
 					MIIM_88E1xxx_PHY_STATUS);
@@ -271,8 +271,6 @@ static int m88e1111s_config(struct phy_device *phydev)
 
 	genphy_config_aneg(phydev);
 
-	phy_reset(phydev);
-
 	return 0;
 }
 
@@ -369,22 +367,19 @@ static int m88e1118_config(struct phy_device *phydev)
 	/* Change Page Number */
 	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_88E1118_PHY_PAGE, 0x0000);
 
-	genphy_config_aneg(phydev);
-
-	phy_reset(phydev);
-
-	return 0;
+	return genphy_config_aneg(phydev);
 }
 
 static int m88e1118_startup(struct phy_device *phydev)
 {
+	int ret = 0;
 	/* Change Page Number */
 	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_88E1118_PHY_PAGE, 0x0000);
 
-	genphy_update_link(phydev);
+	ret = genphy_update_link(phydev);
 	m88e1xxx_parse_status(phydev);
 
-	return 0;
+	return ret;
 }
 
 /* Marvell 88E1121R */
