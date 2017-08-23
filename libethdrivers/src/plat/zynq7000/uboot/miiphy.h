@@ -38,6 +38,7 @@
 #ifndef _miiphy_h_
 #define _miiphy_h_
 
+#include "common.h"
 #include "list.h"
 #include "phy.h"
 
