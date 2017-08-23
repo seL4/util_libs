@@ -12,6 +12,9 @@
 #ifndef _NETDEV_H_
 #define _NETDEV_H_
 
+#include <platsupport/io.h>
+#include "net.h"
+
 /*
  * Board and CPU-specific initialization functions
  * board_eth_init() has highest priority.  cpu_eth_init() only
@@ -21,8 +24,8 @@
  *     -1: failure
  */
 
-int board_eth_init(bd_t *bis);
-int cpu_eth_init(bd_t *bis);
+int board_eth_init(void);
+int cpu_eth_init(void);
 
 /* Driver initialization prototypes */
 int at91emac_register(bd_t *bis, unsigned long iobase);
@@ -88,8 +91,12 @@ int xilinx_emaclite_initialize(bd_t *bis, unsigned long base_addr,
 int xilinx_ll_temac_eth_init(bd_t *bis, unsigned long base_addr, int flags,
 						unsigned long ctrl_addr);
 int zynq_gem_of_init(const void *blob);
-int zynq_gem_initialize(bd_t *bis, phys_addr_t base_addr,
+int zynq_gem_initialize(phys_addr_t base_addr,
 			int phy_addr, u32 emio);
+void zynq_set_gem_ioops(ps_io_ops_t *io_ops);
+void zynq_gem_handle_irq(int irq);
+void zynq_set_gem_iobase(unsigned int base_addr);
+
 /*
  * As long as the Xilinx xps_ll_temac ethernet driver has not its own interface
  * exported by a public hader file, we need a global definition at this point.

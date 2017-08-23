@@ -10,9 +10,19 @@
 #ifndef __CONFIG_ZYNQ_ZC70X_H
 #define __CONFIG_ZYNQ_ZC70X_H
 
+#define CONFIG_SYS_SDRAM_SIZE		(1024 * 1024 * 1024)
+
+#define CONFIG_ZYNQ_GEM0
+#define CONFIG_ZYNQ_GEM_PHY_ADDR0	7
+
+#define CONFIG_SYS_NO_FLASH
+
+#define CONFIG_ZYNQ_SDHCI0
+#define CONFIG_ZYNQ_USB
 #define CONFIG_ZYNQ_I2C0
 #define CONFIG_ZYNQ_EEPROM
+#define CONFIG_ZYNQ_BOOT_FREEBSD
 
-#include <configs/zynq-common.h>
+#include "zynq-common.h"
 
 #endif /* __CONFIG_ZYNQ_ZC70X_H */

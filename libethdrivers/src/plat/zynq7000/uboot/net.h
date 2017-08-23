@@ -12,12 +12,10 @@
 #ifndef __NET_H__
 #define __NET_H__
 
-#if defined(CONFIG_8xx)
-#include <commproc.h>
-#endif	/* CONFIG_8xx */
-
-#include <asm/cache.h>
-#include <asm/byteorder.h>	/* for nton* / ntoh* stuff */
+#include <string.h>
+#include <stdlib.h>
+#include "config.h"
+#include "../unimplemented.h"	/* for nton* / ntoh* stuff */
 
 #define DEBUG_LL_STATE 0	/* Link local state machine changes */
 #define DEBUG_DEV_PKT 0		/* Packets or info directed to the device */
@@ -165,7 +163,7 @@ struct eth_device {
 	phys_addr_t iobase;
 	int state;
 
-	int (*init)(struct eth_device *, bd_t *);
+	int (*init)(struct eth_device *);
 	int (*send)(struct eth_device *, void *packet, int length);
 	int (*recv)(struct eth_device *);
 	void (*halt)(struct eth_device *);
@@ -638,7 +636,6 @@ extern enum net_loop_state net_state;
 
 static inline void net_set_state(enum net_loop_state state)
 {
-	debug_cond(DEBUG_INT_STATE, "--- NetState set to %d\n", state);
 	net_state = state;
 }
 
@@ -801,7 +798,7 @@ static inline int is_valid_ethaddr(const u8 *addr)
 static inline void net_random_ethaddr(uchar *addr)
 {
 	int i;
-	unsigned int seed = get_timer(0);
+	unsigned int seed = random();
 
 	for (i = 0; i < 6; i++)
 		addr[i] = rand_r(&seed);

@@ -2,4 +2,4 @@
  * @TAG(OTHER_GPL)
  */
 
-#include "mx6qsabrelite.h"
+#include "zynq_zc70x.h"

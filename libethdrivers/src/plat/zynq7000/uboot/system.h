@@ -1,6 +1,8 @@
 #ifndef __ASM_ARM_SYSTEM_H
 #define __ASM_ARM_SYSTEM_H
 
+#include <autoconf.h>
+
 #ifdef CONFIG_ARM64
 
 /*
@@ -93,8 +95,6 @@ void flush_l3_cache(void);
 
 #else /* CONFIG_ARM64 */
 
-#ifdef __KERNEL__
-
 #define CPU_ARCH_UNKNOWN	0
 #define CPU_ARCH_ARMv3		1
 #define CPU_ARCH_ARMv4		2
@@ -182,11 +182,9 @@ void flush_l3_cache(void);
  */
 void save_boot_params_ret(void);
 
-#define isb() __asm__ __volatile__ ("" : : : "memory")
-
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 
-#ifdef __ARM_ARCH_7A__
+#ifdef CONFIG_ARCH_ARM_V7A
 #define wfi() __asm__ __volatile__ ("wfi" : : : "memory")
 #else
 #define wfi()
@@ -220,7 +218,7 @@ static inline void set_dacr(unsigned int val)
 	isb();
 }
 
-#ifdef CONFIG_ARMV7
+#ifdef CONFIG_ARCH_ARM_V7A
 /* Short-Descriptor Translation Table Level 1 Bits */
 #define TTB_SECT_NS_MASK	(1 << 19)
 #define TTB_SECT_NG_MASK	(1 << 17)
@@ -241,7 +239,8 @@ enum dcache_option {
 	DCACHE_WRITEBACK = DCACHE_WRITETHROUGH | TTB_SECT_B_MASK,
 	DCACHE_WRITEALLOC = DCACHE_WRITEBACK | TTB_SECT_TEX(1),
 };
-#else
+
+#else  /* CONFIG_ARCH_ARM_V7A */
 /* options available for data cache on each page */
 enum dcache_option {
 	DCACHE_OFF = 0x12,
@@ -257,7 +256,7 @@ enum {
 	MMU_SECTION_SIZE	= 1 << MMU_SECTION_SHIFT,
 };
 
-#ifdef CONFIG_ARMV7
+#ifdef CONFIG_ARCH_ARM_V7A
 /* TTBR0 bits */
 #define TTBR0_BASE_ADDR_MASK	0xFFFFC000
 #define TTBR0_RGN_NC			(0 << 3)
@@ -283,7 +282,6 @@ void mmu_page_table_flush(unsigned long start, unsigned long stop);
 
 #define arch_align_stack(x) (x)
 
-#endif /* __KERNEL__ */
 
 #endif /* CONFIG_ARM64 */
 
