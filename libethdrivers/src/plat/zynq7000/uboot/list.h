@@ -1,7 +1,3 @@
-/*
- * @TAG(OTHER_GPL)
- */
-
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 
@@ -29,6 +25,10 @@ struct list_head {
 	struct list_head *next, *prev;
 };
 
+#define LIST_HEAD_INIT(name) { &(name), &(name) }
+
+#define LIST_HEAD(name) \
+	struct list_head name = LIST_HEAD_INIT(name)
 
 static inline void INIT_LIST_HEAD(struct list_head *list)
 {
