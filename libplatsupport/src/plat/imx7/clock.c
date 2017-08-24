@@ -9,11 +9,12 @@
  *
  * @TAG(DATA61_BSD)
  */
-#pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
+#include <platsupport/clock.h>
+#include <platsupport/plat/clock.h>
 
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
+int clock_sys_init(ps_io_ops_t *o, clock_sys_t *clock_sys)
+{
+    return 0;
+}
 

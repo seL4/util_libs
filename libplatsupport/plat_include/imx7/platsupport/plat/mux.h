@@ -9,11 +9,13 @@
  *
  * @TAG(DATA61_BSD)
  */
+
 #pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
-
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
-
+enum mux_feature {
+    MUX_I2C1,
+    MUX_I2C2,
+    MUX_I2C3,
+    MUX_GPIO0_CLKO1,
+    NMUX_FEATURES
+};

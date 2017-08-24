@@ -9,11 +9,12 @@
  *
  * @TAG(DATA61_BSD)
  */
-#pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
+#include <stdint.h>
+#include <platsupport/gpio.h>
 
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
 
+int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
+{
+    return 0;
+}

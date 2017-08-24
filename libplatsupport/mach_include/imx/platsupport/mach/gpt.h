@@ -40,10 +40,10 @@ static inline timer_properties_t
 gpt_get_properies(void) {
     return (timer_properties_t) {
 		.upcounter = true,
-        .timeouts = false,
+        .timeouts = true,
         .absolute_timeouts = false,
-        .relative_timeouts = false,
-        .periodic_timeouts = false,
+        .relative_timeouts = true,
+        .periodic_timeouts = true,
         .bit_width = 32,
         .irqs = 1,
 	};
@@ -62,3 +62,11 @@ int gpt_stop(gpt_t  *gpt);
 void gpt_handle_irq(gpt_t *gpt);
 /* read the value of the current time in ns */
 uint64_t gpt_get_time(gpt_t *gpt);
+/* set a relative timeout */
+/* WARNING: Please note that once a GPT is set to trigger timeout interrupt(s),
+ * it can not be used for the timekeeping purpose (i.e. the gpt_get_time
+ * will not work on the GPT). The GPT has to be reinitialised by calling
+ * gpt_init again in order to be used a timekeeping clock.
+ */
+int gpt_set_timeout(gpt_t *gpt, uint64_t ns, bool periodic);
+

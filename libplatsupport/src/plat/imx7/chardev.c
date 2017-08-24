@@ -19,13 +19,12 @@
 #include "../../common.h"
 #include <utils/util.h>
 
-#include "../../chardev.h"
-
 static const int uart1_irqs[] = {UART1_IRQ, -1};
 static const int uart2_irqs[] = {UART2_IRQ, -1};
 static const int uart3_irqs[] = {UART3_IRQ, -1};
 static const int uart4_irqs[] = {UART4_IRQ, -1};
 static const int uart5_irqs[] = {UART5_IRQ, -1};
+
 
 #define UART_DEFN(devid) {          \
     .id      = IMX_UART##devid,    \
@@ -34,6 +33,7 @@ static const int uart5_irqs[] = {UART5_IRQ, -1};
     .irqs    = uart##devid##_irqs,  \
     .init_fn = &uart_init           \
 }
+
 
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(1),

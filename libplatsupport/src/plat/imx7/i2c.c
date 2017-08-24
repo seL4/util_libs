@@ -9,11 +9,11 @@
  *
  * @TAG(DATA61_BSD)
  */
-#pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
+#include <platsupport/i2c.h>
 
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
+int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
+{
+    return 0;
+}
 

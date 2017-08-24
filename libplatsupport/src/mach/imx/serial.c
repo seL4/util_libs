@@ -54,7 +54,7 @@
 #define UART_URXD_READY_MASK   BIT(15)
 #define UART_BYTE_MASK         0xFF
 
-struct imx6_uart_regs {
+struct imx_uart_regs {
     uint32_t rxd;      /* 0x000 Receiver Register */
     uint32_t res0[15];
     uint32_t txd;      /* 0x040 Transmitter Register */
@@ -74,17 +74,17 @@ struct imx6_uart_regs {
     uint32_t onems;    /* 0x0b0 One Millisecond Register */
     uint32_t ts;       /* 0x0b4 Test Register */
 };
-typedef volatile struct imx6_uart_regs imx6_uart_regs_t;
+typedef volatile struct imx_uart_regs imx_uart_regs_t;
 
-static inline imx6_uart_regs_t*
-imx6_uart_get_priv(ps_chardevice_t *d)
+static inline imx_uart_regs_t*
+imx_uart_get_priv(ps_chardevice_t *d)
 {
-    return (imx6_uart_regs_t*)d->vaddr;
+    return (imx_uart_regs_t*)d->vaddr;
 }
 
 int uart_getchar(ps_chardevice_t *d)
 {
-    imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
+    imx_uart_regs_t* regs = imx_uart_get_priv(d);
     uint32_t reg = 0;
     int c = -1;
 
@@ -99,7 +99,7 @@ int uart_getchar(ps_chardevice_t *d)
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
-    imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
+    imx_uart_regs_t* regs = imx_uart_get_priv(d);
     if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
         if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
             uart_putchar(d, '\r');
@@ -122,9 +122,9 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
  * BMR and BIR are 16 bit
  */
 static void
-imx6_uart_set_baud(ps_chardevice_t* d, long bps)
+imx_uart_set_baud(ps_chardevice_t* d, long bps)
 {
-    imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
+    imx_uart_regs_t* regs = imx_uart_get_priv(d);
     uint32_t bmr, bir, fcr;
     fcr = regs->fcr;
     fcr &= ~UART_FCR_RFDIV_MASK;
@@ -139,7 +139,7 @@ imx6_uart_set_baud(ps_chardevice_t* d, long bps)
 int
 serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
-    imx6_uart_regs_t* regs = imx6_uart_get_priv(d);
+    imx_uart_regs_t* regs = imx_uart_get_priv(d);
     uint32_t cr2;
     /* Character size */
     cr2 = regs->cr2;
@@ -175,7 +175,7 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     /* Apply the changes */
     regs->cr2 = cr2;
     /* Now set the board rate */
-    imx6_uart_set_baud(d, bps);
+    imx_uart_set_baud(d, bps);
     return 0;
 }
 
@@ -183,7 +183,7 @@ int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
               ps_chardevice_t* dev)
 {
-    imx6_uart_regs_t* regs;
+    imx_uart_regs_t* regs;
 
     /* Attempt to map the virtual address, assure this works */
     void* vaddr = chardev_map(defn, ops);
@@ -203,7 +203,7 @@ int uart_init(const struct dev_defn* defn,
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
 
-    regs = imx6_uart_get_priv(dev);
+    regs = imx_uart_get_priv(dev);
 
     /* Software reset */
     regs->cr2 &= ~UART_CR2_SRST;

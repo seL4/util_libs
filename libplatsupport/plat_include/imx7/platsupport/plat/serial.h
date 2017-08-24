@@ -10,22 +10,22 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
-#include <autoconf.h>
 #include <platsupport/mach/serial.h>
 
-#define UART1_PADDR  0x02020000
-#define UART2_PADDR  0x021E8000
-#define UART3_PADDR  0x021EC000
-#define UART4_PADDR  0x021F0000
-#define UART5_PADDR  0x021F4000
+#define UART1_PADDR  0x30860000
+#define UART2_PADDR  0x30890000
+#define UART3_PADDR  0x30880000
+#define UART4_PADDR  0x30a60000
+#define UART5_PADDR  0x30a70000
+#define UART6_PADDR  0x30a80000
+#define UART7_PADDR  0x30a90000
 
 #define UART1_IRQ    58
 #define UART2_IRQ    59
 #define UART3_IRQ    60
 #define UART4_IRQ    61
 #define UART5_IRQ    62
-
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */
+#define UART6_IRQ    48
+#define UART7_IRQ    158

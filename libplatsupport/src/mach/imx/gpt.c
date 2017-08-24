@@ -32,9 +32,29 @@ typedef enum {
     EN = 0,
 
     /*
-     * By setting this bit, then when EPIT is disabled (EN=0), then
+     * When GPT is disabled (EN=0), then
      * both Main Counter and Prescaler Counter freeze their count at
-     * current count values.
+     * current count values. The ENMOD bit determines the value of
+     * the GPT counter when Counter is enabled again (if the EN bit is set).
+     *
+     *   If the ENMOD bit is 1, then the Main Counter and Prescaler Counter
+     *   values are reset to 0 after GPT is enabled (EN=1).
+     *
+     *   If the ENMOD bit is 0, then the Main Counter and Prescaler Counter
+     *   restart counting from their frozen values after GPT is enabled (EN=1).
+     *
+     *   If GPT is programmed to be disabled in a low power mode (STOP/WAIT), then
+     *   the Main Counter and Prescaler Counter freeze at their current count
+     *   values when the GPT enters low power mode.
+     *
+     *   When GPT exits low power mode, the Main Counter and Prescaler Counter start
+     *   counting from their frozen values, regardless of the ENMOD bit value.
+     *
+     *   Setting the SWR bit will clear the Main Counter and Prescalar Counter values,
+     *   regardless of the value of EN or ENMOD bits.
+     *
+     *   A hardware reset resets the ENMOD bit.
+     *   A software reset does not affect the ENMOD bit.
      */
     ENMOD = 1,
 
@@ -65,6 +85,24 @@ typedef enum {
     /*
      * bits 6-8 -  These bits selects the clock source for the
      *  prescaler and subsequently be used to run the GPT counter.
+     *  the following sources are available on i.MX 7 board:
+     *  000: no clock
+     *  001: peripheral clock
+     *  010: high frequency reference clock
+     *  011: external clock (CLKIN)
+     *  100: low frequency reference clock 32 kHZ
+     *  101: crystal oscillator as reference clock 24 MHz
+     *  others: reserved
+     *  by default the peripheral clock is used.
+     *
+     *  For imx6 :
+     *  000: no clock
+     *  001: peripheral clock
+     *  010: high frequency reference clock
+     *  011: external clock (CLKIN)
+     *  100: low frequency reference clock
+     *  101: crystal oscillator divided by 8 as reference clock
+     *  111: crystal osscillator as reference clock
      */
     CLKSRC = 6,
 
@@ -75,6 +113,15 @@ typedef enum {
      * 1 Freerun mode
      */
     FRR = 9,
+
+    /* for i.MX7 only
+     * enable the 24 MHz clock input from crystal
+     * a hardware reset resets the EN_24M bit.
+     * a software reset dose not affect the EN_24M bit.
+     * 0: disabled
+     * 1: enabled
+     */
+    EN_24M = 10,
 
     /*
      * Software reset.
@@ -154,7 +201,13 @@ int gpt_stop(gpt_t *gpt)
 void gpt_handle_irq(gpt_t *gpt)
 {
     /* we've only set the GPT to interrupt on overflow */
-    gpt->high_bits++;
+    assert(gpt != NULL);
+    if (gpt->gpt_map->gptcr & BIT(FRR)) {
+        /* free-run mode, we should only enable the rollover interrupt */
+        if (gpt->gpt_map->gptsr & BIT(ROV)) {
+            gpt->high_bits++;
+        }
+    }
     /* clear the interrupt status register */
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 }
@@ -170,12 +223,13 @@ uint64_t gpt_get_time(gpt_t *gpt)
 
     uint64_t value = ((uint64_t) high_bits << 32llu) + low_bits;
     /* convert to ns */
-    uint64_t ns = (value / (uint64_t)IPG_FREQ) * NS_IN_US * (gpt->prescaler + 1);
+    uint64_t ns = (value / (uint64_t)GPT_FREQ) * NS_IN_US * (gpt->prescaler + 1);
     return ns;
 }
 
 int gpt_init(gpt_t *gpt, gpt_config_t config)
 {
+    uint32_t gptcr = 0;
     if (gpt == NULL) {
         return EINVAL;
     }
@@ -188,12 +242,77 @@ int gpt_init(gpt_t *gpt, gpt_config_t config)
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
 
     /* Configure GPT. */
-    gpt->gpt_map->gptcr |= BIT(ENMOD); /* Reset to 0 on disable */
     gpt->gpt_map->gptcr = 0 | BIT(SWR); /* Reset the GPT */
-    gpt->gpt_map->gptcr = BIT(FRR) | BIT(CLKSRC) | BIT(ENMOD); /* GPT can do more but for this just
-            set it as free running  so we can tell the time */
+    /* SWR will be 0 when the reset is done */
+    while (gpt->gpt_map->gptcr & BIT(SWR));
+    /* GPT can do more but for this just set it as free running  so we can tell the time */
+    gptcr = BIT(FRR) | BIT(ENMOD);
+
+#ifdef CONFIG_PLAT_IMX7
+    /* eanble the 24MHz source and select the oscillator as CLKSRC */
+    gptcr |= (BIT(EN_24M) | (5u << CLKSRC));
+#else
+    gptcr |= BIT(CLKSRC);
+#endif
+
+    gpt->gpt_map->gptcr = gptcr;
     gpt->gpt_map->gptir = BIT(ROV); /* Interrupt when the timer overflows */
+
+    /* The prescaler register has two parts when the 24 MHz clocksource is used.
+     * The 24MHz crystal clock is devided by the (the top 15-12 bits + 1) before
+     * it is fed to the CLKSRC field.
+     * The clock selected by the CLKSRC is divided by the (the 11-0 bits + ) again.
+     * For unknown reason, when the prescaler for the 24MHz clock is set to zero, which
+     * is valid according to the manual, the GPTCNT register does not work. So we
+     * set the value at least to 1, using a 12MHz clocksource.
+     */
+
+#ifdef CONFIG_PLAT_IMX7
+    gpt->gpt_map->gptpr = config.prescaler | (1u << 12);
+#else
     gpt->gpt_map->gptpr = config.prescaler; /* Set the prescaler */
+#endif
+
     gpt->high_bits = 0;
+
+    return 0;
+}
+
+int gpt_set_timeout(gpt_t  *gpt, uint64_t ns, bool periodic)
+{
+    uint32_t gptcr = 0;
+    uint64_t counter_value = (uint64_t)(GPT_FREQ / (gpt->prescaler + 1)) * (ns / 1000ULL);
+    if (counter_value >= (1ULL << 32)) {
+        ZF_LOGE("ns too high %llu\n", ns);
+        return EINVAL;
+    }
+
+    gpt->gpt_map->gptcr = 0;
+    gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
+    gpt->gpt_map->gptcr = BIT(SWR);
+    while (gpt->gpt_map->gptcr & BIT(SWR));
+    gptcr = (periodic ? 0 : BIT(FRR));
+
+#ifdef CONFIG_PLAT_IMX7
+    gptcr |= BIT(EN_24M) | (5u << CLKSRC);
+#else
+    gptcr |= BIT(CLKSRC);
+#endif
+
+    gpt->gpt_map->gptcr = gptcr;
+    gpt->gpt_map->gptcr1 = (uint32_t)counter_value;
+    while (gpt->gpt_map->gptcr1 != counter_value) {
+        gpt->gpt_map->gptcr1 = (uint32_t)counter_value;
+    }
+
+#ifdef CONFIG_PLAT_IMX7
+    gpt->gpt_map->gptpr = gpt->prescaler | (1u << 12);
+#else
+    gpt->gpt_map->gptpr = gpt->prescaler; /* Set the prescaler */
+#endif
+
+    gpt->gpt_map->gptir = 1;
+    gpt->gpt_map->gptcr |= BIT(EN);
+
     return 0;
 }

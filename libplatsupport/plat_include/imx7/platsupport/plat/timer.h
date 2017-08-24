@@ -9,11 +9,13 @@
  *
  * @TAG(DATA61_BSD)
  */
+
 #pragma once
 
+#define GPT_FREQ   (12u)
+/* need to double check the value when the
+ * clock control module is implemented.
+ */
+#define IPG_FREQ   (24u)
+
 #include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
-
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
-

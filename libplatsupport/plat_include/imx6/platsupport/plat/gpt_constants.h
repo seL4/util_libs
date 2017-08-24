@@ -22,4 +22,6 @@
 #define GPT1_DEVICE_PADDR 0x02098000
 #define GPT1_INTERRUPT 87
 
+#define GPT_PRESCALER (1)
+
 #endif /* __PLAT_SUPPORT_IMX31_H */

@@ -9,11 +9,17 @@
  *
  * @TAG(DATA61_BSD)
  */
+
 #pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
+#define GPT1_DEVICE_PADDR   0x302d0000
+#define GPT2_DEVICE_PADDR   0x302e0000
+#define GPT3_DEVICE_PADDR   0x302f0000
+#define GPT4_DEVICE_PADDR   0x30300000
+#define GPT1_INTERRUPT      87
+#define GPT2_INTERRUPT      86
+#define GPT3_INTERRUPT      85
+#define GPT4_INTERRUPT      84
 
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
+#define GPT_PRESCALER       (0)
 

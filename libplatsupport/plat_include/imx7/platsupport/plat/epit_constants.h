@@ -9,11 +9,13 @@
  *
  * @TAG(DATA61_BSD)
  */
+
 #pragma once
 
-#include <platsupport/mach/gpt.h>
-#include <platsupport/mach/epit.h>
+/* dummy header. i.MX7 does not have EPIT */
 
-#define IPG_FREQ (532/16) /*x10^5 */
-#define GPT_FREQ IPG_FREQ
-
+/* use crazy values */
+#define EPIT1_DEVICE_PADDR      0x00000000
+#define EPIT1_INTERRUPT         0
+#define EPIT2_DEVICE_PADDR      0x00000000
+#define EPIT2_INTERRUPT         0

@@ -22,6 +22,7 @@
 #define PLL2_FREQ  (528u)
 #define AHB_FREQ   (PLL2_FREQ / 4u)
 #define IPG_FREQ   (AHB_FREQ  / 2u)
+#define GPT_FREQ   IPG_FREQ
 
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>

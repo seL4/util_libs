@@ -24,8 +24,13 @@
 typedef struct {
     gpt_t gpt;
     void *gpt_vaddr;
+#ifdef CONFIG_PLAT_IMX7
+    gpt_t timeout_gpt;
+    void *timeout_gpt_vaddr;
+#else
     epit_t epit;
     void *epit_vaddr;
+#endif
     ps_io_ops_t ops;
 } imx_ltimer_t;
 
@@ -36,7 +41,11 @@ static ps_irq_t imx_ltimer_irqs[] = {
     },
     {
         .type = PS_INTERRUPT,
+#ifdef CONFIG_PLAT_IMX7
+        .irq.number = GPT2_INTERRUPT,
+#else
         .irq.number = EPIT2_INTERRUPT
+#endif
     }
 };
 
@@ -48,7 +57,11 @@ static pmem_region_t imx_ltimer_paddrs[] = {
     },
     {
         .type = PMEM_TYPE_DEVICE,
+#ifdef CONFIG_PLAT_IMX7
+        .base_addr = GPT2_DEVICE_PADDR,
+#else
         .base_addr = EPIT2_DEVICE_PADDR,
+#endif
         .length = PAGE_SIZE_4K
     }
 };
@@ -87,9 +100,15 @@ static int handle_irq(void *data, ps_irq_t *irq)
         case GPT1_INTERRUPT:
             gpt_handle_irq(&imx_ltimer->gpt);
             break;
+#ifdef CONFIG_PLAT_IMX7
+        case GPT2_INTERRUPT:
+            gpt_handle_irq(&imx_ltimer->timeout_gpt);
+            break;
+#else
         case EPIT2_INTERRUPT:
             epit_handle_irq(&imx_ltimer->epit);
             break;
+#endif
         default:
             ZF_LOGE("Unknown irq");
             return EINVAL;
@@ -122,8 +141,11 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         uint64_t current_time = gpt_get_time(&imx_ltimer->gpt);
         ns -= current_time;
     }
-
+#ifdef CONFIG_PLAT_IMX7
+    return gpt_set_timeout(&imx_ltimer->timeout_gpt, ns, type == TIMEOUT_PERIODIC);
+#else
     return epit_set_timeout(&imx_ltimer->epit, ns, type == TIMEOUT_PERIODIC);
+#endif
 }
 
 static int reset(void *data)
@@ -134,7 +156,11 @@ static int reset(void *data)
     /* reset the timers */
     gpt_stop(&imx_ltimer->gpt);
     gpt_start(&imx_ltimer->gpt);
+#ifdef CONFIG_PLAT_IMX7
+    gpt_stop(&imx_ltimer->timeout_gpt);
+#else
     epit_stop(&imx_ltimer->epit);
+#endif
     return 0;
 }
 
@@ -144,10 +170,17 @@ static void destroy(void *data)
 
     imx_ltimer_t *imx_ltimer = data;
 
+#ifdef CONFIG_PLAT_IMX7
+    if (imx_ltimer->timeout_gpt_vaddr) {
+        gpt_stop(&imx_ltimer->timeout_gpt);
+        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timeout_gpt_vaddr, PAGE_SIZE_4K);
+    }
+#else
     if (imx_ltimer->epit_vaddr) {
         epit_stop(&imx_ltimer->epit);
         ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->epit_vaddr, PAGE_SIZE_4K);
     }
+#endif
 
     if (imx_ltimer->gpt_vaddr) {
         gpt_stop(&imx_ltimer->gpt);
@@ -186,16 +219,23 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         return -1;
     }
 
+#ifdef CONFIG_PLAT_IMX7
+    imx_ltimer->timeout_gpt_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
+    if (imx_ltimer->timeout_gpt_vaddr == NULL) {
+        return -1;
+    }
+#else
     imx_ltimer->epit_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
     if (!imx_ltimer->epit_vaddr) {
         ltimer_destroy(ltimer);
         return -1;
     }
+#endif
 
     /* setup gpt */
     gpt_config_t gpt_config = {
         .vaddr = imx_ltimer->gpt_vaddr,
-        .prescaler = 1
+        .prescaler = GPT_PRESCALER
     };
 
     /* intitialise gpt for getting the time */
@@ -213,6 +253,16 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         return error;
     }
 
+#ifdef CONFIG_PLAT_IMX7
+    gpt_config.vaddr = imx_ltimer->timeout_gpt_vaddr;
+    gpt_config.prescaler = GPT_PRESCALER;
+    error = gpt_init(&imx_ltimer->timeout_gpt, gpt_config);
+    if (error) {
+        ZF_LOGE("Failed to init timeout gpt");
+        ltimer_destroy(ltimer);
+        return error;
+    }
+#else
     /* initialise epit for timeouts */
     epit_config_t config = {
         .vaddr = imx_ltimer->epit_vaddr,
@@ -226,6 +276,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         ZF_LOGE("Failed to init epit");
         return error;
     }
+#endif
 
        /* success! */
     return 0;
