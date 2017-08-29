@@ -1,3 +1,4 @@
+/* @TAG(OTHER_BSD) */
 #ifndef _VIRTIO_NET_H
 #define _VIRTIO_NET_H
 /* This header is BSD licensed so anyone can use the definitions to implement

@@ -1,3 +1,4 @@
+/* @TAG(OTHER_BSD) */
 #ifndef _VIRTIO_CONFIG_H
 #define _VIRTIO_CONFIG_H
 /* This header, excluding the #ifdef __KERNEL__ part, is BSD licensed so
