@@ -1,0 +1,6 @@
+.git*
+LICENSE.txt
+*LICENSE_*.txt
+.licenseignore
+kbuild-tool/*
+common-tool/custom-target.json
