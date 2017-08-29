@@ -1,3 +1,4 @@
+/* @TAG(CUSTOM) */
 zf_log
 ========
 
