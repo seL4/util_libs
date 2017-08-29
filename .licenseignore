@@ -1,0 +1,4 @@
+LICENSE.txt
+.git/*
+*LICENSE_*.txt
+.licenseignore
