@@ -209,6 +209,7 @@ function(GenerateSimulateScript)
     add_custom_command(OUTPUT "${sim_path}"
         COMMAND echo "${script}" > "${sim_path}"
         COMMAND chmod u+x "${sim_path}"
+        VERBATIM
     )
     add_custom_target(simulate_gen ALL DEPENDS "${sim_path}")
 endfunction(GenerateSimulateScript)
