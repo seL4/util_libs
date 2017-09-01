@@ -114,7 +114,7 @@ function(DeclareRootserver rootservername)
         if(NOT "${ElfloaderImage}" STREQUAL "elf")
             set(elfloader_output rootserver.bin)
             # If not an elf we construct an intermediate rule to do an objcopy to binary
-            add_custom_command(OUTPUT "${imagename}"
+            add_custom_command(OUTPUT "${IMAGE_NAME}"
                 COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O binary rootserver.bin "${IMAGE_NAME}"
                 DEPENDS ${elfloader_output}
             )
