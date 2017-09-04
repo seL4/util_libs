@@ -49,6 +49,7 @@
 #endif /* ZF_LOG_LEVEL */
 
 #include <utils/zf_log.h>
+#include <utils/zf_log_if.h>
 
 /* deprecated, use the following instead:
  *
