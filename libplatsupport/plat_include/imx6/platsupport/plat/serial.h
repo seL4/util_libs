@@ -28,4 +28,6 @@
 #define UART4_IRQ    61
 #define UART5_IRQ    62
 
+#define UART_REF_CLK 40089600
+
 #endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

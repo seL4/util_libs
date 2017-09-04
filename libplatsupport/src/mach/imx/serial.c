@@ -17,7 +17,9 @@
 
 #include "../../chardev.h"
 
+#ifndef UART_REF_CLK
 #define UART_REF_CLK           40089600
+#endif
 
 #define UART_SR1_RRDY          BIT( 9)
 #define UART_SR1_TRDY          BIT(13)

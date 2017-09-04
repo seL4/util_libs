@@ -26,9 +26,9 @@ enum chardev_id {
     PS_SERIAL2 = IMX_UART3,
     PS_SERIAL3 = IMX_UART4,
     PS_SERIAL4 = IMX_UART5,
-#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_IMX7)
+#if defined(CONFIG_PLAT_SABRE)
     PS_SERIAL_DEFAULT = IMX_UART2
-#elif defined(CONFIG_PLAT_WANDQ)
+#elif defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_IMX7)
     PS_SERIAL_DEFAULT = IMX_UART1
 #else
 #error "unknown imx platform selected!"
