@@ -54,6 +54,14 @@ LIBS = cpio
 
 NK_CFLAGS += -ffreestanding -Wall -Werror -W -Wextra
 
+ifeq ($(__ARM_32__), y)
+NK_CFLAGS += $(call cc-option, -mfloat-abi=soft)
+else
+ifeq ($(__ARM_64__), y)
+NK_CFLAGS += $(call cc-option, -mgeneral-regs-only)
+endif
+endif
+
 include $(SEL4_COMMON)/common.mk
 
 #
