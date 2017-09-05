@@ -51,14 +51,14 @@ struct image_info {
      *
      *  virtual_address + phys_virt_offset = physical_address
      */
-    uint32_t phys_virt_offset;
+    uintptr_t phys_virt_offset;
 };
 
 extern struct image_info kernel_info;
 extern struct image_info user_info;
 typedef void (*init_kernel_t)(paddr_t ui_p_reg_start,
                               paddr_t ui_p_reg_end,
-                              int32_t pv_offset,
+                              uintptr_t pv_offset,
                               vaddr_t v_entry);
 
 /* Enable the mmu. */
