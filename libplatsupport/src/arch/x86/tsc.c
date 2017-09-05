@@ -32,7 +32,7 @@ uint64_t tsc_calculate_frequency_pit(pit_t *pit)
     /* the PIT should be able to set a timeout for 50 ms */
     uint64_t wait_ns = 50 * NS_IN_MS;
 
-    int error = pit_set_timeout(pit, wait_ns, true);
+    int UNUSED error = pit_set_timeout(pit, wait_ns, true);
     assert(error == 0);
 
     uint64_t start_time = rdtsc_pure();
