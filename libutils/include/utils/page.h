@@ -28,7 +28,7 @@
 #define PAGE_ALIGN_4K(addr) ((addr) & ~PAGE_MASK_4K)
 #define IS_ALIGNED_4K(addr) IS_ALIGNED(addr, PAGE_BITS_4K)
 
-#define MiB_TO_BYTES(x) (1024 * 1024 * (x))
+#define MiB_TO_BYTES(x) (1024 * 1024 * ((size_t)x))
 
 /* convert b bytes to the number of pages of size size_bits required for that many bytes */
 #define BYTES_TO_SIZE_BITS_PAGES(b, size_bits) (((b) / (BIT(size_bits))) + ((((b) % (BIT(size_bits))) > 0) ? 1 : 0))
