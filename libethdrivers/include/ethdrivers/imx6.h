@@ -23,7 +23,7 @@
  * @param[out] eth_driver   Ethernet driver structure to fill out
  * @param[in] io_ops        A structure containing os specific data and
  *                          functions.
- * @param[in] config        Unused, should be NULL
+ * @param[in] config        Platform Specific configuration data
  */
 int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
