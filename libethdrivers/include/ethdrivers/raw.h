@@ -156,4 +156,13 @@ struct dma_buf_cookie {
     void* pbuf;
 };
 
+/* Structure for i.MX6 and Zynq7000 Drivers
+ * TODO: Move to ARCH Specific Folder
+ */
+struct arm_eth_plat_config {
+    void* buffer_addr;
+    uint8_t mac_addr[6];
+    uint8_t prom_mode;
+};
+
 #endif /* __ETHIFACE_RAW_IFACE_H__ */

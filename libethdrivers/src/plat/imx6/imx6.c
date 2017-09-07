@@ -349,6 +349,13 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     struct imx6_eth_data *eth_data = NULL;
     uint8_t mac[6];
 
+    if (config == NULL) {
+        LOG_ERROR("Cannot get platform info; Passed in Config Pointer NULL");
+        goto error;
+    }
+
+    struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
+
     eth_data = (struct imx6_eth_data*)malloc(sizeof(struct imx6_eth_data));
     if (eth_data == NULL) {
         LOG_ERROR("Failed to allocate eth data struct");
@@ -393,10 +400,17 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     }
     eth_data->enet = enet;
 
-    /* Fetch and set the MAC address */
-    if (ocotp == NULL || ocotp_get_mac(ocotp, mac)) {
-        memcpy(mac, DEFAULT_MAC, 6);
+    if (plat_config->prom_mode) {
+        if (ocotp == NULL || ocotp_get_mac(ocotp, mac)) {
+            memcpy(mac, DEFAULT_MAC, 6);
+        }
+        enet_prom_enable(enet);
     }
+    else {
+        memcpy(mac, plat_config->mac_addr, 6);
+        enet_prom_disable(enet);
+    }
+
     enet_set_mac(enet, mac);
 
     /* Connect the phy to the ethernet controller */
