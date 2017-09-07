@@ -156,4 +156,11 @@ struct dma_buf_cookie {
     void* pbuf;
 };
 
+struct eth_plat_config {
+    void* buffer_addr;
+    uint8_t mac_addr[6];
+    uint8_t prom_mode;
+    ethif_driver_init init;
+};
+
 #endif /* __ETHIFACE_RAW_IFACE_H__ */

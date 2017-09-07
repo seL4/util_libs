@@ -358,8 +358,9 @@ static struct raw_iface_funcs iface_fns = {
 
 int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config) {
     int err;
+    struct eth_plat_config *plat_config = (struct eth_plat_config *)config;
     struct zynq7000_eth_data *eth_data = NULL;
-    uint32_t base_addr = (uint32_t)config;
+    uint32_t base_addr = (uint32_t)plat_config->buffer_addr;
     struct eth_device *eth_dev;
 
     printf("ethif_zynq7000_init: Start\n");
@@ -411,6 +412,15 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     writel((uint32_t)eth_data->rx_ring_phys, &regs->rxqbase);
 
     zynq_gem_init(eth_dev);
+
+    if (plat_config->prom_mode) {
+        zynq_gem_prom_enable(eth_dev);
+    }
+    else {
+        memcpy(eth_dev->enetaddr, plat_config->mac_addr, 6);
+        zynq_gem_setup_mac(eth_dev);
+        zynq_gem_prom_disable(eth_dev);
+    }
 
     fill_rx_bufs(eth_driver);
 
