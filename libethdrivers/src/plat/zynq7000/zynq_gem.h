@@ -46,6 +46,7 @@
 #define ZYNQ_GEM_NWCFG_FDEN		0x000000002 /* Full Duplex mode */
 #define ZYNQ_GEM_NWCFG_FSREM		0x000020000 /* FCS removal */
 #define ZYNQ_GEM_NWCFG_MDCCLKDIV	0x0000c0000 /* Div pclk by 48, max 120MHz */
+#define ZYNQ_GEM_NWCFG_COPY_ALL 	0x000000010 /* Promiscuous Mode */
 
 #ifdef CONFIG_ARM64
 # define ZYNQ_GEM_DBUS_WIDTH	(1 << 21) /* 64 bit bus */
@@ -159,5 +160,7 @@ int zynq_gem_recv_enabled(struct eth_device *dev);
 void zynq_gem_recv_enable(struct eth_device *dev);
 void zynq_gem_halt(struct eth_device *dev);
 void zynq_set_gem_ioops(ps_io_ops_t *io_ops);
+void zynq_gem_prom_enable(struct eth_device *dev);
+void zynq_gem_prom_disable(struct eth_device *dev);
 
 #endif
