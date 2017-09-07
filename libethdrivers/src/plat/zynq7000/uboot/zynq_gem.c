@@ -207,6 +207,24 @@ void zynq_set_gem_ioops(ps_io_ops_t *io_ops)
 	zynq_io_ops = io_ops;
 }
 
+void zynq_gem_prom_enable(struct eth_device *dev)
+{
+	struct zynq_gem_regs *regs = (struct zynq_gem_regs *)dev->iobase;
+
+	/* Read Current Value and Set CopyAll bit */
+	uint32_t status = readl(&regs->nwcfg);
+	writel(status | ZYNQ_GEM_NWCFG_COPY_ALL, &regs->nwcfg);
+}
+
+void zynq_gem_prom_disable(struct eth_device *dev)
+{
+	struct zynq_gem_regs *regs = (struct zynq_gem_regs *)dev->iobase;
+
+	/* Read Current Value and Clear CopyAll bit */
+	uint32_t status = readl(&regs->nwcfg);
+	writel(status & ~ZYNQ_GEM_NWCFG_COPY_ALL, &regs->nwcfg);
+}
+
 int zynq_gem_init(struct eth_device *dev)
 {
 	u32 i;
