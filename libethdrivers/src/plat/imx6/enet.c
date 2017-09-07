@@ -470,6 +470,18 @@ enet_clr_events(struct enet * enet, uint32_t bits){
     return e;
 }
 
+void
+enet_prom_enable(struct enet * enet){
+    enet_regs_t* regs = enet_get_regs(enet);
+    regs->rcr |= RCR_PROM;
+}
+
+void
+enet_prom_disable(struct enet * enet){
+    enet_regs_t* regs = enet_get_regs(enet);
+    regs->rcr &= ~RCR_PROM;
+}
+
 struct enet *
 enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     enet_regs_t* regs;

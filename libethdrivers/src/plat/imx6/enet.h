@@ -76,3 +76,6 @@ uint32_t enet_get_mdcclk(struct enet *imx_eth);
 
 void enet_print_state(struct enet * enet);
 
+void enet_prom_enable(struct enet * enet);
+void enet_prom_disable(struct enet * enet);
+
