@@ -15,13 +15,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <platsupport/io.h>
+#include <platsupport/time_manager.h>
 
 /* Multiplex absolute timeouts -> maps ids of a timeout to absolute timeouts and returns the
  * next timeout due */
-
-/* function to call when a timeout comes in */
-typedef int (*timeout_cb_fn_t)(uintptr_t token);
-
 typedef struct {
     /* absolute time this timeout should occur */
     uint64_t abs_time;
@@ -33,7 +30,7 @@ typedef struct {
     timeout_cb_fn_t callback;
 } timeout_t;
 
-struct timeout_node {
+struct tqueue_node {
     /* details of the timeout */
     timeout_t timeout;
     /* is this timeout allocated? */
@@ -41,59 +38,71 @@ struct timeout_node {
     /* is this timeout in the callback queue? */
     bool active;
     /* unique id of this timeout (for tie-breaking during sorting) */
-    int id;
+    unsigned int id;
     /* next ptr for queue */
-    struct timeout_node *next;
+    struct tqueue_node *next;
 };
-typedef struct timeout_node timeout_node_t;
+typedef struct tqueue_node tqueue_node_t;
 
 typedef struct {
     /* head of ordered list of timeouts */
-    timeout_node_t *queue;
+    tqueue_node_t *queue;
     /* id indexed array of timeouts */
-    timeout_node_t *array;
+    tqueue_node_t *array;
     /* size of timeout array */
     int n;
-} timeout_mplex_t;
+} tqueue_t;
 
 /*
- * Alloc a new id for registering timeouts with timeout_register.
+ * Alloc a new id for registering timeouts with tqueue_register.
  *
  * @param id    pointer to store allocated id in.
- * @return      ENOMEM if there are no free ids, EINVAL if tm or id are NULL, 0 on success.
+ * @return      ENOMEM if there are no free ids, EINVAL if tq or id are NULL, 0 on success.
  */
-int timeout_alloc_id(timeout_mplex_t *tm, int *id);
+int tqueue_alloc_id(tqueue_t *tq, unsigned int *id);
+
+/*
+ * Alloc a specific id for registering timeouts with tqueue_register.
+ *
+ * @param id    id to specifically allocate. Must be < size the timeout multiplexer
+ *              was initialised with.
+ * @return      ENOMEM if there are no free ids,
+ *              EINVAL if tq is NULL or id is invalid,
+ *              EADDRINUSE if id is already in use,
+ *              or id are NULL, 0 on success.
+ */
+int tqueue_alloc_id_at(tqueue_t *tq, unsigned int id);
 
 /*
  * Free an id. This id can no longer be used to register timeouts with, and
- * can be reallocated by timeout_alloc_id.
+ * can be reallocated by tqueue_alloc_id.
  *
- * @param id    an id allocated by timeout_alloc_id
- * @return      EINVAL if tm is NULL or id is invalid (not allocated by timeout_alloc_id), 0 on sucess.
+ * @param id    an id allocated by tqueue_alloc_id
+ * @return      EINVAL if tq is NULL or id is invalid (not allocated by tqueue_alloc_id), 0 on sucess.
  */
-int timeout_free_id(timeout_mplex_t *tm, int id);
+int tqueue_free_id(tqueue_t *tq, unsigned int id);
 
 /*
- * Register a timeout. The timeout callback will be called when timeout_update is called and
+ * Register a timeout. The timeout callback will be called when tqueue_update is called and
  * the abs_time in the timeout has passed. If the timeout has already passed, the callback will be called when
- * timeout_update is called.
+ * tqueue_update is called.
  *
  * This function can be called from callbacks.
  *
  * @param id        id to register timeout with. If the id already has a callback registered, override it.
  * @param timeout   populated details of the timeout.
- * @return          EINVAL if id or tm are invalid, 0 on success.
+ * @return          EINVAL if id or tq are invalid, 0 on success.
  *
  */
-int timeout_register(timeout_mplex_t *tm, int id, timeout_t *timeout);
+int tqueue_register(tqueue_t *tq, unsigned int id, timeout_t *timeout);
 
 /*
  * Cancel a timeout. The id is still valid, but the callback will not be called.
  *
  * @param id    id to cancel timeout for.
- * @return      EINVAL if id or tm are invalid, 0 on success.
+ * @return      EINVAL if id or tq are invalid, 0 on success.
  */
-int timeout_cancel(timeout_mplex_t *tm, int id);
+int tqueue_cancel(tqueue_t *tq, unsigned int id);
 
 /*
  * Call any callbacks where abs_time is >= curr_time. Return the next timeout due in next_time. Reenqueue
@@ -102,25 +111,25 @@ int timeout_cancel(timeout_mplex_t *tm, int id);
  * @param curr_time         the time to check abs_time against for all timeouts.
  * @param[out] next_time    field to populate with next lowest time to be set after all callbacks called.
  *                          If NULL, ignore.
- * @return                  EINVAL if tm is invalid, 0 on sucess.
+ * @return                  EINVAL if tq is invalid, 0 on sucess.
  *
  */
-int timeout_update(timeout_mplex_t *tm, uint64_t curr_time, uint64_t *next_time);
+int tqueue_update(tqueue_t *tq, uint64_t curr_time, uint64_t *next_time);
 
 /*
  * Get the smallest registered timeout.
  *
  * @param[out] next_time    field to populate with next lowest time to be set.
- * @return                  EINVAL if tm or next_time is NULL, 0 on success.
+ * @return                  EINVAL if tq or next_time is NULL, 0 on success.
  */
-int timeout_next(timeout_mplex_t *tm, uint64_t *next_time);
+int tqueue_next(tqueue_t *tq, uint64_t *next_time);
 
 /*
  * Initialise a statically sized timeout multiplexer.
  *
- * @param[out] tm   pointer to memory to use to initialise timout mutiplexer.
- * @param mops      malloc ops to allocate timeout nodes with.
+ * @param[out] tq   pointer to memory to use to initialise timout mutiplexer.
+ * @param mops      malloc ops to allocate timeout nodes with. Not stored for use beyond this function.
  * @param size      maximum number of ids that can be registered.
  * @return          0 on success.
  */
-int timeout_init_static(timeout_mplex_t *tm, ps_malloc_ops_t *mops, int size);
+int tqueue_init_static(tqueue_t *tq, ps_malloc_ops_t *mops, int size);
