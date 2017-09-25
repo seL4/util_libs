@@ -201,6 +201,7 @@ ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops)
 
 static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
 {
+    int error;
     ltimer_init_common(ltimer, ops);
 
     /* map in the paddr */
@@ -216,7 +217,7 @@ static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
     ltimer->set_timeout = hpet_ltimer_set_timeout;
     ltimer->reset = hpet_ltimer_reset;
 
-    int error = hpet_init(&pc99_ltimer->hpet.device, pc99_ltimer->hpet.config);
+    error = hpet_init(&pc99_ltimer->hpet.device, pc99_ltimer->hpet.config);
     if (!error) {
         error = hpet_start(&pc99_ltimer->hpet.device);
     }
