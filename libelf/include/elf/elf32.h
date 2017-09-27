@@ -191,7 +191,7 @@ char * elf32_getSectionName(struct Elf32_Header *file, int i);
 uint32_t elf32_getSectionSize(struct Elf32_Header *file, int i);
 uint32_t elf32_getSectionAddr(struct Elf32_Header *elfFile, int i);
 void * elf32_getSection(struct Elf32_Header *file, int i);
-void * elf32_getSectionNamed(struct Elf32_Header *file, const char *str);
+void * elf32_getSectionNamed(struct Elf32_Header *file, const char *str, int* i);
 int elf32_getSegmentType (struct Elf32_Header *file, int segment);
 void elf32_getSegmentInfo(struct Elf32_Header *file, int segment, uint64_t *p_vaddr,
 			  uint64_t *p_paddr, uint64_t *p_filesz,

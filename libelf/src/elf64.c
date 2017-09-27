@@ -187,12 +187,15 @@ elf64_getSection(void *elfFile, int i)
 }
 
 void           *
-elf64_getSectionNamed(void *elfFile, const char *str)
+elf64_getSectionNamed(void *elfFile, const char *str, int *id)
 {
 	int             numSections = elf64_getNumSections(elfFile);
 	int             i;
 	for (i = 0; i < numSections; i++) {
 		if (strcmp(str, elf64_getSectionName(elfFile, i)) == 0) {
+            if (id != NULL) {
+                *id = i;
+            }
 			return elf64_getSection(elfFile, i);
 		}
 	}
