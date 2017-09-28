@@ -429,3 +429,8 @@ write_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits, 
     assert(nbits <= 32 - first_bit);
     write_masked(addr, MASK(nbits) << first_bit, value << first_bit);
 }
+
+/*
+ * Populate a malloc ops with stdlib malloc wrappers.
+ */
+int ps_new_stdlib_malloc_ops(ps_malloc_ops_t *ops);
