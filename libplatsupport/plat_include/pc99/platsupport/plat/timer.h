@@ -35,4 +35,7 @@ int ltimer_hpet_init(ltimer_t *ltimer, ps_io_ops_t ops, ps_irq_t irq, pmem_regio
 /* Functions for specifically setting up a PIT based ltimer */
 int ltimer_pit_describe(ltimer_t *ltimer, ps_io_ops_t ops);
 int ltimer_pit_init(ltimer_t *ltimer, ps_io_ops_t ops);
+/* initialise the a pit based ltimer with a known tsc frequency */
 int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t tsc_freq);
+/* get the tsc frequency used by a pit ltimer - invalid to call on a hpet backed ltimer */
+uint32_t ltimer_pit_get_tsc_freq(ltimer_t *ltimer);

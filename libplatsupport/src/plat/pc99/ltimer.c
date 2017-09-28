@@ -312,6 +312,12 @@ int ltimer_pit_init(ltimer_t *ltimer, ps_io_ops_t ops)
     return 0;
 }
 
+uint32_t ltimer_pit_get_tsc_freq(ltimer_t *ltimer)
+{
+    pc99_ltimer_t *pc99_ltimer = ltimer->data;
+    return pc99_ltimer->pit.freq;
+}
+
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
 {
     pmem_region_t hpet_region;
