@@ -2,8 +2,7 @@
  * @TAG(OTHER_GPL)
  */
 
-#ifndef _LINUX_BITOPS_H
-#define _LINUX_BITOPS_H
+#pragma once
 
 #include "../unimplemented.h"
 
@@ -44,5 +43,4 @@ static inline int generic_ffs(int x)
 
 #ifndef PLATFORM_FFS
 # define ffs generic_ffs
-#endif
 #endif

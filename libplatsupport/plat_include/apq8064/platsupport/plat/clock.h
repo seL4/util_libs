@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_CLOCK_H_
-#define _PLATSUPPORT_PLAT_CLOCK_H_
+#pragma once
 
 #define PXO_HZ    27000000UL
 #define CXO_HZ    19200000UL
@@ -67,4 +66,3 @@ int apq_clock_sys_init(void* clk_ctl_base0, void* clk_ctl_base1,
                        void* clk_ctl_base2, void* clk_ctl_base3,
                        clock_sys_t* clk_sys);
 
-#endif /* _PLATSUPPORT_PLAT_CLOCK_H_ */

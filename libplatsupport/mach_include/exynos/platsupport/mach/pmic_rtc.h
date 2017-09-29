@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __MACHSUPPORT_MACH_PMIC_RTC__
-#define __MACHSUPPORT_MACH_PMIC_RTC__
+#pragma once
 
 #include <stdint.h>
 #include <platsupport/i2c.h>
@@ -82,4 +81,3 @@ int pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm);
  */
 int pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm);
 
-#endif /* __MACHSUPPORT_MACH_RTC__ */

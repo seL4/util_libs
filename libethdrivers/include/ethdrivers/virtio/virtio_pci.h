@@ -37,8 +37,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _VIRTIO_PCI_H
-#define _VIRTIO_PCI_H
+#pragma once
 
 /* A 32-bit r/o bitmask of the features supported by the host */
 #define VIRTIO_PCI_HOST_FEATURES	0
@@ -91,4 +90,3 @@
 /* The alignment to use between consumer and producer parts of vring.
  * x86 pagesize again. */
 #define VIRTIO_PCI_VRING_ALIGN		4096
-#endif

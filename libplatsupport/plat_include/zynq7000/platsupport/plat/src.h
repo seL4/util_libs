@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef PLAT_SRC_H
-#define PLAT_SRC_H
+#pragma once
 
 enum src_id {
     SLCR,
@@ -24,4 +23,3 @@ enum src_rst_id {
     NSRCRST
 };
 
-#endif /* PLAT_SRC_H */

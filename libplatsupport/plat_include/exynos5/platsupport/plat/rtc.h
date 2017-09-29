@@ -10,9 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_RTC__
-#define __PLATSUPPORT_PLAT_RTC__
+#pragma once
 
 #define MAX77802RTC_BUSADDR 0x00
 
-#endif /* __PLATSUPPORT_PLAT_RTC__ */

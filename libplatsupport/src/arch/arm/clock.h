@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef ARCH_CLOCK_H
-#define ARCH_CLOCK_H
+#pragma once
 
 #include <assert.h>
 #include <platsupport/clock.h>
@@ -82,4 +81,3 @@ clk_t* _default_clk_init(clk_t* clk);
 /* Generic clock acquisition for all platforms */
 clk_t* ps_get_clock(clock_sys_t* sys, enum clk_id id);
 
-#endif /* ARCH_CLOCK_H */

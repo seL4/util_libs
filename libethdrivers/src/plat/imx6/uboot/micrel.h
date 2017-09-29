@@ -2,7 +2,7 @@
  * @TAG(OTHER_GPL)
  */
 
-#ifndef _MICREL_H
+#pragma once
 
 #include <stdint.h>
 
@@ -23,4 +23,3 @@ int ksz9021_startup(struct phy_device *phydev);
 int ksz9021_config(struct phy_device *phydev);
 
 void print_phyregs(struct phy_device *phydev);
-#endif

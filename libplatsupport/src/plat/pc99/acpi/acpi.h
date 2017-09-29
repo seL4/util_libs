@@ -20,8 +20,7 @@
  *       can be used to create tables
  */
 
-#ifndef __ACPI_INTERNAL_H__
-#define __ACPI_INTERNAL_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -92,4 +91,3 @@ acpi_table_length(const void* tbl);
 int
 acpi_copy_tables(const RegionList_t* src, RegionList_t* dst);
 
-#endif /* __ACPI_INTERNAL_H__ */

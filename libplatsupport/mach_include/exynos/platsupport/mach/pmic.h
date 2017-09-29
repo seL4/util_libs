@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __MACHSUPPORT_MACH_PMIC__
-#define __MACHSUPPORT_MACH_PMIC__
+#pragma once
 
 #include <stdint.h>
 
@@ -96,4 +95,3 @@ int pmic_set_reset_delay(pmic_t* pmic, int ms);
  */
 int pmic_get_reset_delay(pmic_t* pmic);
 
-#endif /* __MACHSUPPORT_MACH_PMIC__ */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_PLAT_TMU_H
-#define __PLAT_SUPPORT_PLAT_TMU_H
+#pragma once
 
 #define TMU_IRQ0 COMBINER_IRQ(-1, -1)
 #define TMU_IRQ1 COMBINER_IRQ(-1, -1)
@@ -49,4 +48,3 @@ enum tmu_id {
  */
 int exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu);
 
-#endif /* __PLAT_SUPPORT_PLAT_TMU_H */

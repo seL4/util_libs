@@ -1,6 +1,5 @@
 /* @TAG(OTHER_BSD) */
-#ifndef _VIRTIO_CONFIG_H
-#define _VIRTIO_CONFIG_H
+#pragma once
 /* This header, excluding the #ifdef __KERNEL__ part, is BSD licensed so
  * anyone can use the definitions to implement compatible drivers/servers.
  *
@@ -54,4 +53,3 @@
 /* Can the device handle any descriptor layout? */
 #define VIRTIO_F_ANY_LAYOUT		27
 
-#endif /* _VIRTIO_CONFIG_H */

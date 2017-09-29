@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_IRQ_COMBINER_H_
-#define _PLATSUPPORT_PLAT_IRQ_COMBINER_H_
+#pragma once
 
 enum irq_combiner_id {
     IRQ_COMBINER0,
@@ -32,4 +31,3 @@ enum irq_combiner_id {
  */
 int exynos_irq_combiner_init(void* base, irq_combiner_t* combiner);
 
-#endif /* _PLATSUPPORT_PLAT_IRQ_COMBINER_H_ */

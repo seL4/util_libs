@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_KEYBOARD_PS2_CHARDEV_H
-#define _PLATSUPPORT_PLAT_KEYBOARD_PS2_CHARDEV_H
+#pragma once
 
 #include "../../chardev.h"
 #include "keyboard_ps2.h"
@@ -20,4 +19,3 @@
 int
 keyboard_cdev_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
 
-#endif /* _PLATSUPPORT_PLAT_KEYBOARD_PS2_CHARDEV_H */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_IRQ_COMBINER_H_
-#define _PLATSUPPORT_IRQ_COMBINER_H_
+#pragma once
 
 #include <platsupport/io.h>
 
@@ -130,4 +129,3 @@ static inline uint32_t irq_combiner_group_pending(irq_combiner_t* combiner, int 
     return combiner->grp_pending(combiner, group);
 }
 
-#endif /* _PLATSUPPORT_IRQ_COMBINER_H_ */

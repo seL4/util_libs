@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_MUX_H__
-#define __PLATSUPPORT_MUX_H__
+#pragma once
 
 typedef struct mux_sys mux_sys_t;
 
@@ -53,4 +52,3 @@ static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_featur
     }
 }
 
-#endif /* __PLATSUPPORT_MUX_H__ */

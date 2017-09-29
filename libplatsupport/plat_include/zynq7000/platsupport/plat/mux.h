@@ -10,11 +10,9 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_MUX_H__
-#define __PLATSUPPORT_PLAT_MUX_H__
+#pragma once
 
 enum mux_feature {
     NMUX_FEATURES
 };
 
-#endif /* __PLATSUPPORT_PLAT_MUX_H__ */

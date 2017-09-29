@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_I2C_H_
-#define _PLATSUPPORT_PLAT_I2C_H_
+#pragma once
 
 #ifndef _PLATSUPPORT_I2C_H_
 #error This file should not be included directly
@@ -46,4 +45,3 @@ enum i2c_id {
  */
 int exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c);
 
-#endif /* _PLATSUPPORT_PLAT_I2C_H_ */

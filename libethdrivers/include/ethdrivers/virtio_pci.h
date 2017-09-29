@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef ETHIF_VIRTIO_PCI_H
-#define ETHIF_VIRTIO_PCI_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
@@ -31,4 +30,3 @@ typedef struct ethif_virtio_pci_config {
  */
 int ethif_virtio_pci_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
-#endif

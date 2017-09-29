@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef ETHIF_INTEL_H
-#define ETHIF_INTEL_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
@@ -40,4 +39,3 @@ int ethif_e82580_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *c
  */
 int ethif_e82574_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
-#endif

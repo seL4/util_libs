@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _IMX6_GPIO_H
-#define _IMX6_GPIO_H
+#pragma once
 
 #include <platsupport/gpio.h>
 #include <platsupport/mux.h>
@@ -70,4 +69,3 @@ int imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
                        void* bank7,
                        mux_sys_t* mux_sys, gpio_sys_t* gpio_sys);
 
-#endif /* _IMX6_GPIO_H */

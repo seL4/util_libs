@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_DELAY_H__
-#define __PLATSUPPORT_DELAY_H__
+#pragma once
 
 #define ps_ndelay(ns) ps_udelay((ns) / 1000 + 1)
 #define ps_mdelay(ms) ps_udelay((ms) * 1000)
@@ -37,4 +36,3 @@ void ps_udelay(unsigned long us);
  */
 void ps_cpufreq_hint(unsigned long hz);
 
-#endif /* __PLATSUPPORT_DELAY_H__ */

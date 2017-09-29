@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #include <autoconf.h>
 
@@ -48,4 +47,3 @@ enum chardev_id {
 
 #include <platsupport/mach/serial.h>
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

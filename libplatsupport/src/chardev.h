@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __SRC_CHARDEV_H__
-#define __SRC_CHARDEV_H__
+#pragma once
 
 #include <platsupport/chardev.h>
 #include <utils/arith.h>
@@ -38,4 +37,3 @@ ssize_t uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callbac
 int uart_getchar(ps_chardevice_t *d);
 int uart_putchar(ps_chardevice_t* d, int c);
 
-#endif /* __SRC_CHARDEV_H__ */

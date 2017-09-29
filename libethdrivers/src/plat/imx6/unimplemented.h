@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef __UNIMPLEMENTED_H__
-#define __UNIMPLEMENTED_H__
+#pragma once
 
 /* this is a dumping ground */
 #include <stddef.h>
@@ -69,4 +68,3 @@ typedef s8  __bitwise __be8;
 
 #define gpio_init()
 
-#endif /* __UNIMPLEMENTED_H__ */

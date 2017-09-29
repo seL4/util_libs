@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H
-#define __PLATSUPPORT_PLAT_SERIAL_H
+#pragma once
 
 #define SERIAL_CONSOLE_COM1_PORT  0x3f8
 #define SERIAL_CONSOLE_COM2_PORT  0x2f8
@@ -59,4 +58,3 @@ enum chardev_id {
 
 };
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H */

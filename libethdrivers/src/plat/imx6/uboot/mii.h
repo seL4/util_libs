@@ -9,8 +9,7 @@
  * Copyright (C) 1996, 1999, 2001 David S. Miller (davem@redhat.com)
  */
 
-#ifndef __LINUX_MII_H__
-#define __LINUX_MII_H__
+#pragma once
 
 /* Generic MII registers. */
 
@@ -192,4 +191,3 @@ static inline unsigned int mii_duplex (unsigned int duplex_lock,
 	return 0;
 }
 
-#endif /* __LINUX_MII_H__ */

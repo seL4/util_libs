@@ -78,8 +78,7 @@
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
-#ifndef __ELF_ELF_32_H__
-#define __ELF_ELF_32_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -257,4 +256,3 @@ elf32_getProgramHeaderAlign(struct Elf32_Header *file, uint16_t ph)
     return elf32_getProgramHeaderTable(file)[ph].p_align;
 }
 
-#endif /* __ELF_ELF_32_H__ */

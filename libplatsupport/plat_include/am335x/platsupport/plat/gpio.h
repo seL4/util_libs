@@ -10,11 +10,9 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _AM335X_GPIO_H
-#define _AM335X_GPIO_H
+#pragma once
 
 enum gpio_port {
     GPIO_NBANKS
 };
 
-#endif /* _AM335X_GPIO_H */

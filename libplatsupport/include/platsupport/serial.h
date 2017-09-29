@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_SERIAL_H__
-#define __PLATSUPPORT_SERIAL_H__
+#pragma once
 
 #include <platsupport/chardev.h>
 #include <platsupport/plat/serial.h>
@@ -56,4 +55,3 @@ int serial_configure(ps_chardevice_t* dev,
                      enum serial_parity parity,
                      int  stop_bits);
 
-#endif /* __PLATSUPPORT_SERIAL_H__ */

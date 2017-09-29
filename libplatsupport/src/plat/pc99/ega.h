@@ -9,11 +9,9 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_EGA_H
-#define _PLATSUPPORT_PLAT_EGA_H
+#pragma once
 
 #include "../../chardev.h"
 
 int text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
 
-#endif /* _PLATSUPPORT_PLAT_EGA_H */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_MACH_MUX_H__
-#define __PLATSUPPORT_MACH_MUX_H__
+#pragma once
 
 #include <platsupport/mux.h>
 
@@ -92,4 +91,3 @@ struct mux_feature_data {
 
 extern struct mux_feature_data* feature_data[];
 
-#endif /* __PLATSUPPORT_MACH_MUX_H__ */

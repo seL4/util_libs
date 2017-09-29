@@ -24,8 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __COMMON_H_
-#define __COMMON_H_	1
+#pragma once
 
 #undef	_LINUX_CONFIG_H
 #define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
@@ -83,4 +82,3 @@
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 
-#endif	/* __COMMON_H_ */

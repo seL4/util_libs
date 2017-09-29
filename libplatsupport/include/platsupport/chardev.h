@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_CHARDEV_H__
-#define __PLATSUPPORT_CHARDEV_H__
+#pragma once
 
 #include <platsupport/io.h>
 
@@ -201,4 +200,3 @@ static inline void ps_cdev_set_flags(ps_chardevice_t* d, int flags)
     d->flags = flags;
 }
 
-#endif /* __PLATSUPPORT_CHARDEV_H__ */

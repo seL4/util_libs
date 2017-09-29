@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_VIRTUAL_KEYCODE_PS2_H
-#define _PLATSUPPORT_PLAT_VIRTUAL_KEYCODE_PS2_H
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -359,4 +358,3 @@ int16_t keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, boo
 
 bool keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey);
 
-#endif /* _PLATSUPPORT_PLAT_VIRTUAL_KEYCODE_PS2_H */

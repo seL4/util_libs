@@ -100,8 +100,7 @@ ELF file into memory.
 
 */
 
-#ifndef __ELF_ELF_H__
-#define __ELF_ELF_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdio.h>
@@ -309,4 +308,3 @@ void elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr,
 			      uint64_t *p_paddr, uint64_t *p_filesz,
 			      uint64_t *p_offset, uint64_t *p_memsz);
 
-#endif

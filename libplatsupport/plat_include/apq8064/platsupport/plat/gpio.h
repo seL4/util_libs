@@ -10,11 +10,9 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _APQ8064_GPIO_H
-#define _APQ8064_GPIO_H
+#pragma once
 
 enum gpio_port {
     GPIO_NBANKS
 };
 
-#endif /* _APQ8064_GPIO_H */

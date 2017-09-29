@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef ETHIF_LWIP_IFACE_H
-#define ETHIF_LWIP_IFACE_H
+#pragma once
 
 #include <autoconf.h>
 
@@ -89,5 +88,4 @@ static inline netif_init_fn ethif_get_ethif_init(lwip_iface_t *iface) {
     return iface->ethif_init;
 }
 
-#endif
 #endif

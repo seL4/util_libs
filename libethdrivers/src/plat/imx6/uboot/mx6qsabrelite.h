@@ -23,8 +23,7 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#pragma once
 
 #define CONFIG_MX6
 #define CONFIG_MX6Q
@@ -116,4 +115,3 @@ typedef uint64_t iomux_v3_cfg_t;
 
 #define MUX_CONFIG_SION		(BIT(4))
 
-#endif                         /* __MX6QSABRE_COMMON_CONFIG_H */

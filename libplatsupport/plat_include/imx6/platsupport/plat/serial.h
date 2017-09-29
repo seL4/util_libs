@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #include <autoconf.h>
 #include <platsupport/mach/serial.h>
@@ -30,4 +29,3 @@
 
 #define UART_REF_CLK 40089600
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

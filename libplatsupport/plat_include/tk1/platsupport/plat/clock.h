@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_CLOCK_H
-#define _PLATSUPPORT_PLAT_CLOCK_H
+#pragma once
 #include <stdint.h>
 
 /* Register information sourced from "NVIDIA Tegra K1 Mobile Processor TECHNICAL REFERENCE MANUAL" */
@@ -294,4 +293,3 @@ typedef struct clk_register {
 
 extern const clk_register_t tk1_clk_registers[];
 
-#endif /* _PLATSUPPORT_PLAT_CLOCK_H */

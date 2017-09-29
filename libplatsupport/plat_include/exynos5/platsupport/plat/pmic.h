@@ -10,12 +10,10 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_PMIC__
-#define __PLATSUPPORT_PLAT_PMIC__
+#pragma once
 
 #define PMIC_BUSADDR MAX77802_BUSADDR
 #define PMIC_I2C     I2C4
 
 #define LDO_ETH       25
 
-#endif /* __PLATSUPPORT_PLAT_PMIC__ */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _SYNC_ATOMIC_H_
-#define _SYNC_ATOMIC_H_
+#pragma once
 
 #include <assert.h>
 #include <limits.h>
@@ -69,4 +68,3 @@ static inline int sync_atomic_decrement(volatile int *x, int memorder) {
     return __atomic_sub_fetch(x, 1, memorder);
 }
 
-#endif

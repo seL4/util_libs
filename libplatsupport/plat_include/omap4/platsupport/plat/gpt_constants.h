@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_OMAP4_H
-#define __PLAT_SUPPORT_OMAP4_H
+#pragma once
 
 /**
  * Address at which the GPT should be in the initial
@@ -77,4 +76,3 @@ static inline int omap_get_gpt_irq(int n)
     return GPT1_INTERRUPT + (n - 1);
 }
 
-#endif /* __PLAT_SUPPORT_IMX31_H */

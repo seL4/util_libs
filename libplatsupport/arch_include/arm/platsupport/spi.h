@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_SPI_H_
-#define _PLATSUPPORT_SPI_H_
+#pragma once
 
 #include <platsupport/io.h>
 #include <platsupport/clock.h>
@@ -104,4 +103,3 @@ void spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg);
 int spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
              void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token);
 
-#endif /* _PLATSUPPORT_SPI_H_ */

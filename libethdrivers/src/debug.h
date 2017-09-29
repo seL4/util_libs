@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#pragma once
 
 #include <stdint.h>
 #include <utils/util.h>
@@ -152,4 +151,3 @@ static inline void print_packet(const char* col, void* packet, int length){
 }
 #endif
 
-#endif /*  __DEBUG_H__ */

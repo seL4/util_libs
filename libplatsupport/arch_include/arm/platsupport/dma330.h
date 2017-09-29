@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_ARCH_DMA330_H
-#define _PLATSUPPORT_ARCH_DMA330_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <stdint.h>
@@ -104,4 +103,3 @@ void dma330_copy_compile(int channel, void* bin);
  */
 int dma330_copy_configure(uintptr_t psrc, uintptr_t pdst, size_t len, void* vbin);
 
-#endif /* _PLATSUPPORT_ARCH_DMA330_H */

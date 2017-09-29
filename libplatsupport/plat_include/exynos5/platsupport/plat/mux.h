@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_PLAT_MUX_H
-#define _PLATSUPPORT_PLAT_MUX_H
+#pragma once
 
 #include <autoconf.h>
 
@@ -85,4 +84,3 @@ int exynos_mux_init(void* gpioleft,
                     void* gpioaudio,
                     mux_sys_t* mux);
 
-#endif /* _PLATSUPPORT_PLAT_MUX_H */

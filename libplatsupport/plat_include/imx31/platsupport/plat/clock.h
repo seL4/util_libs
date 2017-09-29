@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _IMX31_CLOCK_H
-#define _IMX31_CLOCK_H
+#pragma once
 
 enum clk_id {
     CLK_MASTER,
@@ -22,4 +21,3 @@ enum clock_gate {
     NCLKGATES,
 };
 
-#endif /* _IMX31_CLOCK_H */

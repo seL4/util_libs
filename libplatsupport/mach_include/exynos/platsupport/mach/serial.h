@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __MACHSUPPORT_MACH_SERIAL_H__
-#define __MACHSUPPORT_MACH_SERIAL_H__
+#pragma once
 
 #include <platsupport/chardev.h>
 #include <platsupport/mux.h>
@@ -57,4 +56,3 @@ void exynos_handle_tx_irq(ps_chardevice_t *d);
  */
 int exynos_check_irq(ps_chardevice_t *d);
 
-#endif /* __MACHSUPPORT_MACH_SERIAL_H__ */
