@@ -10,10 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __ACPI_H__
-#error This file should not be included directly
-#endif
-
 #pragma pack(push,1)
 
 /* eXtended System Descriptor Table "XSDT" */
