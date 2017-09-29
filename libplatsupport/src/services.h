@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+#pragma once
+
 #include <platsupport/io.h>
 #include <stdio.h>
 #include <stdlib.h>
