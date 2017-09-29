@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #define UARTA_BASE          0x70006000
 #define UARTB_BASE          0x70006040
@@ -20,4 +19,3 @@
 
 #define UART_PPTR           UARTA_BASE
 
-#endif /* _PLATFORM_H_ */

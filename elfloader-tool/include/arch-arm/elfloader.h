@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _ELFLOADER_H_
-#define _ELFLOADER_H_
+#pragma once
 
 #include <types.h>
 
@@ -91,4 +90,3 @@ void smp_boot(void);
 /* Secure monitor call */
 uint32_t smc(uint32_t, uint32_t, uint32_t, uint32_t);
 
-#endif /* _ELFLOADER_H_ */

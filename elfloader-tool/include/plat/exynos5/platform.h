@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #define UART0_PADDR 0x12C00000
 #define UART1_PADDR 0x12C10000
@@ -19,4 +18,3 @@
 #define UART3_PADDR 0x12C30000
 #define UART_PPTR   (UART2_PADDR)
 
-#endif /* _PLATFORM_H_ */

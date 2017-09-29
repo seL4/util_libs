@@ -10,9 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _ABORT_H_
-#define _ABORT_H_
+#pragma once
 
 void abort(void);
 
-#endif /* _ABORT_H_ */

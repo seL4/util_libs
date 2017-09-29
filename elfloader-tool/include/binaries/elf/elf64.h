@@ -78,8 +78,7 @@
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
-#ifndef __LIBELF_64_H__
-#define __LIBELF_64_H__
+#pragma once
 
 #include <types.h>
 
@@ -248,4 +247,3 @@ elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
     return elf64_getProgramHeaderTable(file)[ph].p_offset;
 }
 
-#endif /* __LIBELF_64_H__ */

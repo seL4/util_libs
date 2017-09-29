@@ -14,8 +14,7 @@
  *
  */
 
-#ifndef _CRYPT_HASH_H
-#define _CRYPT_HASH_H
+#pragma once
 
 #include "crypt_sha256.h"
 #include "crypt_md5.h"
@@ -38,4 +37,3 @@ typedef struct {
 void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_hash, uint8_t *outputted_hash);
 void print_hash(uint8_t *hash_to_print, int bytes_to_print);
 
-#endif

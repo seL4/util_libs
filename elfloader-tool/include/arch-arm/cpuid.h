@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _CPUID_H_
-#define _CPUID_H_
+#pragma once
 
 #include <types.h>
 
@@ -30,4 +29,3 @@ void print_cpuid(void);
 /* Returns the Cortex-Ax part number, or -1 */
 int get_cortex_a_part(void);
 
-#endif /* _CPUID_H_ */

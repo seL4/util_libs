@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef __MACHINE_V6_H__
-#define __MACHINE_V6_H__
+#pragma once
 
 static inline void wfi(void)
 {
@@ -33,4 +32,3 @@ static inline void isb(void)
     asm volatile("mcr p15, 0, %0, c7, c5, 4" : : "r"(0) : "memory");
 }
 
-#endif /* __MACHINE_V6_H__ */

@@ -10,11 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 /* NSLU2 UART physical address. */
 #define UART_PADDR 0xC8000000
 #define UART_PPTR  UART_PADDR
 
-#endif /* _PLATFORM_H_ */

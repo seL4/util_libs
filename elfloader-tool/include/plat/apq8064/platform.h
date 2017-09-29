@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #define SPS_UART1_DM_PADDR        0x12450000 /* Daytona_SPS */
 #define SPS_UART2_DM_PADDR        0x12490000 /* Daytona_SPS */
@@ -22,4 +21,3 @@
 #define GSBI5_UART_DM_PADDR       0x1A240000 /* GSBIs */
 #define UART_PPTR                 (GSBI7_UART_DM_PADDR)
 
-#endif /* _PLATFORM_H_ */

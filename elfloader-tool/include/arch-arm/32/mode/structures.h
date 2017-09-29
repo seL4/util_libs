@@ -8,8 +8,7 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __STRUCTURES_MODE_32_H_
-#define __STRUCTURES_MODE_32_H_
+#pragma once
 
 #define ARM_SECTION_BITS      20
 #define ARM_1GB_BLOCK_BITS    30
@@ -39,4 +38,3 @@ extern uint32_t _boot_pt[BIT(PT_BITS)];
 extern uint64_t _lpae_boot_pgd[BIT(HYP_PGD_BITS)];
 extern uint64_t _lpae_boot_pmd[BIT(HYP_PGD_BITS + HYP_PMD_BITS)];
 
-#endif /* __STRUCTURES_MODE_32_H_ */

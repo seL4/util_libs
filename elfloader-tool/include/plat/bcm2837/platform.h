@@ -10,10 +10,8 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #define MU_PADDR    0x3f215000
 #define UART_PPTR   (MU_PADDR)
 
-#endif /* _PLATFORM_H_ */

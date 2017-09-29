@@ -8,8 +8,7 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __ASSEMBLER_V6_H__
-#define __ASSEMBLER_V6_H__
+#pragma once
 
 #include <mode/assembler.h>
 
@@ -27,4 +26,3 @@
 #warning "Including assembly-specific header in C code"
 #endif
 
-#endif /* __ASSEMBLER_V6_H__ */

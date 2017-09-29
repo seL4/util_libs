@@ -14,8 +14,7 @@
  *
  */
 
-#ifndef _CRYPT_SHA256_H
-#define _CRYPT_SHA256_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +34,3 @@ void sha256_update(sha256_t *s, const void *m, unsigned long len);
 }
 #endif
 
-#endif

@@ -100,8 +100,7 @@ ELF file into memory.
 
 */
 
-#ifndef __ELF_ELF_H__
-#define __ELF_ELF_H__
+#pragma once
 
 #include <types.h>
 #include <printf.h>
@@ -382,4 +381,3 @@ struct Elf32_Phdr *elf_getProgramSegmentTable(void *elfFile);
 struct Elf32_Shdr *elf_getSectionTable(void *elfFile);
 #endif
 
-#endif

@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _EFI_H_
-#define _EFI_H_
+#pragma once
 
 #include <printf.h>
 #include <types.h>
@@ -117,4 +116,3 @@ void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table);
 unsigned long efi_exit_boot_services(void);
 int efi_fputc(int c, FILE *stream);
 
-#endif /* _EFI_H_ */

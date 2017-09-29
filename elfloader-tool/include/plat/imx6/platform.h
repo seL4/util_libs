@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #include <autoconf.h>
 
@@ -35,4 +34,3 @@
 #error "unknown imx6 platform selected!"
 #endif
 
-#endif /* _PLATFORM_H_ */

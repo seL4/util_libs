@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 /*
  * UART Hardware Constants
@@ -22,4 +21,3 @@
 
 #define UART_PPTR          IMX7_UART1_PADDR
 
-#endif /* _PLATFORM_H_ */

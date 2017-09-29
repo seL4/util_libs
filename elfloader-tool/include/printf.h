@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _PRINTF_H_
-#define _PRINTF_H_
+#pragma once
 
 #define NULL ((void *)0)
 #define FILE void
@@ -22,4 +21,3 @@ int __fputc(int c, FILE *data);
 int printf(const char *format, ...);
 int sprintf(char *buff, const char *format, ...);
 
-#endif /* _PRINTF_H_ */

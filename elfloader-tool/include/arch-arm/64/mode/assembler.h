@@ -8,8 +8,7 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __ASSEMBLER_MODE_64_H__
-#define __ASSEMBLER_MODE_64_H__
+#pragma once
 
 /* This file contains useful macros for assembly code. */
 
@@ -134,4 +133,3 @@ finished_\op:
 #warning "Including assembly-specific header in C code"
 #endif
 
-#endif /* __ASSEMBLER_MODE_64_H__ */

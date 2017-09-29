@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _TYPES_H
-#define _TYPES_H
+#pragma once
 
 typedef signed char int8_t;
 typedef short int16_t;
@@ -38,4 +37,3 @@ typedef uint64_t word_t;
 #define UINT32_MAX    (0xffffffff)
 #define UINT64_MAX    (0xffffffffffffffffull)
 
-#endif /* _TYPES_H */

@@ -8,8 +8,7 @@
  * @TAG(GD_GPL)
  */
 
-#ifndef __ASSEMBLER_H__
-#define __ASSEMBLER_H__
+#pragma once
 
 #ifdef __ASSEMBLER__
 
@@ -40,4 +39,3 @@ _name:
 #warning "Including assembly-specific header in C code"
 #endif
 
-#endif /* __ASSEMBLER_H__ */

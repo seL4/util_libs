@@ -14,8 +14,7 @@
  *
  */
 
-#ifndef _CRYPT_MD5_H
-#define _CRYPT_MD5_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +34,3 @@ void md5_update(md5_t *s, const void *m, unsigned long len);
 }
 #endif
 
-#endif
