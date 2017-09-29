@@ -14,8 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _printf(...) printf(__VA_ARGS__)
-
 #define RESOURCE(op, id) ps_io_map(&(op->io_mapper),  (uintptr_t) id##_PADDR, id##_SIZE, 0, PS_MEM_NORMAL)
 
 #define MAP_IF_NULL(op, id, ptr)               \

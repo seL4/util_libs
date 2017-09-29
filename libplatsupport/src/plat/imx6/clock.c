@@ -302,7 +302,7 @@ _enet_set_freq(clk_t* clk, freq_t hz)
     while (!(clk_regs.alg->pll_enet.val & PLL_LOCK));
     /* bypass off */
     clk_regs.alg->pll_enet.clr = PLL_BYPASS;
-    _printf("Set ENET frequency to %ld Mhz... ", (long int)clk_get_freq(clk) / MHZ);
+    printf("Set ENET frequency to %ld Mhz... ", (long int)clk_get_freq(clk) / MHZ);
     return clk_get_freq(clk);
 }
 
