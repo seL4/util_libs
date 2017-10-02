@@ -12,10 +12,6 @@
 
 #pragma once
 
-#ifndef _PLATSUPPORT_I2C_H_
-#error This file should not be included directly
-#endif
-
 enum i2c_id {
     I2C0,
     I2C1,

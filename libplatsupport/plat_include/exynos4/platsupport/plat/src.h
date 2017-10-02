@@ -12,10 +12,6 @@
 
 #pragma once
 
-#ifndef SRC_H
-#error This file should not be included directly
-#endif
-
 /* IRQS */
 
 /* Physical addresses */

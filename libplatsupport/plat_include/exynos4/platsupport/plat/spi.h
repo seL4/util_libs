@@ -12,10 +12,6 @@
 
 #pragma once
 
-#ifndef _PLATSUPPORT_SPI_H_
-#error This file should not be included directly
-#endif
-
 /* IRQS */
 #define EXYNOS_SPI0_IRQ        98
 #define EXYNOS_SPI1_IRQ        99
