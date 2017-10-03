@@ -78,8 +78,7 @@
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
-#ifndef __ELF_DEBUG_32_H__
-#define __ELF_DEBUG_32_H__
+#pragma once
 
 #include <stdio.h>
 #include "elf32.h"
@@ -91,4 +90,3 @@ void elf_fprintf(FILE *f, void *elfFile, int size, const char *name, int flags);
 
 void elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, int flags);
 
-#endif /* __ELF_DEBUG_32_H__ */

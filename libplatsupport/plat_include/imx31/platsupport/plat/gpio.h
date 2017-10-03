@@ -10,11 +10,9 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _IMX31_GPIO_H
-#define _IMX31_GPIO_H
+#pragma once
 
 enum gpio_port {
     GPIO_NBANKS
 };
 
-#endif /* _IMX31_GPIO_H */

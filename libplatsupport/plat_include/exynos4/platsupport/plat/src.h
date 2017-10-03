@@ -10,12 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef PLATSUPPORT_PLAT_SRC_H
-#define PLATSUPPORT_PLAT_SRC_H
-
-#ifndef SRC_H
-#error This file should not be included directly
-#endif
+#pragma once
 
 /* IRQS */
 
@@ -41,4 +36,3 @@ enum src_rst_id {
     NSRCRST
 };
 
-#endif /* PLATSUPPORT_PLAT_SRC_H */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _LIB_CPIO_H_
-#define _LIB_CPIO_H_
+#pragma once
 
 /* Magic identifiers for the "cpio" file format. */
 #define CPIO_HEADER_MAGIC "070701"
@@ -85,4 +84,3 @@ int cpio_info(void *archive, struct cpio_info *info);
  */
 void cpio_ls(void *archive, char **buf, unsigned long buf_len);
 
-#endif /* _LIB_CPIO_H_ */

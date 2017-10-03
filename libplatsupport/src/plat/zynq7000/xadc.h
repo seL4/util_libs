@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_ZYNQ7000_XADC_H
-#define __PLATSUPPORT_PLAT_ZYNQ7000_XADC_H
+#pragma once
 
 #include <stdint.h>
 #include <platsupport/io.h>
@@ -31,4 +30,3 @@ uint32_t xadc_read_register(uint32_t address);
 /* XADC Addresses */
 #define XADC_ADDRESS_TEMPERATURE    0x00
 
-#endif

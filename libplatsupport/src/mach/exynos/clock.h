@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef MACH_CLOCK_H
-#define MACH_CLOCK_H
+#pragma once
 
 #include "../../arch/arm/clock.h"
 
@@ -228,4 +227,3 @@ exynos_cmu_set_gate(clk_regs_io_t** regs, int clkid, int v)
     clkbf_set(&regs[c]->gate[r], o * CLK_GATE_BITS, CLK_GATE_BITS, v);
 }
 
-#endif /* MACH_CLOCK_H */

@@ -23,8 +23,7 @@
  *
  */
 
-#ifndef __ASM_ARCH_MX6_MX6X_PINS_H__
-#define __ASM_ARCH_MX6_MX6X_PINS_H__
+#pragma once
 
 #include "mx6qsabrelite.h"
 
@@ -1672,4 +1671,3 @@ enum {
 	MX6Q_PAD_SD2_DAT3__ANATOP_TESTO_3	= IOMUX_PAD(0x0744, 0x035C, 7, 0x0000, 0, 0),
 };
 
-#endif	/* __ASM_ARCH_MX6_MX6X_PINS_H__ */

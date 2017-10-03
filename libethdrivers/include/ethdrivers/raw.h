@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef __ETHIFACE_RAW_IFACE_H__
-#define __ETHIFACE_RAW_IFACE_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -151,4 +150,3 @@ struct eth_driver {
     int dma_alignment;
 };
 
-#endif /* __ETHIFACE_RAW_IFACE_H__ */

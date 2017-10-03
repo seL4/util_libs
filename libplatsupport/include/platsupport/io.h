@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_IO_H__
-#define __PLATSUPPORT_IO_H__
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -430,5 +429,3 @@ write_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits, 
     assert(nbits <= 32 - first_bit);
     write_masked(addr, MASK(nbits) << first_bit, value << first_bit);
 }
-
-#endif /* __PLATSUPPORT_IO_H__ */

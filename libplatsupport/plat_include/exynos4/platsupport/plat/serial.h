@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #define EXYNOS_UART0_PADDR  0x13800000
 #define EXYNOS_UART1_PADDR  0x13810000
@@ -40,4 +39,3 @@ enum chardev_id {
 
 #include <platsupport/mach/serial.h>
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

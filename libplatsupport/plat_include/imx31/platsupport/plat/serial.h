@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #define UART1_PADDR  0x43F90000
 #define UART2_PADDR  0x43F94000
@@ -41,4 +40,3 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = IMX31_UART1
 };
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

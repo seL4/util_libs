@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_MUX_H__
-#define __PLATSUPPORT_PLAT_MUX_H__
+#pragma once
 
 #define EXYNOS_GPIOLEFT_PADDR    0x11400000
 #define EXYNOS_GPIORIGHT_PADDR   0x11000000
@@ -64,4 +63,3 @@ int exynos_mux_init(void* bank1,
                     void* bank4,
                     mux_sys_t* mux);
 
-#endif /* __PLATSUPPORT_PLAT_MUX_H__ */

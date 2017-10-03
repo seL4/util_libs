@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_CLOCK_H_
-#define _PLATSUPPORT_PLAT_CLOCK_H_
+#pragma once
 
 enum clk_id {
     CLK_MASTER, /* The input clock PS_CLK */
@@ -93,4 +92,3 @@ int clk_cpu_clk_select_621(clk_t* cpu_clk);
  */
 int clk_cpu_clk_select_421(clk_t* cpu_clk);
 
-#endif /* _PLATSUPPORT_PLAT_CLOCK_H_ */

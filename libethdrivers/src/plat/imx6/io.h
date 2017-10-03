@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _ETHDRIVER_IMX6_IO_H_
-#define _ETHDRIVER_IMX6_IO_H_
+#pragma once
 
 #define __arch_getl(addr)         *((volatile uint32_t*)(addr))
 #define __arch_getw(addr)         *((volatile uint16_t*)(addr))
@@ -50,4 +49,3 @@
 #define readw(c)	({ uint16_t __v = __arch_getw(c); __iormb(); __v; })
 #define readl(c)	({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
 
-#endif /* _ETHDRIVER_IMX6_IO_H_ */

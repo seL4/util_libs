@@ -32,8 +32,7 @@
  *
  */
 
-#ifndef __FEC_MXC_H
-#define __FEC_MXC_H
+#pragma once
 
 #include "../enet.h"
 
@@ -87,4 +86,3 @@ struct fec_priv {
 	int (*mii_postcall)(int);
 #endif
 };
-#endif	/* __FEC_MXC_H */

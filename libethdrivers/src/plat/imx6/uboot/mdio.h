@@ -11,8 +11,7 @@
  * by the Free Software Foundation, incorporated herein by reference.
  */
 
-#ifndef __LINUX_MDIO_H__
-#define __LINUX_MDIO_H__
+#pragma once
 
 #include "mii.h"
 
@@ -285,4 +284,3 @@
 #define MDIO_DEVAD_NONE			(-1)
 #define MDIO_EMULATE_C22		4
 
-#endif /* __LINUX_MDIO_H__ */

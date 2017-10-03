@@ -10,9 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PC99_CLOCK_H
-#define _PLATSUPPORT_PC99_CLOCK_H
+#pragma once
 
 /* place holder */
 
-#endif /* _PLATSUPPORT_PC99_CLOCK_H */

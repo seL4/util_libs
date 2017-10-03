@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _EXYNOS5_CLOCK_H
-#define _EXYNOS5_CLOCK_H
+#pragma once
 
 enum clk_id {
     CLK_MASTER,
@@ -84,4 +83,3 @@ int exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* to
                            void* lex, void* r0x,  void* r1x, void* cdrex, void* mem,
                            clock_sys_t* clock_sys);
 
-#endif /* _EXYNOS5_CLOCK_H */

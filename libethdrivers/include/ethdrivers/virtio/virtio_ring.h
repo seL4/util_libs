@@ -1,6 +1,5 @@
 /* @TAG(CUSTOM) */
-#ifndef _VIRTIO_RING_H
-#define _VIRTIO_RING_H
+#pragma once
 /* An interface for efficient virtio implementation, currently for use by KVM
  * and lguest, but hopefully others soon.  Do NOT change this since it will
  * break existing servers and clients.
@@ -162,4 +161,3 @@ static inline int vring_need_event(uint16_t event_idx, uint16_t new_idx, uint16_
 	return (uint16_t)(new_idx - event_idx - 1) < (uint16_t)(new_idx - old);
 }
 
-#endif /* _VIRTIO_RING_H */

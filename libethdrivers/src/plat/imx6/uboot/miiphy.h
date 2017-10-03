@@ -35,8 +35,7 @@
 |  Author:	Mark Wisner
 |
 +----------------------------------------------------------------------------*/
-#ifndef _miiphy_h_
-#define _miiphy_h_
+#pragma once
 
 #include "list.h"
 #include "phy.h"
@@ -141,4 +140,3 @@ int bb_miiphy_write(const char *devname, unsigned char addr,
 #define ESTATUS_1000XF		0x8000
 #define ESTATUS_1000XH		0x4000
 
-#endif

@@ -10,6 +10,10 @@
  * @TAG(DATA61_BSD)
  */
 
+#include <autoconf.h>
+
+#ifndef CONFIG_PLAT_KZM
+
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
@@ -17,7 +21,9 @@
 
 #include "../../chardev.h"
 
-#define UART_REF_CLK           40089600
+#ifndef UART_REF_CLK
+#error "UART_REF_CLK undefined"
+#endif
 
 #define UART_SR1_RRDY          BIT( 9)
 #define UART_SR1_TRDY          BIT(13)
@@ -225,3 +231,5 @@ int uart_init(const struct dev_defn* defn,
 
     return 0;
 }
+
+#endif /* end of !CONFIG_PLAT_KZM */

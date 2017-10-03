@@ -14,8 +14,7 @@
  * Portions Copyright (C) Sun Microsystems 2008
  */
 
-#ifndef _LINUX_ETHTOOL_H
-#define _LINUX_ETHTOOL_H
+#pragma once
 
 #include <stdint.h>
 
@@ -721,4 +720,3 @@ enum ethtool_reset_flags {
 };
 #define ETH_RESET_SHARED_SHIFT	16
 
-#endif /* _LINUX_ETHTOOL_H */

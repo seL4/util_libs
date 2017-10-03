@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _IMX6_ENET_H_
-#define _IMX6_ENET_H_
+#pragma once
 
 #include <stdint.h>
 #include <platsupport/io.h>
@@ -77,4 +76,3 @@ uint32_t enet_get_mdcclk(struct enet *imx_eth);
 
 void enet_print_state(struct enet * enet);
 
-#endif

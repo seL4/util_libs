@@ -10,11 +10,9 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _OMAP4_GPIO_H
-#define _OMAP4_GPIO_H
+#pragma once
 
 enum gpio_port {
     GPIO_NBANKS
 };
 
-#endif /* _OMAP4_GPIO_H */

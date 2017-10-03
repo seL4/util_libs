@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_DMA330_H
-#define _PLATSUPPORT_PLAT_DMA330_H
+#pragma once
 
 #define MDMA0_PADDR 0x10800000
 #define MDMA1_PADDR 0x11C10000
@@ -67,4 +66,3 @@ static const int dma330_abort_irq[] = {
     [PL330_PDMA1] = -1
 };
 
-#endif /* _PLATSUPPORT_PLAT_DMA330_H */

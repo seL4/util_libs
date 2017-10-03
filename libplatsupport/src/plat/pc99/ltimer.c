@@ -201,6 +201,7 @@ ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops)
 
 static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
 {
+    int error;
     ltimer_init_common(ltimer, ops);
 
     /* map in the paddr */
@@ -216,7 +217,32 @@ static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
     ltimer->set_timeout = hpet_ltimer_set_timeout;
     ltimer->reset = hpet_ltimer_reset;
 
-    int error = hpet_init(&pc99_ltimer->hpet.device, pc99_ltimer->hpet.config);
+    /* check if we have requested the IRQ that collides with the PIT. This check is not
+     * particularly robust, as the legacy PIT route does not *have* to live on pin 2
+     * and to be more accurate we should check the ACPI tables instead, but that is
+     * difficult to do here and we shall ignore as an unlikely case */
+    if (pc99_ltimer->hpet.config.ioapic_delivery && pc99_ltimer->hpet.config.irq == 2) {
+        /* put the PIT into a known state to disable it from counting and genering interrupts */
+        pit_t temp_pit;
+        /* the pit_init function declares that it may only be called once, we can only hope that
+         * it hasn't been called before and carry on */
+        error = pit_init(&temp_pit, ops.io_port_ops);
+        if (!error) {
+            error = pit_cancel_timeout(&temp_pit);
+            if (error) {
+                /* if we fail to operate on an initialized pit then assume nothing is sane and abort */
+                ZF_LOGE("PIT command failed!");
+                return error;
+            } else {
+                ZF_LOGI("Disabled PIT under belief it was using same interrupt as HPET, and "
+                        "this driver does not support interrupt sharing.");
+            }
+        } else {
+            ZF_LOGW("Could not ensure PIT was not counting on pin 2, you may get spurious interrupts");
+        }
+    }
+
+    error = hpet_init(&pc99_ltimer->hpet.device, pc99_ltimer->hpet.config);
     if (!error) {
         error = hpet_start(&pc99_ltimer->hpet.device);
     }

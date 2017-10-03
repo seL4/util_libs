@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef _PLATSUPPORT_RTC_H
-#define _PLATSUPPORT_RTC_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <platsupport/plat/acpi/acpi.h>
@@ -59,4 +58,3 @@ static inline int rtc_get_time_date(ps_io_port_ops_t *io_port_ops, acpi_t *acpi,
     return rtc_get_time_date_reg(io_port_ops, rtc_get_century_register(acpi), time_date);
 }
 
-#endif /* _PLATSUPPORT_RTC_H */

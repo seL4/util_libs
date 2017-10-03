@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H
-#define __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H
+#pragma once
 
 /**
  * Address at which the EPIT2 should be in the initial
@@ -25,4 +24,3 @@
 #define EPIT2_DEVICE_PADDR 0x53f98000
 #define EPIT2_INTERRUPT 27
 
-#endif /* __PLAT_SUPPORT_IMX31_EPIT_CONSTANTS_H */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H
-#define __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H
+#pragma once
 
 /**
  * Address at which the GPT should be in the initial
@@ -24,4 +23,3 @@
 
 #define GPT_PRESCALER 1
 
-#endif /* __PLAT_SUPPORT_IMX31_GPT_CONSTANTS_H */

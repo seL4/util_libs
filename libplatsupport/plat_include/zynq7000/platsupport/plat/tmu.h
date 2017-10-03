@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_PLAT_TMU_H
-#define __PLAT_SUPPORT_PLAT_TMU_H
+#pragma once
 
 enum tmu_id {
     ZYNQ7000_TMU,
@@ -22,4 +21,3 @@ enum tmu_id {
     TMU_DEFAULT = ZYNQ7000_TMU
 };
 
-#endif

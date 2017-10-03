@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _SYNC_SPINLOCK_H_
-#define _SYNC_SPINLOCK_H_
+#pragma once
 
 /* Interface for spin locks. Note, the underlying implementation is not
  * seL4-specific. Spin locks should not be used when you have threads of
@@ -52,4 +51,3 @@ static inline int sync_spinlock_destroy(sync_spinlock_t *lock) {
     return 0;
 }
 
-#endif

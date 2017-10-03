@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_ZYNQ7000_DEVCFG_H
-#define __PLATSUPPORT_PLAT_ZYNQ7000_DEVCFG_H
+#pragma once
 
 /* On the Zynq7000, the devcfg (Device Configuration Interface) is a
  * device made up of numerous configuration and status registers.
@@ -62,4 +61,3 @@ int devcfg_init(ps_io_ops_t* ops);
 /* Returns a pointer to the devcfg registers */
 devcfg_regs_t* devcfg_get_regs(void);
 
-#endif

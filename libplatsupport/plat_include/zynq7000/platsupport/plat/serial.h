@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #define UART0_PADDR  0xE0000000
 #define UART1_PADDR  0xE0001000
@@ -29,4 +28,3 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = ZYNQ_UART1
 };
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

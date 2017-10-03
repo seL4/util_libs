@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #define GSBI3_UART_PADDR  0x16240000
 #define GSBI4_UART_PADDR  0x16340000
@@ -42,4 +41,3 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = GSBI7_UART
 };
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

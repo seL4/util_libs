@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __ACPI_H__
-#define __ACPI_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -113,4 +112,3 @@ acpi_t *acpi_init(ps_io_mapper_t io_mapper);
  */
 acpi_header_t *acpi_find_region(acpi_t *acpi, region_type_t region);
 
-#endif /* __ACPI_H__ */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __REGIONS_H__
-#define __REGIONS_H__
+#pragma once
 
 /*
  * Table signitures
@@ -93,4 +92,3 @@ acpi_sig_str(region_type_t);
 region_type_t
 acpi_sig_id(const char* sig);
 
-#endif /* __REGIONS_H__ */

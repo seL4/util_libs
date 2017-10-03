@@ -78,8 +78,7 @@
  * The construction, validity and performance of this licence is governed
  * by the laws in force in New South Wales, Australia.
  */
-#ifndef __LIBELF_64_H__
-#define __LIBELF_64_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -188,7 +187,7 @@ char * elf64_getSectionName(void *elfFile, int i);
 uint64_t elf64_getSectionSize(void *elfFile, int i);
 uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
 void * elf64_getSection(void *elfFile, int i);
-void * elf64_getSectionNamed(void *elfFile, const char *str);
+void * elf64_getSectionNamed(void *elfFile, const char *str, int *i);
 int elf64_getSegmentType (void *elfFile, int segment);
 void elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
 			  uint64_t *p_paddr, uint64_t *p_filesz,
@@ -256,4 +255,3 @@ elf64_getProgramHeaderAlign(struct Elf64_Header *file, uint16_t ph)
     return elf64_getProgramHeaderTable(file)[ph].p_align;
 }
 
-#endif /* __LIBELF_64_H__ */

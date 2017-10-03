@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#pragma once
 
 #include <platsupport/chardev.h>
 #include <platsupport/io.h>
@@ -19,4 +18,3 @@
 #include <utils/page.h>
 #include <utils/util.h>
 
-#endif /* __COMMON_H__ */

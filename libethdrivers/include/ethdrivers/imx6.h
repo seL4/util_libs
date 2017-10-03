@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef __ETHIF_IMX6_DRIVER_H
-#define __ETHIF_IMX6_DRIVER_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
@@ -28,4 +27,3 @@
  */
 int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
 
-#endif

@@ -10,8 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
-#ifndef _ETHDRIVER_IMX6_OCOTP_CONTROL_H_
-#define _ETHDRIVER_IMX6_OCOTP_CONTROL_H_
+#pragma once
 
 #include <platsupport/io.h>
 
@@ -22,4 +21,3 @@ void ocotp_free(struct ocotp *ocotp, ps_io_mapper_t *io_mapper);
 
 int ocotp_get_mac(struct ocotp* ocotp, unsigned char *mac);
 
-#endif /* _ETHDRIVER_IMX6_OCOTP_CONTROL_H_ */

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_CHARDEV_H__
-#define __PLATSUPPORT_PLAT_CHARDEV_H__
+#pragma once
 
 #define UART1_PADDR  0x4806a000
 #define UART2_PADDR  0x4806c000
@@ -38,4 +37,3 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = OMAP3_UART3
 };
 
-#endif /* __PLATSUPPORT_PLAT_CHARDEV_H__ */

@@ -26,8 +26,7 @@
  * This file derived from Linux's mii.h/ethtool.h/phy.h
  */
 
-#ifndef _PHY_H
-#define _PHY_H
+#pragma once
 
 #include "list.h"
 #include <stdio.h>
@@ -239,4 +238,3 @@ int phy_vitesse_init(void);
 /* PHY UIDs for various PHYs that are referenced in external code */
 #define PHY_UID_TN2020	0x00a19410
 
-#endif

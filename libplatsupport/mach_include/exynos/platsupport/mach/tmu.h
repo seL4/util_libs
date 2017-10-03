@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_MACH_TMU_H
-#define __PLAT_SUPPORT_MACH_TMU_H
+#pragma once
 
 #include <stdint.h>
 #include <platsupport/io.h>
@@ -92,4 +91,3 @@ int exynos_tmu_set_alarms_falling(tmu_t* tmu,
  */
 void exynos_tmu_handle_irq(tmu_t* tmu);
 
-#endif /* __PLAT_SUPPORT_MACH_TMU_H */

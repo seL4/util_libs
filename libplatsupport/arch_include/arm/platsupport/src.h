@@ -9,8 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
-#ifndef SRC_H
-#define SRC_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <platsupport/plat/src.h>
@@ -35,4 +34,3 @@ int reset_controller_init(enum src_id, ps_io_ops_t* ops, src_dev_t* dev);
  */
 void reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id);
 
-#endif /* SRC_H */

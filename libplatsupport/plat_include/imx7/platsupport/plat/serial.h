@@ -29,3 +29,5 @@
 #define UART5_IRQ    62
 #define UART6_IRQ    48
 #define UART7_IRQ    158
+
+#define UART_REF_CLK 12096000

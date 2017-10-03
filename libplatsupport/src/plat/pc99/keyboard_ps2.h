@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_PLAT_KEYBOARD_PS2_DRIVER_H
-#define _PLATSUPPORT_PLAT_KEYBOARD_PS2_DRIVER_H
+#pragma once
 
 #include "../../chardev.h"
 
@@ -94,4 +93,3 @@ keyboard_key_event_t keyboard_poll_ps2_keyevent(struct keyboard_state *state);
    event detected. */
 void keyboard_poll_ps2_keyevents(struct keyboard_state *state, void *cookie);
 
-#endif /* _PLATSUPPORT_PLAT_KEYBOARD_PS2_DRIVER_H */

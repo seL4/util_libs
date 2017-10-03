@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_GPIO_H_
-#define _PLATSUPPORT_GPIO_H_
+#pragma once
 
 struct gpio_sys;
 typedef struct gpio_sys gpio_sys_t;
@@ -160,4 +159,3 @@ static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir
     assert(gpio);
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
-#endif /* _PLATSUPPORT_GPIO_H_ */

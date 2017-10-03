@@ -25,8 +25,7 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ASM_ARCH_MX6_GPIO_H
-#define __ASM_ARCH_MX6_GPIO_H
+#pragma once
 
 #include <platsupport/io.h>
 
@@ -177,4 +176,3 @@ int gpio_set_value(unsigned gpio, int value);
 int gpio_request(unsigned gpio, const char *label);
 #endif	/* _ASM_GENERIC_GPIO_H_ */
 
-#endif	/* __ASM_ARCH_MX6_GPIO_H */

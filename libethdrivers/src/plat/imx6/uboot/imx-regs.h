@@ -20,8 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __ASM_ARCH_MX6_IMX_REGS_H__
-#define __ASM_ARCH_MX6_IMX_REGS_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -622,4 +621,3 @@ struct iomuxc_base_regs {
 #define BM_OCOTP_READ_CTRL_READ_FUSE	0x00000001
 
 #endif /* __ASSEMBLER__*/
-#endif /* __ASM_ARCH_MX6_IMX_REGS_H__ */

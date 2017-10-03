@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLATSUPPORT_PLAT_PMIC__
-#define __PLATSUPPORT_PLAT_PMIC__
+#pragma once
 
 #define PMIC_BUSADDR MAX77686_BUSADDR
 #define PMIC_I2C     I2C0
@@ -23,4 +22,3 @@
 #define LDO_TFLASH        21
 #define LDO_VDDQLCD       25
 
-#endif /* __PLATSUPPORT_PLAT_PMIC__ */

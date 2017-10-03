@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_CLOCK_H_
-#define _PLATSUPPORT_CLOCK_H_
+#pragma once
 
 #include <stdint.h>
 #include <assert.h>
@@ -190,4 +189,3 @@ void clk_register_child(clk_t* parent, clk_t* child);
  */
 clk_t clk_generate_fixed_clk(enum clk_id id, freq_t frequency);
 
-#endif /* _PLATSUPPORT_CLOCK_H_ */

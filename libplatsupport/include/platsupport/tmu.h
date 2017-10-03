@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __PLAT_SUPPORT_TMU_H
-#define __PLAT_SUPPORT_TMU_H
+#pragma once
 
 #include <stdint.h>
 #include <platsupport/io.h>
@@ -86,4 +85,3 @@ static inline celcius_t ps_tmu_get_temperature_celsius(ps_tmu_t* d)
     return ps_tmu_get_temperature_millicelsius(d) / MILLICELCIUS_IN_CELCIUS;
 }
 
-#endif

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _PLATSUPPORT_I2C_H_
-#define _PLATSUPPORT_I2C_H_
+#pragma once
 
 #include <platsupport/io.h>
 
@@ -376,4 +375,3 @@ int i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn
 int i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb,
                     void* token);
 
-#endif /* _PLATSUPPORT_I2C_H_ */

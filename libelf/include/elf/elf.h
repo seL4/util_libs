@@ -100,8 +100,7 @@ ELF file into memory.
 
 */
 
-#ifndef __ELF_ELF_H__
-#define __ELF_ELF_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdio.h>
@@ -279,7 +278,7 @@ int elf_loadFile(void *elfFile, int phys);
 
 char *elf_getStringTable(void *elfFile, int string_segment);
 char *elf_getSegmentStringTable(void *elfFile);
-void *elf_getSectionNamed(void *elfFile, const char *str);
+void *elf_getSectionNamed(void *elfFile, const char *str, int *i);
 char *elf_getSectionName(void *elfFile, int i);
 uint64_t elf_getSectionSize(void *elfFile, int i);
 uint64_t elf_getSectionAddr(void *elfFile, int i);
@@ -309,4 +308,3 @@ void elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr,
 			      uint64_t *p_paddr, uint64_t *p_filesz,
 			      uint64_t *p_offset, uint64_t *p_memsz);
 
-#endif

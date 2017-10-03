@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __REGIONS_INTERNAL_H__
-#define __REGIONS_INTERNAL_H__
+#pragma once
 
 #include <platsupport/plat/acpi/regions.h>
 
@@ -132,4 +131,3 @@ find_region(const RegionList_t* rlist, int start_index,
 int
 split_region(RegionList_t* region_list, int index, size_t size);
 
-#endif /* __REGIONS_INTERAL_H__ */
