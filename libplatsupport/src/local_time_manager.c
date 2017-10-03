@@ -127,11 +127,11 @@ static int register_cb(void *data, timeout_type_t type, uint64_t ns,
 
     /* if its within a microsecond, don't bother to reset the timeout to avoid races */
     if (timeout.abs_time + NS_IN_US < state->current_timeout) {
-        error = ltimer_set_timeout(state->ltimer, TIMEOUT_ABSOLUTE, timeout.abs_time);
+        error = ltimer_set_timeout(state->ltimer, timeout.abs_time, TIMEOUT_ABSOLUTE);
         if (error == ETIME) {
             /* set it to slightly more than current time as we raced */
             uint64_t backup_timeout = curr_time + 10 * NS_IN_US;
-            error = ltimer_set_timeout(state->ltimer, TIMEOUT_ABSOLUTE, backup_timeout);
+            error = ltimer_set_timeout(state->ltimer, backup_timeout, TIMEOUT_ABSOLUTE);
             if (error == ETIME) {
                ZF_LOGF_IF(error, "Failed to set timeout in 10 us. Timeout not set.");
             } else if (error) {
