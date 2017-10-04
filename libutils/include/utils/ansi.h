@@ -18,64 +18,62 @@
 
 #if ENABLE_ANSI_ESC_SEQENCES
 
-#define A_RESET      "\033[0m"
-#define A_BOLD       "\033[1m"
-#define A_ITALIC     "\033[3m"
-#define A_UDSCORE    "\033[4m"
-#define A_BLINK      "\033[5m"
+#include <utils/ansi_color.h>
 
-#define A_FG_K       "\033[30m"
-#define A_FG_R       "\033[31m"
-#define A_FG_G       "\033[32m"
-#define A_FG_Y       "\033[33m"
-#define A_FG_B       "\033[34m"
-#define A_FG_M       "\033[35m"
-#define A_FG_C       "\033[36m"
-#define A_FG_W       "\033[37m"
-#define A_FG_RESET   "\033[39m"
+/* just set the background color */
+#define ANSI_BG_COLOR(backcolor)       \
+    COLOR_PREFIX                       \
+    COLOR_BACKGROUND COLOR_##backcolor \
+    COLOR_SUFFIX
 
-#define A_BG_K       "\033[40m"
-#define A_BG_R       "\033[41m"
-#define A_BG_G       "\033[42m"
-#define A_BG_Y       "\033[43m"
-#define A_BG_B       "\033[44m"
-#define A_BG_M       "\033[45m"
-#define A_BG_C       "\033[46m"
-#define A_BG_W       "\033[47m"
-#define A_BG_RESET   "\033[49m"
+#define A_ERASE      COLOR_PREFIX "K"
+#define A_CLEAR      COLOR_PREFIX "2J"
+#define A_BG_RESET   COLOR_PREFIX "49" COLOR_SUFFIX
+#define A_FG_RESET   COLOR_PREFIX "39" COLOR_SUFFIX
 
-#define A_ERASE      "\033[K"
-#define A_CLEAR      "\033[2J"
+#else
+/* undefine everything to disable ansi escape sequences */
+#define ANSI_BG_COLOR(x)
+#define A_ERASE
+#define A_CLEAR
 
-#else /* ENABLE_ANSI_ESC_SEQENCES */
+#define COLOR_RESET
+#define COLOR_BOLD
+#define COLOR_ITALIC
+#define COLOR_UNDERLINE
+#define COLOR_BLINK
+#define COLOR_SUFFIX
+#define ANSI_COLOR(x)
+#define ANSI_COLOR2(x)
+#define COLORIZE(...)
+#define COLORIZE2(...)
+#define A_BG_RESET
+#define A_FG_RESET
 
-#define A_RESET      ""
-#define A_BOLD       ""
-#define A_ITALIC     ""
-#define A_UDSCORE    ""
-#define A_BLINK      ""
+#endif /* ENABLE_ANSI_ESC_SEQUENCES */
 
-#define A_FG_K       ""
-#define A_FG_R       ""
-#define A_FG_G       ""
-#define A_FG_Y       ""
-#define A_FG_B       ""
-#define A_FG_M       ""
-#define A_FG_C       ""
-#define A_FG_W       ""
-#define A_FG_RESET   ""
+#define A_RESET      COLOR_RESET
+#define A_BOLD       COLOR_BOLD # COLOR_SUFFIX
+#define A_ITALIC     COLOR_ITALIC # COLOR_SUFFIX
+#define A_UDSCORE    COLOR_UNDERLINE # COLOR_SUFFIX
+#define A_BLINK      COLOR_BLINK # COLOR_SUFFIX
 
-#define A_BG_K       ""
-#define A_BG_R       ""
-#define A_BG_G       ""
-#define A_BG_Y       ""
-#define A_BG_B       ""
-#define A_BG_M       ""
-#define A_BG_C       ""
-#define A_BG_W       ""
-#define A_BG_RESET   ""
+/* foreground colors */
+#define A_FG_K       ANSI_COLOR(BLACK)
+#define A_FG_R       ANSI_COLOR(RED)
+#define A_FG_G       ANSI_COLOR(GREEN)
+#define A_FG_Y       ANSI_COLOR(YELLOW)
+#define A_FG_B       ANSI_COLOR(BLUE)
+#define A_FG_M       ANSI_COLOR(MAGENTA)
+#define A_FG_C       ANSI_COLOR(CYAN)
+#define A_FG_W       ANSI_COLOR(WHITE)
 
-#define A_ERASE      ""
-#define A_CLEAR      ""
-
-#endif /* ENABLE_ANSI_ESC_SEQENCES */
+/* background colors */
+#define A_BG_K       ANSI_BG_COLOR(BLACK)
+#define A_BG_R       ANSI_BG_COLOR(RED)
+#define A_BG_G       ANSI_BG_COLOR(GREEN)
+#define A_BG_Y       ANSI_BG_COLOR(YELLOW)
+#define A_BG_B       ANSI_BG_COLOR(BLUE)
+#define A_BG_M       ANSI_BG_COLOR(MAGENTA)
+#define A_BG_C       ANSI_BG_COLOR(CYAN)
+#define A_BG_W       ANSI_BG_COLOR(WHITE)
