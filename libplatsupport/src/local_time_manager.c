@@ -70,7 +70,7 @@ static int update_with_time(void *data, uint64_t curr_time)
         if (next_time == 0) {
             /* nothing to set */
             state->current_timeout = UINT64_MAX;
-        } else if (next_time < state->current_timeout) {
+        } else if (next_time < state->current_timeout || state->current_timeout < curr_time) {
             state->current_timeout = next_time;
             error = ltimer_set_timeout(state->ltimer, next_time, TIMEOUT_ABSOLUTE);
             if (error == ETIME) {
