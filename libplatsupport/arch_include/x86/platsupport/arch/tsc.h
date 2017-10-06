@@ -74,5 +74,5 @@ uint64_t tsc_calculate_frequency_pit(pit_t *pit);
 
 static inline uint64_t tsc_get_time(uint64_t freq)
 {
-    return TSC_TICKS_TO_NS(freq);
+    return muldivu64(rdtsc_pure(), NS_IN_S, freq);
 }
