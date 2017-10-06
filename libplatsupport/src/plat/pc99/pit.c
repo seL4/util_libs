@@ -14,6 +14,7 @@
 #include <platsupport/io.h>
 #include <platsupport/plat/pit.h>
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +41,6 @@
 #define PITCR_MODE_SQUARE    0x3
 #define PITCR_MODE_SWSTROBE  0x4
 
-#define TICKS_PER_SECOND 1193182
 #define PIT_PERIODIC_MAX 54925000
 
 /* helper functions */
@@ -57,24 +57,13 @@ configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
 
     int error;
 
-    if (ns > (0xFFFFFFFFFFFFFFFFllu / TICKS_PER_SECOND)) {
-        /* ns will overflow out calculation, but also way too high for pit */
+    if (ns > PIT_MAX_NS || ns < PIT_MIN_NS) {
+        ZF_LOGE("ns invalid for programming PIT %u <= %"PRIuPTR" <= %u\n",
+                (uint32_t) PIT_MIN_TICKS, ns, (uint32_t) PIT_MAX_TICKS);
         return EINVAL;
     }
 
-    uint64_t ticks = ns * TICKS_PER_SECOND / NS_IN_S;
-    if (ticks < 2) {
-        /* ns is too low */
-        ZF_LOGW("Ticks too low\n");
-        return ETIME;
-    }
-
-    /* pit is only 16 bits */
-    if (ticks > 0xFFFF) {
-        /* ticks too high */
-        ZF_LOGW("Ticks too high\n");
-        return EINVAL;
-    }
+    uint64_t ticks = PIT_NS_TO_TICKS(ns);
 
     /* configure correct mode */
     error = set_pit_mode(&pit->ops, 0, mode);

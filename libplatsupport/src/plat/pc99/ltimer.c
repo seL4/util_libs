@@ -149,7 +149,20 @@ static int pit_ltimer_set_timeout(void *data, uint64_t ns, timeout_type_t type)
     assert(data != NULL);
     pc99_ltimer_t *pc99_ltimer = data;
     if (type == TIMEOUT_ABSOLUTE) {
-        ns -= tsc_get_time(pc99_ltimer->pit.freq);
+        uint64_t time = tsc_get_time(pc99_ltimer->pit.freq);
+        if (ns <= time) {
+            return ETIME;
+        }
+        ns -= time;
+    }
+
+    if (ns > PIT_MAX_NS) {
+        if (type != TIMEOUT_PERIODIC) {
+            ns = PIT_MAX_NS;
+        } else {
+            ZF_LOGE("Periodic timeouts %u not implemented for PIT ltimer", (uint32_t) PIT_MAX_NS);
+            return ENOSYS;
+        }
     }
 
     return pit_set_timeout(&pc99_ltimer->pit.device, ns, type == TIMEOUT_PERIODIC);
