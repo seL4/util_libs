@@ -38,15 +38,6 @@ static tqueue_node_t *head(tqueue_node_t *list)
     return sglib_tqueue_node_t_it_init(&it, list);
 }
 
-int tqueue_next(tqueue_t *tq, uint64_t *next) {
-    if (!tq || !next) {
-        return EINVAL;
-    }
-    tqueue_node_t *head_node = head(tq->queue);
-    *next = head_node == NULL ? 0 : head_node->timeout.abs_time;
-    return 0;
-}
-
 int tqueue_alloc_id(tqueue_t *tq, unsigned int *id)
 {
     if (!tq || !id) {
@@ -177,7 +168,11 @@ int tqueue_update(tqueue_t *tq, uint64_t curr_time, uint64_t *next_time) {
     }
 
     if (next_time) {
-        return tqueue_next(tq, next_time);
+        if (t) {
+            *next_time = t->timeout.abs_time;
+        } else {
+            *next_time = 0;
+        }
     }
     return 0;
 }
