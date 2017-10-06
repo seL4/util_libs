@@ -69,17 +69,21 @@ static int update_with_time(void *data, uint64_t curr_time)
         }
 
         if (next_time == 0) {
-            /* nothing to set */
-            state->current_timeout = UINT64_MAX;
-        } else if (next_time < state->current_timeout || state->current_timeout < curr_time) {
-            state->current_timeout = next_time;
-            error = ltimer_set_timeout(state->ltimer, next_time, TIMEOUT_ABSOLUTE);
-            if (error == ETIME) {
-                error = ltimer_get_time(state->ltimer, &curr_time);
-            }
+            /* nothing to do */
+            return 0;
         }
 
-    } while (error == ETIME || error != 0);
+        error = ltimer_set_timeout(state->ltimer, next_time, TIMEOUT_ABSOLUTE);
+        if (error == ETIME) {
+            error = ltimer_get_time(state->ltimer, &curr_time);
+        }
+
+        if (error == 0) {
+            /* success */
+            state->current_timeout = next_time;
+            return 0;
+        }
+    } while (error == ETIME);
 
     return error;
 }
@@ -130,18 +134,21 @@ static int register_cb(void *data, timeout_type_t type, uint64_t ns,
     if (timeout.abs_time + NS_IN_US < state->current_timeout) {
         state->current_timeout = UINT64_MAX;
         error = ltimer_set_timeout(state->ltimer, timeout.abs_time, TIMEOUT_ABSOLUTE);
-        if (error == ETIME) {
+        if (error == 0) {
+            state->current_timeout = timeout.abs_time;
+            return 0;
+        }
+
+        while (error == ETIME) {
             /* set it to slightly more than current time as we raced */
+            error = ltimer_get_time(state->ltimer, &curr_time);
+            ZF_LOGF_IF(error, "Failed to read time");
             uint64_t backup_timeout = curr_time + 10 * NS_IN_US;
             error = ltimer_set_timeout(state->ltimer, backup_timeout, TIMEOUT_ABSOLUTE);
-            if (error == ETIME) {
-               ZF_LOGF_IF(error, "Failed to set timeout in 10 us. Timeout not set.");
-            } else if (error) {
-                ZF_LOGF("should not be possible.");
+            if (error == 0) {
+                state->current_timeout = backup_timeout;
+                return 0;
             }
-            state->current_timeout = backup_timeout;
-        } else if (error == 0) {
-            state->current_timeout = timeout.abs_time;
         }
     }
     return error;
