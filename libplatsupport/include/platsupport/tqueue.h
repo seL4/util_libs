@@ -37,8 +37,6 @@ struct tqueue_node {
     bool allocated;
     /* is this timeout in the callback queue? */
     bool active;
-    /* unique id of this timeout (for tie-breaking during sorting) */
-    unsigned int id;
     /* next ptr for queue */
     struct tqueue_node *next;
 };

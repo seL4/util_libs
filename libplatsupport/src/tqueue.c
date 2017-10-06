@@ -13,7 +13,18 @@
 #include <utils/sglib.h>
 #include <platsupport/tqueue.h>
 
-#define TIMEOUT_CMP(t1, t2) (10 * (t1->timeout.abs_time - t2->timeout.abs_time) + (t1->id - t2->id))
+static int cmp(uint64_t a, uint64_t b)
+{
+     if (a > b) {
+         return 1;
+     } else if (a < b) {
+         return -1;
+     } else {
+         return 0;
+     }
+}
+
+#define TIMEOUT_CMP(t1, t2) (cmp(t1->timeout.abs_time, t2->timeout.abs_time))
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -45,7 +56,6 @@ int tqueue_alloc_id(tqueue_t *tq, unsigned int *id)
     for (int i = 0; i < tq->n; i++) {
         if (!tq->array[i].allocated) {
             tq->array[i].allocated = true;
-            tq->array[i].id = i;
             *id = i;
             return 0;
         }
@@ -66,7 +76,6 @@ int tqueue_alloc_id_at(tqueue_t *tq, unsigned int id)
     }
 
     tq->array[id].allocated = true;
-    tq->array[id].id = id;
     return 0;
 }
 
