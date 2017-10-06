@@ -61,6 +61,7 @@ static int update_with_time(void *data, uint64_t curr_time)
 
     time_man_state_t *state = data;
     do {
+        state->current_timeout = UINT64_MAX;
         error = tqueue_update(&state->timeouts, curr_time, &next_time);
         if (error) {
             ZF_LOGE("timeout update failed");
@@ -127,6 +128,7 @@ static int register_cb(void *data, timeout_type_t type, uint64_t ns,
 
     /* if its within a microsecond, don't bother to reset the timeout to avoid races */
     if (timeout.abs_time + NS_IN_US < state->current_timeout) {
+        state->current_timeout = UINT64_MAX;
         error = ltimer_set_timeout(state->ltimer, timeout.abs_time, TIMEOUT_ABSOLUTE);
         if (error == ETIME) {
             /* set it to slightly more than current time as we raced */
