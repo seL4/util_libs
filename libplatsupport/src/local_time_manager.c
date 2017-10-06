@@ -75,7 +75,8 @@ static int update_with_time(void *data, uint64_t curr_time)
 
         error = ltimer_set_timeout(state->ltimer, next_time, TIMEOUT_ABSOLUTE);
         if (error == ETIME) {
-            error = ltimer_get_time(state->ltimer, &curr_time);
+            int ret = ltimer_get_time(state->ltimer, &curr_time);
+            ZF_LOGF_IF(ret, "failed to read time");
         }
 
         if (error == 0) {
@@ -141,8 +142,8 @@ static int register_cb(void *data, timeout_type_t type, uint64_t ns,
 
         while (error == ETIME) {
             /* set it to slightly more than current time as we raced */
-            error = ltimer_get_time(state->ltimer, &curr_time);
-            ZF_LOGF_IF(error, "Failed to read time");
+            int ret = ltimer_get_time(state->ltimer, &curr_time);
+            ZF_LOGF_IF(ret, "Failed to read time");
             uint64_t backup_timeout = curr_time + 10 * NS_IN_US;
             error = ltimer_set_timeout(state->ltimer, backup_timeout, TIMEOUT_ABSOLUTE);
             if (error == 0) {
