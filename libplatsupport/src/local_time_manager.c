@@ -131,7 +131,7 @@ static int register_cb(void *data, timeout_type_t type, uint64_t ns,
     }
 
     /* if its within a microsecond, don't bother to reset the timeout to avoid races */
-    if (timeout.abs_time + NS_IN_US < state->current_timeout) {
+    if (timeout.abs_time + NS_IN_US < state->current_timeout || state->current_timeout < curr_time) {
         state->current_timeout = UINT64_MAX;
         error = ltimer_set_timeout(state->ltimer, timeout.abs_time, TIMEOUT_ABSOLUTE);
         if (error == 0) {
