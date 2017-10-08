@@ -98,7 +98,11 @@ typedef struct ltimer {
     int (*get_resolution)(void *data, uint64_t *resolution);
 
     /*
-     * Set an irq to come in.
+     * Set an irq to come in at a specific time.
+     *
+     * IRQs may come in earlier than requested due to implementation details.
+     * Users of this interface should pass all irqs for this ltimer to `handle_irq` for correct
+     * behavior.
      *
      * @param data     for the logical timer to use
      * @param ns       ns value (depends on timer type)
