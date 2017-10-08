@@ -41,8 +41,6 @@
 #define PITCR_MODE_SQUARE    0x3
 #define PITCR_MODE_SWSTROBE  0x4
 
-#define PIT_PERIODIC_MAX 54925000
-
 /* helper functions */
 static inline int
 set_pit_mode(ps_io_port_ops_t *ops, uint8_t channel, uint8_t mode)
