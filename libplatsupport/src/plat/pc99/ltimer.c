@@ -42,6 +42,9 @@ typedef struct {
         struct {
             pit_t device;
             uint32_t freq;
+            /* the PIT can only set short timeouts - if we have
+             * set intermediate irqs we track when the actual timeout is due here */
+            uint64_t abs_time;
         } pit;
     };
     ps_irq_t irq;
@@ -89,8 +92,24 @@ static int hpet_ltimer_get_nth_pmem(void *data, size_t n, pmem_region_t *pmem)
 
 static int pit_ltimer_handle_irq(void *data, ps_irq_t *irq)
 {
-    /* on pc99 the kernel handles everything we need for irqs */
-    return 0;
+    assert(data != NULL);
+    pc99_ltimer_t *pc99_ltimer = data;
+
+    if (!pc99_ltimer->pit.abs_time) {
+        /* nothing to do */
+        return 0;
+    }
+
+    uint64_t time = tsc_get_time(pc99_ltimer->pit.freq);
+    if (time > pc99_ltimer->pit.abs_time) {
+        /* we're done here */
+        pc99_ltimer->pit.abs_time = 0;
+        return 0;
+    }
+
+    /* otherwise need to set another irq */
+    uint64_t ns = MIN(pc99_ltimer->pit.abs_time - time, PIT_MAX_NS);
+    return pit_set_timeout(&pc99_ltimer->pit.device, ns, false);
 }
 
 static int hpet_ltimer_handle_irq(void *data, ps_irq_t *irq)
@@ -148,21 +167,31 @@ static int pit_ltimer_set_timeout(void *data, uint64_t ns, timeout_type_t type)
 {
     assert(data != NULL);
     pc99_ltimer_t *pc99_ltimer = data;
-    if (type == TIMEOUT_ABSOLUTE) {
-        uint64_t time = tsc_get_time(pc99_ltimer->pit.freq);
+
+    /* we are overriding any existing timeouts */
+    pc99_ltimer->pit.abs_time = 0;
+
+    uint64_t time = tsc_get_time(pc99_ltimer->pit.freq);
+    switch (type) {
+    case TIMEOUT_RELATIVE:
+        if (ns > PIT_MAX_NS) {
+            pc99_ltimer->pit.abs_time = ns + time;
+            ns = PIT_MAX_NS;
+        }
+        break;
+    case TIMEOUT_ABSOLUTE:
         if (ns <= time) {
             return ETIME;
         }
-        ns -= time;
-    }
-
-    if (ns > PIT_MAX_NS) {
-        if (type != TIMEOUT_PERIODIC) {
-            ns = PIT_MAX_NS;
-        } else {
+        pc99_ltimer->pit.abs_time = ns;
+        ns = MIN(PIT_MAX_NS, ns - time);
+        break;
+    case TIMEOUT_PERIODIC:
+        if (ns > PIT_MAX_NS) {
             ZF_LOGE("Periodic timeouts %u not implemented for PIT ltimer", (uint32_t) PIT_MAX_NS);
             return ENOSYS;
         }
+        break;
     }
 
     return pit_set_timeout(&pc99_ltimer->pit.device, ns, type == TIMEOUT_PERIODIC);
