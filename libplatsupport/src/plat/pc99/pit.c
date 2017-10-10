@@ -134,6 +134,11 @@ int pit_init(pit_t *pit, ps_io_port_ops_t io_port_ops)
         return EINVAL;
     }
 
+    /* check that the io port ops are at least implemented as these are absolutely required */
+    if (!io_port_ops.io_port_in_fn || !io_port_ops.io_port_out_fn) {
+        return EINVAL;
+    }
+
     pit->ops = io_port_ops;
     return 0;
 }
