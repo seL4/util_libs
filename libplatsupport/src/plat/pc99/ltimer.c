@@ -194,7 +194,15 @@ static int pit_ltimer_set_timeout(void *data, uint64_t ns, timeout_type_t type)
         break;
     }
 
-    return pit_set_timeout(&pc99_ltimer->pit.device, ns, type == TIMEOUT_PERIODIC);
+    int error = pit_set_timeout(&pc99_ltimer->pit.device, ns, type == TIMEOUT_PERIODIC);
+    if (error == EINVAL && type == TIMEOUT_ABSOLUTE ) {
+        /* we capped the value we set at the highest value for the PIT, however this
+         * could still have been too small - in this case the absolute timeout has
+         * already passed */
+        return ETIME;
+    }
+
+    return error;
 }
 
 static int pit_ltimer_reset(void *data)
