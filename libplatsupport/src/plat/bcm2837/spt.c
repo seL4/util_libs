@@ -128,7 +128,6 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
     }
     uint64_t ticks = ns / (NS_IN_US / (spt->freq / MHZ));
     uint32_t prescale_bits = 0;
-    spt->prescaler = 1;
     spt->counter_start = ns;
     if (ticks == 0) {
         ZF_LOGE("ns too low: %llu\n", ns);
@@ -145,11 +144,9 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
                 return EINVAL;
             } else {
                 prescale_bits = 2;
-                spt->prescaler = 256;
             }
         } else {
             prescale_bits = 1;
-            spt->prescaler = 16;
         }
     }
 
@@ -183,7 +180,10 @@ int spt_handle_irq(spt_t *spt)
 uint64_t spt_get_time(spt_t *spt)
 {
     uint64_t value = spt->regs->free_run_count;
-    uint64_t ns = (value / (spt->freq / MHZ)) * NS_IN_US * (spt->prescaler);
+    /* convert raw count to ns. As we never change the free run prescaler we do not need to
+     * scale by it. We multiplly by mhz as the free run count is a 32-bit value so we will
+     * not overflow a 64-bit value at that point */
+    uint64_t ns = (value * MHZ / spt->freq) * NS_IN_US;
     return ns;
 }
 
