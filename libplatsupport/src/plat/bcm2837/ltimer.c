@@ -115,8 +115,8 @@ static int reset(void *data)
 {
     assert(data != NULL);
     spt_ltimer_t *spt_ltimer = data;
-    spt_start(&spt_ltimer->spt);
     spt_stop(&spt_ltimer->spt);
+    spt_start(&spt_ltimer->spt);
     return 0;
 }
 

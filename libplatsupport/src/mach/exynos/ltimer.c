@@ -122,8 +122,8 @@ static int reset(void *data)
 {
     assert(data != NULL);
     pwm_ltimer_t *pwm_ltimer = data;
-    pwm_start(&pwm_ltimer->pwm);
     pwm_stop(&pwm_ltimer->pwm);
+    pwm_start(&pwm_ltimer->pwm);
     return 0;
 }
 
