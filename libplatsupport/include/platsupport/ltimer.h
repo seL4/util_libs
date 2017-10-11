@@ -112,7 +112,9 @@ typedef struct ltimer {
     int (*set_timeout)(void *data, uint64_t ns, timeout_type_t type);
 
     /*
-     * Reset the timer (start counting again from 0).
+     * Reset the timer into a state similar to what it was when first initialized. This
+     * should cancel any outstanding timeouts etc. It may or may not cause the monotonic
+     * upcounter to change (by resetting to 0 or otherwise)
      *
      * @param data     for the logical timer to use
      * @return         0 on success, errno on error.
