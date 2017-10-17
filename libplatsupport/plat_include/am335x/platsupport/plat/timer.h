@@ -119,3 +119,5 @@ int dmt_start(dmt_t *dmt);
 int dmt_stop(dmt_t *dmt);
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic);
 void dmt_handle_irq(dmt_t *dmt);
+/* return true if a match is pending */
+bool dmt_pending_match(dmt_t *dmt);

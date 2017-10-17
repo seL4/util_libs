@@ -86,7 +86,7 @@ static int get_time(void *data, uint64_t *time)
     dmt_ltimer_t *dmt_ltimer = data;
     uint64_t ms = dmt_ltimer->ms;
     /* check for pending irqs */
-    if (dmt_ltimer->dmts[TICK_DMT].hw->tisr) {
+    if (dmt_pending_match(&dmt_ltimer->dmts[TICK_DMT])) {
         ms++;
     }
     *time = ms * NS_IN_MS;

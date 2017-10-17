@@ -29,7 +29,11 @@
 #define TCLR_COMPAREENABLE BIT(6)
 #define TCLR_STARTTIMER BIT(0)
 
-#define TISR_OVF_FLAG (BIT(0) | BIT(1) | BIT(2))
+#define TISR_TCAR_IT_FLAG BIT(2)
+#define TISR_OVF_IT_FLAG BIT(1)
+#define TISR_MAT_IT_FLAG BIT(0)
+
+#define TISR_IRQ_CLEAR (TISR_TCAR_IT_FLAG | TISR_OVF_IT_FLAG | TISR_MAT_IT_FLAG)
 
 #define TICKS_PER_SECOND 24000000  /* TODO: Pin this frequency down without relying on u-boot. */
 #define TIMER_INTERVAL_TICKS(ns) ((uint32_t)(1ULL * (ns) * TICKS_PER_SECOND / 1000 / 1000 / 1000))
@@ -79,7 +83,7 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic)
     //printf("timer %lld ns = %x ticks (cntr %x)\n", ns, ticks, (uint32_t)(~0UL - ticks));
     dmt->hw->tldr = ~0UL - ticks;   /* reload value */
     dmt->hw->tcrr = ~0UL - ticks;   /* counter */
-    dmt->hw->tisr = TISR_OVF_FLAG;  /* ack any pending overflows */
+    dmt->hw->tisr = TISR_IRQ_CLEAR;  /* ack any pending irqs */
     dmt->hw->tclr = TCLR_STARTTIMER | tclrFlags;
     return 0;
 }
@@ -90,7 +94,12 @@ void dmt_handle_irq(dmt_t *dmt)
         ZF_LOGE("DMT is NULL");
         return;
     }
-    dmt->hw->tisr = TISR_OVF_FLAG;  /* ack any pending overflows */
+    dmt->hw->tisr = TISR_IRQ_CLEAR;  /* ack any pending irqs */
+}
+
+bool dmt_pending_match(dmt_t *dmt)
+{
+    return dmt->hw->tisr & TISR_MAT_IT_FLAG;
 }
 
 int dmt_init(dmt_t *dmt, dmt_config_t config)
