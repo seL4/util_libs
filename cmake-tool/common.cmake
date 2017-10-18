@@ -30,6 +30,14 @@ endif()
 # Function for declaring rules to build a cpio archive that can be linked
 # into another target
 function(MakeCPIO output_name input_files)
+    cmake_parse_arguments(PARSE_ARGV 2 MAKE_CPIO "" "CPIO_SYMBOL" "")
+    if (NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(FATAL_ERROR "Unknown arguments to MakeCPIO")
+    endif()
+    set(archive_symbol "_cpio_archive")
+    if (NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
+        set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
+    endif()
     set(append "")
     foreach(file IN LISTS input_files)
         list(APPEND commands
@@ -43,7 +51,7 @@ function(MakeCPIO output_name input_files)
         COMMAND rm -f archive.cpio
         COMMAND chmod u+x cpio_script.sh
         COMMAND ./cpio_script.sh
-        COMMAND echo "SECTIONS { ._archive_cpio : ALIGN(4) { _cpio_archive = . ; *(.*) ; _cpio_archive_end = . ; } }"
+        COMMAND echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
             > link.ld
         COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.ld --oformat ${LinkOFormat} -r -b binary archive.cpio -o ${output_name}
         BYPRODUCTS archive.cpio link.ld
