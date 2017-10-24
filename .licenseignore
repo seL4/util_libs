@@ -4,3 +4,4 @@ LICENSE.txt
 .licenseignore
 liblwip/include
 liblwip/lwip-1.4.1
+libethdrivers/src/plat/zynq7000/uboot
