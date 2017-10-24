@@ -2,3 +2,5 @@ LICENSE.txt
 .git/*
 *LICENSE_*.txt
 .licenseignore
+liblwip/include
+liblwip/lwip-1.4.1
