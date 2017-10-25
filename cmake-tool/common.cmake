@@ -130,7 +130,9 @@ function(DeclareRootserver rootservername)
             COMMAND cp $<TARGET_FILE:kernel.elf> cpio/kernel.elf
             COMMAND cp $<TARGET_FILE:${rootservername}> cpio/${rootservername}
             COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all cpio/kernel.elf cpio/${rootservername}
-            COMMAND cd cpio && ls | cpio --quiet -o -H newc > ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio && cd ..
+            COMMAND echo kernel.elf > cpio/files
+            COMMAND echo "${rootservername}" >> cpio/files
+            COMMAND cd cpio && cat files | cpio --quiet -o -H newc > ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio && cd ..
             # Convert userspace / kernel into an archive which can then be linked
             # against the elfloader binary. Change to the directory of archive.cpio
             # before this operation to avoid polluting the symbol table with references
@@ -146,7 +148,7 @@ function(DeclareRootserver rootservername)
             COMMAND ${CROSS_COMPILER_PREFIX}ld -T linker.lds_pp --oformat ${LinkOFormat}
                 $<TARGET_FILE:elfloader> elf_archive.o -Ttext=${PlatformEntryAddr} -o ${elfloader_output}
             COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all ${elfloader_output}
-            BYPRODUCTS cpio/kernel.elf "cpio/${rootservername}" ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio elf_archive.o linker.lds_pp
+            BYPRODUCTS cpio/kernel.elf "cpio/${rootservername}" cpio/files ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio elf_archive.o linker.lds_pp
             # TODO: this should just have a dependency on elfloader_Config instead of Configuration,
             # and the above TARGET_PROPERTY should reflect that. But currently the linker script
             # wants to include the legacy autoconf.h, so we need to give it access to the entire
