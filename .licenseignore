@@ -5,3 +5,4 @@ LICENSE.txt
 liblwip/include
 liblwip/lwip-1.4.1
 libethdrivers/src/plat/zynq7000/uboot
+libethdrivers/src/plat/zynq7000/zynq_gem.h
