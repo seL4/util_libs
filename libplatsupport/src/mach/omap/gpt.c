@@ -317,6 +317,7 @@ int abs_gpt_init(gpt_t *gpt, gpt_config_t config)
     }
 
     gpt->id = config.id;
+    gpt->prescaler = config.prescaler;
     gpt->gpt_map = (volatile struct gpt_map*) config.vaddr;
 
     /* enable interrupt on overflow. */
