@@ -66,12 +66,11 @@ endfunction(MakeCPIO)
 get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
 
 function(DeclareRootserver rootservername)
-    mark_as_advanced(IMAGE_NAME KERNEL_IMAGE_NAME)
     SetSeL4Start(${rootservername})
     set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS " -T ${real_list}/../common-tool/tls_rootserver.lds ")
     if("${KernelArch}" STREQUAL "x86")
-        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelSel4Arch}-${KernelPlatform}" CACHE STRING "")
-        set(KERNEL_IMAGE_NAME "${CMAKE_BINARY_DIR}/images/kernel-${KernelSel4Arch}-${KernelPlatform}" CACHE STRING "")
+        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelSel4Arch}-${KernelPlatform}")
+        set(KERNEL_IMAGE_NAME "${CMAKE_BINARY_DIR}/images/kernel-${KernelSel4Arch}-${KernelPlatform}")
         # Declare targets for building the final kernel image
         if(Kernel64)
             add_custom_command(
@@ -95,7 +94,7 @@ function(DeclareRootserver rootservername)
         )
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" "${KERNEL_IMAGE_NAME}" kernel.elf $<TARGET_FILE:${rootservername}> ${rootservername})
     elseif("${KernelArch}" STREQUAL "arm")
-        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}" CACHE STRING "")
+        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}")
         if(KernelPlatImx6 OR KernelPlatformRpi3)
             set(PlatformEntryAddr 0x20000000)
         elseif(KernelPlatformKZM OR KernelPlatformOMAP3 OR KernelPlatformAM335X)
@@ -157,6 +156,9 @@ function(DeclareRootserver rootservername)
         )
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" kernel.elf ${rootservername} elfloader Configuration)
     endif()
+    # Store the image and kernel image as properties
+    set_property(GLOBAL PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME}")
+    set_property(GLOBAL PROPERTY IMAGE_NAME "${IMAGE_NAME}")
 endfunction(DeclareRootserver)
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
@@ -171,6 +173,8 @@ endmacro(TestQemuCPUFeature)
 # Helper function that generates targets that will attempt to generate a ./simulate style script
 function(GenerateSimulateScript)
     set(error "")
+    get_property(KERNEL_IMAGE_NAME GLOBAL PROPERTY KERNEL_IMAGE_NAME)
+    get_property(IMAGE_NAME GLOBAL PROPERTY IMAGE_NAME)
     if(KernelArchX86)
         # Try and simulate the correct micro architecture and features
         if(KernelX86MicroArchNehalem)
