@@ -232,7 +232,7 @@ static void gpt_init(gpt_t *gpt)
 int rel_gpt_set_timeout(gpt_t *gpt, uint64_t ns, bool periodic)
 {
     uint32_t reload = periodic ? BIT(AR) : 0;
-    uint64_t ticks = gpt_ns_to_ticks(ns) / (gpt->prescaler + 1);
+    uint64_t ticks = gpt_ns_to_ticks(ns) / BIT(gpt->prescaler + 1);
 
     if (ticks >= UINT32_MAX) {
         /* too big for this timer implementation */
@@ -290,7 +290,7 @@ uint64_t abs_gpt_get_time(gpt_t *gpt)
     ticks = ((uint64_t) (gpt->high_bits + overflow)) << 32llu;
     /* low bits */
     ticks += gpt->gpt_map->tcrr;
-    ticks = ticks * (gpt->prescaler + 1);
+    ticks = ticks * BIT(gpt->prescaler + 1);
 
     return gpt_ticks_to_ns(ticks);
 }
@@ -298,7 +298,7 @@ uint64_t abs_gpt_get_time(gpt_t *gpt)
 int abs_gpt_set_timeout(gpt_t *gpt, uint64_t ns)
 {
     bool overflow = gpt->gpt_map->tisr & OVF_IT_FLAG;
-    uint64_t ticks = gpt_ns_to_ticks(ns) / (gpt->prescaler + 1);
+    uint64_t ticks = gpt_ns_to_ticks(ns) / BIT(gpt->prescaler + 1);
 
     if ((ns >> 32llu) == (gpt->high_bits + !!overflow)) {
         /* enable match irq */
