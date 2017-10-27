@@ -170,7 +170,7 @@ int gpt_start(gpt_t *gpt)
 int gpt_stop(gpt_t *gpt)
 {
     /* Disable timer. */
-    gpt->gpt_map->tclr = 0;
+    gpt->gpt_map->tclr &= ~BIT(ST);
     return 0;
 }
 
