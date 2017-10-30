@@ -65,6 +65,8 @@ enum mux_feature {
     MUX_FEATURE_GPIO_PBB1,
     MUX_FEATURE_GPIO_PBB2,
 
+    MUX_FEATURE_PPM_MIRROR,
+
     NMUX_FEATURES
 };
 

@@ -224,6 +224,17 @@ tk1_mux_feature_pinmap_t    pinmaps[NMUX_FEATURES] = {
     PINMAP_1PIN(MUX_FEATURE_GPIO_PC5, GPIO_PC5, MUX_PAD_GEN1_I2C_SDA_PC5, 0, P_BOTH),
     PINMAP_1PIN(MUX_FEATURE_GPIO_PBB1, GPIO_PBB1, MUX_PAD_GEN2_I2C_SCL_PT5, 0, P_BOTH),
     PINMAP_1PIN(MUX_FEATURE_GPIO_PBB2, GPIO_PBB2, MUX_PAD_GEN2_I2C_SDA_PT6, 0, P_BOTH),
+
+    /* This is a configuration that overloads UARTB's RTS and CTS pins to allow
+     * us to use them as GPIO outputs.
+     *
+     * I was using them so I could sample measure the IRQ incoming and ACK times
+     * of the PPM IRQ in the quadcopter repo. This can be removed, but it also
+     * doesn't harm anything by being here.
+     */
+    PINMAP_2PIN(MUX_FEATURE_PPM_MIRROR,
+        GPIO_PJ6, MUX_PAD_UART2_RTS_N_PJ6, 1, P_PUSHPULL,
+        GPIO_PJ5, MUX_PAD_UART2_CTS_N_PJ5, 1, P_PUSHPULL)
 };
 
 typedef struct tegra_mux_state {
