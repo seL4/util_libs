@@ -96,18 +96,19 @@ typedef struct nv_tmr {
 } nv_tmr_t;
 
 static UNUSED timer_properties_t tmr_properties = {
-    .upcounter = false,
+    .upcounter = true,
     .timeouts = true,
     .irqs = 1,
     .relative_timeouts = true,
-    .periodic_timeouts = false,
+    .periodic_timeouts = true,
     .absolute_timeouts = false,
 };
 
 int nv_tmr_start(nv_tmr_t *tmr);
 int nv_tmr_stop(nv_tmr_t *tmr);
-int nv_tmr_set_timeout(nv_tmr_t *tmr, uint64_t ns);
+int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns);
 void nv_tmr_handle_irq(nv_tmr_t *tmr);
 uint64_t nv_tmr_get_time(nv_tmr_t *tmr);
 long nv_tmr_get_irq(nv_tmr_id_t n);
 int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config);
+uint32_t nv_tmr_get_usec_upcounter_val(nv_tmr_t *tmr);

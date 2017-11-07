@@ -51,7 +51,6 @@
 
 int nv_tmr_start(nv_tmr_t *tmr)
 {
-    tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
     tmr->tmr_map->pvt |= BIT(PVT_E_BIT);
     return 0;
 }
@@ -76,23 +75,23 @@ get_ticks(uint64_t ns)
     return (uint32_t)ticks;
 }
 
-int nv_tmr_set_timeout(nv_tmr_t *tmr, uint64_t ns)
+int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns)
 {
     uint32_t ticks = get_ticks(ns);
     if (ticks == INVALID_PVT_VAL) {
         ZF_LOGE("Invalid PVT val");
         return EINVAL;
     }
+
     /* ack any pending irqs */
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
-    tmr->tmr_map->pvt = BIT(PVT_E_BIT) | ticks;
+    tmr->tmr_map->pvt = ticks | ((periodic) ? BIT(PVT_PERIODIC_E_BIT) : 0);
     return 0;
 }
 
 void nv_tmr_handle_irq(nv_tmr_t *tmr)
 {
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
-    tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
 }
 
 uint64_t nv_tmr_get_time(nv_tmr_t *tmr)
@@ -129,7 +128,7 @@ long nv_tmr_get_irq(nv_tmr_id_t n)
     }
 }
 
-#define TMRUS_USEC_CFG_DEFAULT   0xb
+#define TMRUS_USEC_CFG_DEFAULT   11
 
 int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
 {

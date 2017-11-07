@@ -67,7 +67,7 @@ static int handle_irq(void *data, ps_irq_t *irq)
     nv_tmr_ltimer_t *nv_tmr_ltimer = data;
     nv_tmr_handle_irq(&nv_tmr_ltimer->nv_tmr);
     if (nv_tmr_ltimer->period > 0) {
-        nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, nv_tmr_ltimer->period);
+        nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, nv_tmr_ltimer->period);
     }
     return 0;
 }
@@ -99,13 +99,13 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         if (time >= ns) {
             return ETIME;
         }
-        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, ns - time);
+        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns - time);
     }
     case TIMEOUT_PERIODIC:
         nv_tmr_ltimer->period = ns;
         /* fall through */
     case TIMEOUT_RELATIVE:
-        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, ns);
+        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns);
     }
 
     return EINVAL;
@@ -161,6 +161,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     /* setup nv_tmr */
     nv_tmr_config_t config = {
         .vaddr = (uintptr_t) nv_tmr_ltimer->vaddr,
+        .id = TMR0
     };
 
     nv_tmr_init(&nv_tmr_ltimer->nv_tmr, config);
