@@ -26,20 +26,30 @@ typedef int gpio_id_t;
 #define GPIOID_PORT(gpio)             ((gpio) / 32)
 #define GPIOID_PIN(gpio)              ((gpio) % 32)
 
-typedef struct gpio {
+typedef struct gpio gpio_t;
+struct gpio {
+    /* Used to chain GPIO pins together. */
+    void (*set_next)(gpio_t *gpio, gpio_t *next);
 /// GPIO port identifier
     gpio_id_t id;
 /// GPIO subsystem handle
     gpio_sys_t* gpio_sys;
 /// Chain GPIO's to enable bulk reads/writes
     struct gpio* next;
-} gpio_t;
+};
 
 enum gpio_dir {
-/// Output direction
-    GPIO_DIR_OUT,
 /// Input direction
     GPIO_DIR_IN,
+    /* Output direction:
+     * DEFAULT_LOW will ensure that the pin stays low even while the driver is
+     * initializing the pin.
+     * DEFAULT_HIGH will ensure that the pin stays high even while the driver is
+     * initializing the pin.
+     */
+    GPIO_DIR_OUT_DEFAULT_LOW,
+    GPIO_DIR_OUT = GPIO_DIR_OUT_DEFAULT_LOW,
+    GPIO_DIR_OUT_DEFAULT_HIGH,
 
 /// Input direction with IRQ on low logic level
     GPIO_DIR_IRQ_LOW,
@@ -54,7 +64,19 @@ enum gpio_dir {
 };
 
 struct gpio_sys {
-/// Initialise a GPIO pin
+    /** Initialize a GPIO pin.
+     * @param   gpio_sys        Initialized gpio driver instance.
+     * @param   id              ID of the pin to initialize a handle to.
+     * @param   gpio_dir        Configure the pin for input/output/IRQ.
+     *                          Use GPIO_DIR_OUT_DEFAULT_HIGH and
+     *                          GPIO_DIR_OUT_DEFAULT_LOW to set the pin's
+     *                          default logic level. Can be useful for things
+     *                          like GPIO pins used as SPI chipselects where
+     *                          you want to ensure that a pin stays in a certain
+     *                          logic level even while this initialization
+     *                          function is running.
+     * @return 0 on success. Non-zero on error.
+     */
     int (*init)(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio);
 /// Write to a GPIO
     int (*write)(gpio_t* gpio, const char* data, int len);
@@ -81,6 +103,23 @@ gpio_sys_valid(const gpio_sys_t *gpio_sys)
  * @return              0 on success
  */
 int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
+
+/** Set the GPIO pin which is "next" in sequence to this one.
+ * @param[in] self      Handle to a valid, initialized gpio_t instance.
+ * @param[in] next      Handle to a valid, initialized gpio_t instance which
+ *                      is to be linked as the next in the chain after
+ *                      "self".
+ *                      This can also be "NULL", in which case the chain link is
+ *                      considered to be severed.
+ */
+static inline void
+gpio_set_next(gpio_t *self, gpio_t *next)
+{
+    ZF_LOGF_IF(!self, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!self->gpio_sys, "GPIO pin's parent controller handle invalid!");
+    ZF_LOGF_IF(!self->set_next, "Unimplemented!");
+    self->set_next(self, next);
+}
 
 /**
  * Clear a GPIO pin
@@ -196,4 +235,22 @@ static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir
     ZF_LOGF_IF(!gpio_sys->init, "Unimplemented!");
     ZF_LOGF_IF(!gpio, "Handle to output pin structure not supplied!");
     return gpio_sys->init(gpio_sys, id, dir, gpio);
+}
+
+static inline int
+gpio_read(gpio_t* gpio, char* data, int len)
+{
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
+    ZF_LOGF_IF(!gpio->gpio_sys->read, "Unimplemented!");
+    return gpio->gpio_sys->read(gpio, data, len);
+}
+
+static inline int
+gpio_write(gpio_t* gpio, const char* data, int len)
+{
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
+    ZF_LOGF_IF(!gpio->gpio_sys->write, "Unimplemented!");
+    return gpio->gpio_sys->write(gpio, data, len);
 }
