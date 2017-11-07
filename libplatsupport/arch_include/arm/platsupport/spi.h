@@ -20,6 +20,7 @@ typedef struct spi_bus spi_bus_t;
 typedef struct spi_slave_config spi_slave_config_t;
 
 struct spi_slave_config {
+    int id;
     /// Device operation speed
     freq_t   speed_hz;
     /// Slave selection signal delay in microseconds
