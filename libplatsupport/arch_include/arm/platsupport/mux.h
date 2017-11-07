@@ -16,8 +16,16 @@ typedef struct mux_sys mux_sys_t;
 
 #include <platsupport/plat/mux.h>
 
+enum mux_gpio_dir {
+    MUX_DIR_NOT_A_GPIO = 0,
+    MUX_DIR_GPIO_IN = BIT(0),
+    MUX_DIR_GPIO_OUT = BIT(1),
+    MUX_DIR_GPIO_BOTH = (MUX_DIR_GPIO_IN | MUX_DIR_GPIO_OUT)
+};
+
 struct mux_sys {
-    int (*feature_enable)(mux_sys_t* mux, enum mux_feature);
+    int (*feature_enable)(mux_sys_t* mux, enum mux_feature, enum mux_gpio_dir);
+    int (*feature_disable)(mux_sys_t* mux, enum mux_feature);
     void *priv;
 };
 
@@ -43,16 +51,49 @@ int mux_sys_init(ps_io_ops_t* io_ops, void *dependencies, mux_sys_t* mux);
 
 /**
  * Enable a SoC feature via the IO MUX
+ * @param[in] mux           A handle to the mux system
+ * @param[in] mux_feature   A SoC specific feature to enable.
+ * @param[in] mux_gpio_dir  If the signal being muxed out on the pin is a
+ *                          a GPIO signal, this might be required by your
+ *                          platform. For example, if your mux controller has
+ *                          input and output buffers, you would want to ensure
+ *                          that the output buffer on the pin is enabled if you
+ *                          plan to use the pin as a GPIO output.
+ *
+ *                          If the signal you're muxing out on the pin is not
+ *                          a GPIO controller, then you should use
+ *                          MUX_DIR_NOT_A_GPIO.
+ * @return                0 on success
+ */
+static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+                                     enum mux_gpio_dir mux_gpio_dir)
+{
+    if (mux->feature_enable) {
+        return mux->feature_enable(mux, mux_feature, mux_gpio_dir);
+    } else {
+        return -ENOSYS;
+    }
+}
+
+/**
+ * Explicitly ensure that a certain controller's signals are not being driven
+ * out.
+ *
+ * This is useful if you need to ensure that no signals are output by the
+ * controller while it is being set up. In such a case you'd feature_disable()
+ * the signals, then initialize the controller, then feature_enable() the
+ * controller again.
+ *
  * @param[in] mux         A handle to the mux system
  * @param[in] mux_feature A SoC specific feature to enable.
  * @return                0 on success
  */
-static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
+static inline int mux_feature_disable(mux_sys_t* mux, enum mux_feature mux_feature)
 {
-    if (mux->feature_enable) {
-        return mux->feature_enable(mux, mux_feature);
+    if (mux->feature_disable) {
+        return mux->feature_disable(mux, mux_feature);
     } else {
-        return -1;
+        return -ENOSYS;
     }
 }
 
