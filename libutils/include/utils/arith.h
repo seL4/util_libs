@@ -27,10 +27,17 @@
 
 #define MASK_UNSAFE(x) ((BIT(x) - 1ul))
 
-/* The MASK operation involves using BIT that performs a left shift, this
+/* The MASK_UNSAFE operation involves using BIT that performs a left shift, this
  * shift is only defined by the C standard if shifting by 1 less than the
- * number of bits in a word */
-#define MASK(n) ({(void)assert((n) <= (sizeof(unsigned long) * 8 - 1)); MASK_UNSAFE(n); })
+ * number of bits in a word. MASK allows both the safe creation of masks, and for
+ * creating masks that are larger than what is possible with MASK_UNSAFE, as
+ * MASK_UNSAFE cannot create a MASK that is all 1's */
+#define MASK(n) \
+    ({  typeof (n) _n = (n); \
+        (void)assert(_n <= (sizeof(unsigned long) * 8)); \
+        (void)assert(_n > 0); \
+        MASK_UNSAFE(_n - 1) | BIT(_n - 1); \
+    })
 
 #define IS_ALIGNED(n, b) (!((n) & MASK(b)))
 
