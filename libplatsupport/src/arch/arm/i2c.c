@@ -196,6 +196,17 @@ i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave)
 int
 i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
 {
+    /* TODO:
+     * This should use the I2C Device-ID command. Currently it just attempts to
+     * read from each possible addressable ID on the bus.
+     *
+     * Ideally, it should still try each addressable ID in sequence, but it
+     * should first send out the Device-ID command, then follow it up with the
+     * current addressable ID, and repeat this in a loop.
+     *
+     * The Device-ID command was introduced in 2007, and is supported by devices
+     * that support the I2C protocol from version 3 upwards.
+     */
     int ret;
     int i;
     int count;
