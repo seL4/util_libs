@@ -904,30 +904,38 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     tk1_i2c_state_t *s = tk1_i2c_get_state(ib);
     UNUSED uint32_t int_status;
-    int err;
+    int err, do_callback=0, callback_status, callback_nbytes=0;
 
     int_status = r->interrupt_status;
     if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT) {
         ZF_LOGF(IRQPREFIX "TX FIFO has been overflowed.", r);
-        tk1_i2c_callback(ib, I2CSTAT_ERROR, s->master.xfer_cursor);
+        do_callback = 1;
+        callback_status = I2CSTAT_ERROR;
+        callback_nbytes = s->master.xfer_cursor;
     }
 
     if (int_status & TK1I2C_INTSTATUS_MMODE_RX_FIFO_UNR_BIT) {
         ZF_LOGF(IRQPREFIX "RX FIFO has been underrun.", r);
-        tk1_i2c_callback(ib, I2CSTAT_ERROR, s->master.xfer_cursor);
+        do_callback = 1;
+        callback_status = I2CSTAT_ERROR;
+        callback_nbytes = s->master.xfer_cursor;
     }
 
     if (int_status & TK1I2C_INTSTATUS_MMODE_NO_ACK_BIT) {
         ZF_LOGE(IRQPREFIX "Slave failed to send ACK. Does this slave "
                 "require continue_on_nack?", r);
         tk1_i2c_handle_nack(ib);
-        tk1_i2c_callback(ib, I2CSTAT_INCOMPLETE, s->master.xfer_cursor);
+        do_callback = 1;
+        callback_status = I2CSTAT_NACK;
+        callback_nbytes = s->master.xfer_cursor;
     }
 
     if (int_status & TK1I2C_INTSTATUS_MMODE_ARBITRATION_LOST_BIT) {
         ZF_LOGW(IRQPREFIX "Lost arbitration.", r);
         tk1_i2c_handle_arbitration_loss(ib);
-        tk1_i2c_callback(ib, I2CSTAT_ERROR, s->master.xfer_cursor);
+        do_callback = 1;
+        callback_status = I2CSTAT_ARBITRATION_LOST;
+        callback_nbytes = s->master.xfer_cursor;
     }
 
     if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_DATA_REQ_BIT
@@ -1012,7 +1020,9 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
              * so the XFER_COMPLETE IRQ doesn't actually have to be a separate
              * IRQ.
              */
-            tk1_i2c_callback(ib, I2CSTAT_COMPLETE, s->master.xfer_cursor);
+            do_callback = 1;
+            callback_status = I2CSTAT_COMPLETE;
+            callback_nbytes = s->master.xfer_cursor;
         }
         if (int_status & TK1I2C_INTSTATUS_MMODE_ALL_PACKETS_XFER_COMPLETE_BIT) {
             ZF_LOGD(IRQPREFIX"Got an \"ALL_PKTS_XFER_COMPLETE\" IRQ.", r);
@@ -1023,6 +1033,9 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
      *  "This register indicates the status bit for which the interrupt is
      *  set. If the interrupt is set, write a 1 to clear it."
      */
+    if (do_callback == 1) {
+        tk1_i2c_callback(ib, callback_status, callback_nbytes);
+    }
     tk1_i2c_acknowledge_irq(ib, int_status);
     return;
 }
