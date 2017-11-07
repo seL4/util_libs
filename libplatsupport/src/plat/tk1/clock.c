@@ -19,6 +19,8 @@
 #include <platsupport/clock.h>
 #include <platsupport/plat/clock.h>
 
+#include "../../services.h"
+
 /* Register information sourced from "NVIDIA Tegra K1 Mobile Processor TECHNICAL REFERENCE MANUAL" */
 
 #define CLK_REGISTER_ENTRY(a) {.reg_type = a}
@@ -562,8 +564,63 @@ const clk_register_t tk1_clk_registers[] = {
     CLK_REGISTER_ENTRY(CLK_MISC), // CLK_RST_CONTROLLER_EMC_PLLC_SHAPER_CTRL_0
 };
 
+static clk_t *
+tk1_car_get_clock(clock_sys_t *cs, enum clk_id id)
+{
+    assert(cs != NULL);
+    return NULL;
+}
+
+static int
+tk1_car_gate_enable(clock_sys_t* clock_sys,
+                    enum clock_gate gate, enum clock_gate_mode mode)
+{
+    /* The TK1 CAR controller only supports enabling and disabling the clock
+     * signal to a device: there are no idle/sleep clock modes, so we ignore
+     * CLKGATE_IDLE and CLKGATE_SLEEP.
+     */
+    if (clock_sys == NULL) {
+        ZF_LOGE("Invalid driver instance handle!");
+        return -EINVAL;
+    }
+    if (mode != CLKGATE_ON && mode != CLKGATE_OFF) {
+        ZF_LOGE("Invalid clock gate mode %d!", mode);
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
+int
+tegra_car_init(void *regs_vaddr, clock_sys_t *cs)
+{
+    if (regs_vaddr == NULL) {
+        ZF_LOGE("MMIO vaddr for CAR regs cannot be NULL!");
+        return -EINVAL;
+    }
+
+    cs->priv = regs_vaddr;
+
+    cs->gate_enable = &tk1_car_gate_enable;
+    cs->get_clock = &tk1_car_get_clock;
+    return 0;
+}
+
 int
 clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
-    return 0;
+    void *car_vaddr = NULL;
+
+    if (o == NULL || clock_sys == NULL) {
+        ZF_LOGE("Invalid io_ops or driver instance handle!");
+        return -EINVAL;
+    }
+
+    MAP_IF_NULL(o, TK1_CLKCAR, car_vaddr);
+    if (car_vaddr == NULL) {
+        ZF_LOGE("Failed to map TK1 CAR registers into vmem.");
+        return -1;
+    }
+
+    return tegra_car_init(car_vaddr, clock_sys);
 }

@@ -12,10 +12,12 @@
 
 #pragma once
 #include <stdint.h>
+#include <platsupport/plat/clock_indexes.h>
 
 /* Register information sourced from "NVIDIA Tegra K1 Mobile Processor TECHNICAL REFERENCE MANUAL" */
 
 #define TK1_CLKCAR_PADDR 0x60006000
+#define TK1_CLKCAR_SIZE  (0x1000)
 
 #define PLLC_START 0x80
 #define PLLC_END 0x90
@@ -67,10 +69,6 @@ enum ext_clk_input_sources {
 
 enum clk_id {
     NCLOCKS
-};
-
-enum clock_gate {
-    NCLKGATES
 };
 
 /* These are PLL clks that use the input clk sources. */

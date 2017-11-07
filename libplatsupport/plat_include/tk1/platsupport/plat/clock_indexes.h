@@ -211,3 +211,151 @@
 /* 189 */
 /* 190 */
 /* 191 */
+
+/* These are passed as arguments to clk_gate_enable(). */
+enum clock_gate {
+    CLK_GATE_CPU,
+    CLK_GATE_ISPB,
+    CLK_GATE_RTC, /* Enabled on reset */
+    CLK_GATE_TMR, /* Enabled on reset */
+    CLK_GATE_UARTA,
+    CLK_GATE_UARTB, /*UARTB/VFIR*/
+    CLK_GATE_GPIO, /* Enabled on reset */
+    CLK_GATE_SDMMC2,
+    CLK_GATE_SPDIF,
+    CLK_GATE_I2S1,
+    CLK_GATE_I2C1,
+    CLK_GATE_SDMMC1,
+    CLK_GATE_SDMMC4,
+    CLK_GATE_PWM,
+    CLK_GATE_I2S2,
+    CLK_GATE_VI,
+    CLK_GATE_USBD,
+    CLK_GATE_ISP,
+    CLK_GATE_DISP2,
+    CLK_GATE_DISP1,
+    CLK_GATE_HOST1X,
+    CLK_GATE_VCP,
+    CLK_GATE_I2S0,
+    CLK_GATE_CACHE2, /* Enabled on reset */
+    CLK_GATE_MEM,
+    CLK_GATE_AHBDMA,
+    CLK_GATE_APBDMA,
+    CLK_GATE_KBC,
+    CLK_GATE_STAT_MON,
+    CLK_GATE_PMC,
+    CLK_GATE_FUSE, /* Enabled on reset */
+    CLK_GATE_KFUSE,
+    CLK_GATE_SPI1,
+    CLK_GATE_SNOR, /* Enabled on reset */
+    CLK_GATE_JTAG2TBC, /* Enabled on reset */
+    CLK_GATE_SPI2,
+    CLK_GATE_SPI3,
+    CLK_GATE_I2C5,
+    CLK_GATE_DSI,
+    CLK_GATE_HSI,
+    CLK_GATE_HDMI,
+    CLK_GATE_CSI,
+    CLK_GATE_I2C2,
+    CLK_GATE_UARTC,
+    CLK_GATE_MIPI_CAL,
+    CLK_GATE_EMC,
+    CLK_GATE_USB2,
+    CLK_GATE_USB3,
+    CLK_GATE_VDE,
+    CLK_GATE_BSEA,
+    CLK_GATE_BSEV,
+    CLK_GATE_UARTD,
+    CLK_GATE_I2C3,
+    CLK_GATE_SPI4,
+    CLK_GATE_SDMMC3,
+    CLK_GATE_PCIE,
+    CLK_GATE_OWR,
+    CLK_GATE_AFI,
+    CLK_GATE_CSITE, /* Enabled on reset */
+    CLK_GATE_AVPUCQ, /* Enabled on reset */
+    CLK_GATE_TRACECLKIN, /* Enabled on reset */
+    CLK_GATE_SOC_THERM,
+    CLK_GATE_DTV,
+    CLK_GATE_I2C_SLOW,
+    CLK_GATE_DSIB,
+    CLK_GATE_TSEC,
+    CLK_GATE_IRAMA, /* Enabled on reset */
+    CLK_GATE_IRAMB, /* Enabled on reset */
+    CLK_GATE_IRAMC, /* Enabled on reset */
+    CLK_GATE_IRAMD, /* Enabled on reset */
+    CLK_GATE_CRAM2, /* Enabled on reset */
+    CLK_GATE_XUSB_HOST,
+    CLK_GATE_M_DOUBLER_ENB, /* Enabled on reset */
+    CLK_GATE_MSENC,
+    CLK_GATE_SUS_OUT,
+    CLK_GATE_DEV2_OUT,
+    CLK_GATE_DEV1_OUT,
+    CLK_GATE_XUSB_DEV,
+    CLK_GATE_CPUG,
+    CLK_GATE_CPULP,
+    CLK_GATE_MSELECT,
+    CLK_GATE_TSENSOR,
+    CLK_GATE_I2S3,
+    CLK_GATE_I2S4,
+    CLK_GATE_I2C4,
+    CLK_GATE_SPI5,
+    CLK_GATE_SPI6,
+    CLK_GATE_AUDIO,
+    CLK_GATE_APBIF,
+    CLK_GATE_DAM0,
+    CLK_GATE_DAM1,
+    CLK_GATE_DAM2,
+    CLK_GATE_HDA2CODEC_2X,
+    CLK_GATE_ATOMICS,
+    CLK_GATE_SPDIF_DOUBLER, /* Enabled on reset */
+    CLK_GATE_ACTMON,
+    CLK_GATE_EXTPERIPH1,
+    CLK_GATE_EXTPERIPH2,
+    CLK_GATE_EXTPERIPH3,
+    CLK_GATE_SATA_OOB,
+    CLK_GATE_SATA,
+    CLK_GATE_HDA,
+    CLK_GATE_HDA2HDMICODEC,
+    CLK_GATE_RESERVED0,
+    CLK_GATE_PCIERX0, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_PCIERX1, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_PCIERX2, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_PCIERX3, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_PCIERX4, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_PCIERX5, /* Enabled on reset, CLK_GATE_PCIE is master */
+    CLK_GATE_CEC,
+    CLK_GATE_PCIE2_IOBIST,
+    CLK_GATE_EMC_IOBIST,
+    CLK_GATE_HDMI_IOBIST,
+    CLK_GATE_SATA_IOBIST,
+    CLK_GATE_MIPI_IOBIST,
+    CLK_GATE_XUSB,
+    CLK_GATE_CILAB,
+    CLK_GATE_CILCD,
+    CLK_GATE_CILE,
+    CLK_GATE_DSIA_LP,
+    CLK_GATE_DSIB_LP,
+    CLK_GATE_ENTROPY, /* Enabled on reset */
+    CLK_GATE_AMX0,
+    CLK_GATE_ADX0,
+    CLK_GATE_DVFS,
+    CLK_GATE_XUSB_SS,
+    CLK_GATE_EMC_LATENCY,
+    CLK_GATE_SPARE,
+    CLK_GATE_CAM_MCLK,
+    CLK_GATE_CAM_MCLK2,
+    CLK_GATE_I2C6,
+    CLK_GATE_VIM2_CLK,
+    CLK_GATE_EMC_DLL,
+    CLK_GATE_HDMI_AUDIO,
+    CLK_GATE_CLK72MHZ,
+    CLK_GATE_VIC,
+    CLK_GATE_ADX1,
+    CLK_GATE_DPAUX,
+    CLK_GATE_SOR0,
+    CLK_GATE_GPU,
+    CLK_GATE_AMX1,
+
+    NCLKGATES
+};
