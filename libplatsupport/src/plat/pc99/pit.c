@@ -56,8 +56,8 @@ configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
     int error;
 
     if (ns > PIT_MAX_NS || ns < PIT_MIN_NS) {
-        ZF_LOGE("ns invalid for programming PIT %u <= %"PRIu64" <= %u\n",
-                (unsigned int) PIT_MIN_TICKS, ns, (unsigned int) PIT_MAX_TICKS);
+        ZF_LOGE("ns invalid for programming PIT %"PRIu64" <= %"PRIu64" <= %"PRIu64"\n",
+                (uint64_t)PIT_MIN_NS, ns, (uint64_t)PIT_MAX_NS);
         return EINVAL;
     }
 
