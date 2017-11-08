@@ -32,8 +32,8 @@
 #define PIT_MIN_TICKS 2
 #define PIT_MAX_TICKS 0xFFFF
 
-#define PIT_MIN_NS PIT_NS_TO_TICKS(PIT_MIN_TICKS)
-#define PIT_MAX_NS PIT_NS_TO_TICKS(PIT_MAX_TICKS)
+#define PIT_MIN_NS PIT_TICKS_TO_NS(PIT_MIN_TICKS)
+#define PIT_MAX_NS PIT_TICKS_TO_NS(PIT_MAX_TICKS)
 
 typedef struct {
     ps_io_port_ops_t ops;
