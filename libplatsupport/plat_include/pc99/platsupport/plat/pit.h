@@ -26,7 +26,8 @@
 
 #define TICKS_PER_SECOND 1193182
 
-#define PIT_NS_TO_TICKS(ns) ((ns) * NS_IN_S / TICKS_PER_SECOND)
+#define PIT_NS_TO_TICKS(ns) ((ns) * TICKS_PER_SECOND / NS_IN_S)
+#define PIT_TICKS_TO_NS(ticks) ((uint32_t)(ticks) * (NS_IN_S / TICKS_PER_SECOND))
 
 #define PIT_MIN_TICKS 2
 #define PIT_MAX_TICKS 0xFFFF
