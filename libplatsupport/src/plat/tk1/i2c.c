@@ -305,91 +305,10 @@ tk1_i2c_get_priv(i2c_bus_t *ib)
     return (tk1_i2c_regs_t *)tk1_i2c_get_state(ib)->regs;
 }
 
-/* We only care about the I2C packet format, which only has 1 protocol-specific
- * word.
- *
- * For send, payload size is N.
- * For receive, payload size is 0, but the amount of data expected from the
- * slave is set in header1.payloadSize.
- */
-typedef union tk1_i2c_pktheader_io0_ {
-    struct {
-        uint32_t    pkt_type        :3;
-        uint32_t    rsvd0           :1;
-        uint32_t    protocol        :4;
-        uint32_t    rsvd1           :4;
-        uint32_t    controller_id   :4;
-        uint32_t    pktId           :8;
-        uint32_t    rsvd2           :4;
-        uint32_t    prot_hdr_sz     :2;
-        uint32_t    rsvd3           :2;
-    } bits;
-    uint32_t raw;
-} tk1_i2c_pktheader_io0_t;
-
-typedef struct tk1_i2c_pktheader_io1_ {
-    struct {
-        uint32_t    payloadSize     :12;
-        uint32_t    rsvd0           :20;
-    } bits;
-    uint32_t raw;
-} tk1_i2c_pktheader_io1_t;
-
-typedef struct tk1_i2c_pktheader_i2c_tx_ {
-    struct {
-        uint32_t    slave_addr              :10;
-        uint32_t    rsvd0                   :2;
-        /* In HS mode each master is assigned a unique address for arbitration. */
-        uint32_t    hs_master_addr          :3;
-        /* Packet mode has a 4KiB max xfer size. This bit allows you to xfer packets
-         * larger than 4KiB without sending a repeat-START or STOP
-         */
-        uint32_t    continue_xfer           :1;
-        /* 1 = send repeat-START rather than STOP at the end of the xfer */
-        uint32_t    send_repeat_start_not_stop  :1;
-        uint32_t    irq_on_completion       :1;
-        uint32_t    address_mode            :1;
-        uint32_t    read_or_write           :1;
-        /* Send a START byte instead of the regular I2C high-to-low START edge */
-        uint32_t    send_start_byte         :1;
-        /* The I2C specification states that the idle state of the I2C lines is
-         * HIGH.
-         *
-         * On each 9th clock pulse the sender expects the receiver to hold SDA low
-         * to indicate an ACK. If SDA is held high, it indicates a NACK. Some
-         * devices disobey the I2C protocol and don't pull SDA low on the 9th pulse.
-         * If you are communicating with such a device, set this bit.
-         */
-        uint32_t    continue_on_nack        :1;
-        uint32_t    enable_hs_mode          :1;
-        uint32_t    rsvd1                   :1;
-        uint32_t    resp_pkt_enable         :1;
-        uint32_t    resp_pkt_freq           :1;
-        uint32_t    rsvd2                   :6;
-    } bits;
-    uint32_t raw;
-} tk1_i2c_pktheader_tx_t;
-
-typedef struct tk1_i2c_pktheader_i2c_status_ {
-    struct {
-        uint32_t    controller_busy         :1;
-        uint32_t    arb_lost                :1;
-        uint32_t    no_ack_rcvd_for_data    :1;
-        uint32_t    no_ack_rcvd_for_addr    :1;
-        uint32_t    transfer_bytenum        :12;
-        uint32_t    transfer_pkt_id         :8;
-        uint32_t    transfer_complete       :1;
-        uint32_t    tx_fifo_ovf             :1;
-        uint32_t    rx_fifo_ovf             :1;
-        uint32_t    rsvd0                   :5;
-    } bits;
-    uint32_t raw;
-} tk1_i2c_pktheader_i2c_status_t;
-
 typedef struct tk1_i2c_pktheaders_ {
-    tk1_i2c_pktheader_io0_t io0;
-    tk1_i2c_pktheader_io1_t io1;
-    tk1_i2c_pktheader_tx_t i2c;
+    uint32_t io0;
+    uint32_t io1;
+    uint32_t i2c;
 } tk1_i2c_pktheaders_t;
 
 static void
@@ -774,9 +693,9 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
 
     state = tk1_i2c_get_state(sl->bus);
 
-    headers.io0.raw = headers.io1.raw = headers.i2c.raw = 0;
+    headers.io0 = headers.io1 = headers.i2c = 0;
 
-    headers.io0.raw = (0 << TK1I2C_TXPKT0_PKTTYPE_SHIFT)
+    headers.io0 = (0 << TK1I2C_TXPKT0_PKTTYPE_SHIFT)
         | (TK1I2C_TXPKT0_PROTOCOL_I2C << TK1I2C_TXPKT0_PROTOCOL_SHIFT)
         /* Linux uses a 0-based device index for the ID. */
         | (state->controller_id << TK1I2C_TXPKT0_CONTROLLER_ID_SHIFT)
@@ -791,45 +710,45 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
          */
         | (0 << TK1I2C_TXPKT0_PROTHDR_SIZE_SHIFT);
 
-    headers.io1.raw = ((nbytes - 1) & TK1I2C_TXPKT1_PAYLOAD_SIZE_MASK)
+    headers.io1 = ((nbytes - 1) & TK1I2C_TXPKT1_PAYLOAD_SIZE_MASK)
         << TK1I2C_TXPKT1_PAYLOAD_SIZE_SHIFT;
 
-    headers.i2c.raw = TK1I2C_I2CPKT_IRQ_ON_COMPLETION_BIT
+    headers.i2c = TK1I2C_I2CPKT_IRQ_ON_COMPLETION_BIT
         | (send_repeat_start_not_stop ? TK1I2C_I2CPKT_SEND_REPEAT_START_NOT_STOP_BIT : 0)
         | (is_write ? 0 : TK1I2C_I2CPKT_READ_XFER_BIT)
         | TK1I2C_I2CPKT_RESPONSE_PKT_ENABLE_BIT;
 
     if (sl->address_size == I2C_SLAVE_ADDR_10BIT) {
-        headers.i2c.raw |= TK1I2C_I2CPKT_10_BIT_ADDRESS_BIT;
-        headers.i2c.raw |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_MASK)
+        headers.i2c |= TK1I2C_I2CPKT_10_BIT_ADDRESS_BIT;
+        headers.i2c |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_MASK)
                 << TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_SHIFT;
     } else {
         /* TK1 TRM Section 33.2.5, Table 135:
          *  "Slave Address. Bit 0 is ignored for 7-bit addressing, but should
          *  always match bit 19 (READ/WRITE)."
          */
-        headers.i2c.raw |= (is_write ? 0 : 1);
-        headers.i2c.raw |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_MASK)
+        headers.i2c |= (is_write ? 0 : 1);
+        headers.i2c |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_MASK)
                 << TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_SHIFT;
     }
 
     if (sl->max_speed == I2C_SLAVE_SPEED_HIGHSPEED) {
         /* Enable HS mode bit and set HS master mode address. */
-        headers.i2c.raw |= TK1I2C_I2CPKT_HS_MODE_BIT;
+        headers.i2c |= TK1I2C_I2CPKT_HS_MODE_BIT;
         /* Shouldn't need to mask it because we masked it in
          * set_hsmode_master_addr.
          */
-        headers.i2c.raw |= state->master.hsmode_master_address
+        headers.i2c |= state->master.hsmode_master_address
             << TK1I2C_I2CPKT_HS_MASTER_ADDR_SHIFT;
     }
 
     if (sl->i2c_opts & I2C_SLAVE_OPTS_DEVICE_DOES_NOT_ACK) {
         /* Enable handling of NACK when ACK is expected. */
-        headers.i2c.raw |= TK1I2C_I2CPKT_CONTINUE_ON_NACK_BIT;
+        headers.i2c |= TK1I2C_I2CPKT_CONTINUE_ON_NACK_BIT;
     }
 
     if (sl->i2c_opts & TK1I2C_SLAVE_FLAGS_XFER_IN_PROGRESS_BIT) {
-        headers.i2c.raw |= TK1I2C_I2CPKT_CONTINUE_XFER_BIT;
+        headers.i2c |= TK1I2C_I2CPKT_CONTINUE_XFER_BIT;
     }
 
     return headers;
@@ -1152,9 +1071,9 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
 
     headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, false,
                                                  end_with_repeat_start);
-    r->tx_packet_fifo = headers.io0.raw;
-    r->tx_packet_fifo = headers.io1.raw;
-    r->tx_packet_fifo = headers.i2c.raw;
+    r->tx_packet_fifo = headers.io0;
+    r->tx_packet_fifo = headers.io1;
+    r->tx_packet_fifo = headers.i2c;
 
     /* Enable RX FIFO trigger IRQ. */
     tk1_i2c_toggle_irq(slave->bus, true, TK1I2C_INTMASK_SMODE_RX_FIFO_DATA_REQ_BIT);
@@ -1218,9 +1137,9 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
 
     headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, true,
                                                  end_with_repeat_start);
-    r->tx_packet_fifo = headers.io0.raw;
-    r->tx_packet_fifo = headers.io1.raw;
-    r->tx_packet_fifo = headers.i2c.raw;
+    r->tx_packet_fifo = headers.io0;
+    r->tx_packet_fifo = headers.io1;
+    r->tx_packet_fifo = headers.i2c;
     ret = tk1_i2c_fill_tx_fifo(slave->bus, I2C_MODE_MASTER, buf, size);
     if (ret < 1) {
         /* Keep in mind that not being able to write bytes out to the FIFO
