@@ -517,7 +517,7 @@ tk1_uart_get_divisor_for(int baud)
      * clock phases to generate one bit of output on the line (TK1 TRM, section
      * 34.1.1.)
      */
-    ret = NV_UART_INPUT_CLOCK_FREQ_HZ / (16 * baud);
+    ret = (NV_UART_INPUT_CLOCK_FREQ_HZ / 16) / baud;
     return ret;
 }
 
