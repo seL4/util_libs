@@ -272,35 +272,11 @@ int i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda, struct i2c_b
  */
 #define I2C_SLAVE_OPTS_DEVICE_DOES_NOT_ACK     BIT(0)
 
-static inline int
-i2c_slave_init(i2c_bus_t* i2c_bus, int address,
-               enum i2c_slave_address_size address_size,
-               enum i2c_slave_speed max_speed,
-               uint32_t i2c_opts,
-               i2c_slave_t* i2c_slave)
-{
-    ZF_LOGF_IF((!i2c_bus), "Handle to I2C controller not supplied!");
-    ZF_LOGF_IF((!i2c_bus->slave_init), "Unimplemented!");
-
-    if (max_speed != I2C_SLAVE_SPEED_STANDARD
-        && max_speed != I2C_SLAVE_SPEED_FAST
-        && max_speed != I2C_SLAVE_SPEED_FASTPLUS
-        && max_speed != I2C_SLAVE_SPEED_HIGHSPEED) {
-        return -EINVAL;
-    }
-
-    if (address_size != I2C_SLAVE_ADDR_7BIT
-        && address_size != I2C_SLAVE_ADDR_10BIT) {
-        return -EINVAL;
-    }
-
-    if (!i2c_is_valid_address(i2c_extract_address(address))) {
-        return -ENODEV;
-    }
-
-    return i2c_bus->slave_init(i2c_bus, address,
-                               address_size, max_speed, i2c_opts, i2c_slave);
-}
+int i2c_slave_init(i2c_bus_t* i2c_bus, int address,
+                   enum i2c_slave_address_size address_size,
+                   enum i2c_slave_speed max_speed,
+                   uint32_t i2c_opts,
+                   i2c_slave_t* i2c_slave);
 
 /** Initialize an I2C slave device for key-value reading and writing.
  *
@@ -329,7 +305,8 @@ int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
 /**
  * Set the speed of the I2C bus
  * @param[in] i2c_bus  A handle to an I2C bus
- * @param[in] bps      The speed to set in bits per second.
+ * @param[in] speed    One of the values in i2c_slave_speed: std, fast, fast+,
+ *                     HS.
  * @return             The actual speed set
  */
 static inline long i2c_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
@@ -405,7 +382,6 @@ i2c_set_self_slave_address(i2c_bus_t *bus, int addr)
  *                      the address should be set to 0.
  * @param[in] aas_cb    A callback function to call when the slave is addressed
  * @param[in] aas_token A token to pass, unmodified to the provided callback function
- * @return              0 on success
  */
 static inline void
 i2c_set_hsmode_master_address(i2c_bus_t* i2c_bus, int addr)

@@ -124,6 +124,39 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
 }
 
 int
+i2c_slave_init(i2c_bus_t* i2c_bus, int address,
+               enum i2c_slave_address_size address_size,
+               enum i2c_slave_speed max_speed,
+               uint32_t i2c_opts,
+               i2c_slave_t* i2c_slave)
+{
+    ZF_LOGF_IF((!i2c_bus), "Handle to I2C controller not supplied!");
+    ZF_LOGF_IF((!i2c_bus->slave_init), "Unimplemented!");
+
+    switch (max_speed) {
+    case I2C_SLAVE_SPEED_STANDARD:
+    case I2C_SLAVE_SPEED_FAST:
+    case I2C_SLAVE_SPEED_FASTPLUS:
+    case I2C_SLAVE_SPEED_HIGHSPEED:
+        break;
+    default:
+        return -EINVAL;
+    }
+
+    if (address_size != I2C_SLAVE_ADDR_7BIT
+        && address_size != I2C_SLAVE_ADDR_10BIT) {
+        return -EINVAL;
+    }
+
+    if (!i2c_is_valid_address(i2c_extract_address(address))) {
+        return -ENODEV;
+    }
+
+    return i2c_bus->slave_init(i2c_bus, address,
+                               address_size, max_speed, i2c_opts, i2c_slave);
+}
+
+int
 i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
                  enum i2c_slave_address_size address_size,
                  enum i2c_slave_speed max_speed,
@@ -133,11 +166,13 @@ i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
     ZF_LOGF_IF(!i2c_slave, "Slave output handle not supplied!");
     ZF_LOGF_IF(!i2c_bus, "Controller handle not supplied!");
 
-    if (max_speed != I2C_SLAVE_SPEED_STANDARD
-           && max_speed != I2C_SLAVE_SPEED_FAST
-           && max_speed != I2C_SLAVE_SPEED_FASTPLUS
-           && max_speed != I2C_SLAVE_SPEED_HIGHSPEED)
-    {
+    switch (max_speed) {
+    case I2C_SLAVE_SPEED_STANDARD:
+    case I2C_SLAVE_SPEED_FAST:
+    case I2C_SLAVE_SPEED_FASTPLUS:
+    case I2C_SLAVE_SPEED_HIGHSPEED:
+        break;
+    default:
         return -EINVAL;
     }
 
