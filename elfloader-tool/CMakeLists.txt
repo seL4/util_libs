@@ -23,9 +23,10 @@ config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
 )
 
 config_choice(ElfloaderMode ELFLOADER_MODE "seL4 mode"
-    "monitor;ElfloaderModeMonitor;ARM_MONITOR_MODE;KernelPlatformJetson"
+    "secure supervisor;ElfloaderModeSSup;ARM_S_SUPERVISOR_MODE;KernelPlatImx6"
+    "monitor;ElfloaderModeMonitor;ARM_MONITOR_MODE;KernelPlatformJetson OR KernelPlatImx6"
     "hypervisor;ElfloaderModeHyp;ARM_HYPERVISOR_MODE;KernelPlatformJetson"
-    "non-secure supervisor;ElfloaderModeNSSup;ARM_NS_SUPERVISOR_MODE;KernelPlatformJetson"
+    "non-secure supervisor;ElfloaderModeNSSup;ARM_NS_SUPERVISOR_MODE;KernelPlatformJetson OR KernelPlatImx6"
 )
 
 config_option(ElfloaderMonitorHook ARM_MONITOR_HOOK
