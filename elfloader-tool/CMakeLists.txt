@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(elfloader C ASM)
 
-set(configure_strring "")
+set(configure_string "")
 
 config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
     "elf;ElfloaderImageELF;IMAGE_ELF;KernelArchARM"
