@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include "mux.h"
+#include <utils/attribute.h>
 #include <platsupport/gpio.h>
 #include "../../services.h"
 
@@ -806,7 +807,7 @@ imx6_mux_init(void* iomuxc, mux_sys_t* mux)
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     MAP_IF_NULL(io_ops, IMX6_IOMUXC, _mux.iomuxc);
     return imx6_mux_init_common(mux);

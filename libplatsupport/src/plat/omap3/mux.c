@@ -10,6 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 #include <stdint.h>
+#include <utils/attribute.h>
 #include <platsupport/mux.h>
 #include "../../services.h"
 
@@ -65,7 +66,7 @@ omap3_mux_init(void* bank1,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     (void)io_ops;
     return omap3_mux_init_common(mux);

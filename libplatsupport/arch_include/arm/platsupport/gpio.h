@@ -64,6 +64,12 @@ struct gpio_sys {
     void* priv;
 };
 
+static inline bool
+gpio_sys_valid(const gpio_sys_t *gpio_sys)
+{
+    return gpio_sys != NULL && gpio_sys->priv != NULL;
+}
+
 /**
  * Initialise the GPIO subsystem and provide a handle for access
  * @param[in]  io_ops   io operations for device initialisation

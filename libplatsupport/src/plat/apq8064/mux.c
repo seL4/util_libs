@@ -11,6 +11,7 @@
  */
 #include <stdint.h>
 #include <platsupport/mux.h>
+#include <utils/attribute.h>
 #include "../../services.h"
 
 struct apq8064_mux_regs {
@@ -65,7 +66,7 @@ apq8064_mux_init(void* bank1,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     (void)io_ops;
     return apq8064_mux_init_common(mux);

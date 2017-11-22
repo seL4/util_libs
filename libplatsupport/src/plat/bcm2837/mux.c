@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <platsupport/gpio.h>
+#include <utils/attribute.h>
 #include "../../services.h"
 
 //#define MUX_DEBUG
@@ -28,7 +29,7 @@ imx6_mux_init(void* iomuxc, mux_sys_t* mux)
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     return -1;
 }

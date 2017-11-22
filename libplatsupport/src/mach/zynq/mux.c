@@ -11,6 +11,7 @@
  */
 
 #include <stdint.h>
+#include <utils/attribute.h>
 #include <platsupport/mux.h>
 #include "../../services.h"
 
@@ -56,7 +57,7 @@ zynq_mux_init(mux_sys_t* mux)
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     return zynq_mux_init_common(mux);
 }

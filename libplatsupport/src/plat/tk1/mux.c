@@ -45,7 +45,7 @@ tegra_mux_init(volatile void* pinmux_misc,volatile void* pinmux_aux, mux_sys_t* 
 }
 
 int
-mux_sys_init(ps_io_ops_t *io_ops, mux_sys_t *mux)
+mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
 {
     tegra_mux_state_t *state = malloc(sizeof(*state));
     if (!state) {

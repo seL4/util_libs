@@ -33,9 +33,13 @@ static inline int mux_sys_valid(const mux_sys_t* mux_sys)
  * @param[in]  io_ops  collection of IO operations for the subsystem to use.
  * @param[out] mux     On success, this will be filled with the appropriate
  *                     subsystem data.
+ * @param[in]  dependencies     As an edge case, if this driver depends on some
+ *                              other set of drivers, you can pass in instances
+ *                              of those dependencies as a pointer or array of
+ *                              pointers here.
  * @return             0 on success.
  */
-int mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux);
+int mux_sys_init(ps_io_ops_t* io_ops, void *dependencies, mux_sys_t* mux);
 
 /**
  * Enable a SoC feature via the IO MUX

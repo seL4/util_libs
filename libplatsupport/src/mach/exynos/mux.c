@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <platsupport/mux.h>
 #include <platsupport/gpio.h>
+#include <utils/attribute.h>
 #include "../../services.h"
 #include "mux.h"
 
@@ -196,7 +197,7 @@ exynos_mux_init(void* gpioleft, void* gpioright, void* gpioc2c,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
 
     MAP_IF_NULL(io_ops, EXYNOS_GPIOLEFT,  _bank[GPIO_LEFT_BANK]);
