@@ -17,39 +17,12 @@
 #include <utils/util.h>
 
 #define GPIO_PADDR_BASE    0x6000D000
+#define TK1_GPIO_PADDR         (GPIO_PADDR_BASE)
+#define TK1_GPIO_SIZE          (0x1000)
 
 enum gpio_pad_mode {
         GPIO_MODE = 0,
         SFIO_MODE
-};
-
-enum gpio_mode {
-        GPIO_MODE_OUTPUT = 0,
-        GPIO_MODE_INPUT
-};
-
-enum gpio_int_type {
-        GPIO_INT_RISING_EDGE = 0,
-        GPIO_INT_FALLING_EDGE,
-        GPIO_INT_BOTH_EDGE,
-        GPIO_INT_HIGH_LVL,
-        GPIO_INT_LOW_LVL
-};
-
-enum gpio_int_enb {
-        GPIO_INT_ENABLE = 0,
-        GPIO_INT_DISABLE
-};
-
-enum gpio_bank {
-        GPIO_BANK_1 = 0,
-        GPIO_BANK_2,
-        GPIO_BANK_3,
-        GPIO_BANK_4,
-        GPIO_BANK_5,
-        GPIO_BANK_6,
-        GPIO_BANK_7,
-        GPIO_BANK_8,
 };
 
 enum gpio_pin {
@@ -312,41 +285,11 @@ enum gpio_pin {
         GPIOPORT_NONE,
 };
 
-enum gpio_features_indexes {
-   CAN1_INTn = 0,
-   CAN1_CS,
-   CAN2_CS,
-   USB_VBUS_EN1,
-   FEAT_GPIO_PS3n,
-   FEAT_GPIO_PR0n,
-   FEAT_GPIO_PR6n,
-   FEAT_GPIO_PS4n
-};
-
-struct gpio_feature_data {
-    int pin_number;
-    enum gpio_int_enb int_enb;
-    enum gpio_int_type int_type;
-    enum gpio_mode mode;
-    bool default_value;
-};
-
-/* mux_sys will be stored by this init and must live for as long as the gpio
- * subsystem is used for */
-void gpio_init(volatile void *vaddr, mux_sys_t *mux_sys, gpio_sys_t *gpio_sys);
-
-void gpio_set_pad_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_pad_mode mode);
-
-void gpio_set_level(gpio_sys_t *gpio_sys, enum gpio_pin gpio, int level);
-
-void gpio_set_mode(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_mode mode);
-
-bool gpio_get_input(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
-
-void gpio_set_interrupt_type(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_int_type type);
-
-void gpio_interrupt_enable(gpio_sys_t *gpio_sys, enum gpio_pin gpio, enum gpio_int_enb setting);
-
-bool gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
-
-void gpio_int_clear(gpio_sys_t *gpio_sys, enum gpio_pin gpio);
+/** Statically initializes a mux_sys for the TK1 SoC.
+ *
+ * Usually a GPIO driver would depend on a mux driver, but on the TK1, it is the
+ * other way around: curiously, on the TK1, the mux driver depends on the GPIO
+ * driver because the GPIO controller sets the pin mode (SFIO vs MPIO mode),
+ * and the GPIO controller also has the "lock" and "enable" bits for the pins.
+ */
+int gpio_init(volatile void *vaddr, gpio_sys_t *gpio_sys);
