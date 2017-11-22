@@ -47,6 +47,10 @@ tegra_mux_init(volatile void* pinmux_misc,volatile void* pinmux_aux, mux_sys_t* 
 int
 mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
 {
+    gpio_sys_t *gpio_sys = (gpio_sys_t *)dependencies;
+
+    assert(gpio_sys_valid(gpio_sys));
+
     tegra_mux_state_t *state = malloc(sizeof(*state));
     if (!state) {
         ZF_LOGE("Failed to malloc");
