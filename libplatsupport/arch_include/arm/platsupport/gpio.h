@@ -17,6 +17,7 @@ typedef struct gpio_sys gpio_sys_t;
 typedef int gpio_id_t;
 
 #include <stdbool.h>
+#include <utils/util.h>
 #include <platsupport/io.h>
 
 #include <platsupport/plat/gpio.h>
@@ -89,8 +90,8 @@ int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
 static inline int gpio_clr(gpio_t* gpio)
 {
     char data;
-    assert(gpio);
-    assert(gpio->gpio_sys);
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     data = 0;
     return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
 }
@@ -104,8 +105,8 @@ static inline int gpio_get(gpio_t* gpio)
 {
     char data;
     int ret;
-    assert(gpio);
-    assert(gpio->gpio_sys);
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     ret = gpio->gpio_sys->read(gpio, &data, 1);
     if (ret == 1) {
         return data;
@@ -122,8 +123,8 @@ static inline int gpio_get(gpio_t* gpio)
 static inline int gpio_set(gpio_t* gpio)
 {
     char data;
-    assert(gpio);
-    assert(gpio->gpio_sys);
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     data = 0xff;
     return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
 }
@@ -137,8 +138,8 @@ static inline int gpio_set(gpio_t* gpio)
  */
 static inline int gpio_is_pending(gpio_t* gpio)
 {
-    assert(gpio);
-    assert(gpio->gpio_sys);
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     return gpio->gpio_sys->pending_status(gpio, 0);
 }
 
@@ -148,8 +149,8 @@ static inline int gpio_is_pending(gpio_t* gpio)
  */
 static inline void gpio_pending_clear(gpio_t* gpio)
 {
-    assert(gpio);
-    assert(gpio->gpio_sys);
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     gpio->gpio_sys->pending_status(gpio, 1);
 }
 
@@ -161,12 +162,8 @@ static inline void gpio_pending_clear(gpio_t* gpio)
 static inline int
 gpio_irq_enable(gpio_t *gpio)
 {
-    if (!gpio) {
-        return -ENOSYS;
-    }
-    if (!gpio->gpio_sys) {
-        return -ENOSYS;
-    }
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     return gpio->gpio_sys->irq_enable_disable(gpio, true);
 }
 
@@ -178,12 +175,8 @@ gpio_irq_enable(gpio_t *gpio)
 static inline int
 gpio_irq_disable(gpio_t *gpio)
 {
-    if (!gpio) {
-        return -ENOSYS;
-    }
-    if (!gpio->gpio_sys) {
-        return -ENOSYS;
-    }
+    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
+    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
     return gpio->gpio_sys->irq_enable_disable(gpio, false);
 }
 
@@ -199,6 +192,8 @@ gpio_irq_disable(gpio_t *gpio)
 
 static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio)
 {
-    assert(gpio);
+    ZF_LOGF_IF(!gpio_sys, "Handle to GPIO controller not supplied!");
+    ZF_LOGF_IF(!gpio_sys->init, "Unimplemented!");
+    ZF_LOGF_IF(!gpio, "Handle to output pin structure not supplied!");
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
