@@ -27,6 +27,9 @@ typedef struct i2c_bus i2c_bus_t;
  *** BUS ***
  ***********/
 
+/* Make sure to remember to SHL these constants by 1 when passing them
+ * in as arguments to `i2c_slave_init()`, etc.
+ */
 /* General call must be sent out as a WRITE transaction. */
 #define I2C_ADDR_GENERAL_CALL           0
 /* Start byte must be sent out as a READ transaction. */
@@ -54,9 +57,11 @@ enum i2c_stat {
 /// A transfer error occurred
     I2CSTAT_ERROR,
 /// The transfer was aborted by the user
-    I2CSTAT_CANCELLED
+    I2CSTAT_CANCELLED,
 /// The slave sent NACK instead of ACK.
-    I2CSTAT_NACK
+    I2CSTAT_NACK,
+/// The slave lost its arbitration bid on the bus and the xfer must be retried.
+    I2CSTAT_ARBITRATION_LOST
 };
 
 enum i2c_mode {
@@ -151,8 +156,10 @@ typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void
 typedef struct i2c_slave i2c_slave_t;
 struct i2c_slave {
     int (*slave_read)(i2c_slave_t* i2c_slave, void* data, size_t size,
-                       i2c_callback_fn cb, void* token);
+                      bool end_with_repeat_start,
+                      i2c_callback_fn cb, void* token);
     int (*slave_write)(i2c_slave_t* i2c_slave, const void* data, size_t size,
+                       bool end_with_repeat_start,
                        i2c_callback_fn cb, void* token);
 
     i2c_bus_t* bus;
@@ -201,8 +208,10 @@ struct i2c_bus {
     int (*master_stop)(i2c_bus_t* bus);
     void (*set_hsmode_master_address)(i2c_bus_t* bus, int addr);
     /* Slave mode functions: To be used when the controller is in slave mode. */
-    int (*read)(i2c_bus_t* bus, void* buf, size_t size, i2c_callback_fn cb, void* token);
-    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, i2c_callback_fn cb, void* token);
+    int (*read)(i2c_bus_t* bus, void* buf, size_t size, bool send_stop,
+                i2c_callback_fn cb, void* token);
+    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, bool send_stop,
+                 i2c_callback_fn cb, void* token);
     void (*register_slave_event_handler)(i2c_bus_t *bus,
                                          i2c_aas_callback_fn cb, void *token);
 
@@ -403,11 +412,12 @@ i2c_set_hsmode_master_address(i2c_bus_t* i2c_bus, int addr)
  * @return            The number of bytes read
  */
 static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size,
+                           bool end_with_repeat_start,
                            i2c_callback_fn cb, void* token)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->read, "Unimplemented!");
-    return i2c_bus->read(i2c_bus, data, size, cb, token);
+    return i2c_bus->read(i2c_bus, data, size, end_with_repeat_start, cb, token);
 }
 
 /**
@@ -420,11 +430,12 @@ static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size,
  * @return            The number of bytes sent
  */
 static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size,
+                            bool end_with_repeat_start,
                             i2c_callback_fn cb, void* token)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->write, "Unimplemented!");
-    return i2c_bus->write(i2c_bus, data, size, cb, token);
+    return i2c_bus->write(i2c_bus, data, size, end_with_repeat_start, cb, token);
 }
 
 /**
@@ -511,12 +522,14 @@ int i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t start, const void* data, 
  */
 static inline int
 i2c_slave_read(i2c_slave_t* i2c_slave, void* data, size_t size,
+               bool end_with_repeat_start,
                i2c_callback_fn cb, void* token)
 {
     ZF_LOGF_IF(!i2c_slave, "Handle to I2C slave info not supplied!");
     ZF_LOGF_IF(!i2c_slave->bus, "I2C slave's parent bus not filled out!");
     ZF_LOGF_IF(!i2c_slave->slave_read, "Unimplemented!");
-    return i2c_slave->slave_read(i2c_slave, data, size, cb, token);
+    return i2c_slave->slave_read(i2c_slave, data, size, end_with_repeat_start,
+                                 cb, token);
 }
 
 /**
@@ -530,11 +543,13 @@ i2c_slave_read(i2c_slave_t* i2c_slave, void* data, size_t size,
  */
 static inline int
 i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size,
+                bool end_with_repeat_start,
                 i2c_callback_fn cb, void* token)
 {
     ZF_LOGF_IF(!i2c_slave, "Handle to I2C slave info not supplied!");
     ZF_LOGF_IF(!i2c_slave->bus, "I2C slave's parent bus not filled out!");
     ZF_LOGF_IF(!i2c_slave->slave_write, "Unimplemented!");
-    return i2c_slave->slave_write(i2c_slave, data, size, cb, token);
+    return i2c_slave->slave_write(i2c_slave, data, size, end_with_repeat_start,
+                                  cb, token);
 }
 

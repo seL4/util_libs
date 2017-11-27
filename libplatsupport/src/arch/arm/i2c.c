@@ -73,14 +73,14 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
     /* Send the register address */
     ZF_LOGD("Seek register 0x%02llx", reg);
     _fill_reg(d, reg, i2c_slave->address_fmt);
-    bytes = i2c_slave_write(i2c_slave, d, abytes, NULL, NULL);
+    bytes = i2c_slave_write(i2c_slave, d, abytes, false, NULL, NULL);
     if (bytes != abytes) {
         ZF_LOGD("Bus error");
         return -1;
     }
     /* Receive the reply */
     ZF_LOGD("Read register %d", dbytes * count);
-    bytes = i2c_slave_read(i2c_slave, d, dbytes * count, NULL, NULL);
+    bytes = i2c_slave_read(i2c_slave, d, dbytes * count, false, NULL, NULL);
     if (bytes < 0) {
         ZF_LOGD("read error");
         return bytes;
@@ -114,7 +114,7 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
     /* Load up the data */
     _fill_data(d + abytes, data, i2c_slave->data_fmt, count);
     /* Send the request */
-    bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, NULL, NULL);
+    bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, false, NULL, NULL);
     if (bytes <= 0) {
         ZF_LOGD("Bus error (%d)", bytes);
         return bytes;
@@ -189,7 +189,7 @@ i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
     i2c_slave->address = address;
     i2c_slave->data_fmt = dfmt;
     i2c_slave->address_fmt = afmt;
-    return i2c_slave_init(i2c_bus, address, address_size, max_speed, i2c_slave);
+    return i2c_slave_init(i2c_bus, address, address_size, max_speed, 0, i2c_slave);
 }
 
 
@@ -263,14 +263,14 @@ i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
         memset(&sl, 0, sizeof(sl));
         ret = i2c_slave_init(i2c_bus, i,
                              I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_STANDARD,
-                             &sl);
+                             0, &sl);
         if (ret != 0) {
             ZF_LOGW("Breaking out of scan early: failed to init slave "
                     "structure for slave %d.", i);
             break;
         }
 
-        ret = i2c_slave_read(&sl, &dummy, 10, NULL, NULL);
+        ret = i2c_slave_read(&sl, &dummy, 10, false, NULL, NULL);
         if (ret == 10) {
             *addr++ = i;
             count++;
