@@ -16,6 +16,9 @@
 #include <platsupport/i2c.h>
 #include <platsupport/plat/i2c.h>
 
+#include <utils/arith.h>
+#include <utils/fence.h>
+#include <utils/attribute.h>
 #include "../../services.h"
 
 /** @file TK1 I2C driver.
@@ -435,6 +438,8 @@ tk1_i2c_set_mode(i2c_bus_t *ib, enum i2c_xfer_mode mode)
     } else {
         r->sl_cnfg &= ~TK1I2C_SL_CNFG_SLAVE_EN_BIT;
     }
+
+    tk1_i2c_config_commit(ib, COMMIT_MASTER_BIT);
 }
 
 static int
@@ -527,15 +532,201 @@ tk1_i2c_bus_clear(i2c_bus_t *ib, bool send_stop_afterward)
     return !tk1_i2c_bus_is_locked_up(ib);
 }
 
-static long
-tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
+#define TK1_CAR_PLLP_INPUT_FREQ_HZ              (408000000)
+#define TK1_CAR_PLLP_DIVISOR                    (1)
+
+#define TK1I2C_IFACE_TIMING0_TLOW_SHIFT         (0)
+#define TK1I2C_IFACE_TIMING0_TLOW_MASK          (0x3F)
+#define TK1I2C_IFACE_TIMING0_THIGH_SHIFT        (8)
+#define TK1I2C_IFACE_TIMING0_THIGH_MASK         (0x3F)
+
+#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT  (16)
+#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK   (0xFFFF)
+
+#define TK1I2C_IFACE_TIMING1_TLOW_SHIFT         (0)
+#define TK1I2C_IFACE_TIMING1_TLOW_MASK          (0x3F)
+#define TK1I2C_IFACE_TIMING1_THIGH_SHIFT        (8)
+#define TK1I2C_IFACE_TIMING1_THIGH_MASK         (0x3F)
+
+#define TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT        (0)
+#define TK1I2C_CLK_DIVISOR_HS_MODE_MASK         (0xFFFF)
+
+static const uint32_t i2c_speed_freqs[] = {
+    [I2C_SLAVE_SPEED_STANDARD] = 100000,
+    [I2C_SLAVE_SPEED_FAST] = 400000,
+    [I2C_SLAVE_SPEED_FASTPLUS] = 1000000,
+    [I2C_SLAVE_SPEED_HIGHSPEED] = 3400000
+};
+
+static const char *i2c_speed_names[] = {
+    [I2C_SLAVE_SPEED_STANDARD] = "standard",
+    [I2C_SLAVE_SPEED_FAST] = "fast",
+    [I2C_SLAVE_SPEED_FASTPLUS] = "fast+",
+    [I2C_SLAVE_SPEED_HIGHSPEED] = "high-speed"
+};
+
+static int32_t
+tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
+                               enum i2c_slave_speed speed,
+                               uint32_t variant_constant)
 {
+    tk1_i2c_regs_t *r = tk1_i2c_get_priv(bus);
+    uint32_t        tlow, thigh;
+    uint32_t        target_scl_freq_hz;
+
+    assert(variant_constant == 2 || variant_constant == 3);
+
     /* Section 33.1.2.1 has the instructions for setting the bus speed based
      * on the CAR controller's divisors.
      *
      * See also 33.3.1.
+     *
+     *  FIXME:
+     *
+     * This driver works with the assumption that the input clock source is
+     * PLLP, and furthermore that the PLLP divisor value is 0.
+     *
+     * This will have to be the case until we have a proper driver API.
+     *
+     *  EXPLANATION:
+     *
+     * The SCL line's frequency is set according to the following equation:
+     *  SCL = 408000000 / ((TLOW+THIGH+VC) * (CLK_DIVISOR + 1) * TK1_CAR_PLLP_DIVISOR)
+     *
+     * VC = variant_constant, either 2 or 3. This is just a magic number that
+     *  is given in the TK1 manual with no explanation.
+     * TLOW = the value in I2C_I2C_INTERFACE_TIMING_0_0.
+     * THIGH = the value in I2C_I2C_INTERFACE_TIMING_0_0.
+     * CLK_DIVISOR = the value in I2C_I2C_CLK_DIVISOR_REGISTER_0.
+     * TK1_CAR_PLLP_DIVISOR = the divisor value in the clock and reset
+     *  controller's PLLP clock source. Specifically, the resultant value that
+     *  the divider will divide the input frequency by. I.e, N+1, not N.
+     *  So for example, right now, this driver depends on us using '0' as the
+     *  literal divisor value, and a value of '0' in the divisor register will
+     *  cause the divider to divide the input frequency by 1 (N+1).
+     *  So I2C_FREQENCY_DIVISOR in this equation should be 1, not 0.
+     *
+     * But we need to derive CLK_DIVISOR. So we rearrange that (algebra!) to
+     * solve for CLK_DIVISOR, and get:
+     *  CLK_DIVISOR = (408000000 / (SCL * TK1_CAR_PLLP_DIVISOR * (TLOW+THIGH+VC))) - 1
      */
-    return -1;
+    switch (speed) {
+    case I2C_SLAVE_SPEED_HIGHSPEED:
+        tlow = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_TLOW_SHIFT)
+                & TK1I2C_IFACE_TIMING1_TLOW_MASK;
+        thigh = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_THIGH_SHIFT)
+                & TK1I2C_IFACE_TIMING1_THIGH_MASK;
+        break;
+
+    case I2C_SLAVE_SPEED_STANDARD:
+    case I2C_SLAVE_SPEED_FAST:
+    case I2C_SLAVE_SPEED_FASTPLUS:
+        tlow = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT)
+                & TK1I2C_IFACE_TIMING0_TLOW_MASK;
+        thigh = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT)
+                & TK1I2C_IFACE_TIMING0_THIGH_MASK;
+        break;
+
+    default:
+        return -1;
+    }
+
+    target_scl_freq_hz = i2c_speed_freqs[speed];
+    return ((TK1_CAR_PLLP_INPUT_FREQ_HZ / target_scl_freq_hz)
+        / (tlow+thigh+variant_constant)) - 1;
+}
+
+static uint32_t
+tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
+                                      uint32_t divisor,
+                                      enum i2c_slave_speed speed,
+                                      uint32_t vc)
+{
+    tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
+    uint32_t        tlow, thigh;
+
+    switch (speed) {
+    case I2C_SLAVE_SPEED_HIGHSPEED:
+        tlow = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_TLOW_SHIFT)
+                & TK1I2C_IFACE_TIMING1_TLOW_MASK;
+        thigh = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_THIGH_SHIFT)
+                & TK1I2C_IFACE_TIMING1_THIGH_MASK;
+        break;
+
+    case I2C_SLAVE_SPEED_STANDARD:
+    case I2C_SLAVE_SPEED_FAST:
+    case I2C_SLAVE_SPEED_FASTPLUS:
+        tlow = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT)
+                & TK1I2C_IFACE_TIMING0_TLOW_MASK;
+        thigh = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT)
+                & TK1I2C_IFACE_TIMING0_THIGH_MASK;
+        break;
+
+    default:
+        return -1;
+    }
+
+    return TK1_CAR_PLLP_INPUT_FREQ_HZ / ((tlow+thigh+vc) * (divisor));
+}
+
+static long
+tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
+{
+    int32_t         divisor;
+    tk1_i2c_regs_t *r = tk1_i2c_get_priv(bus);
+    uint8_t         variant_constant = 3;
+
+    divisor = tk1_i2c_calc_divisor_value_for(bus, speed, variant_constant);
+    if (divisor < 0 || divisor > UINT16_MAX) {
+        return -1;
+    }
+
+    if (divisor > 3) {
+        variant_constant = 2;
+        divisor = tk1_i2c_calc_divisor_value_for(bus, speed, variant_constant);
+        if (divisor < 0 || divisor > UINT16_MAX) {
+            return -1;
+        }
+    }
+
+    while (tk1_i2c_calc_baud_resulting_from(bus, divisor,
+                                            speed, variant_constant)
+           > i2c_speed_freqs[speed]) {
+        ZF_LOGV(PREFIX"Resulting baud is %d. Recalculating divisor up from %d to %d.",
+                r, tk1_i2c_calc_baud_resulting_from(bus, divisor, speed, variant_constant),
+                divisor, divisor+1);
+        divisor++;
+    }
+    ZF_LOGV(PREFIX"Calculated I2C divisor at %d. Effective baud is %d. Previous values: std %d, hs %d.",
+            r, divisor,
+            tk1_i2c_calc_baud_resulting_from(bus, divisor, speed, variant_constant),
+            (r->clk_divisor >> 16 & 0xFFFF),
+            (r->clk_divisor & 0xFFFF));
+
+    switch (speed) {
+    case I2C_SLAVE_SPEED_HIGHSPEED:
+        r->clk_divisor &= 0xFFFF0000;
+        r->clk_divisor |= (divisor & TK1I2C_CLK_DIVISOR_HS_MODE_MASK)
+                          << TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT;
+        break;
+
+    case I2C_SLAVE_SPEED_STANDARD:
+    case I2C_SLAVE_SPEED_FAST:
+    case I2C_SLAVE_SPEED_FASTPLUS:
+        r->clk_divisor &= 0xFFFF;
+        r->clk_divisor |= (divisor & TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK)
+                          << TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT;
+        break;
+
+    default:
+        return -1;
+    }
+
+    ZF_LOGD("For I2C speed %s, divisor was calculated to be %d.",
+            i2c_speed_names[speed], divisor);
+
+    tk1_i2c_config_commit(bus, COMMIT_MASTER_BIT);
+    return i2c_speed_freqs[speed];
 }
 
 static inline void
@@ -576,6 +767,7 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
 
     assert(sl != NULL);
     assert(sl->bus != NULL);
+    assert(nbytes > 0);
 
     state = tk1_i2c_get_state(sl->bus);
 
@@ -914,6 +1106,7 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
 {
     assert(slave != NULL);
     assert(slave->bus != NULL);
+    int error;
 
     tk1_i2c_state_t *s = tk1_i2c_get_state(slave->bus);
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(slave->bus);
@@ -923,6 +1116,15 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
         tk1_i2c_callback(slave->bus, I2CSTAT_COMPLETE, 0);
         return 0;
     }
+
+    error = tk1_i2c_set_speed(slave->bus, slave->max_speed);
+    if (error < 0) {
+        ZF_LOGE(PREFIX"Failed to set speed to %d for slave 0x%x.",
+                r, i2c_speed_freqs[slave->max_speed], slave->address);
+        return -1;
+    }
+
+    tk1_i2c_flush_fifos(slave->bus, I2C_MODE_MASTER);
 
     if (tk1_i2c_bus_is_locked_up(slave->bus)) {
         if (!tk1_i2c_bus_clear(slave->bus, true)) {
@@ -942,6 +1144,7 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
     slave->bus->token = token;
 
     tk1_i2c_set_mode(slave->bus, I2C_MODE_MASTER);
+    tk1_i2c_config_commit(slave->bus, COMMIT_MASTER_BIT);
 
     headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, false, false);
     r->tx_packet_fifo = headers.io0.raw;
@@ -960,9 +1163,9 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
 {
     assert(slave != NULL);
     assert(slave->bus != NULL);
+    int error;
 
     size_t ret;
-    const xfer_max_nbytes = 8;
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(slave->bus);
     tk1_i2c_state_t *s = tk1_i2c_get_state(slave->bus);
     tk1_i2c_pktheaders_t headers;
@@ -972,10 +1175,20 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
         return 0;
     }
 
-    if (size > xfer_max_nbytes) {
-        ZF_LOGE(PREFIX"Write: xfer sizes > %d not supported.", r, xfer_max_nbytes);
+    if (size > TK1I2C_DATA_MAX_NBYTES) {
+        ZF_LOGE(PREFIX"Write: xfer sizes > %d not supported.",
+                r, TK1I2C_DATA_MAX_NBYTES);
         return -1;
     }
+
+    error = tk1_i2c_set_speed(slave->bus, slave->max_speed);
+    if (error < 0) {
+        ZF_LOGE(PREFIX"Failed to set speed to %d for slave 0x%x.",
+                r, i2c_speed_freqs[slave->max_speed], slave->address);
+        return -1;
+    }
+
+    tk1_i2c_flush_fifos(slave->bus, I2C_MODE_MASTER);
 
     if (tk1_i2c_bus_is_locked_up(slave->bus)) {
         if (!tk1_i2c_bus_clear(slave->bus, true)) {
@@ -995,6 +1208,7 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
     slave->bus->token = token;
 
     tk1_i2c_set_mode(slave->bus, I2C_MODE_MASTER);
+    tk1_i2c_config_commit(slave->bus, COMMIT_MASTER_BIT);
 
     headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, true, false);
     r->tx_packet_fifo = headers.io0.raw;
@@ -1042,7 +1256,7 @@ tk1_i2c_slave_init(i2c_bus_t* ib, int address,
     assert(sl != NULL);
 
     if (address_size == I2C_SLAVE_ADDR_7BIT) {
-        address = (address >> 1) & 0x7F;
+        address = i2c_extract_address(address);
     }
 
     /* Internally in this driver, we discard the RW bit */
