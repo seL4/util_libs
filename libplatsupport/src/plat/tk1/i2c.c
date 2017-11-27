@@ -1105,6 +1105,7 @@ tk1_i2c_smode_xfer(void *data, size_t nbytes, bool is_write)
 
 static int
 tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
+                   bool end_with_repeat_start,
                    i2c_callback_fn cb, void* token)
 {
     assert(slave != NULL);
@@ -1149,7 +1150,8 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
     tk1_i2c_set_mode(slave->bus, I2C_MODE_MASTER);
     tk1_i2c_config_commit(slave->bus, COMMIT_MASTER_BIT);
 
-    headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, false, false);
+    headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, false,
+                                                 end_with_repeat_start);
     r->tx_packet_fifo = headers.io0.raw;
     r->tx_packet_fifo = headers.io1.raw;
     r->tx_packet_fifo = headers.i2c.raw;
@@ -1162,6 +1164,7 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
 
 static int
 tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
+                    bool end_with_repeat_start,
                     i2c_callback_fn cb, void* token)
 {
     assert(slave != NULL);
@@ -1213,7 +1216,8 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
     tk1_i2c_set_mode(slave->bus, I2C_MODE_MASTER);
     tk1_i2c_config_commit(slave->bus, COMMIT_MASTER_BIT);
 
-    headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, true, false);
+    headers = tk1_i2c_prepare_mmode_xfer_headers(slave, size, true,
+                                                 end_with_repeat_start);
     r->tx_packet_fifo = headers.io0.raw;
     r->tx_packet_fifo = headers.io1.raw;
     r->tx_packet_fifo = headers.i2c.raw;
@@ -1254,7 +1258,7 @@ static int
 tk1_i2c_slave_init(i2c_bus_t* ib, int address,
                enum i2c_slave_address_size address_size,
                enum i2c_slave_speed max_speed,
-               i2c_slave_t* sl)
+               uint32_t flags, i2c_slave_t* sl)
 {
     assert(sl != NULL);
 
@@ -1266,7 +1270,7 @@ tk1_i2c_slave_init(i2c_bus_t* ib, int address,
     sl->address = address;
     sl->address_size = address_size;
     sl->max_speed = max_speed;
-    sl->i2c_opts = 0;
+    sl->i2c_opts = flags;
     sl->bus = ib;
 
     sl->slave_read      = &tk1_i2c_mmode_read;
