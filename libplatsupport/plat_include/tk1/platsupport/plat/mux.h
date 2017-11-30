@@ -27,6 +27,7 @@
 
 typedef struct mux_sys mux_sys_t;
 typedef struct gpio_sys gpio_sys_t;
+typedef struct ps_io_ops ps_io_ops_t;
 
 enum mux_feature {
     MUX_FEATURE_UARTA,
