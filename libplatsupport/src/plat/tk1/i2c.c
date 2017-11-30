@@ -213,6 +213,28 @@
 #define TK1I2C_I2CPKT_RESPONSE_PKT_ENABLE_BIT       (BIT(24))
 #define TK1I2C_I2CPKT_RESPONSE_PKT_FREQ_BIT         (BIT(25))
 
+/* These next few #defines pertain to tk1_i2c_set_speed() and its helper
+ * functions tk1_i2c_calc_divisor_value_for() and
+ * tk1_i2c_calc_baud_resulting_from().
+ */
+#define TK1_CAR_PLLP_INPUT_FREQ_HZ              (408000000)
+#define TK1_CAR_PLLP_DIVISOR                    (1)
+
+#define TK1I2C_IFACE_TIMING0_TLOW_SHIFT         (0)
+#define TK1I2C_IFACE_TIMING0_TLOW_MASK          (0x3F)
+#define TK1I2C_IFACE_TIMING0_THIGH_SHIFT        (8)
+#define TK1I2C_IFACE_TIMING0_THIGH_MASK         (0x3F)
+
+#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT  (16)
+#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK   (0xFFFF)
+
+#define TK1I2C_IFACE_TIMING1_TLOW_SHIFT         (0)
+#define TK1I2C_IFACE_TIMING1_TLOW_MASK          (0x3F)
+#define TK1I2C_IFACE_TIMING1_THIGH_SHIFT        (8)
+#define TK1I2C_IFACE_TIMING1_THIGH_MASK         (0x3F)
+
+#define TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT        (0)
+#define TK1I2C_CLK_DIVISOR_HS_MODE_MASK         (0xFFFF)
 
 enum i2c_xfer_mode {
     I2C_MODE_MASTER,
@@ -531,25 +553,6 @@ tk1_i2c_bus_clear(i2c_bus_t *ib, bool send_stop_afterward)
 
     return !tk1_i2c_bus_is_locked_up(ib);
 }
-
-#define TK1_CAR_PLLP_INPUT_FREQ_HZ              (408000000)
-#define TK1_CAR_PLLP_DIVISOR                    (1)
-
-#define TK1I2C_IFACE_TIMING0_TLOW_SHIFT         (0)
-#define TK1I2C_IFACE_TIMING0_TLOW_MASK          (0x3F)
-#define TK1I2C_IFACE_TIMING0_THIGH_SHIFT        (8)
-#define TK1I2C_IFACE_TIMING0_THIGH_MASK         (0x3F)
-
-#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT  (16)
-#define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK   (0xFFFF)
-
-#define TK1I2C_IFACE_TIMING1_TLOW_SHIFT         (0)
-#define TK1I2C_IFACE_TIMING1_TLOW_MASK          (0x3F)
-#define TK1I2C_IFACE_TIMING1_THIGH_SHIFT        (8)
-#define TK1I2C_IFACE_TIMING1_THIGH_MASK         (0x3F)
-
-#define TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT        (0)
-#define TK1I2C_CLK_DIVISOR_HS_MODE_MASK         (0xFFFF)
 
 static const uint32_t i2c_speed_freqs[] = {
     [I2C_SLAVE_SPEED_STANDARD] = 100000,
