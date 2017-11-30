@@ -228,10 +228,10 @@
 #define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT  (16)
 #define TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK   (0xFFFF)
 
-#define TK1I2C_IFACE_TIMING1_TLOW_SHIFT         (0)
-#define TK1I2C_IFACE_TIMING1_TLOW_MASK          (0x3F)
-#define TK1I2C_IFACE_TIMING1_THIGH_SHIFT        (8)
-#define TK1I2C_IFACE_TIMING1_THIGH_MASK         (0x3F)
+#define TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT         (0)
+#define TK1I2C_HS_IFACE_TIMING0_TLOW_MASK          (0x3F)
+#define TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT        (8)
+#define TK1I2C_HS_IFACE_TIMING0_THIGH_MASK         (0x3F)
 
 #define TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT        (0)
 #define TK1I2C_CLK_DIVISOR_HS_MODE_MASK         (0xFFFF)
@@ -534,25 +534,36 @@ tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
      */
     switch (speed) {
     case I2C_SLAVE_SPEED_HIGHSPEED:
-        tlow = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_TLOW_SHIFT)
-                & TK1I2C_IFACE_TIMING1_TLOW_MASK;
-        thigh = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_THIGH_SHIFT)
-                & TK1I2C_IFACE_TIMING1_THIGH_MASK;
+        tlow = read_masked(&r->hs_interface_timing0,
+                           (TK1I2C_HS_IFACE_TIMING0_TLOW_MASK << TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT))
+                           >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
+        thigh = read_masked(&r->hs_interface_timing0,
+                           (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
+                           >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
+
+        ZF_LOGD("Reading highspeed tlow/high: tLOW %d, tHIGH %d.",
+                tlow, thigh);
         break;
 
     case I2C_SLAVE_SPEED_STANDARD:
     case I2C_SLAVE_SPEED_FAST:
     case I2C_SLAVE_SPEED_FASTPLUS:
-        tlow = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT)
-                & TK1I2C_IFACE_TIMING0_TLOW_MASK;
-        thigh = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT)
-                & TK1I2C_IFACE_TIMING0_THIGH_MASK;
+        tlow = read_masked(&r->interface_timing0,
+                           (TK1I2C_IFACE_TIMING0_TLOW_MASK << TK1I2C_IFACE_TIMING0_TLOW_SHIFT))
+                           >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
+        thigh = read_masked(&r->interface_timing0,
+                            (TK1I2C_IFACE_TIMING0_THIGH_MASK << TK1I2C_IFACE_TIMING0_THIGH_SHIFT))
+                            >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
+
+        ZF_LOGD("Reading std/fast/f+ tlow/high: tLOW %d, tHIGH %d.",
+                tlow, thigh);
         break;
 
     default:
         return -1;
     }
 
+    ZF_LOGD("tLOW is %d, tHIGH is %d.", tlow, thigh);
     target_scl_freq_hz = i2c_speed_freqs[speed];
     return ((TK1_CAR_PLLP_INPUT_FREQ_HZ / target_scl_freq_hz)
         / (tlow+thigh+variant_constant)) - 1;
@@ -569,19 +580,23 @@ tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
 
     switch (speed) {
     case I2C_SLAVE_SPEED_HIGHSPEED:
-        tlow = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_TLOW_SHIFT)
-                & TK1I2C_IFACE_TIMING1_TLOW_MASK;
-        thigh = (r->interface_timing1 >> TK1I2C_IFACE_TIMING1_THIGH_SHIFT)
-                & TK1I2C_IFACE_TIMING1_THIGH_MASK;
+        tlow = read_masked(&r->hs_interface_timing0,
+                           (TK1I2C_HS_IFACE_TIMING0_TLOW_MASK << TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT))
+                           >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
+        thigh = read_masked(&r->hs_interface_timing0,
+                           (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
+                           >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
         break;
 
     case I2C_SLAVE_SPEED_STANDARD:
     case I2C_SLAVE_SPEED_FAST:
     case I2C_SLAVE_SPEED_FASTPLUS:
-        tlow = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT)
-                & TK1I2C_IFACE_TIMING0_TLOW_MASK;
-        thigh = (r->interface_timing0 >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT)
-                & TK1I2C_IFACE_TIMING0_THIGH_MASK;
+        tlow = read_masked(&r->interface_timing0,
+                           (TK1I2C_IFACE_TIMING0_TLOW_MASK << TK1I2C_IFACE_TIMING0_TLOW_SHIFT))
+                           >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
+        thigh = read_masked(&r->interface_timing0,
+                            (TK1I2C_IFACE_TIMING0_THIGH_MASK << TK1I2C_IFACE_TIMING0_THIGH_SHIFT))
+                            >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
         break;
 
     default:
@@ -627,17 +642,19 @@ tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
 
     switch (speed) {
     case I2C_SLAVE_SPEED_HIGHSPEED:
-        r->clk_divisor &= 0xFFFF0000;
-        r->clk_divisor |= (divisor & TK1I2C_CLK_DIVISOR_HS_MODE_MASK)
-                          << TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT;
+        write_masked(&r->clk_divisor,
+                     0xFFFF,
+                     ((divisor & TK1I2C_CLK_DIVISOR_HS_MODE_MASK)
+                     << TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT));
         break;
 
     case I2C_SLAVE_SPEED_STANDARD:
     case I2C_SLAVE_SPEED_FAST:
     case I2C_SLAVE_SPEED_FASTPLUS:
-        r->clk_divisor &= 0xFFFF;
-        r->clk_divisor |= (divisor & TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK)
-                          << TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT;
+        write_masked(&r->clk_divisor,
+                     0xFFFF0000,
+                     ((divisor & TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK)
+                     << TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT));
         break;
 
     default:
