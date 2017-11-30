@@ -20,6 +20,13 @@ list(SORT deps)
 
 set(configure_string "")
 
+config_string(LibUtilsDefaultZfLogLevel LIB_UTILS_DEFAULT_ZF_LOG_LEVEL
+    "Default ZF_LOG_LEVEL for the ZF_LOG library. 5 is LOG_LEVEL_ERROR. 0 is \
+    the most verbose setting."
+    DEFAULT 5
+    UNQUOTE
+)
+
 add_config_library(utils "${configure_string}")
 
 add_library(utils STATIC EXCLUDE_FROM_ALL ${deps})

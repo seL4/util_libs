@@ -29,5 +29,13 @@ config LIB_UTILS_NO_STATIC_ASSERT
         your C code does not understand _Static_assert (e.g. the verification
         C parser). This option forces the analogue to be used.
 
+config LIB_UTILS_DEFAULT_ZF_LOG_LEVEL
+    int "ZF_LOG default level"
+    depends on LIB_UTILS
+    default 5
+    help
+        Default ZF_LOG_LEVEL for the ZF_LOG library. 5 is LOG_LEVEL_ERROR. 0 is the
+        most verbose setting.
+
 config HAVE_LIB_UTILS
     bool

@@ -45,7 +45,7 @@
 #warning "Attempted to set ZF_LOG_LEVEL but _ZF_LOG_LEVEL has already been defined." \
 "Check that <utils/zf_log.h> hasn't been imported before this file, or define ZF_LOG_LEVEL explicitly before including <utils/zf_log.h>."
 #endif
-#define ZF_LOG_LEVEL ZF_LOG_ERROR
+#define ZF_LOG_LEVEL CONFIG_LIB_UTILS_DEFAULT_ZF_LOG_LEVEL
 #endif /* ZF_LOG_LEVEL */
 
 #include <utils/zf_log.h>
