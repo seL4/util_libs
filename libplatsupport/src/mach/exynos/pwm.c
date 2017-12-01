@@ -130,6 +130,7 @@ int pwm_start(pwm_t *pwm)
     configure_timeout(pwm, NS_IN_S, 0, true);
     /* Set autoreload and start the timer. */
     pwm->pwm_map->tcon |= T0_ENABLE;
+    pwm->time_h = 0;
 
     return 0;
 }
