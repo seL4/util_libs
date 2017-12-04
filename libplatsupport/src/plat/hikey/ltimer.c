@@ -107,7 +107,7 @@ static int get_time(void *data, uint64_t *time)
     /* Read the 1Hz RTC again in case the seconds incremented while we
      * read the subsecond value.
      */
-    uint64_t sec_value1 = rtc_get_time(rtc);
+    uint32_t sec_value1 = rtc_get_time(rtc);
     if (sec_value1 != sec_value0) {
         /* re-read subsec value. Assumption is that it won't take
          * a whole second to read from the dual-timer's downcounter.
@@ -120,7 +120,7 @@ static int get_time(void *data, uint64_t *time)
      * last reload.
      */
     subsec_value = NS_IN_S - subsec_value;
-    *time = ((uint64_t)sec_value1 << 32) + subsec_value;
+    *time = ((uint64_t)sec_value1) * NS_IN_S + subsec_value;
     return 0;
 }
 

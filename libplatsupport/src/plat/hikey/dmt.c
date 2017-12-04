@@ -35,19 +35,7 @@
 #define TCLR_AUTORELOAD BIT(6)
 #define TCLR_STARTTIMER BIT(7)
 #define TICKS_PER_SECOND 19200000
-
-/* The dual timers only have up to microsec accuracy.
- * So convert the nanoseconds into microseconds,
- * and program the timer in microseconds internally.
- *
- * If there are actual nanosecond-level offset digits,
- * we just add one more microsecond (such that 1 nanosecond
- * will result in a delay of 1 microsecond, but 999 nanoseconds
- * will also result in a delay of 1 microsecond).
- */
-#define TICKS_PER_US    (TICKS_PER_SECOND / 1000000)
-#define NS_TO_TICKS(ns) (((ns / NS_IN_US) + ((ns % 1000000) ? 1:0)) * TICKS_PER_US)
-#define TICKS_TO_NS(t) ((t * TICKS_PER_US) * NS_IN_US)
+#define TICKS_PER_MS    (TICKS_PER_SECOND / MS_IN_S)
 
 #define HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET (0x20)
 
@@ -101,7 +89,7 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
     flags |= irqs ? TCLR_INTENABLE : 0;
 
     dmt_regs_t *dmt_regs = get_regs(dmt);
-    uint64_t ticks64 = NS_TO_TICKS(ns);
+    uint64_t ticks64 = ns * TICKS_PER_MS / NS_IN_MS;
     if (ticks64 > UINT32_MAX) {
         return ETIME;
     }
@@ -168,7 +156,7 @@ uint64_t dmt_get_time(dmt_t *dmt)
      * However, convert it into nanoseconds first.
      */
     ret = dmt_regs->value;
-    ret = ret / TICKS_PER_US * NS_IN_US;
+    ret = ret / TICKS_PER_MS * NS_IN_MS;
     return ret;
 }
 
