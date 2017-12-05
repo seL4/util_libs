@@ -22,14 +22,13 @@ static inline off_t _next_pos(circ_buf_t *cb, off_t pos)
 	return (pos + 1) % cb->size;
 }
 
-int circ_buf_new(void *base, size_t size, circ_buf_t *cb)
+int circ_buf_new(size_t size, circ_buf_t *cb)
 {
-	if (!base || size == 0 || !cb) {
+	if (size == 0 || !cb) {
 		ZF_LOGE("Invalid arguments\n");
 		return EINVAL;
 	}
 
-	cb->buf = (uint8_t*)base;
 	cb->head = 0;
 	cb->tail = 0;
 	cb->size = size;
@@ -40,7 +39,6 @@ int circ_buf_new(void *base, size_t size, circ_buf_t *cb)
 void circ_buf_free(circ_buf_t *cb)
 {
 	if (cb) {
-		cb->buf = NULL;
 		cb->head = 0;
 		cb->tail = 0;
 		cb->size = 0;

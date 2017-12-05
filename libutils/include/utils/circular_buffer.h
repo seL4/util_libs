@@ -23,22 +23,21 @@
 
 /* Circular Buffer */
 typedef struct circ_buf {
-	uint8_t *buf;
 	off_t head;
 	off_t tail;
 	size_t size;
+	uint8_t buf[];
 } circ_buf_t;
 
 /**
  * Create a new circular buffer
  *
- * @param base A pointer to the start of the region to use as the buffer.
  * @param size The size of the buffer in bytes.
  * @param[in] cb Circular buffer structure allocated by the user.
  *
  * @return NULL on failure.
  */
-int circ_buf_new(void *base, size_t size, circ_buf_t *cb);
+int circ_buf_new(size_t size, circ_buf_t *cb);
 
 /**
  * Destroy a circular buffer
