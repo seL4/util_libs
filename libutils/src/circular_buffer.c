@@ -44,7 +44,6 @@ void circ_buf_free(circ_buf_t *cb)
 		cb->head = 0;
 		cb->tail = 0;
 		cb->size = 0;
-		free(cb);
 	} else {
 		ZF_LOGW("Freeing NULL pointer\n");
 	}
