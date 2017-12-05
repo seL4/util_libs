@@ -20,14 +20,28 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
+
+#include <utils/zf_log.h>
+
+
 
 /* Circular Buffer */
 typedef struct circ_buf {
-	off_t head;
-	off_t tail;
-	size_t size;
-	uint8_t buf[];
+    off_t head;
+    off_t tail;
+    size_t size;
+    uint8_t buf[];
 } circ_buf_t;
+
+
+static inline off_t _next_pos(circ_buf_t *cb, off_t pos)
+{
+    return (pos + 1) % cb->size;
+}
+
 
 /**
  * Create a new circular buffer
@@ -37,14 +51,34 @@ typedef struct circ_buf {
  *
  * @return NULL on failure.
  */
-int circ_buf_new(size_t size, circ_buf_t *cb);
+static inline int circ_buf_new(size_t size, circ_buf_t *cb) {
+    if (size == 0 || !cb) {
+        ZF_LOGE("Invalid arguments\n");
+        return EINVAL;
+    }
+
+    cb->head = 0;
+    cb->tail = 0;
+    cb->size = size;
+
+    return 0;
+}
 
 /**
  * Destroy a circular buffer
  *
  * @param cb Circular buffer to Destroy.
  */
-void circ_buf_free(circ_buf_t *cb);
+static inline void circ_buf_free(circ_buf_t *cb) {
+    if (cb) {
+        cb->head = 0;
+        cb->tail = 0;
+        cb->size = 0;
+        free(cb);
+    } else {
+        ZF_LOGW("Freeing NULL pointer\n");
+    }
+}
 
 /**
  * Check if the circular buffer is full
@@ -53,7 +87,9 @@ void circ_buf_free(circ_buf_t *cb);
  *
  * @return true indicates the buffer is full, false otherwise.
  */
-bool circ_buf_is_full(circ_buf_t *cb);
+static inline bool circ_buf_is_full(circ_buf_t *cb) {
+    return _next_pos(cb, cb->tail) == cb->head;
+}
 
 /**
  * Check if the circular buffer is empty
@@ -62,7 +98,9 @@ bool circ_buf_is_full(circ_buf_t *cb);
  *
  * @return true indicates the buffer is empty, false otherwise.
  */
-bool circ_buf_is_empty(circ_buf_t *cb);
+static inline bool circ_buf_is_empty(circ_buf_t *cb) {
+    return cb->tail == cb->head;
+}
 
 /**
  * Put a byte
@@ -70,7 +108,10 @@ bool circ_buf_is_empty(circ_buf_t *cb);
  * @param cb Circular buffer to put via.
  * @param c  Byte to send.
  */
-void circ_buf_put(circ_buf_t *cb, uint8_t c);
+static inline void circ_buf_put(circ_buf_t *cb, uint8_t c) {
+    cb->buf[cb->tail] = c;
+    cb->tail = _next_pos(cb, cb->tail);
+}
 
 /**
  * Get a byte
@@ -79,5 +120,10 @@ void circ_buf_put(circ_buf_t *cb, uint8_t c);
  *
  * @return The byte received.
  */
-uint8_t circ_buf_get(circ_buf_t *cb);
+static inline uint8_t circ_buf_get(circ_buf_t *cb) {
+    uint8_t c = cb->buf[cb->head];
+    cb->head = _next_pos(cb, cb->head);
+
+    return c;
+}
 
