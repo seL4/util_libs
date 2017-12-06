@@ -251,11 +251,13 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     }
 
     /* map in the frame for the RTC */
-    error = get_nth_pmem(NULL, 1, &region);
-    hikey_ltimer->rtc_vaddr = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL),
-    assert(error == 0);
-    if (hikey_ltimer->rtc_vaddr == NULL) {
-        error = ENOMEM;
+    if (!error) {
+        error = get_nth_pmem(NULL, 1, &region);
+        hikey_ltimer->rtc_vaddr = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL),
+        assert(error == 0);
+        if (hikey_ltimer->rtc_vaddr == NULL) {
+            error = ENOMEM;
+        }
     }
 
     /* set the rtc to track the timestamp in seconds */
