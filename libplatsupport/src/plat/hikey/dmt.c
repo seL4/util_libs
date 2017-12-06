@@ -176,7 +176,7 @@ int dmt_init(dmt_t *dmt, dmt_config_t config)
     /* Even numbered device IDs are at offset 0, odd-numbered device IDs are
      * at offset 0x20 within the same page.
      */
-    if (config.id / 2 == 0) {
+    if (config.id % 2 == 0) {
         dmt->regs = config.vaddr;
     } else {
         dmt->regs = (void *) ((uintptr_t ) config.vaddr) + HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET;
