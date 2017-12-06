@@ -44,14 +44,14 @@ static inline off_t _next_pos(circ_buf_t *cb, off_t pos)
 
 
 /**
- * Create a new circular buffer
+ * Initialise a new circular buffer
  *
  * @param size The size of the buffer in bytes.
  * @param[in] cb Circular buffer structure allocated by the user.
  *
  * @return NULL on failure.
  */
-static inline int circ_buf_new(size_t size, circ_buf_t *cb) {
+static inline int circ_buf_init(size_t size, circ_buf_t *cb) {
     if (size == 0 || !cb) {
         ZF_LOGE("Invalid arguments\n");
         return EINVAL;
