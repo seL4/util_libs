@@ -96,14 +96,25 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
     assert(data != NULL);
     omap_ltimer_t *omap_ltimer = data;
 
-    switch (type) {
-    case TIMEOUT_ABSOLUTE:
-        return abs_gpt_set_timeout(&omap_ltimer->gpts[ABS_GPT], ns);
-    case TIMEOUT_RELATIVE:
-        return rel_gpt_set_timeout(&omap_ltimer->gpts[REL_GPT], ns, false);
-    case TIMEOUT_PERIODIC:
-        return rel_gpt_set_timeout(&omap_ltimer->gpts[REL_GPT], ns, true);
+    if (type == TIMEOUT_ABSOLUTE) {
+        uint64_t time = abs_gpt_get_time(&omap_ltimer->gpts[ABS_GPT]);
+        if (ns <= time) {
+            return ETIME;
+        }
+        ns -= time;
     }
+
+    if (ns >= gpt_get_max()) {
+        if (type == TIMEOUT_PERIODIC) {
+            ZF_LOGW("Timeout too big for periodic timeout on this platform");
+            return EINVAL;
+        } else {
+            /* cap it, caller can deal with earlier interrupts */
+            ns = gpt_get_max();
+        }
+    }
+
+    return rel_gpt_set_timeout(&omap_ltimer->gpts[REL_GPT], ns, type == TIMEOUT_PERIODIC);
 }
 
 static int reset(void *data)

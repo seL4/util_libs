@@ -71,12 +71,11 @@ static UNUSED timer_properties_t rel_gpt_properties = {
 /**
  * Functions to get a GPT timer which is programmed to overflow
  * at 0xFFFFFFFF and fire an irq and reload to 0. This can be
- * used to track absolute time, and also set absolute timeouts.
+ * used to track absolute time.
  *
  */
 int abs_gpt_init(gpt_t *gpt, gpt_config_t config);
 uint64_t abs_gpt_get_time(gpt_t *gpt);
-int abs_gpt_set_timeout(gpt_t *gpt, uint64_t abs_ns);
 
 /**
  * Functions to get a GPT timer that can do periodic or oneshot
@@ -89,3 +88,5 @@ int rel_gpt_set_timeout(gpt_t *gpt, uint64_t ns, bool periodic);
 int gpt_stop(gpt_t *gpt);
 int gpt_start(gpt_t *gpt);
 void gpt_handle_irq(gpt_t *gpt);
+/* get the max value ns this gpt can be programmed with */
+uint64_t gpt_get_max(void);

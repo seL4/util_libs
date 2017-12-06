@@ -204,6 +204,10 @@ static uint64_t gpt_ns_to_ticks(uint64_t ns)
     return ns / NS_IN_US * CLK_MHZ;
 }
 
+uint64_t gpt_get_max(void) {
+    return gpt_ticks_to_ns(UINT32_MAX - 1);
+}
+
 static void gpt_init(gpt_t *gpt)
 {
     /* Disable GPT. */
@@ -293,21 +297,6 @@ uint64_t abs_gpt_get_time(gpt_t *gpt)
     ticks = ticks * BIT(gpt->prescaler + 1);
 
     return gpt_ticks_to_ns(ticks);
-}
-
-int abs_gpt_set_timeout(gpt_t *gpt, uint64_t ns)
-{
-    bool overflow = gpt->gpt_map->tisr & OVF_IT_FLAG;
-    uint64_t ticks = gpt_ns_to_ticks(ns) / BIT(gpt->prescaler + 1);
-
-    if ((ns >> 32llu) == (gpt->high_bits + !!overflow)) {
-        /* enable match irq */
-        gpt->gpt_map->tier |= BIT(MAT_IT_ENA);
-        /* set match */
-        gpt->gpt_map->tmar = (uint32_t) ticks;
-    }
-    /* otherwise the overflow irq will trigger first */
-    return abs_gpt_get_time(gpt) >= ns ? ETIME : 0;
 }
 
 int abs_gpt_init(gpt_t *gpt, gpt_config_t config)
