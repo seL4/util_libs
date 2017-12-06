@@ -65,22 +65,6 @@ static inline int circ_buf_new(size_t size, circ_buf_t *cb) {
 }
 
 /**
- * Destroy a circular buffer
- *
- * @param cb Circular buffer to Destroy.
- */
-static inline void circ_buf_free(circ_buf_t *cb) {
-    if (cb) {
-        cb->head = 0;
-        cb->tail = 0;
-        cb->size = 0;
-        free(cb);
-    } else {
-        ZF_LOGW("Freeing NULL pointer\n");
-    }
-}
-
-/**
  * Check if the circular buffer is full
  *
  * @param cb Circular buffer to check
