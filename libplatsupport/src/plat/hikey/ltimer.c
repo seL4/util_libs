@@ -20,59 +20,47 @@
 #include <platsupport/plat/dmt.h>
 #include <platsupport/io.h>
 
-/* This driver is a combinatorial device driver, in that it combines the
- * functionality of 2 devices into a "superdevice" to get a better featureset.
- *
- * Specifically, it combines the 1Hz upcounter of the hikey RTC with one of the
- * 19.2MHz downcounters to get a proper timestamp facility, and presents this
- * combined device as a single logical pseudo-device.
+/*
+ * We use two dm timers: one to keep track of an absolute time, the other for timeouts.
  */
 #define DMT_ID DMTIMER0
-#define RTC_ID RTC0
 #define TIMEOUT_DMT 0
 #define TIMESTAMP_DMT 1
 #define NUM_DMTS 2
 
 typedef struct {
-    rtc_t rtc;
     dmt_t dmts[NUM_DMTS];
-    /* Vaddrs of the underlying devices. */
-    void *rtc_vaddr;
     /* hikey dualtimers have 2 timers per frame, we just use one */
     void *dmt_vaddr;
     ps_io_ops_t ops;
+    uint32_t high_bits;
 } hikey_ltimer_t;
 
 static size_t get_num_irqs(void *data)
 {
-    /* one for the timeout dmt */
-    return 1;
+    /* one for each dmt */
+    return 2;
 }
 
 static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
 {
     assert(n < get_num_irqs(data));
     irq->type = PS_INTERRUPT;
-    irq->irq.number = dmt_get_irq(DMT_ID + TIMEOUT_DMT);
+    irq->irq.number = dmt_get_irq(DMT_ID + n);
     return 0;
 }
 
 static size_t get_num_pmems(void *data)
 {
-    /* 1 for RTC, 1 for DMT */
-    return 2;
+    /* 1 - both dmts are on the same page */
+    return 1;
 }
 
 static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
 {
     region->length = PAGE_SIZE_4K;
-    if (n == 0) {
-        /* dm timer */
-        region->base_addr = (uintptr_t) dmt_get_paddr(DMT_ID);
-    } else {
-        assert(n == 1);
-        region->base_addr = (uintptr_t) rtc_get_paddr(RTC_ID);
-    }
+    /* dm timer */
+    region->base_addr = (uintptr_t) dmt_get_paddr(DMT_ID);
     return 0;
 }
 
@@ -82,45 +70,11 @@ static int get_time(void *data, uint64_t *time)
     assert(data != NULL);
     assert(time != NULL);
 
-    rtc_t *rtc = &hikey_ltimer->rtc;
     dmt_t *dualtimer = &hikey_ltimer->dmts[TIMESTAMP_DMT];
-
-   /* The problem is that the RTC is a 1Hz upcounter.
-    * And the dual-counters (DMtimer) are downcounters.
-    *
-    * So it's fairly unintuitive to get a decent sub-second
-    * offset value to tack on to the end of the RTC's 1Hz
-    * value.
-    *
-    * We can use the second timer of DMtimer0 to provide
-    * a subsecond offset from the 1Hz value of the RTC.
-    *
-    * In order to do this, we can run the RTC timer as a periodic
-    * downcounter whose IRQ is disabled. Then we just read from its
-    * current-downcount value everytime we want a subsecond timestamp
-    * offset.
-    */
-
-    uint32_t sec_value0 = rtc_get_time(rtc);
-    uint64_t subsec_value = dmt_get_time(dualtimer);
-
-    /* Read the 1Hz RTC again in case the seconds incremented while we
-     * read the subsecond value.
-     */
-    uint32_t sec_value1 = rtc_get_time(rtc);
-    if (sec_value1 != sec_value0) {
-        /* re-read subsec value. Assumption is that it won't take
-         * a whole second to read from the dual-timer's downcounter.
-         */
-       subsec_value = dmt_get_time(dualtimer);
-    }
-
-    /* The subsecond value is from a downcounter, not an upcounter, so
-     * we need to subtract to know how many nanoseconds have passed since the
-     * last reload.
-     */
-    subsec_value = NS_IN_S - subsec_value;
-    *time = ((uint64_t)sec_value1) * NS_IN_S + subsec_value;
+    uint64_t low_ticks = UINT32_MAX - dmt_get_ticks(dualtimer); /* dmt is a down counter, invert the result */
+    uint64_t ticks = hikey_ltimer->high_bits + !!dmt_is_irq_pending(dualtimer);
+    ticks = (ticks << 32llu) + low_ticks;
+    *time = dmt_ticks_to_ns(ticks);
     return 0;
 }
 
@@ -129,6 +83,9 @@ int handle_irq(void *data, ps_irq_t *irq)
     hikey_ltimer_t *hikey_ltimer = data;
     if (irq->irq.number == dmt_get_irq(DMT_ID + TIMEOUT_DMT)) {
         dmt_handle_irq(&hikey_ltimer->dmts[TIMEOUT_DMT]);
+    } else if (irq->irq.number == dmt_get_irq(DMT_ID + TIMESTAMP_DMT)) {
+        dmt_handle_irq(&hikey_ltimer->dmts[TIMESTAMP_DMT]);
+        hikey_ltimer->high_bits++;
     } else {
         ZF_LOGE("unknown irq");
         return EINVAL;
@@ -166,8 +123,6 @@ static int reset(void *data)
     /* restart the rtc */
     dmt_stop(&hikey_ltimer->dmts[TIMEOUT_DMT]);
     dmt_start(&hikey_ltimer->dmts[TIMEOUT_DMT]);
-    rtc_stop(&hikey_ltimer->rtc);
-    rtc_start(&hikey_ltimer->rtc);
     return 0;
 }
 
@@ -185,12 +140,6 @@ static void destroy(void *data)
         ps_pmem_unmap(&hikey_ltimer->ops, region, hikey_ltimer->dmt_vaddr);
     }
 
-    if (hikey_ltimer->rtc_vaddr) {
-        rtc_stop(&hikey_ltimer->rtc);
-        error = get_nth_pmem(data, 1, &region);
-        assert(!error);
-        ps_pmem_unmap(&hikey_ltimer->ops, region, hikey_ltimer->rtc_vaddr);
-    }
     ps_free(&hikey_ltimer->ops.malloc_ops, sizeof(hikey_ltimer), hikey_ltimer);
 }
 
@@ -238,7 +187,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         dmt_start(&hikey_ltimer->dmts[TIMEOUT_DMT]);
     }
 
-    /* set up a DMT for subsecond timestamps */
+    /* set up a DMT for timestamps */
     dmt_config.id++;
     if (!error) {
         error = dmt_init(&hikey_ltimer->dmts[TIMESTAMP_DMT], dmt_config);
@@ -247,29 +196,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         dmt_start(&hikey_ltimer->dmts[TIMESTAMP_DMT]);
     }
     if (!error) {
-        error = dmt_set_timeout(&hikey_ltimer->dmts[TIMESTAMP_DMT], NS_IN_S, true, false);
-    }
-
-    /* map in the frame for the RTC */
-    if (!error) {
-        error = get_nth_pmem(NULL, 1, &region);
-        hikey_ltimer->rtc_vaddr = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL),
-        assert(error == 0);
-        if (hikey_ltimer->rtc_vaddr == NULL) {
-            error = ENOMEM;
-        }
-    }
-
-    /* set the rtc to track the timestamp in seconds */
-    rtc_config_t rtc_config = {
-        .id = RTC_ID,
-        .vaddr = hikey_ltimer->rtc_vaddr
-    };
-    if (!error) {
-        error = rtc_init(&hikey_ltimer->rtc, rtc_config);
-    }
-    if (!error) {
-        error = rtc_start(&hikey_ltimer->rtc);
+        error = dmt_set_timeout_ticks(&hikey_ltimer->dmts[TIMESTAMP_DMT], UINT32_MAX, true, true);
     }
 
     /* if there was an error, clean up */
