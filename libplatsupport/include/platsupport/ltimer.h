@@ -15,6 +15,7 @@
 #include <platsupport/io.h>
 #include <platsupport/pmem.h>
 #include <platsupport/irq.h>
+#include <platsupport/plat/acpi/acpi.h>
 /**
  * This file provides the interface for an OS independant consisent timer interface.
  *
@@ -330,3 +331,4 @@ int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops);
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/
 int ltimer_default_describe(ltimer_t *timer, ps_io_ops_t ops);
+int ltimer_default_describe_with_rsdp(ltimer_t *ltimer, ps_io_ops_t ops, acpi_rsdp_t *rsdp);

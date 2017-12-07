@@ -368,10 +368,9 @@ uint32_t ltimer_pit_get_tsc_freq(ltimer_t *ltimer)
     return pc99_ltimer->pit.freq;
 }
 
-int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
+int _ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops, acpi_t *acpi)
 {
     pmem_region_t hpet_region;
-    acpi_t *acpi = acpi_init(ops.io_mapper);
     int error = hpet_parse_acpi(acpi, &hpet_region);
 
     if (!error) {
@@ -385,6 +384,18 @@ int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
     }
 
     return error;
+}
+
+int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
+{
+    acpi_t *acpi = acpi_init(ops.io_mapper);
+    return _ltimer_default_describe(ltimer, ops, acpi);
+}
+
+int ltimer_default_describe_with_rsdp(ltimer_t *ltimer, ps_io_ops_t ops, acpi_rsdp_t *rsdp)
+{
+    acpi_t *acpi = acpi_init_with_rsdp(ops.io_mapper, rsdp);
+    return _ltimer_default_describe(ltimer, ops, acpi);
 }
 
 int ltimer_hpet_describe_with_region(ltimer_t *ltimer, ps_io_ops_t ops, pmem_region_t region, ps_irq_t *irq)

@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+#include <stdbool.h>
+
 #include <platsupport/plat/acpi/regions.h>
 #include <platsupport/plat/acpi/acpi.h>
 
@@ -25,4 +27,4 @@ acpi_sig_search(acpi_t* acpi, const char* sig, int sig_len, void* start, void* e
 
 // walk the tables and report table locations and sizes
 void
-acpi_parse_tables(acpi_t *acpi);
+acpi_parse_tables(acpi_t *acpi, bool parse_rsdp);

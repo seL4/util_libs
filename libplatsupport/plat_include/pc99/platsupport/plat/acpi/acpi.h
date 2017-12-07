@@ -103,6 +103,16 @@ typedef struct acpi {
  */
 acpi_t *acpi_init(ps_io_mapper_t io_mapper);
 
+/**
+ * Initiliase the ACPI library with given RSDP.
+ *
+ * @param io_mapper Interface for mapping physical addresses. see io.h
+ * @param rsdp RSDP object to parse the ACPI tables with
+ *
+ * returns: an acpi handle to call other function with.
+ */
+acpi_t * acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp);
+
 /*
  * Find a specific acpi table.
  *

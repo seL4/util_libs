@@ -325,7 +325,7 @@ acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist)
 static acpi_t *acpi_singleton = NULL;
 
 acpi_t *
-acpi_init(ps_io_mapper_t io_mapper)
+acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
 {
     if (acpi_singleton != NULL) {
         /* acpi already initialised */
@@ -350,22 +350,33 @@ acpi_init(ps_io_mapper_t io_mapper)
 
     acpi->io_mapper = io_mapper;
 
-    /* locate the acpi root system descriptor pointer */
-    printf("Searching for ACPI_SIG_RSDP\n");
-    acpi->rsdp = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
-                                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
-    if (acpi->rsdp == NULL) {
-        fprintf(stderr, "Failed to find rsdp\n");
-        free(acpi->regions);
-        assert(acpi->rsdp != NULL);
-        free(acpi);
-        return NULL;
-    }
+    // locate the acpi root system descriptor pointer
+    if(rsdp != NULL) {
+        ZF_LOGV("Parsing ACPI tables from the given RSDP");
+        acpi->rsdp = rsdp;
+        acpi_parse_tables(acpi, false);
+    } else {
+        ZF_LOGV("Searching for ACPI_SIG_RSDP\n");
+        acpi->rsdp = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
+                                     (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
+        if (acpi->rsdp == NULL) {
+            ZF_LOGE("Failed to find rsdp\n");
+            free(acpi->regions);
+            free(acpi);
+            return NULL;
+        }
 
-    printf("Parsing ACPI tables\n");
-    /* now parse the acpi tables */
-    acpi_parse_tables(acpi);
+        ZF_LOGV("Parsing ACPI tables\n");
+        /* now parse the acpi tables */
+        acpi_parse_tables(acpi, true);
+    }
 
     acpi_singleton = acpi;
     return acpi;
+}
+
+acpi_t *
+acpi_init(ps_io_mapper_t io_mapper)
+{
+    return acpi_init_with_rsdp(io_mapper, NULL);
 }

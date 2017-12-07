@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #define _GNU_SOURCE /* for getpagesize() */
 #include <unistd.h>
 
@@ -150,25 +151,30 @@ acpi_parse_table(acpi_t *acpi, void *table_paddr)
 }
 
 static void
-_acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
-                   int parent)
+_acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
+                   int parent, bool parse_addr)
 {
 
     int this_rec;
     region_type_t type;
+    acpi_header_t* header;
 
-    if (table_paddr == NULL) {
+    if (table_addr == NULL) {
         return;
     }
 
-    acpi_header_t* header = acpi_parse_table(acpi, table_paddr);
-    if (header == NULL) {
-        /* skip table */
-        return;
+    // check whether we need to parse table_addr
+    if(parse_addr) {
+        header = acpi_parse_table(acpi, table_addr);
+        if (header == NULL) {
+            /* skip table */
+            return;
+        }
+    } else {
+        header = (acpi_header_t *)table_addr;
     }
 
     void *table_vaddr = (void *) header;
-
     type = acpi_sig_id(header->signature);
 
     // optimistic: remove later if the table is bad
@@ -192,9 +198,9 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
 
         /* parse sub tables */
         _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->rsdt_address,
-                           regions, this_rec);
+                           regions, this_rec,true);
         _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->xsdt_address,
-                           regions, this_rec);
+                           regions, this_rec,true);
         break;
     }
     case ACPI_RSDT: {
@@ -202,7 +208,7 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
         uint32_t* subtbl = acpi_rsdt_first(rsdt);
         while (subtbl != NULL) {
             _acpi_parse_tables(acpi, (void*)(uintptr_t)*subtbl,
-                               regions, this_rec);
+                               regions, this_rec,true);
             subtbl = acpi_rsdt_next(rsdt, subtbl);
         }
         break;
@@ -224,9 +230,9 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
     case ACPI_FADT: {
         acpi_fadt_t* fadt = (acpi_fadt_t*)table_vaddr;
         _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->facs_address,
-                           regions, this_rec);
+                           regions, this_rec,true);
         _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->dsdt_address,
-                           regions, this_rec);
+                           regions, this_rec,true);
         break;
     }
 
@@ -306,12 +312,12 @@ _acpi_parse_tables(acpi_t *acpi, void* table_paddr, RegionList_t* regions,
 }
 
 void
-acpi_parse_tables(acpi_t* acpi)
+acpi_parse_tables(acpi_t *acpi, bool parse_rsdp)
 {
 
     RegionList_t* regions = (RegionList_t *) acpi->regions;
     regions->region_count = 0;
     regions->offset = 0;
 
-    _acpi_parse_tables(acpi, acpi->rsdp, regions, -1);
+    _acpi_parse_tables(acpi, acpi->rsdp, regions, -1, parse_rsdp);
 }
