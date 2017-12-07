@@ -314,8 +314,7 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
 void
 acpi_parse_tables(acpi_t *acpi, bool parse_rsdp)
 {
-
-    RegionList_t* regions = (RegionList_t *) acpi->regions;
+    RegionList_t *regions = (RegionList_t *) acpi->regions;
     regions->region_count = 0;
     regions->offset = 0;
 

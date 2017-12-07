@@ -334,7 +334,7 @@ acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
 
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
-        fprintf(stderr, "Failed to allocate memory of size %zu\n", sizeof(acpi));
+        ZF_LOGE("Failed to allocate memory of size %zu\n", sizeof(acpi));
         assert(acpi != NULL);
         return NULL;
     }
@@ -342,7 +342,7 @@ acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
     acpi->regions = (RegionList_t *) malloc(sizeof(RegionList_t));
 
     if (acpi->regions == NULL) {
-        fprintf(stderr, "Failed to allocate memory of size %zu\n", sizeof(acpi));
+        ZF_LOGE("Failed to allocate memory of size %zu\n", sizeof(acpi));
         assert(acpi->regions != NULL);
         free(acpi);
         return NULL;
