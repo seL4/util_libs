@@ -28,23 +28,67 @@
 #define CLKCTRL_PRESCALE_EN         BIT(0)
 #define CLKCTRL_PRESCALE_MASK       (CLKCTRL_PRESCALE_VAL(0xf) | CLKCTRL_PRESCALE_EN)
 
+/* Waveform polarity: When this bit is high, the
+ * waveform output goes from high to low on
+ * Match_1 interrupt and returns high on overflow
+ * or interval interrupt; when low, the waveform
+ * goes from low to high on Match_1 interrupt and
+ * returns low on overflow or interval interrupt */
 #define CNTCTRL_WAVE_POL BIT(6)
+/* Output waveform enable, active low. */
 #define CNTCTRL_WAVE_EN  BIT(5)
+/* Setting this bit high resets the counter value and
+ * restarts counting; the RST bit is automatically
+ * cleared on restart. */
 #define CNTCTRL_RST      BIT(4)
+/* Register Match mode: when Match is set, an
+ * interrupt is generated when the count value
+ * matches one of the three match registers and the
+ * corresponding bit is set in the Interrupt Enable
+ * register.
+ */
 #define CNTCTRL_MATCH    BIT(3)
+/* Register Match mode: when Match is set, an
+ * interrupt is generated when the count value
+ * matches one of the three match registers and the
+ * corresponding bit is set in the Interrupt Enable
+ * register. */
 #define CNTCTRL_DECR     BIT(2)
+/* When this bit is high, the timer is in Interval
+ * Mode, and the counter generates interrupts at
+ * regular intervals; when low, the timer is in
+ * overflow mode. */
 #define CNTCTRL_INT      BIT(1)
+/* Disable counter: when this bit is high, the counter
+ * is stopped, holding its last value until reset,
+ *  restarted or enabled again. */
 #define CNTCTRL_STOP     BIT(0)
 
+/* Event timer overflow interrupt */
 #define INT_EVENT_OVR    BIT(5)
+/* Counter overflow */
 #define INT_CNT_OVR      BIT(4)
+/* Match 3 interrupt */
 #define INT_MATCH2       BIT(3)
+/* Match 2 interrupt */
 #define INT_MATCH1       BIT(2)
+/* Match 1 interrupt */
 #define INT_MATCH0       BIT(1)
+/* Interval interrupt */
 #define INT_INTERVAL     BIT(0)
 
+/* Event Control Timer register: controls the behavior of the internal counter */
+
+/* Specifies how to handle overflow at the internal counter (during the counting phase
+ * of the external pulse)
+ *
+ * - When 0: Overflow causes E_En to be 0 (see E_En bit description)
+ * - When 1: Overflow causes the internal counter to wrap around and continues incrementing
+ */
 #define EVCTRL_OVR       BIT(2)
+/* Specifies the counting phase of the external pulse */
 #define EVCTRL_LO        BIT(1)
+/* When 0, immediately resets the internal counter to 0, and stops incrementing*/
 #define EVCTRL_EN        BIT(0)
 
 #define PRESCALE_MAX       0xf
@@ -65,14 +109,25 @@
 #define TTCX_TIMER3_OFFSET 0x8
 
 struct ttc_tmr_regs {
+    /* Controls prescaler, selects clock input, edge */
     uint32_t clk_ctrl[3];   /* +0x00 */
+    /* Enables counter, sets mode of operation, sets up/down
+     * counting, enables matching, enables waveform output */
     uint32_t cnt_ctrl[3];   /* +0x0C */
+    /* Returns current counter value */
     uint32_t cnt_val[3];    /* +0x18 */
+    /* Sets interval value - If interval is enabled, this is the maximum value
+     * that the counter will count up to or down from */
     uint32_t interval[3];   /* +0x24 */
+    /* Sets match values, total 3 */
     uint32_t match[3][3];   /* +0x30 */
+    /* Shows current interrupt status */
     uint32_t int_sts[3];    /* +0x54 */
+    /* Enable interrupts */
     uint32_t int_en[3];     /* +0x60 */
+    /* Enable event timer, stop timer, sets phrase */
     uint32_t event_ctrl[3]; /* +0x6C */
+    /* Shows width of external pulse */
     uint32_t event[3];      /* +0x78 */
 };
 typedef volatile struct ttc_tmr_regs ttc_tmr_regs_t;
