@@ -80,8 +80,29 @@ int dmt_start(dmt_t *dmt)
     return 0;
 }
 
+uint64_t dmt_ticks_to_ns(uint64_t ticks) {
+    return ticks / TICKS_PER_MS * NS_IN_MS;
+}
+
+bool dmt_is_irq_pending(dmt_t *dmt) {
+    if (dmt) {
+       return !!get_regs(dmt)->ris;
+    }
+    return false;
+}
+
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
 {
+    uint64_t ticks64 = ns * TICKS_PER_MS / NS_IN_MS;
+    if (ticks64 > UINT32_MAX) {
+        return ETIME;
+    }
+    return dmt_set_timeout_ticks(dmt, ticks64, periodic, irqs);
+}
+
+int dmt_set_timeout_ticks(dmt_t *dmt, uint32_t ticks, bool periodic, bool irqs)
+{
+
     if (dmt == NULL) {
         return EINVAL;
     }
@@ -89,12 +110,6 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
     flags |= irqs ? TCLR_INTENABLE : 0;
 
     dmt_regs_t *dmt_regs = get_regs(dmt);
-    uint64_t ticks64 = ns * TICKS_PER_MS / NS_IN_MS;
-    if (ticks64 > UINT32_MAX) {
-        return ETIME;
-    }
-    uint32_t ticks = (uint32_t) ticks64;
-
     dmt_regs->control = 0;
 
     /* No need to check for ticks == 0, because 0 is a valid value:
@@ -143,21 +158,18 @@ void dmt_handle_irq(dmt_t *dmt)
     dmt_regs->intclr = 0x1;
 }
 
-uint64_t dmt_get_time(dmt_t *dmt)
+uint64_t dmt_get_ticks(dmt_t *dmt)
 {
     if (dmt == NULL) {
         return 0;
     }
     dmt_regs_t *dmt_regs = get_regs(dmt);
-    uint64_t ret;
+    return dmt_regs->value;
+}
 
-    /* Just return the current downcounter count value.
-     *
-     * However, convert it into nanoseconds first.
-     */
-    ret = dmt_regs->value;
-    ret = ret / TICKS_PER_MS * NS_IN_MS;
-    return ret;
+uint64_t dmt_get_time(dmt_t *dmt)
+{
+    return dmt_ticks_to_ns(dmt_get_ticks(dmt));
 }
 
 int dmt_init(dmt_t *dmt, dmt_config_t config)

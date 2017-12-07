@@ -160,7 +160,14 @@ typedef struct {
 
 int dmt_init(dmt_t *dmt, dmt_config_t config);
 void dmt_handle_irq(dmt_t *dmt);
+/* convert between dmt ticks and ns */
+uint64_t dmt_ticks_to_ns(uint64_t ticks);
+/* return true if an overflow irq is pending */
+bool dmt_is_irq_pending(dmt_t *dmt);
+int dmt_set_timeout_ticks(dmt_t *dmt, uint32_t ticks, bool periodic, bool irqs);
+/* set a timeout in nano seconds */
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs);
 int dmt_start(dmt_t *dmt);
 int dmt_stop(dmt_t *dmt);
 uint64_t dmt_get_time(dmt_t *dmt);
+uint64_t dmt_get_ticks(dmt_t *dmt);
