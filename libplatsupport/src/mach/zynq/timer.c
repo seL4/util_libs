@@ -17,6 +17,7 @@
 #include <string.h>
 #include <utils/util.h>
 #include <inttypes.h>
+#include <utils/arch/io.h>
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
@@ -331,7 +332,9 @@ int ttc_handle_irq(ttc_t *ttc)
      * is triggered per call. */
     *regs->int_en &= ~INT_MATCH0;
 
-    return FORCE_READ(regs->int_sts[0]); /* Clear on read */
+    /* Clear on read */
+    uintptr_t res = force_read_value(&regs->int_sts[0]);
+    return res;
 }
 
 uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint16_t ticks) {
