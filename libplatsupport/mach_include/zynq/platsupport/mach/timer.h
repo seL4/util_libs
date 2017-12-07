@@ -166,5 +166,12 @@ int ttc_init(ttc_t *ttc, ttc_config_t config);
 int ttc_start(ttc_t *ttc);
 int ttc_stop(ttc_t *ttc);
 int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic);
-void ttc_handle_irq(ttc_t *ttc);
+/* set the ttc to 0 and start free running, where the timer will
+ * continually increment and trigger irqs on each overflow and reload to 0 */
+void ttc_freerun(ttc_t *tcc);
+/* read the ttc status bit, which will clear any pending irqs. A high return value
+ * indicates that and interrupt was pending */
+int ttc_handle_irq(ttc_t *ttc);
 uint64_t ttc_get_time(ttc_t *ttc);
+/* convert from a ticks value to ns for a configured ttc */
+uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint16_t ticks);

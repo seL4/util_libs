@@ -294,6 +294,13 @@ int ttc_stop(ttc_t *ttc)
     return 0;
 }
 
+void ttc_freerun(ttc_t *ttc)
+{
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    *regs->cnt_ctrl = CNTCTRL_RST;
+    *regs->int_en = INT_EVENT_OVR | INT_CNT_OVR;
+}
+
 /* Set up the ttc to fire an interrupt every ns nanoseconds.
  * The first such interrupt may arrive before ns nanoseconds
  * have passed since calling. */
@@ -315,7 +322,7 @@ _ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
     return 0;
 }
 
-void ttc_handle_irq(ttc_t *ttc)
+int ttc_handle_irq(ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
 
@@ -324,7 +331,15 @@ void ttc_handle_irq(ttc_t *ttc)
      * is triggered per call. */
     *regs->int_en &= ~INT_MATCH0;
 
-    FORCE_READ(regs->int_sts); /* Clear on read */
+    return FORCE_READ(regs->int_sts[0]); /* Clear on read */
+}
+
+uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint16_t ticks) {
+    if (!ttc) {
+        return 0;
+    }
+    uint32_t fin = _ttc_get_freq(ttc);
+    return freq_cycles_and_hz_to_ns(ticks, fin);
 }
 
 uint64_t ttc_get_time(ttc_t *ttc)
