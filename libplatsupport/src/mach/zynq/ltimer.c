@@ -33,11 +33,13 @@ typedef struct {
     void *vaddr_timestamp;
 
     ps_io_ops_t ops;
+    /* ns that have passed on the timestamp counter */
+    uint64_t time;
 } ttc_ltimer_t;
 
 static size_t get_num_irqs(void *data)
 {
-    return 1;
+    return 2;
 }
 
 static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
@@ -45,7 +47,19 @@ static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
     assert(n < get_num_irqs(data));
 
     irq->type = PS_INTERRUPT;
-    irq->irq.number = ttc_irq(TTC_TIMEOUT);
+
+    switch (n) {
+    case 0:
+        irq->irq.number = ttc_irq(TTC_TIMEOUT);
+        break;
+    case 1:
+        irq->irq.number = ttc_irq(TTC_TIMESTAMP);
+        break;
+    default:
+        ZF_LOGE("Invalid irq\n");
+        return EINVAL;
+    }
+
     return 0;
 }
 
@@ -72,23 +86,47 @@ static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
     return 0;
 }
 
+/* increment the high bits of the counter if an irq has occured */
+static void update_timestamp(ttc_ltimer_t *ttc_ltimer)
+{
+    if (ttc_handle_irq(&ttc_ltimer->ttc_timestamp)) {
+        /* if handle irq returns a high value, we have an overflow irq unhandled */
+        ttc_ltimer->time += ttc_ticks_to_ns(&ttc_ltimer->ttc_timestamp, UINT16_MAX);
+    }
+}
+
 static int handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     ttc_ltimer_t *ttc_ltimer = data;
-    /* Currently, only timeout interrupts are handled */
-    ttc_handle_irq(&ttc_ltimer->ttc_timeout);
+
+    if (irq->irq.number == ttc_irq(TTC_TIMEOUT)) {
+        ttc_handle_irq(&ttc_ltimer->ttc_timeout);
+    } else if (irq->irq.number == ttc_irq(TTC_TIMESTAMP)) {
+        update_timestamp(ttc_ltimer);
+    }
     return EINVAL;
+}
+
+static uint64_t read_time(ttc_ltimer_t *ttc_ltimer)
+{
+    uint64_t ticks = ttc_get_time(&ttc_ltimer->ttc_timestamp);
+    update_timestamp(ttc_ltimer);
+    uint64_t ticks2 = ttc_get_time(&ttc_ltimer->ttc_timestamp);
+    if (ticks2 < ticks) {
+        /* overflow occured  */
+        update_timestamp(ttc_ltimer);
+        ticks = ticks2;
+    }
+
+    return ticks + ttc_ltimer->time;
 }
 
 static int get_time(void *data, uint64_t *time)
 {
     assert(data != NULL);
     assert(time != NULL);
-
-    ttc_t * ttc1_timer1 = &(((ttc_ltimer_t *) data)->ttc_timestamp);
-    *time = ttc_get_time(ttc1_timer1);
-
+    *time = read_time(data);
     return 0;
 }
 
@@ -103,7 +141,12 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
     ttc_ltimer_t *ttc_ltimer = data;
 
     if (type == TIMEOUT_ABSOLUTE) {
-        return ENOSYS;
+        uint64_t time = read_time(data);
+        if (ns <= time) {
+            return ETIME;
+        } else {
+            ns -= time;
+        }
     }
 
     return ttc_set_timeout(&ttc_ltimer->ttc_timeout, ns, type == TIMEOUT_PERIODIC);
@@ -202,17 +245,12 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     error = ttc_start(&ttc_ltimer->ttc_timeout);
     assert(error == 0);
 
+    /* set the second ttc to be a timestamp counter */
     error = ttc_init(&ttc_ltimer->ttc_timestamp ,config_timestamp);
 
     if (!error) {
-        /* FIXME: This is a hack to set the prescalar value of ttc1_timer1 to keep
-         * it free-running. Overflow interrupts are not handled.
-         * Ideally, there should be an appropriate overflow handler to get us an
-         * accurate 64-bit (simulated) time in nanoseconds, using one or more 16-bit
-         * ttc timers provided by zynq.
-         */
-        error = ttc_set_timeout(&ttc_ltimer->ttc_timestamp, 2 * NS_IN_S, true);
-        error |= ttc_start(&ttc_ltimer->ttc_timestamp);
+        ttc_freerun(&ttc_ltimer->ttc_timestamp);
+        error = ttc_start(&ttc_ltimer->ttc_timestamp);
     }
 
     if (error) {
