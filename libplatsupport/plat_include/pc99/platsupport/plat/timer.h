@@ -15,6 +15,7 @@
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/pit.h>
 #include <platsupport/plat/hpet.h>
+#include <platsupport/plat/acpi/acpi.h>
 
 /* Using the default function, the pc99 ltimer will try to use the HPET and then fall back to the PIT,
  * using the TSC for timestamps
@@ -39,3 +40,6 @@ int ltimer_pit_init(ltimer_t *ltimer, ps_io_ops_t ops);
 int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t tsc_freq);
 /* get the tsc frequency used by a pit ltimer - invalid to call on a hpet backed ltimer */
 uint32_t ltimer_pit_get_tsc_freq(ltimer_t *ltimer);
+/* initialise a subset of functions to get ltimer resources given a pointer to
+ * the rsdp object */
+int ltimer_default_describe_with_rsdp(ltimer_t *ltimer, ps_io_ops_t ops, acpi_rsdp_t rsdp);

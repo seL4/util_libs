@@ -392,9 +392,9 @@ int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
     return _ltimer_default_describe(ltimer, ops, acpi);
 }
 
-int ltimer_default_describe_with_rsdp(ltimer_t *ltimer, ps_io_ops_t ops, acpi_rsdp_t *rsdp)
+int ltimer_default_describe_with_rsdp(ltimer_t *ltimer, ps_io_ops_t ops, acpi_rsdp_t rsdp)
 {
-    acpi_t *acpi = acpi_init_with_rsdp(ops.io_mapper, *rsdp);
+    acpi_t *acpi = acpi_init_with_rsdp(ops.io_mapper, rsdp);
     return _ltimer_default_describe(ltimer, ops, acpi);
 }
 
