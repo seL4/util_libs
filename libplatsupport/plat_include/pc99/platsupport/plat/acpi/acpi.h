@@ -84,7 +84,7 @@ typedef struct acpi_gastruct {
 /* acpi struct */
 typedef struct acpi {
     void *regions;
-    acpi_rsdp_t *rsdp;
+    acpi_rsdp_t rsdp;
     ps_io_mapper_t io_mapper;
 } acpi_t;
 
@@ -111,7 +111,7 @@ acpi_t *acpi_init(ps_io_mapper_t io_mapper);
  *
  * returns: an acpi handle to call other function with.
  */
-acpi_t * acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp);
+acpi_t * acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp);
 
 /*
  * Find a specific acpi table.

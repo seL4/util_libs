@@ -25,6 +25,9 @@
 void*
 acpi_sig_search(acpi_t* acpi, const char* sig, int sig_len, void* start, void* end);
 
-// walk the tables and report table locations and sizes
-void
-acpi_parse_tables(acpi_t *acpi, bool parse_rsdp);
+/*
+ * walk the tables and report table locations and sizes
+ * Returns -1 if unable to parse RSDP, 0 on success
+ */
+int
+acpi_parse_tables(acpi_t *acpi, acpi_rsdp_t *rsdp);

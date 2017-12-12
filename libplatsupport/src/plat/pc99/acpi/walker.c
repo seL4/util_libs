@@ -152,7 +152,7 @@ acpi_parse_table(acpi_t *acpi, void *table_paddr)
 
 static void
 _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
-                   int parent, bool parse_addr)
+                   int parent)
 {
 
     int this_rec;
@@ -164,14 +164,10 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
     }
 
     // check whether we need to parse table_addr
-    if(parse_addr) {
-        header = acpi_parse_table(acpi, table_addr);
-        if (header == NULL) {
-            /* skip table */
-            return;
-        }
-    } else {
-        header = (acpi_header_t *)table_addr;
+    header = acpi_parse_table(acpi, table_addr);
+    if (header == NULL) {
+        /* skip table */
+        return;
     }
 
     void *table_vaddr = (void *) header;
@@ -188,27 +184,12 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
         /*******************************************
          * These tables are completely implemented *
          *******************************************/
-    case ACPI_RSDP: {
-        acpi_rsdp_t* rsdp = (acpi_rsdp_t*) table_vaddr;
-        /*
-         * This table does not have a standard acpi header.
-         * Adjust for this earlier assumption
-         */
-        regions->regions[this_rec].size = rsdp->length;
-
-        /* parse sub tables */
-        _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->rsdt_address,
-                           regions, this_rec,true);
-        _acpi_parse_tables(acpi, (void*)(uintptr_t)rsdp->xsdt_address,
-                           regions, this_rec,true);
-        break;
-    }
     case ACPI_RSDT: {
         acpi_rsdt_t* rsdt = (acpi_rsdt_t*) table_vaddr;
         uint32_t* subtbl = acpi_rsdt_first(rsdt);
         while (subtbl != NULL) {
             _acpi_parse_tables(acpi, (void*)(uintptr_t)*subtbl,
-                               regions, this_rec,true);
+                               regions, this_rec);
             subtbl = acpi_rsdt_next(rsdt, subtbl);
         }
         break;
@@ -230,9 +211,9 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
     case ACPI_FADT: {
         acpi_fadt_t* fadt = (acpi_fadt_t*)table_vaddr;
         _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->facs_address,
-                           regions, this_rec,true);
+                           regions, this_rec);
         _acpi_parse_tables(acpi, (void*)(uintptr_t)fadt->dsdt_address,
-                           regions, this_rec,true);
+                           regions, this_rec);
         break;
     }
 
@@ -311,12 +292,52 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
     return;
 }
 
-void
-acpi_parse_tables(acpi_t *acpi, bool parse_rsdp)
+int
+acpi_parse_tables(acpi_t *acpi, acpi_rsdp_t *rsdp)
 {
     RegionList_t *regions = (RegionList_t *) acpi->regions;
     regions->region_count = 0;
     regions->offset = 0;
+    acpi_rsdp_t *acpi_rsdp;
 
-    _acpi_parse_tables(acpi, acpi->rsdp, regions, -1, parse_rsdp);
+    if(rsdp == NULL) {
+        /* Search and parse RSDP from BIOS region */
+        acpi_rsdp_t *rsdp_paddr;
+        rsdp_paddr = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
+                                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
+        if (rsdp_paddr == NULL) {
+                ZF_LOGE("Failed to find rsdp\n");
+                return -1;
+        }
+
+        acpi_rsdp = (acpi_rsdp_t *) acpi_parse_table(acpi, rsdp_paddr);
+        if (acpi_rsdp == NULL) {
+            ZF_LOGE("Failed to parse rsdp\n");
+            return -1;
+        }
+    } else {
+        acpi_rsdp = (acpi_rsdp_t *) malloc(sizeof(acpi_rsdp_t));
+        if(acpi_rsdp == NULL) {
+            ZF_LOGE("Failed to allocate rsdp");
+            return -1;
+        }
+        memcpy(acpi_rsdp, rsdp, sizeof(acpi_rsdp_t));
+    }
+
+    /* Copy rsdp object into acpi struct */
+    memcpy(&(acpi->rsdp), acpi_rsdp, sizeof(acpi_rsdp_t));
+
+    int rec = add_region_size(regions, ACPI_RSDP, (void *)acpi_rsdp,
+                              acpi_rsdp->length, -1);
+    if (rec < 0) {
+        free(acpi_rsdp);
+        return -1;    /* List is full? */
+    }
+
+    _acpi_parse_tables(acpi, (void*)(uintptr_t)acpi_rsdp->rsdt_address,
+                       regions, rec);
+    _acpi_parse_tables(acpi, (void*)(uintptr_t)acpi_rsdp->xsdt_address,
+                       regions, rec);
+
+    return 0;
 }
