@@ -288,7 +288,7 @@ static inline int ltimer_reset(ltimer_t *timer)
 
 static inline void ltimer_destroy(ltimer_t *timer)
 {
-    if (!timer) {
+    if (!timer || !timer->destroy) {
         ZF_LOGW("nothing to destroy");
         return;
     }
