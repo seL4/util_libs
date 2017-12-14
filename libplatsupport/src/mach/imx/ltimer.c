@@ -278,7 +278,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     }
 #endif
 
-       /* success! */
+    /* success! */
     return 0;
 }
 
