@@ -118,6 +118,7 @@ struct spi_bus {
     spi_chipselect_fn cs;
     spi_callback_fn cb;
     void* token;
+    spi_slave_config_t *curr_slave;
 };
 
 uint32_t spi_controller_offsets[] = {
@@ -192,7 +193,7 @@ finish_spi_transfer(spi_bus_t* spi_bus) {
 
     // Release chip select
     if (spi_bus->cs != NULL) {
-        spi_bus->cs(NULL, SPI_CS_RELAX);
+        spi_bus->cs(spi_bus->curr_slave, SPI_CS_RELAX);
     }
 
     spi_bus->cb(spi_bus, size, spi_bus->token);
@@ -217,7 +218,7 @@ spi_handle_irq(spi_bus_t* spi_bus)
         spi_bus->in_progress = false;
         // Release chip select
         if (spi_bus->cs != NULL) {
-            spi_bus->cs(NULL, SPI_CS_RELAX);
+            spi_bus->cs(spi_bus->curr_slave, SPI_CS_RELAX);
         }
         // Indicate failure to user
         spi_bus->cb(spi_bus, -1, spi_bus->token);
@@ -228,7 +229,7 @@ static void
 start_spi_transfer(spi_bus_t* spi_bus) {
     // Assert chip select
     if (spi_bus->cs != NULL) {
-        spi_bus->cs(NULL, SPI_CS_ASSERT);
+        spi_bus->cs(spi_bus->curr_slave, SPI_CS_ASSERT);
     }
     size_t size = spi_bus->txsize + spi_bus->rxsize;
     spi_bus->regs->dma_blk = size - 1;
@@ -279,4 +280,5 @@ void
 spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
 {
     // TODO: implement support for multiple slaves
+    spi_bus->curr_slave = cfg;
 }
