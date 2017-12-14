@@ -30,4 +30,12 @@ acpi_sig_search(acpi_t* acpi, const char* sig, int sig_len, void* start, void* e
  * Returns -1 if unable to parse RSDP, 0 on success
  */
 int
-acpi_parse_tables(acpi_t *acpi, acpi_rsdp_t *rsdp);
+acpi_parse_tables(acpi_t *acpi);
+
+/*
+ * Parse the acpi table given its paddr.
+ * Returns a dynamically allocated copy of the table
+ * header. Returns NULL if unable to parse the table.
+ */
+acpi_header_t*
+acpi_parse_table(acpi_t *acpi, void *table_paddr);

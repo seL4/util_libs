@@ -325,13 +325,8 @@ acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist)
 static acpi_t *acpi_singleton = NULL;
 
 acpi_t *
-_acpi_init(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
+create_acpi(ps_io_mapper_t io_mapper)
 {
-    if (acpi_singleton != NULL) {
-        /* acpi already initialised */
-        return acpi_singleton;
-    }
-
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
         ZF_LOGE("Failed to allocate memory of size %zu\n", sizeof(acpi));
@@ -350,10 +345,29 @@ _acpi_init(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
 
     acpi->io_mapper = io_mapper;
 
+    return acpi;
+}
+
+acpi_t *
+acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
+{
+    if (acpi_singleton != NULL) {
+        /* acpi already initialised */
+        return acpi_singleton;
+    }
+
+    acpi_t *acpi = create_acpi(io_mapper);
+    if(acpi == NULL) {
+        ZF_LOGE("Failed to create acpi object");
+        return NULL;
+    }
+    acpi->rsdp = rsdp;
+
     ZF_LOGV("Parsing ACPI tables\n");
-    int error = acpi_parse_tables(acpi, rsdp);
+    int error = acpi_parse_tables(acpi);
     if(error) {
-        ZF_LOGE("Failed to parse acpi tables");
+        ZF_LOGE("Failed to parse acpi tables\n");
+        free(acpi->regions);
         free(acpi);
         return NULL;
     }
@@ -363,13 +377,47 @@ _acpi_init(ps_io_mapper_t io_mapper, acpi_rsdp_t *rsdp)
 }
 
 acpi_t *
-acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
-{
-    return _acpi_init(io_mapper, &rsdp);
-}
-
-acpi_t *
 acpi_init(ps_io_mapper_t io_mapper)
 {
-    return _acpi_init(io_mapper, NULL);
+    if (acpi_singleton != NULL) {
+        /* acpi already initialised */
+        return acpi_singleton;
+    }
+
+    acpi_t *acpi = create_acpi(io_mapper);
+    if(acpi == NULL) {
+        ZF_LOGE("Failed to create acpi object");
+        return NULL;
+    }
+
+    acpi_rsdp_t *rsdp_paddr;
+    rsdp_paddr = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
+                                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
+    if (rsdp_paddr == NULL) {
+        ZF_LOGE("Failed to find rsdp\n");
+        return NULL;
+    }
+
+    acpi_rsdp_t *rsdp = (acpi_rsdp_t *) acpi_parse_table(acpi, rsdp_paddr);
+    if (rsdp == NULL) {
+        ZF_LOGE("Failed to parse rsdp\n");
+        return NULL;
+    }
+    /* Copy rsdp object into acpi struct */
+    memcpy(&(acpi->rsdp), rsdp, sizeof(acpi_rsdp_t));
+
+    /*rsdp was dynamically allocated. No longer require the memory*/
+    free(rsdp);
+
+    ZF_LOGV("Parsing ACPI tables\n");
+    int error = acpi_parse_tables(acpi);
+    if(error) {
+        ZF_LOGE("Failed to parse acpi tables\n");
+        free(acpi->regions);
+        free(acpi);
+        return NULL;
+    }
+
+    acpi_singleton = acpi;
+    return acpi;
 }

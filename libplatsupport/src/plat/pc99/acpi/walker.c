@@ -112,7 +112,7 @@ acpi_sig_search(acpi_t *acpi, const char* sig, int sig_len, void* start, void* e
     return (void*)((uintptr_t) start + ((uintptr_t)found % getpagesize()));
 }
 
-static acpi_header_t*
+acpi_header_t*
 acpi_parse_table(acpi_t *acpi, void *table_paddr)
 {
 
@@ -293,39 +293,19 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
 }
 
 int
-acpi_parse_tables(acpi_t *acpi, acpi_rsdp_t *rsdp)
+acpi_parse_tables(acpi_t *acpi)
 {
     RegionList_t *regions = (RegionList_t *) acpi->regions;
     regions->region_count = 0;
     regions->offset = 0;
     acpi_rsdp_t *acpi_rsdp;
 
-    if(rsdp == NULL) {
-        /* Search and parse RSDP from BIOS region */
-        acpi_rsdp_t *rsdp_paddr;
-        rsdp_paddr = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
-                                 (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
-        if (rsdp_paddr == NULL) {
-                ZF_LOGE("Failed to find rsdp\n");
-                return -1;
-        }
-
-        acpi_rsdp = (acpi_rsdp_t *) acpi_parse_table(acpi, rsdp_paddr);
-        if (acpi_rsdp == NULL) {
-            ZF_LOGE("Failed to parse rsdp\n");
-            return -1;
-        }
-    } else {
-        acpi_rsdp = (acpi_rsdp_t *) malloc(sizeof(acpi_rsdp_t));
-        if(acpi_rsdp == NULL) {
-            ZF_LOGE("Failed to allocate rsdp");
-            return -1;
-        }
-        memcpy(acpi_rsdp, rsdp, sizeof(acpi_rsdp_t));
+    acpi_rsdp = (acpi_rsdp_t *) malloc(sizeof(acpi_rsdp_t));
+    if(acpi_rsdp == NULL) {
+        ZF_LOGE("Failed to allocate rsdp");
+        return -1;
     }
-
-    /* Copy rsdp object into acpi struct */
-    memcpy(&(acpi->rsdp), acpi_rsdp, sizeof(acpi_rsdp_t));
+    memcpy(acpi_rsdp, &(acpi->rsdp), sizeof(acpi_rsdp_t));
 
     int rec = add_region_size(regions, ACPI_RSDP, (void *)acpi_rsdp,
                               acpi_rsdp->length, -1);
