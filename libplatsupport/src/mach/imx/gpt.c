@@ -306,7 +306,7 @@ int gpt_set_timeout(gpt_t  *gpt, uint64_t ns, bool periodic)
     }
 
 #ifdef CONFIG_PLAT_IMX7
-    gpt->gpt_map->gptpr = gpt->prescaler | (1u << 12);
+    gpt->gpt_map->gptpr = gpt->prescaler | BIT(12);
 #else
     gpt->gpt_map->gptpr = gpt->prescaler; /* Set the prescaler */
 #endif
