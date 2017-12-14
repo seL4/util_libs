@@ -105,13 +105,13 @@ int epit_stop(epit_t *epit)
     return 0;
 }
 
-int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
+int epit_set_timeout_ticks(epit_t *epit, uint64_t counterValue, bool periodic)
 {
-    /* Set counter modulus - this effectively sets the timeouts to us but doesn't
-     * overflow as fast. */
-    uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
+    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
+    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
+
     if (counterValue >= (1ULL << 32)) {
-        ZF_LOGE("ns too high %llu\n", ns);
+        ZF_LOGW("counterValue too high\n");
         /* Counter too large to be stored in 32 bits. */
         return EINVAL;
     }
@@ -134,6 +134,15 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
     }
 
     return 0;
+}
+
+int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
+{
+    /* Set counter modulus - this effectively sets the timeouts to us but doesn't
+     * overflow as fast. */
+    uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
+
+    return epit_set_timeout_ticks(epit, counterValue, periodic);
 }
 
 int epit_handle_irq(epit_t *epit)

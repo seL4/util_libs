@@ -52,5 +52,7 @@ int epit_init(epit_t *epit, epit_config_t config);
 int epit_stop(epit_t *epit);
 /* set a relative timeout */
 int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic);
+/* set a relative timeout in ticks */
+int epit_set_timeout_ticks(epit_t *epit, uint64_t ticks, bool periodic);
 /* handle an irq */
 int epit_handle_irq(epit_t *epit);
