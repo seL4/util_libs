@@ -12,56 +12,41 @@
 
 /* Implementation of a logical timer for imx platforms
  *
- * We use the EPIT2 for timeouts and GPT for clock.
+ * Currently all imx platforms use some combination of GPT and EPIT timers to provide ltimer functionality. See platform specific timer.h for details.
  */
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
-#include <platsupport/mach/epit.h>
-#include <platsupport/mach/gpt.h>
+#include <platsupport/plat/timer.h>
 
 #include <utils/util.h>
 
 typedef struct {
-    gpt_t gpt;
-    void *gpt_vaddr;
-#ifdef CONFIG_PLAT_IMX7
-    gpt_t timeout_gpt;
-    void *timeout_gpt_vaddr;
-#else
-    epit_t epit;
-    void *epit_vaddr;
-#endif
+    imx_timers_t timers;
+    void *timestamp_vaddr;
+    void *timeout_vaddr;
     ps_io_ops_t ops;
 } imx_ltimer_t;
 
 static ps_irq_t imx_ltimer_irqs[] = {
     {
         .type = PS_INTERRUPT,
-        .irq.number = GPT1_INTERRUPT,
+        .irq.number = TIMESTAMP_INTERRUPT,
     },
     {
         .type = PS_INTERRUPT,
-#ifdef CONFIG_PLAT_IMX7
-        .irq.number = GPT2_INTERRUPT,
-#else
-        .irq.number = EPIT2_INTERRUPT
-#endif
+        .irq.number = TIMEOUT_INTERRUPT,
     }
 };
 
 static pmem_region_t imx_ltimer_paddrs[] = {
     {
         .type = PMEM_TYPE_DEVICE,
-        .base_addr = GPT1_DEVICE_PADDR,
+        .base_addr = TIMESTAMP_DEVICE_PADDR,
         .length = PAGE_SIZE_4K
     },
     {
         .type = PMEM_TYPE_DEVICE,
-#ifdef CONFIG_PLAT_IMX7
-        .base_addr = GPT2_DEVICE_PADDR,
-#else
-        .base_addr = EPIT2_DEVICE_PADDR,
-#endif
+        .base_addr = TIMEOUT_DEVICE_PADDR,
         .length = PAGE_SIZE_4K
     }
 };
@@ -97,18 +82,12 @@ static int handle_irq(void *data, ps_irq_t *irq)
     assert(data != NULL);
     imx_ltimer_t *imx_ltimer = data;
     switch (irq->irq.number) {
-        case GPT1_INTERRUPT:
-            gpt_handle_irq(&imx_ltimer->gpt);
+        case TIMESTAMP_INTERRUPT:
+            handle_irq_timestamp(&imx_ltimer->timers);
             break;
-#ifdef CONFIG_PLAT_IMX7
-        case GPT2_INTERRUPT:
-            gpt_handle_irq(&imx_ltimer->timeout_gpt);
+        case TIMEOUT_INTERRUPT:
+            handle_irq_timeout(&imx_ltimer->timers);
             break;
-#else
-        case EPIT2_INTERRUPT:
-            epit_handle_irq(&imx_ltimer->epit);
-            break;
-#endif
         default:
             ZF_LOGE("Unknown irq");
             return EINVAL;
@@ -123,7 +102,7 @@ static int get_time(void *data, uint64_t *time)
     assert(time != NULL);
 
     imx_ltimer_t *imx_ltimer = data;
-    *time = gpt_get_time(&imx_ltimer->gpt);
+    *time = imx_get_time(&imx_ltimer->timers);
     return 0;
 }
 
@@ -138,14 +117,11 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
     imx_ltimer_t *imx_ltimer = data;
 
     if (type == TIMEOUT_ABSOLUTE) {
-        uint64_t current_time = gpt_get_time(&imx_ltimer->gpt);
+        uint64_t current_time = imx_get_time(&imx_ltimer->timers);
         ns -= current_time;
     }
-#ifdef CONFIG_PLAT_IMX7
-    return gpt_set_timeout(&imx_ltimer->timeout_gpt, ns, type == TIMEOUT_PERIODIC);
-#else
-    return epit_set_timeout(&imx_ltimer->epit, ns, type == TIMEOUT_PERIODIC);
-#endif
+
+    return imx_set_timeout(&imx_ltimer->timers, ns, type == TIMEOUT_PERIODIC);
 }
 
 static int reset(void *data)
@@ -154,13 +130,10 @@ static int reset(void *data)
     imx_ltimer_t *imx_ltimer = data;
 
     /* reset the timers */
-    gpt_stop(&imx_ltimer->gpt);
-    gpt_start(&imx_ltimer->gpt);
-#ifdef CONFIG_PLAT_IMX7
-    gpt_stop(&imx_ltimer->timeout_gpt);
-#else
-    epit_stop(&imx_ltimer->epit);
-#endif
+    imx_stop_timeout(&imx_ltimer->timers);
+    imx_stop_timestamp(&imx_ltimer->timers);
+    imx_start_timestamp(&imx_ltimer->timers);
+
     return 0;
 }
 
@@ -170,21 +143,14 @@ static void destroy(void *data)
 
     imx_ltimer_t *imx_ltimer = data;
 
-#ifdef CONFIG_PLAT_IMX7
-    if (imx_ltimer->timeout_gpt_vaddr) {
-        gpt_stop(&imx_ltimer->timeout_gpt);
-        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timeout_gpt_vaddr, PAGE_SIZE_4K);
+    if (imx_ltimer->timestamp_vaddr) {
+        imx_stop_timestamp(&imx_ltimer->timers);
+        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timestamp_vaddr, PAGE_SIZE_4K);
     }
-#else
-    if (imx_ltimer->epit_vaddr) {
-        epit_stop(&imx_ltimer->epit);
-        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->epit_vaddr, PAGE_SIZE_4K);
-    }
-#endif
 
-    if (imx_ltimer->gpt_vaddr) {
-        gpt_stop(&imx_ltimer->gpt);
-        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->gpt_vaddr, PAGE_SIZE_4K);
+    if (imx_ltimer->timeout_vaddr) {
+        imx_stop_timeout(&imx_ltimer->timers);
+        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timeout_vaddr, PAGE_SIZE_4K);
     }
 
     ps_free(&imx_ltimer->ops.malloc_ops, sizeof(imx_ltimer), imx_ltimer);
@@ -214,69 +180,32 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     /* map the frames we need */
     imx_ltimer->ops = ops;
-    imx_ltimer->gpt_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[0], false, PS_MEM_NORMAL);
-    if (imx_ltimer->gpt_vaddr == NULL) {
+    imx_ltimer->timestamp_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[0], false, PS_MEM_NORMAL);
+    if (imx_ltimer->timestamp_vaddr == NULL) {
         return -1;
     }
 
-#ifdef CONFIG_PLAT_IMX7
-    imx_ltimer->timeout_gpt_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
-    if (imx_ltimer->timeout_gpt_vaddr == NULL) {
-        return -1;
-    }
-#else
-    imx_ltimer->epit_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
-    if (!imx_ltimer->epit_vaddr) {
+    imx_ltimer->timeout_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
+    if (!imx_ltimer->timeout_vaddr) {
         ltimer_destroy(ltimer);
         return -1;
     }
-#endif
 
-    /* setup gpt */
-    gpt_config_t gpt_config = {
-        .vaddr = imx_ltimer->gpt_vaddr,
-        .prescaler = GPT_PRESCALER
-    };
-
-    /* intitialise gpt for getting the time */
-    error = gpt_init(&imx_ltimer->gpt, gpt_config);
+    error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timestamp_vaddr);
     if (error) {
-        ZF_LOGE("Failed to init gpt");
+        ZF_LOGE("Failed to init timestamp timer");
         ltimer_destroy(ltimer);
         return error;
     }
 
-    error = gpt_start(&imx_ltimer->gpt);
+    imx_start_timestamp(&imx_ltimer->timers);
+
+    error = imx_init_timeout(&imx_ltimer->timers, imx_ltimer->timeout_vaddr);
     if (error) {
-        ZF_LOGE("Failed to start gpt");
+        ZF_LOGE("Failed to init timeout timer");
         ltimer_destroy(ltimer);
         return error;
     }
-
-#ifdef CONFIG_PLAT_IMX7
-    gpt_config.vaddr = imx_ltimer->timeout_gpt_vaddr;
-    gpt_config.prescaler = GPT_PRESCALER;
-    error = gpt_init(&imx_ltimer->timeout_gpt, gpt_config);
-    if (error) {
-        ZF_LOGE("Failed to init timeout gpt");
-        ltimer_destroy(ltimer);
-        return error;
-    }
-#else
-    /* initialise epit for timeouts */
-    epit_config_t config = {
-        .vaddr = imx_ltimer->epit_vaddr,
-        .irq = EPIT2_INTERRUPT,
-        .prescaler = 0
-    };
-
-    error = epit_init(&imx_ltimer->epit, config);
-    if (error != 0) {
-        ltimer_destroy(ltimer);
-        ZF_LOGE("Failed to init epit");
-        return error;
-    }
-#endif
 
     /* success! */
     return 0;
