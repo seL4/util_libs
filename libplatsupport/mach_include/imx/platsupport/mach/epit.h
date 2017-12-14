@@ -56,3 +56,9 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic);
 int epit_set_timeout_ticks(epit_t *epit, uint64_t ticks, bool periodic);
 /* handle an irq */
 int epit_handle_irq(epit_t *epit);
+/* check if an irq has occured */
+bool epit_is_irq_raised(epit_t *epit);
+/* read the value of the epit counter */
+uint32_t epit_read(epit_t *epit);
+/* convert epit ticks to ns */
+uint64_t epit_ticks_to_ns(epit_t *epit, uint64_t ticks);

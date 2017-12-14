@@ -145,6 +145,21 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
     return epit_set_timeout_ticks(epit, counterValue, periodic);
 }
 
+bool epit_is_irq_raised(epit_t *epit)
+{
+    /* there is only 1 bit in the epitsr, 1 indicates a compare bit has occured */
+    return !!epit->epit_map->epitsr;
+}
+
+uint32_t epit_read(epit_t *epit) {
+    return epit->epit_map->epitcnt;
+}
+
+uint64_t epit_ticks_to_ns(epit_t *epit, uint64_t ticks)
+{
+    return (ticks * 1000llu) / (IPG_FREQ / (epit->prescaler + 1));
+}
+
 int epit_handle_irq(epit_t *epit)
 {
     if (epit->epit_map->epitsr) {
