@@ -138,6 +138,8 @@ int epit_set_timeout_ticks(epit_t *epit, uint64_t counterValue, bool periodic)
 
 int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
 {
+    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
+    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     /* Set counter modulus - this effectively sets the timeouts to us but doesn't
      * overflow as fast. */
     uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
@@ -147,11 +149,15 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
 
 bool epit_is_irq_raised(epit_t *epit)
 {
+    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
+    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     /* there is only 1 bit in the epitsr, 1 indicates a compare bit has occured */
     return !!epit->epit_map->epitsr;
 }
 
 uint32_t epit_read(epit_t *epit) {
+    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
+    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     return epit->epit_map->epitcnt;
 }
 
@@ -162,6 +168,8 @@ uint64_t epit_ticks_to_ns(epit_t *epit, uint64_t ticks)
 
 int epit_handle_irq(epit_t *epit)
 {
+    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
+    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     if (epit->epit_map->epitsr) {
         /* ack the irq */
         epit->epit_map->epitsr = 1;
