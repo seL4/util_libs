@@ -92,7 +92,7 @@ static inline void imx_stop_timestamp(imx_timers_t *timers)
     gpt_stop(&timers->timestamp);
 }
 
-static inline int imx_init_timestamp(void *vaddr)
+static inline int imx_init_timestamp(imx_timers_t *timers, void *vaddr)
 {
     gpt_config_t config = {
         .vaddr = vaddr,
