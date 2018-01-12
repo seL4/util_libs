@@ -27,12 +27,22 @@ void arm_disable_dcaches(void);
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
 {
+#ifndef CONFIG_ARCH_AARCH64
     arm_disable_dcaches();
+#endif
     /* Spin until the first CPU has finished initialisation. */
     while (!non_boot_lock) {
+#ifndef CONFIG_ARCH_AARCH64
         cpu_idle();
+#endif
     }
 
+#ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
+    if (is_hyp_mode()) {
+        extern void leave_hyp(void);
+        leave_hyp();
+    }
+#endif
     /* Enable the MMU, and enter the kernel. */
     if(is_hyp_mode()){
         arm_enable_hyp_mmu();
@@ -51,7 +61,9 @@ void non_boot_main(void)
 
 void smp_boot(void)
 {
+#ifndef CONFIG_ARCH_AARCH64
     arm_disable_dcaches();
+#endif
     init_cpus();
     non_boot_lock = 1;
 }
