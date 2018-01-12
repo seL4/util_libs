@@ -10,8 +10,15 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <autoconf.h>
 #include <assembler.h>
 #include <mode/assembler.h>
+
+#if CONFIG_MAX_NUM_NODES > 1
+#define TCR_ISH     TCR_SHARED
+#else
+#define TCR_ISH     0
+#endif
 
 .text
 
@@ -66,7 +73,7 @@ BEGIN_FUNC(arm_enable_mmu)
                  MAIR(0xff, MT_NORMAL)
     msr     mair_el1, x5
 
-    ldr     x10, =TCR_TxSZ(48) | TCR_IRGN_WBWA | TCR_ORGN_WBWA | TCR_TG0_4K | TCR_TG1_4K | TCR_ASID16
+    ldr     x10, =TCR_TxSZ(48) | TCR_IRGN_WBWA | TCR_ORGN_WBWA | TCR_TG0_4K | TCR_TG1_4K | TCR_ASID16 | TCR_ISH
     mrs     x9, ID_AA64MMFR0_EL1
     bfi     x10, x9, #32, #3
     msr     tcr_el1, x10

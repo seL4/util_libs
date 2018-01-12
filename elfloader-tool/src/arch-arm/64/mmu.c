@@ -10,6 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <autoconf.h>
 #include <types.h>
 #include <elfloader.h>
 #include <mode/structures.h>
@@ -44,6 +45,9 @@ void init_boot_vspace(struct image_info *kernel_info)
     for (i = 0; i < BIT(PMD_BITS); i++) {
         _boot_pmd_up[i] = ((i << ARM_2MB_BLOCK_BITS) + first_paddr)
                           | BIT(10) /* access flag */
+#if CONFIG_MAX_NUM_NODES > 1
+                          | (3 << 8) /* make sure the shareability is the same as the kernel's */
+#endif
                           | (4 << 2) /* MT_NORMAL memory */
                           | BIT(0); /* 2M block */
     }
