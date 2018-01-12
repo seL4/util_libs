@@ -24,7 +24,7 @@ static inline void dsb(void)
 
 static inline void dmb(void)
 {
-    asm volatile("dmb" ::: "memory");
+    asm volatile("dmb sy" ::: "memory");
 }
 
 static inline void isb(void)
@@ -32,3 +32,10 @@ static inline void isb(void)
     asm volatile("isb" ::: "memory");
 }
 
+
+#define MRS(reg, v)  asm volatile("mrs %0," reg : "=r"(v))
+#define MSR(reg, v)                                \
+    do {                                           \
+        word_t _v = v;                             \
+        asm volatile("msr " reg ",%0" :: "r" (_v));\
+    } while(0)
