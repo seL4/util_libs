@@ -10,7 +10,7 @@
 # @TAG(DATA61_BSD)
 #
 
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.8.2)
 
 # Helper function for modifying the linker flags of a target to set the entry point as _sel4_start
 function(SetSeL4Start target)
@@ -140,11 +140,9 @@ function(DeclareRootserver rootservername)
             COMMAND ${CROSS_COMPILER_PREFIX}ld -T "${ElfloaderArchiveBinLds}" --oformat ${LinkOFormat}
                 -r -b binary ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio -o elf_archive.o
             COMMAND
-                echo ${c_arguments} -I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,:-I>
+                ${CMAKE_C_COMPILER}
+                    "${c_arguments}" "-I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
                     -P -E -o linker.lds_pp -x c ${ElfloaderLinkerScript}
-                | sed "s/:/ /g"
-                | xargs
-                    ${CMAKE_C_COMPILER}
             COMMAND ${CROSS_COMPILER_PREFIX}ld -T linker.lds_pp --oformat ${LinkOFormat}
                 $<TARGET_FILE:elfloader> elf_archive.o -Ttext=${PlatformEntryAddr} -o ${elfloader_output}
             COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all ${elfloader_output}
@@ -155,6 +153,7 @@ function(DeclareRootserver rootservername)
             # configuration space
             DEPENDS kernel.elf ${rootservername} elfloader Configuration
             VERBATIM
+            COMMAND_EXPAND_LISTS
         )
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" kernel.elf ${rootservername} elfloader Configuration)
     endif()
