@@ -27,7 +27,7 @@ BEGIN_FUNC(leave_hyp)
     bl      flush_dcache
 
     /* Ensure I-cache, D-cache and mmu are disabled for EL2/Stage1 */
-    disable_mmu sctlr_el2, x19
+    disable_mmu sctlr_el2, x9
 
     /*
      * Invalidate the local I-cache so that any instructions fetched
@@ -36,25 +36,25 @@ BEGIN_FUNC(leave_hyp)
     bl      invalidate_icache
 
     /* Ensure I-cache, D-cache and mmu are disabled for EL1/Stage2 */
-    mov     x19, #(1 << 31)
-    msr     hcr_el2, x19
+    mov     x9, #(1 << 31)
+    msr     hcr_el2, x9
 
     /* Ensure traps to EL2 are disabled */
-    mov     x19, #0x33ff
-    msr     cptr_el2, x19
+    mov     x9, #0x33ff
+    msr     cptr_el2, x9
     msr     hstr_el2, xzr
     msr     vttbr_el2, xzr
 
     /* Ensure I-cache, D-cache and mmu are disabled for EL1/Stage1 */
-    disable_mmu sctlr_el1 , x19
+    disable_mmu sctlr_el1 , x9
 
-    mov     x19, #(PSR_F_BIT | PSR_I_BIT | PSR_A_BIT | PSR_D_BIT | PSR_MODE_EL1h)
-    msr     spsr_el2, x19
+    mov     x9, #(PSR_F_BIT | PSR_I_BIT | PSR_A_BIT | PSR_D_BIT | PSR_MODE_EL1h)
+    msr     spsr_el2, x9
 
     /* Let's the caller use our stack, in case it needs to pop something */
     ldp     x29, x30, [sp], #16
-    mov     x28, sp
-    msr     sp_el1, x28
+    mov     x10, sp
+    msr     sp_el1, x10
     msr     elr_el2, x30
     eret
 END_FUNC(leave_hyp)
