@@ -214,7 +214,7 @@ fi
 #
 if [ "${__EFI__}" == "y" ]; then
     ${TOOLPREFIX}objcopy -O binary ${OUTPUT_FILE} ${OUTPUT_FILE}.efi
-    rm -f ${OUTPUT_FILE}
+    mv ${OUTPUT_FILE}.efi ${OUTPUT_FILE}
 fi
 
 #
@@ -222,7 +222,7 @@ fi
 #
 if [ "${__binary__}" == "y" ]; then
     ${TOOLPREFIX}objcopy -O binary ${OUTPUT_FILE} ${OUTPUT_FILE}.bin
-    rm -f ${OUTPUT_FILE}
+    mv ${OUTPUT_FILE}.bin ${OUTPUT_FILE}
 fi
 
 # Done
