@@ -126,32 +126,21 @@ function(DeclareRootserver rootservername)
                 DEPENDS ${elfloader_output}
             )
         endif()
+        MakeCPIO(elfloader_archive.o "$<TARGET_FILE:kernel.elf>;$<TARGET_FILE:${rootservername}>")
         add_custom_command(OUTPUT "${elfloader_output}"
-            COMMAND cp $<TARGET_FILE:kernel.elf> cpio/kernel.elf
-            COMMAND cp $<TARGET_FILE:${rootservername}> cpio/${rootservername}
-            COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all cpio/kernel.elf cpio/${rootservername}
-            COMMAND echo kernel.elf > cpio/files
-            COMMAND echo "${rootservername}" >> cpio/files
-            COMMAND cd cpio && cat files | cpio --quiet -o -H newc > ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio && cd ..
-            # Convert userspace / kernel into an archive which can then be linked
-            # against the elfloader binary. Change to the directory of archive.cpio
-            # before this operation to avoid polluting the symbol table with references
-            # to the temporary directory.
-            COMMAND ${CROSS_COMPILER_PREFIX}ld -T "${ElfloaderArchiveBinLds}" --oformat ${LinkOFormat}
-                -r -b binary ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio -o elf_archive.o
             COMMAND
                 ${CMAKE_C_COMPILER}
                     "${c_arguments}" "-I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
                     -P -E -o linker.lds_pp -x c ${ElfloaderLinkerScript}
             COMMAND ${CROSS_COMPILER_PREFIX}ld -T linker.lds_pp --oformat ${LinkOFormat}
-                $<TARGET_FILE:elfloader> elf_archive.o -Ttext=${PlatformEntryAddr} -o ${elfloader_output}
+                $<TARGET_FILE:elfloader> elfloader_archive.o -Ttext=${PlatformEntryAddr} -o ${elfloader_output}
             COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all ${elfloader_output}
-            BYPRODUCTS cpio/kernel.elf "cpio/${rootservername}" cpio/files ${CMAKE_CURRENT_BINARY_DIR}/elf_archive.cpio elf_archive.o linker.lds_pp
+            BYPRODUCTS linker.lds_pp
             # TODO: this should just have a dependency on elfloader_Config instead of Configuration,
             # and the above TARGET_PROPERTY should reflect that. But currently the linker script
             # wants to include the legacy autoconf.h, so we need to give it access to the entire
             # configuration space
-            DEPENDS kernel.elf ${rootservername} elfloader Configuration
+            DEPENDS kernel.elf ${rootservername} elfloader Configuration elfloader_archive.o
             VERBATIM
             COMMAND_EXPAND_LISTS
         )
