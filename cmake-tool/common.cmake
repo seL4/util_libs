@@ -42,20 +42,20 @@ function(MakeCPIO output_name input_files)
     foreach(file IN LISTS input_files)
         list(APPEND commands
             "cd `dirname ${file}`"
-            "echo `basename ${file}` | cpio ${append} --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.cpio"
+            "echo `basename ${file}` | cpio ${append} --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio"
         )
         set(append "--append")
     endforeach()
-    file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cpio_script.sh CONTENT "${commands}")
+    file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cpio_script.${output_name}.sh CONTENT "${commands}")
     add_custom_command(OUTPUT ${output_name}
-        COMMAND rm -f archive.cpio
-        COMMAND chmod u+x cpio_script.sh
-        COMMAND ./cpio_script.sh
+        COMMAND rm -f archive.${output_name}.cpio
+        COMMAND chmod u+x cpio_script.${output_name}.sh
+        COMMAND ./cpio_script.${output_name}.sh
         COMMAND echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
-            > link.ld
-        COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.ld --oformat ${LinkOFormat} -r -b binary archive.cpio -o ${output_name}
-        BYPRODUCTS archive.cpio link.ld
-        DEPENDS ${input_files} cpio_script.sh
+            > link.${output_name}.ld
+        COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld --oformat ${LinkOFormat} -r -b binary archive.${output_name}.cpio -o ${output_name}
+        BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
+        DEPENDS ${input_files} cpio_script.${output_name}.sh
         VERBATIM
         COMMENT "Generate CPIO archive ${output_name}"
     )
