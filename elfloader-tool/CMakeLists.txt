@@ -24,15 +24,15 @@ config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
 
 config_choice(ElfloaderMode ELFLOADER_MODE "seL4 mode"
     "secure supervisor;ElfloaderModeSSup;ARM_S_SUPERVISOR_MODE;KernelPlatImx6"
-    "monitor;ElfloaderModeMonitor;ARM_MONITOR_MODE;KernelPlatformJetson OR KernelPlatImx6"
-    "hypervisor;ElfloaderModeHyp;ARM_HYPERVISOR_MODE;KernelPlatformJetson"
-    "non-secure supervisor;ElfloaderModeNSSup;ARM_NS_SUPERVISOR_MODE;KernelPlatformJetson OR KernelPlatImx6"
+    "monitor;ElfloaderModeMonitor;ARM_MONITOR_MODE;KernelPlatformTK1 OR KernelPlatImx6"
+    "hypervisor;ElfloaderModeHyp;ARM_HYPERVISOR_MODE;KernelPlatformTK1"
+    "non-secure supervisor;ElfloaderModeNSSup;ARM_NS_SUPERVISOR_MODE;KernelPlatformTK1 OR KernelPlatImx6"
 )
 
 config_option(ElfloaderMonitorHook ARM_MONITOR_HOOK
     "Install SMC call handlers in monitor mode."
     DEFAULT OFF
-    DEPENDS "KernelPlatformJetson"
+    DEPENDS "KernelPlatformTK1"
 )
 
 config_option(ElfloaderGPTPtimersNSPL1Access GPT_PTIMER_NS_PL1_ACCESS
