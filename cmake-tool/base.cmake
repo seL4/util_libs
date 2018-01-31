@@ -50,6 +50,10 @@ include(${KERNEL_HELPERS_PATH})
 # Include our common helpers
 include("${CMAKE_CURRENT_LIST_DIR}/common.cmake")
 
+# Include the elfloader before setting up user mode flags, as the elfloader does
+# not run as a user under the kernel
+add_subdirectory("${real_list}/../elfloader-tool" elfloader-tool)
+
 # Setup the build flags
 include("${CMAKE_CURRENT_LIST_DIR}/flags.cmake")
 
@@ -59,5 +63,4 @@ include("${CMAKE_CURRENT_LIST_DIR}/flags.cmake")
 # Both of these might not be subdirectories from our source root, so also
 # give them both explicit build directories
 get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
-add_subdirectory("${real_list}/../elfloader-tool" elfloader-tool)
 add_subdirectory("${KERNEL_PATH}/libsel4" libsel4)

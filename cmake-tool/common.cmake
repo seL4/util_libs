@@ -95,56 +95,29 @@ function(DeclareRootserver rootservername)
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" "${KERNEL_IMAGE_NAME}" kernel.elf $<TARGET_FILE:${rootservername}> ${rootservername})
     elseif("${KernelArch}" STREQUAL "arm")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}")
-        if(KernelPlatImx6 OR KernelPlatformRpi3)
-            set(PlatformEntryAddr 0x20000000)
-        elseif(KernelPlatformKZM OR KernelPlatformOMAP3 OR KernelPlatformAM335X)
-            set(PlatformEntryAddr 0x82000000)
-        elseif(KernelPlatExynos5 OR KernelPlatformExynos4)
-            set(PlatformEntryAddr 0x41000000)
-        elseif(KernelPlatformHikey OR KernelPlatformTx1)
-            if (KernelSel4ArchAarch64)
-                set(PlatformEntryAddr 0)
-            else()
-                set(PlatformEntryAddr 0x1000)
-            endif()
-        elseif(KernelPlatformAPQ8064)
-            set(PlatformEntryAddr 0x82008000)
-        elseif(KernelPlatformTK1)
-            set(PlatformEntryAddr 0x90000000)
-        elseif(KernelPlatformZynq7000)
-            set(PlatformEntryAddr 0x10000000)
-        else()
-            message(FATAL_ERROR "Unknown platform when generating image")
-        endif()
-        separate_arguments(c_arguments UNIX_COMMAND "${CMAKE_C_FLAGS}")
-        set(elfloader_output "${IMAGE_NAME}")
         if(NOT "${ElfloaderImage}" STREQUAL "elf")
-            set(elfloader_output rootserver.bin)
             # If not an elf we construct an intermediate rule to do an objcopy to binary
             add_custom_command(OUTPUT "${IMAGE_NAME}"
-                COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O binary rootserver.bin "${IMAGE_NAME}"
-                DEPENDS ${elfloader_output}
+                COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
+                DEPENDS $<TARGET_FILE:elfloader> elfloader
+            )
+        else ()
+            add_custom_command(OUTPUT "${IMAGE_NAME}"
+                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
+                DEPENDS $<TARGET_FILE:elfloader> elfloader
             )
         endif()
-        MakeCPIO(elfloader_archive.o "$<TARGET_FILE:kernel.elf>;$<TARGET_FILE:${rootservername}>")
-        add_custom_command(OUTPUT "${elfloader_output}"
-            COMMAND
-                ${CMAKE_C_COMPILER}
-                    "${c_arguments}" "-I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
-                    -P -E -o linker.lds_pp -x c ${ElfloaderLinkerScript}
-            COMMAND ${CROSS_COMPILER_PREFIX}ld -T linker.lds_pp --oformat ${LinkOFormat}
-                $<TARGET_FILE:elfloader> elfloader_archive.o -Ttext=${PlatformEntryAddr} -o ${elfloader_output}
-            COMMAND ${CROSS_COMPILER_PREFIX}strip --strip-all ${elfloader_output}
-            BYPRODUCTS linker.lds_pp
-            # TODO: this should just have a dependency on elfloader_Config instead of Configuration,
-            # and the above TARGET_PROPERTY should reflect that. But currently the linker script
-            # wants to include the legacy autoconf.h, so we need to give it access to the entire
-            # configuration space
-            DEPENDS kernel.elf ${rootservername} elfloader Configuration elfloader_archive.o
-            VERBATIM
-            COMMAND_EXPAND_LISTS
-        )
-        add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" kernel.elf ${rootservername} elfloader Configuration)
+        add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" elfloader ${rootservername})
+        # Set the output name for the rootserver instead of leaving it to the generator. We need
+        # to do this so that we can put the rootserver image name as a property and have the
+        # elfloader pull it out using a generator expression, since generator expression cannot
+        # nest (i.e. in the expansion of $<TARGET_FILE:tgt> 'tgt' cannot itself be a generator
+        # expression. Nor can a generator exrepssion expand to another generator expression and
+        # get expanded again. As a result we just fix the output name and location of the rootserver
+        set_property(TARGET "${rootservername}" PROPERTY OUTPUT_NAME "${rootservername}")
+        get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
+        get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
+        set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
     endif()
     # Store the image and kernel image as properties
     set_property(GLOBAL PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME}")

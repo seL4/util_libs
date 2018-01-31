@@ -14,6 +14,8 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(elfloader C ASM)
 
+include(${KERNEL_FLAGS_PATH})
+
 set(configure_string "")
 
 config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
@@ -49,10 +51,9 @@ config_option(ElfloaderErrata764369 ARM_ERRATA_764369
 
 add_config_library(elfloader "${configure_string}")
 
-add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
+add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra -fno-pic -fno-pie)
 
-RequireFile(ElfloaderArchiveBinLds "archive.bin.lds" PATHS "${CMAKE_CURRENT_LIST_DIR}/src")
-RequireFile(ElfloaderLinkerScript "linker.lds" PATHS "${CMAKE_CURRENT_LIST_DIR}/src/arch-arm")
+set(linkerScript "${CMAKE_CURRENT_LIST_DIR}/src/arch-arm/linker.lds")
 
 file(GLOB files
     src/*.c
@@ -79,14 +80,20 @@ endif()
 # Sort files to make build reproducible
 list(SORT files)
 
-# Define a custom way of linking that just does a partial link into an archive ready
-# to be relinked with the kernel and user image to create a bootable elf
-set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <CMAKE_C_LINK_FLAGS> -r <OBJECTS> <LINK_LIBRARIES> <LINK_FLAGS> -lgcc \
-     -o <TARGET>")
-set(CMAKE_ASM_LINK_EXECUTABLE "<CMAKE_ASM_COMPILER> <CMAKE_ASM_LINK_FLAGS> -r <OBJECTS> <LINK_LIBRARIES> <LINK_FLAGS> \
-     -o <TARGET> -lgcc")
+MakeCPIO(archive.o "$<TARGET_FILE:kernel.elf>;$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>" CPIO_SYMBOL _archive_start)
 
-add_executable(elfloader EXCLUDE_FROM_ALL ${files})
+# Generate linker script
+separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
+add_custom_command(OUTPUT "linker.lds_pp"
+    COMMAND ${CMAKE_C_COMPILER} "${c_arguments}" "-I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
+        -P -E -o linker.lds_pp -x c ${linkerScript}
+    DEPENDS Configuration ${linkerScript}
+    VERBATIM
+    COMMAND_EXPAND_LISTS
+)
+add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
+
+add_executable(elfloader EXCLUDE_FROM_ALL ${files} archive.o)
 target_include_directories(elfloader PRIVATE
     "include"
     "include/plat/${KernelPlatform}"
@@ -96,3 +103,28 @@ target_include_directories(elfloader PRIVATE
     "include/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}"
 )
 target_link_libraries(elfloader PRIVATE Configuration cpio)
+add_dependencies(elfloader elfloader_linker)
+set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostartfiles -static -Wl,--build-id=none")
+
+if(KernelPlatImx6 OR KernelPlatformRpi3)
+    set(PlatformEntryAddr 0x20000000)
+elseif(KernelPlatformKZM OR KernelPlatformOMAP3 OR KernelPlatformAM335X)
+    set(PlatformEntryAddr 0x82000000)
+elseif(KernelPlatExynos5 OR KernelPlatformExynos4)
+    set(PlatformEntryAddr 0x41000000)
+elseif(KernelPlatformHikey OR KernelPlatformTx1)
+    if (KernelSel4ArchAarch64)
+        set(PlatformEntryAddr 0)
+    else()
+        set(PlatformEntryAddr 0x1000)
+    endif()
+elseif(KernelPlatformAPQ8064)
+    set(PlatformEntryAddr 0x82008000)
+elseif(KernelPlatformTK1)
+    set(PlatformEntryAddr 0x90000000)
+elseif(KernelPlatformZynq7000)
+    set(PlatformEntryAddr 0x10000000)
+else()
+    message(FATAL_ERROR "Unknown platform when generating image")
+endif()
+set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -Ttext=${PlatformEntryAddr} ")
