@@ -87,6 +87,14 @@
     isb
 .endm
 
+.macro disable_id_cache sctlr tmp
+    mrs     \tmp, \sctlr
+    bic     \tmp, \tmp, #(1 << 2)
+    bic     \tmp, \tmp, #(1 << 12)
+    msr     \sctlr, \tmp
+    isb
+.endm
+
 .macro dcache op
     dsb     sy
     mrs     x0, clidr_el1

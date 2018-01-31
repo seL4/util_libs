@@ -20,6 +20,15 @@
 .extern invalidate_icache
 .extern _boot_pgd_down
 
+BEGIN_FUNC(disable_caches_hyp)
+    stp     x29, x30, [sp, #-16]!
+    mov     x29, sp
+    bl      flush_dcache
+    disable_id_cache sctlr_el2, x9
+    ldp     x29, x30, [sp], #16
+    ret
+END_FUNC(disable_caches_hyp)
+
 BEGIN_FUNC(leave_hyp)
     /* We call nested functions, follow the ABI. */
     stp     x29, x30, [sp, #-16]!

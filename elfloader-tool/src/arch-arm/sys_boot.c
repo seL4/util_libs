@@ -66,6 +66,10 @@ void main(void)
 #endif
     /* Setup MMU. */
     if(is_hyp_mode()){
+#ifdef CONFIG_ARCH_AARCH64
+    extern void disable_caches_hyp();
+        disable_caches_hyp();
+#endif
         init_hyp_boot_vspace(&kernel_info);
     } else {
         /* If we are not in HYP mode, we enable the SV MMU and paging
