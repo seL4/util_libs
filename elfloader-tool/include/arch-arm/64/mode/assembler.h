@@ -29,18 +29,21 @@
 #define TCR_T1SZ(x)       ((64 - (x)) << 16)
 #define TCR_TxSZ(x)       (TCR_T0SZ(x) | TCR_T1SZ(x))
 
+#define TCR_IRGN0_WBWC    (1 << 8)
 #define TCR_IRGN_NC       ((0 << 8) | (0 << 24))
 #define TCR_IRGN_WBWA     ((1 << 8) | (1 << 24))
 #define TCR_IRGN_WT       ((2 << 8) | (2 << 24))
 #define TCR_IRGN_WBnWA    ((3 << 8) | (3 << 24))
 #define TCR_IRGN_MASK     ((3 << 8) | (3 << 24))
 
+#define TCR_ORGN0_WBWC    (1 << 10)
 #define TCR_ORGN_NC       ((0 << 10) | (0 << 26))
 #define TCR_ORGN_WBWA     ((1 << 10) | (1 << 26))
 #define TCR_ORGN_WT       ((2 << 10) | (2 << 26))
 #define TCR_ORGN_WBnWA    ((3 << 10) | (3 << 26))
 #define TCR_ORGN_MASK     ((3 << 10) | (3 << 26))
 
+#define TCR_SH0_ISH       (3 << 12)
 #define TCR_SHARED        ((3 << 12) | (3 << 28))
 
 #define TCR_TG0_4K        (0 << 14)
@@ -48,6 +51,15 @@
 #define TCR_TG1_4K        (2 << 30)
 #define TCR_TG1_64K       (3 << 30)
 
+#define TCR_PS_4G         (0 << 16)
+#define TCR_PS_64G        (1 << 16)
+#define TCR_PS_1T         (2 << 16)
+#define TCR_PS_4T         (3 << 16)
+#define TCR_PS_16T        (4 << 16)
+#define TCR_PS_256T       (5 << 16)
+
+/* bits are reserved as 1 */
+#define TCR_EL2_RES1      ((1 << 23) | (1 << 31))
 #define TCR_ASID16        (1 << 36)
 
 #define MT_DEVICE_nGnRnE  0

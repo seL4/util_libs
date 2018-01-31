@@ -67,10 +67,11 @@ void main(void)
     /* Setup MMU. */
     if(is_hyp_mode()){
         init_hyp_boot_vspace(&kernel_info);
+    } else {
+        /* If we are not in HYP mode, we enable the SV MMU and paging
+         * just in case the kernel does not support hyp mode. */
+        init_boot_vspace(&kernel_info);
     }
-    /* If we are in HYP mode, we enable the SV MMU and paging
-     * just in case the kernel does not support hyp mode. */
-    init_boot_vspace(&kernel_info);
 
 #if CONFIG_MAX_NUM_NODES > 1
     smp_boot();
@@ -79,9 +80,10 @@ void main(void)
     if(is_hyp_mode()){
         printf("Enabling hypervisor MMU and paging\n");
         arm_enable_hyp_mmu();
+    } else {
+        printf("Enabling MMU and paging\n");
+        arm_enable_mmu();
     }
-    printf("Enabling MMU and paging\n");
-    arm_enable_mmu();
 
     /* Enter kernel. */
     if (UART_PPTR < kernel_info.virt_region_start) {

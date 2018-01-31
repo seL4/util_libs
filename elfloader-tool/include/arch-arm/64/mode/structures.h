@@ -27,6 +27,7 @@
 
 #define GET_PGD_INDEX(x)        (((x) >> (ARM_2MB_BLOCK_BITS + PMD_BITS + PUD_BITS)) & MASK(PGD_BITS))
 #define GET_PUD_INDEX(x)        (((x) >> (ARM_2MB_BLOCK_BITS + PMD_BITS)) & MASK(PUD_BITS))
+#define GET_PMD_INDEX(x)        (((x) >> (ARM_2MB_BLOCK_BITS)) & MASK(PMD_BITS))
 
 extern uint64_t _boot_pgd_up[BIT(PGD_BITS)];
 extern uint64_t _boot_pud_up[BIT(PUD_BITS)];
