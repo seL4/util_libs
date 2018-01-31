@@ -12,53 +12,34 @@
 
 #include <autoconf.h>
 
-ENTRY(_start)
-
 PECOFF_FILE_ALIGNMENT = 0x200;
 
+SECTIONS
+{
+    .efi_text :
+    {
+        *(.text.efi.header)
+    }
+    .interp         : { *(.interp) }
+}
+INSERT BEFORE .hash;
+
 #ifdef CONFIG_IMAGE_EFI
-#define PECOFF_EDATA_PADDING    \
+SECTIONS
+{
     .pecoff_edata_padding : { BYTE(0); . = ALIGN(PECOFF_FILE_ALIGNMENT); }
-#else
-#define PECOFF_EDATA_PADDING
+}
+INSERT AFTER .data;
 #endif
 
 SECTIONS
 {
-    .text :
+    .abort_stack :
     {
-        *(.text.efi.header)
-        *(.text.start)
-        *(.text)
-    }
-
-    .rodata :
-    {
-        *(.rodata)
-        *(.rodata.*)
-        . = ALIGN(16);
-        _archive_start = .;
-        *(.archive_ar)
-        _archive_end = .;
-    }
-
-    .data :
-    {
-        *(.data)
-    }
-
-    PECOFF_EDATA_PADDING
-    _edata = .;
-
-    .bss :
-    {
-        *(.bss)
-
         _abortstack_bottom = .;
         . = . + 4K;
         . = ALIGN(16K);
         _abortstack_top = .;
     }
-
-    _end = .;
 }
+INSERT AFTER .bss;

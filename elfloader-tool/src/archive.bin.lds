@@ -14,6 +14,7 @@ SECTIONS
 {
     .archive_ar :
     {
-        *(.data)
+        _archive_start = .;
+        *(.*);
     }
 }
