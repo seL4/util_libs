@@ -906,106 +906,127 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
     UNUSED uint32_t int_status;
     int err, do_callback=0, callback_status, callback_nbytes=0;
 
+    const uint32_t error_int_statuses_mask =
+        TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT
+        | TK1I2C_INTSTATUS_MMODE_RX_FIFO_UNR_BIT
+        | TK1I2C_INTSTATUS_MMODE_NO_ACK_BIT
+        | TK1I2C_INTSTATUS_MMODE_ARBITRATION_LOST_BIT;
+
+    const uint32_t data_available_int_statuses_mask =
+        TK1I2C_INTSTATUS_MMODE_TX_FIFO_DATA_REQ_BIT
+        | TK1I2C_INTSTATUS_MMODE_RX_FIFO_DATA_REQ_BIT;
+
+    const uint32_t xfer_successful_completion_statuses_mask =
+        TK1I2C_INTSTATUS_MMODE_PACKET_XFER_COMPLETE_BIT
+        | TK1I2C_INTSTATUS_MMODE_ALL_PACKETS_XFER_COMPLETE_BIT;
+
     int_status = r->interrupt_status;
-    if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT) {
-        ZF_LOGF(IRQPREFIX "TX FIFO has been overflowed.", r);
-        do_callback = 1;
-        callback_status = I2CSTAT_ERROR;
-        callback_nbytes = s->master.xfer_cursor;
-    }
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_RX_FIFO_UNR_BIT) {
-        ZF_LOGF(IRQPREFIX "RX FIFO has been underrun.", r);
-        do_callback = 1;
-        callback_status = I2CSTAT_ERROR;
-        callback_nbytes = s->master.xfer_cursor;
-    }
+    /* Regardless of whether or not an error occured on the line, we should
+     * unconditionally read the data that did get transferred before the error
+     * occured, if any such data exists.
+     */
+    if (int_status & data_available_int_statuses_mask) {
+        if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_DATA_REQ_BIT
+            && s->master.is_write) {
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_NO_ACK_BIT) {
-        ZF_LOGE(IRQPREFIX "Slave failed to send ACK. Does this slave "
-                "require continue_on_nack?", r);
-        tk1_i2c_handle_nack(ib);
-        do_callback = 1;
-        callback_status = I2CSTAT_NACK;
-        callback_nbytes = s->master.xfer_cursor;
-    }
+            /* Refill TX fifo. */
+            if (s->master.xfer_cursor <= s->master.nbytes) {
+                err = tk1_i2c_fill_tx_fifo(ib, I2C_MODE_MASTER,
+                                           &s->master.buff[s->master.xfer_cursor],
+                                           s->master.nbytes - s->master.xfer_cursor);
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_ARBITRATION_LOST_BIT) {
-        ZF_LOGW(IRQPREFIX "Lost arbitration.", r);
-        tk1_i2c_handle_arbitration_loss(ib);
-        do_callback = 1;
-        callback_status = I2CSTAT_ARBITRATION_LOST;
-        callback_nbytes = s->master.xfer_cursor;
-    }
+                if (err < 0) {
+                    ZF_LOGF(IRQPREFIX "TX FIFO trigger IRQ came in, but "
+                            "TX FIFO is full.", r);
+                }
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_DATA_REQ_BIT
-        && s->master.is_write) {
+                s->master.xfer_cursor += err;
+                if (s->master.xfer_cursor > s->master.nbytes) {
+                    ZF_LOGF("Bug: TX userspace buffer has been overshot by driver!");
+                }
 
-        /* Refill TX fifo. */
-        if (s->master.xfer_cursor <= s->master.nbytes) {
-            err = tk1_i2c_fill_tx_fifo(ib, I2C_MODE_MASTER,
-                                       &s->master.buff[s->master.xfer_cursor],
-                                       s->master.nbytes - s->master.xfer_cursor);
-
-            if (err < 0) {
-                ZF_LOGF(IRQPREFIX "TX FIFO trigger IRQ came in, but "
-                        "TX FIFO is full.", r);
+                if (s->master.xfer_cursor == s->master.nbytes) {
+                    /* Disable TX FIFO trigger IRQ and then when the XFER_COMPLETE
+                     * IRQ comes in, callback.
+                     */
+                    tk1_i2c_toggle_irq(ib, false, TK1I2C_INTMASK_MMODE_TX_FIFO_DATA_REQ_BIT);
+                }
+            } else {
+                ZF_LOGF(IRQPREFIX "TX FIFO data req IRQ has read beyond "
+                        "userspace buffer!\n"
+                        "\txfer_cursor %d, nbytes %d.",
+                        r, s->master.xfer_cursor, s->master.nbytes);
             }
+        }
 
-            s->master.xfer_cursor += err;
-            if (s->master.xfer_cursor > s->master.nbytes) {
-                ZF_LOGF("Bug: TX userspace buffer has been overshot by driver!");
-            }
+        if (int_status & TK1I2C_INTSTATUS_MMODE_RX_FIFO_DATA_REQ_BIT
+            && !s->master.is_write) {
 
-            if (s->master.xfer_cursor == s->master.nbytes) {
-                /* Disable TX FIFO trigger IRQ and then when the XFER_COMPLETE
-                 * IRQ comes in, callback.
-                 */
-                tk1_i2c_toggle_irq(ib, false, TK1I2C_INTMASK_MMODE_TX_FIFO_DATA_REQ_BIT);
+            /* Drain RX fifo. */
+            if (s->master.xfer_cursor <= s->master.nbytes) {
+                err = tk1_i2c_drain_rx_fifo(ib, I2C_MODE_MASTER,
+                                            &s->master.buff[s->master.xfer_cursor],
+                                            s->master.nbytes - s->master.xfer_cursor);
+
+                if (err < 0) {
+                    ZF_LOGF(IRQPREFIX "RX FIFO trigger IRQ came in, but "
+                            "RX FIFO is empty.", r);
+                }
+
+                s->master.xfer_cursor += err;
+                if (s->master.xfer_cursor > s->master.nbytes) {
+                    ZF_LOGF("Bug: RX userspace buffer has been overshot by driver!");
+                }
+
+                if (s->master.xfer_cursor == s->master.nbytes) {
+                    /* Disable RX FIFO trigger IRQ and then when the XFER_COMPLETE
+                     * IRQ comes in, callback.
+                     */
+                    tk1_i2c_toggle_irq(ib, false, TK1I2C_INTMASK_MMODE_RX_FIFO_DATA_REQ_BIT);
+                }
+            } else {
+                ZF_LOGF(IRQPREFIX "RX FIFO data req IRQ has overrun userspace "
+                        "buffer.\n"
+                        "\txfer_cursor %d, nbytes %d.",
+                        r, s->master.xfer_cursor, s->master.nbytes);
             }
-        } else {
-            ZF_LOGF(IRQPREFIX "TX FIFO data req IRQ has read beyond "
-                    "userspace buffer!\n"
-                    "\txfer_cursor %d, nbytes %d.",
-                    r, s->master.xfer_cursor, s->master.nbytes);
         }
     }
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_RX_FIFO_DATA_REQ_BIT
-        && !s->master.is_write) {
+    /* If an error did occur, we need to decide what error condition to return.
+     * We want error conditions to take precedence over the completion
+     * condition.
+     */
+    if (int_status & error_int_statuses_mask) {
+        do_callback = 1;
+        callback_status = I2CSTAT_ERROR;
+        callback_nbytes = s->master.xfer_cursor;
 
-        /* Drain RX fifo. */
-        if (s->master.xfer_cursor <= s->master.nbytes) {
-            err = tk1_i2c_drain_rx_fifo(ib, I2C_MODE_MASTER,
-                                        &s->master.buff[s->master.xfer_cursor],
-                                        s->master.nbytes - s->master.xfer_cursor);
-
-            if (err < 0) {
-                ZF_LOGF(IRQPREFIX "RX FIFO trigger IRQ came in, but "
-                        "RX FIFO is empty.", r);
-            }
-
-            s->master.xfer_cursor += err;
-            if (s->master.xfer_cursor > s->master.nbytes) {
-                ZF_LOGF("Bug: RX userspace buffer has been overshot by driver!");
-            }
-
-            if (s->master.xfer_cursor == s->master.nbytes) {
-                /* Disable RX FIFO trigger IRQ and then when the XFER_COMPLETE
-                 * IRQ comes in, callback.
-                 */
-                tk1_i2c_toggle_irq(ib, false, TK1I2C_INTMASK_MMODE_RX_FIFO_DATA_REQ_BIT);
-            }
-        } else {
-            ZF_LOGF(IRQPREFIX "RX FIFO data req IRQ has overrun userspace "
-                    "buffer.\n"
-                    "\txfer_cursor %d, nbytes %d.",
-                    r, s->master.xfer_cursor, s->master.nbytes);
+        /* We would ideally like to return a bitfield with all the errors that
+         * occured, but since the API doesn't allow this, we arbitrarily
+         * choose the first one that we come across and return that one.
+         */
+        if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT) {
+            ZF_LOGF(IRQPREFIX "TX FIFO has been overflowed.", r);
+            // Use I2CSTAT_ERROR.
+        } else if (int_status & TK1I2C_INTSTATUS_MMODE_RX_FIFO_UNR_BIT) {
+            ZF_LOGF(IRQPREFIX "RX FIFO has been underrun.", r);
+            // Use I2CSTAT_ERROR.
+        } else if (int_status & TK1I2C_INTSTATUS_MMODE_NO_ACK_BIT) {
+            ZF_LOGE(IRQPREFIX "Slave failed to send ACK. Does this slave "
+                    "require continue_on_nack?", r);
+            tk1_i2c_handle_nack(ib);
+            callback_status = I2CSTAT_NACK;
+        } else if (int_status & TK1I2C_INTSTATUS_MMODE_ARBITRATION_LOST_BIT) {
+            ZF_LOGW(IRQPREFIX "Lost arbitration.", r);
+            tk1_i2c_handle_arbitration_loss(ib);
+            callback_status = I2CSTAT_ARBITRATION_LOST;
         }
-    }
+    } else if (int_status & xfer_successful_completion_statuses_mask) {
+        do_callback = 1;
+        callback_nbytes = s->master.xfer_cursor;
 
-    if (int_status & TK1I2C_INTSTATUS_MMODE_PACKET_XFER_COMPLETE_BIT
-        || int_status & TK1I2C_INTSTATUS_MMODE_ALL_PACKETS_XFER_COMPLETE_BIT) {
         if (s->master.xfer_cursor < s->master.nbytes) {
             ZF_LOGF(IRQPREFIX"Bug: Got \"PKT_XFER_COMPLETE\" IRQ when there "
                     "were bytes remaining to be xmitted.", r);
@@ -1020,13 +1041,13 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
              * so the XFER_COMPLETE IRQ doesn't actually have to be a separate
              * IRQ.
              */
-            do_callback = 1;
             callback_status = I2CSTAT_COMPLETE;
-            callback_nbytes = s->master.xfer_cursor;
         }
         if (int_status & TK1I2C_INTSTATUS_MMODE_ALL_PACKETS_XFER_COMPLETE_BIT) {
             ZF_LOGD(IRQPREFIX"Got an \"ALL_PKTS_XFER_COMPLETE\" IRQ.", r);
         }
+    } else {
+        ZF_LOGE(IRQPREFIX"IRQ occurred for unknown reason.", r);
     }
 
     /* TK1 TRM Section 33.5.23:
