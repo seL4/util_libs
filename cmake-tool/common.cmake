@@ -12,6 +12,7 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
+include("${CMAKE_CURRENT_LIST_DIR}/helpers/application_settings.cmake")
 # Helper function for modifying the linker flags of a target to set the entry point as _sel4_start
 function(SetSeL4Start target)
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " -u _sel4_start -e _sel4_start ")
