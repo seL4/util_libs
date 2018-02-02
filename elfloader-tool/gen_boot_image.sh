@@ -166,29 +166,11 @@ fi
 
 pushd "${TEMP_DIR}/cpio" &>/dev/null
 if [ "${HASH}" = "y" ]; then
-    printf "kernel.elf\n$(basename ${USER_IMAGE})\nkernel.bin\napp.bin" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
+    ${COMMON_PATH}/files_to_obj.sh ${TEMP_DIR}/archive.o _archive_start kernel.elf $(basename ${USER_IMAGE}) kernel.bin app.bin
 else
-    printf "kernel.elf\n$(basename ${USER_IMAGE})" | cpio --quiet -o -H newc > ${TEMP_DIR}/archive.cpio
+    ${COMMON_PATH}/files_to_obj.sh ${TEMP_DIR}/archive.o _archive_start kernel.elf $(basename ${USER_IMAGE})
 fi
-# Strip CPIO metadata if possible.
-which cpio-strip >/dev/null 2>/dev/null
-if [ $? -eq 0 ]; then
-    cpio-strip ${TEMP_DIR}/archive.cpio
-fi
-
 popd &>/dev/null
-
-#
-# Convert userspace / kernel into an archive which can then be linked
-# against the elfloader binary. Change to the directory of archive.cpio
-# before this operation to avoid polluting the symbol table with references
-# to the temporary directory.
-#
-pushd "${TEMP_DIR}" >/dev/null
-${TOOLPREFIX}ld -T "${SCRIPT_DIR}/archive.bin.lds" \
-        --oformat ${FORMAT} -r -b binary archive.cpio \
-        -o "${TEMP_DIR}/archive.o" || fail
-popd >/dev/null
 
 #
 # Clearup the linker script for target platform.
