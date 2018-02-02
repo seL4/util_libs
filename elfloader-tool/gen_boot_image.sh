@@ -197,13 +197,18 @@ ${TOOLPREFIX}gcc ${CPPFLAGS} -P -E \
         -o "${SCRIPT_DIR}/linker.lds_pp" \
         -x c "${SCRIPT_DIR}/linker.lds"
 
+# EFI images must be relocatable
+if [ "${__EFI__}" == "y" ]; then
+    PIE="-pie"
+fi
+
 #
 # Link everything together to produce the final ELF image.
 #
 ${TOOLPREFIX}ld -T "${SCRIPT_DIR}/linker.lds_pp" \
         --oformat ${FORMAT} \
         "${SCRIPT_DIR}/elfloader.o" "${TEMP_DIR}/archive.o" \
-        -Ttext=${ENTRY_ADDR} -o "${OUTPUT_FILE}" \
+        -Ttext=${ENTRY_ADDR} ${PIE} -o "${OUTPUT_FILE}" \
         || fail
 if [ "${STRIP}" = "y" ]; then
     ${TOOLPREFIX}strip --strip-all ${OUTPUT_FILE}
