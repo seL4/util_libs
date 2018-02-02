@@ -185,6 +185,7 @@ TEXT_OPTION="-Ttext="
 if [ "${__EFI__}" == "y" ]; then
     PIE="-pie"
     TEXT_OPTION=
+    ENTRY_ADDR=
 fi
 
 #
