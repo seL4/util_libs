@@ -71,7 +71,7 @@ case "$PLAT" in
     "hikey")
         if [ "$SEL4_ARCH" == "aarch64" ]
         then
-            ENTRY_ADDR=0x0
+            ENTRY_ADDR=0
             FORMAT=elf64-littleaarch64
         else
             ENTRY_ADDR=0x1000
@@ -197,9 +197,12 @@ ${TOOLPREFIX}gcc ${CPPFLAGS} -P -E \
         -o "${SCRIPT_DIR}/linker.lds_pp" \
         -x c "${SCRIPT_DIR}/linker.lds"
 
+TEXT_OPTION="-Ttext="
+
 # EFI images must be relocatable
 if [ "${__EFI__}" == "y" ]; then
     PIE="-pie"
+    TEXT_OPTION=
 fi
 
 #
@@ -208,7 +211,7 @@ fi
 ${TOOLPREFIX}ld -T "${SCRIPT_DIR}/linker.lds_pp" \
         --oformat ${FORMAT} \
         "${SCRIPT_DIR}/elfloader.o" "${TEMP_DIR}/archive.o" \
-        -Ttext=${ENTRY_ADDR} ${PIE} -o "${OUTPUT_FILE}" \
+        ${TEXT_OPTION}${ENTRY_ADDR} ${PIE} -o "${OUTPUT_FILE}" \
         || fail
 if [ "${STRIP}" = "y" ]; then
     ${TOOLPREFIX}strip --strip-all ${OUTPUT_FILE}
