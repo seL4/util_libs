@@ -83,7 +83,11 @@ for i in $@; do
 done
 pushd "${TEMP_DIR}/cpio" >/dev/null
 ARCHIVE="${TEMP_DIR}/archive.cpio"
-ls | cpio -o -H newc > ${ARCHIVE} 2>/dev/null
+APPEND=
+for i in $@; do
+    echo $(basename "${i}") | cpio ${APPEND} -o -H newc --file ${ARCHIVE} --quiet
+    APPEND="--append"
+done
 
 # Strip CPIO metadata if possible.
 set +e
