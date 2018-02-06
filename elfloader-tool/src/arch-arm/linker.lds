@@ -24,6 +24,15 @@ SECTIONS
 }
 INSERT BEFORE .hash;
 
+SECTIONS
+{
+    .start :
+    {
+        *(.text.start)
+    }
+}
+INSERT BEFORE .text;
+
 #ifdef CONFIG_IMAGE_EFI
 SECTIONS
 {

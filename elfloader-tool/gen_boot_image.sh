@@ -179,7 +179,7 @@ ${TOOLPREFIX}gcc ${CPPFLAGS} -P -E \
         -o "${SCRIPT_DIR}/linker.lds_pp" \
         -x c "${SCRIPT_DIR}/linker.lds"
 
-TEXT_OPTION="-Ttext="
+TEXT_OPTION="--section-start .start="
 
 # EFI images must be relocatable
 if [ "${__EFI__}" == "y" ]; then
