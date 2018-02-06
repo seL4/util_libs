@@ -10,6 +10,8 @@
 # @TAG(DATA61_BSD)
 #
 
+cmake_minimum_required(VERSION 3.8.2)
+
 function(ApplyData61ElfLoaderSettings)
     if(KernelArchARM)
         if(${KernelARMPlatform} STREQUAL "hikey" AND ${KernelArmSel4Arch} STREQUAL "aarch64")
