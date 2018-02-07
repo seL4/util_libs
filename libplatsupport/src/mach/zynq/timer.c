@@ -17,6 +17,7 @@
 #include <string.h>
 #include <utils/util.h>
 #include <inttypes.h>
+#include <utils/fence.h>
 #include <utils/arch/io.h>
 
 #include <platsupport/timer.h>
@@ -332,8 +333,15 @@ int ttc_handle_irq(ttc_t *ttc)
      * is triggered per call. */
     *regs->int_en &= ~INT_MATCH0;
 
-    /* Clear on read */
-    uint32_t res = force_read_value((uintptr_t *)&regs->int_sts[0]);
+    /* The int_sts register is being accessed through typedef ttc_tmr_regs_t
+     * which is marked volatile, so the compiler will not elide this read.
+     */
+    uint32_t res = regs->int_sts[0];
+    /* There are no data dependencies within this function that imply that the
+     * CPU cannot reorder this read in the pipeline. Use a CPU read barrier to
+     * inform the CPU that it should stall reads until this read has completed.
+     */
+    THREAD_MEMORY_RELEASE();
     return res;
 }
 
