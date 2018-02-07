@@ -333,7 +333,7 @@ int ttc_handle_irq(ttc_t *ttc)
     *regs->int_en &= ~INT_MATCH0;
 
     /* Clear on read */
-    uintptr_t res = force_read_value((uintptr_t *)&regs->int_sts[0]);
+    uint32_t res = force_read_value((uintptr_t *)&regs->int_sts[0]);
     return res;
 }
 
