@@ -112,12 +112,19 @@ switch_to_mon_mode(void)
 
         asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
 
-        /* now switch to secure monitor mode */
-        asm volatile ("cps %0\n\t"
+        /* now switch to secure monitor mode. restoring our stack and link register in the process
+         * as these two registers are banked. */
+        uint32_t sp_temp = 0;
+        uint32_t lr_temp = 0;
+        asm volatile ("mov %[SP_TEMP], sp\n"
+                      "mov %[LR_TEMP], lr\n"
+                      "cps %[MON_MODE]\n\t"
                       "isb\n"
-                     ::"I"(MONITOR_MODE));
-        /* set up stack */
-        asm volatile ("mov sp, %0" :: "r"(MON_PA_STACK));
+                      "mov sp, %[SP_TEMP]\n"
+                      "mov lr, %[LR_TEMP]\n"
+                     : [SP_TEMP]"+r"(sp_temp),
+                       [LR_TEMP]"+r"(lr_temp)
+                     : [MON_MODE]"I"(MONITOR_MODE));
         mon_init_done = 1;
         printf("ELF loader: monitor mode init done\n");
     }
