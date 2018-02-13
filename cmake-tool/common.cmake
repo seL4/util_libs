@@ -121,8 +121,8 @@ function(DeclareRootserver rootservername)
         set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
     endif()
     # Store the image and kernel image as properties
-    set_property(GLOBAL PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME}")
-    set_property(GLOBAL PROPERTY IMAGE_NAME "${IMAGE_NAME}")
+    set_property(TARGET rootserver_image PROPERTY IMAGE_NAME "${IMAGE_NAME}")
+    set_property(TARGET rootserver_image PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME}")
 endfunction(DeclareRootserver)
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
@@ -137,8 +137,8 @@ endmacro(TestQemuCPUFeature)
 # Helper function that generates targets that will attempt to generate a ./simulate style script
 function(GenerateSimulateScript)
     set(error "")
-    get_property(KERNEL_IMAGE_NAME GLOBAL PROPERTY KERNEL_IMAGE_NAME)
-    get_property(IMAGE_NAME GLOBAL PROPERTY IMAGE_NAME)
+    set(KERNEL_IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,KERNEL_IMAGE_NAME>")
+    set(IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,IMAGE_NAME>")
     if(KernelArchX86)
         # Try and simulate the correct micro architecture and features
         if(KernelX86MicroArchNehalem)
@@ -186,6 +186,7 @@ function(GenerateSimulateScript)
         COMMAND echo "${script}" > "${sim_path}"
         COMMAND chmod u+x "${sim_path}"
         VERBATIM
+        COMMAND_EXPAND_LISTS
     )
     add_custom_target(simulate_gen ALL DEPENDS "${sim_path}")
 endfunction(GenerateSimulateScript)
