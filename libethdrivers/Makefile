@@ -24,6 +24,6 @@ HDRFILES := \
     $(sort $(wildcard ${SOURCE_DIR}/include/*)) \
     $(sort $(wildcard ${SOURCE_DIR}/plat_include/$(PLAT)/*)) \
     $(sort $(wildcard ${SOURCE_DIR}/arch_include/${ARCH}/*)) \
-    $(sort $(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/cpsw/*)
+    $(sort $(wildcard ${SOURCE_DIR}/src/plat/$(PLAT)/cpsw/*))
 
 include $(SEL4_COMMON)/common.mk
