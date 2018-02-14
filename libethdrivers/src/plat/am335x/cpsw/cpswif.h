@@ -1,3 +1,5 @@
+/* @TAG(CUSTOM) */
+
 /**
  * @file - cpswif.h
  * Prototypes for CPSW Ethernet interface.

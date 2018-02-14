@@ -1,3 +1,5 @@
+/* @TAG(CUSTOM) */
+
 /**
  * @file - cpswif.c
  * lwIP Ethernet interface for CPSW port
