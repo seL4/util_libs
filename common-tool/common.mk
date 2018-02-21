@@ -289,7 +289,7 @@ endif
 %.a: $(OBJFILES)
 	@echo " [AR] $@ objs:$(OBJFILES)"
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(AR) r $@ $(OBJFILES) > /dev/null 2>&1
+	$(Q)$(AR) Dr $@ $(OBJFILES) > /dev/null 2>&1
 
 %.bin: %.elf
 	$(call cp_file,$<,$@)
