@@ -134,11 +134,26 @@ macro(TestQemuCPUFeature config feature string)
     endif()
 endmacro(TestQemuCPUFeature)
 
+# Function for the user for configuration the simulation script. Valid values for property are
+#  'GRAPHIC' if set to TRUE disables the -nographic flag
+function(SetSimulationScriptProperty property value)
+    # define the target if it doesn't already exist
+    if(NOT (TARGET simulation_script_prop_target))
+        add_custom_target(simulation_script_prop_target)
+    endif()
+    set_property(TARGET simulation_script_prop_target PROPERTY "${property}" "${value}")
+endfunction(SetSimulationScriptProperty)
+
 # Helper function that generates targets that will attempt to generate a ./simulate style script
 function(GenerateSimulateScript)
     set(error "")
     set(KERNEL_IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,KERNEL_IMAGE_NAME>")
     set(IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,IMAGE_NAME>")
+    # Define simulation script target if it doesn't exist to simplify the generator expressions
+    add_custom_target(simulation_script_prop_target)
+    if(NOT (TARGET simulation_script_prop_target))
+        add_custom_target(simulation_script_prop_target)
+    endif()
     if(KernelArchX86)
         # Try and simulate the correct micro architecture and features
         if(KernelX86MicroArchNehalem)
