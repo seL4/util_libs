@@ -11,7 +11,10 @@
  */
 
 #include <platsupport/i2c.h>
+
+#include <string.h>
 #include <utils/util.h>
+#include <utils/zf_log_if.h>
 #include <assert.h>
 
 /**
@@ -122,16 +125,38 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
 
 int
 i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
+                 enum i2c_slave_address_size address_size,
+                 enum i2c_slave_speed max_speed,
                  enum kvfmt afmt, enum kvfmt dfmt,
                  i2c_slave_t* i2c_slave)
 {
-    assert(i2c_slave);
+    ZF_LOGF_IF(!i2c_slave, "Slave output handle not supplied!");
+    ZF_LOGF_IF(!i2c_bus, "Controller handle not supplied!");
+
+    if (max_speed != I2C_SLAVE_SPEED_STANDARD
+           && max_speed != I2C_SLAVE_SPEED_FAST
+           && max_speed != I2C_SLAVE_SPEED_FASTPLUS
+           && max_speed != I2C_SLAVE_SPEED_HIGHSPEED)
+    {
+        return -EINVAL;
+    }
+
+    if (address_size != I2C_SLAVE_ADDR_7BIT
+           && address_size != I2C_SLAVE_ADDR_10BIT)
+    {
+        return -EINVAL;
+    }
+
+    ZF_LOGF_IF(!i2c_is_valid_address((address >> 1) & 0x7F),
+               "Invalid I2C address input %x.", address);
+
     i2c_slave->bus = i2c_bus;
     i2c_slave->address = address;
     i2c_slave->data_fmt = dfmt;
     i2c_slave->address_fmt = afmt;
-    return 0;
+    return i2c_slave_init(i2c_bus, address, address_size, max_speed, i2c_slave);
 }
+
 
 /* Loop until count registers have been read or an error occurs */
 int
@@ -153,6 +178,7 @@ i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
     }
     return count - remain;
 }
+
 
 /* Loop until count registers have been written or an error occurs */
 int
@@ -176,26 +202,10 @@ i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t reg, const void* vdata, int c
 }
 
 int
-i2c_slave_read(i2c_slave_t* i2c_slave, void* data, int size, i2c_callback_fn cb, void* token)
-{
-    return i2c_mread(i2c_slave->bus, i2c_slave->address, data, size, cb, token);
-}
-
-int
-i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size, i2c_callback_fn cb, void* token)
-{
-    return i2c_mwrite(i2c_slave->bus, i2c_slave->address, data, size, cb, token);
-}
-
-int
-i2c_slave_init(i2c_bus_t* i2c_bus, int address, i2c_slave_t* i2c_slave)
-{
-    return i2c_kvslave_init(i2c_bus, address, STREAM, STREAM, i2c_slave);
-}
-
-int
 i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
 {
+    i2c_slave_t sl;
+
     /* TODO:
      * This should use the I2C Device-ID command. Currently it just attempts to
      * read from each possible addressable ID on the bus.
@@ -212,7 +222,20 @@ i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
     int count;
     char dummy[10];
     for (count = 0, i = start & ~0x1; i < 0x100 && count < naddr; i += 2) {
-        ret = i2c_mread(i2c_bus, i, &dummy, 10, NULL, NULL);
+        /* Assume standard speed since we're just communicating with all the
+         * devices in sequence.
+         */
+        memset(&sl, 0, sizeof(sl));
+        ret = i2c_slave_init(i2c_bus, i,
+                             I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_STANDARD,
+                             &sl);
+        if (ret != 0) {
+            ZF_LOGW("Breaking out of scan early: failed to init slave "
+                    "structure for slave %d.", i);
+            break;
+        }
+
+        ret = i2c_slave_read(&sl, &dummy, 10, NULL, NULL);
         if (ret == 10) {
             *addr++ = i;
             count++;
