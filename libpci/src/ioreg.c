@@ -17,14 +17,14 @@
 void libpci_out(uint32_t port_no, uint32_t val, uint8_t size) {
     assert(size == 1 || size == 2 || size == 4);
     int UNUSED ret = libpci_iowrite(port_no, val, size);
-    assert(ret == seL4_NoError);
+    assert(ret == 0);
 }
 
 uint32_t libpci_in(uint32_t port_no, uint8_t size) {
     assert(size == 1 || size == 2 || size == 4);
     uint32_t val = 0;
     int UNUSED ret = libpci_ioread(port_no, &val, size);
-    assert(ret == seL4_NoError);
+    assert(ret == 0);
     return val;
 }
 

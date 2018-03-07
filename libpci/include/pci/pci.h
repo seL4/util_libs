@@ -14,7 +14,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <sel4/sel4.h>
 #include <pci/pci_config.h>
 #include <platsupport/io.h>
 
