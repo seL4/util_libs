@@ -31,7 +31,7 @@ endif()
 # Function for declaring rules to build a cpio archive that can be linked
 # into another target
 function(MakeCPIO output_name input_files)
-    cmake_parse_arguments(PARSE_ARGV 2 MAKE_CPIO "" "CPIO_SYMBOL" "")
+    cmake_parse_arguments(PARSE_ARGV 2 MAKE_CPIO "" "CPIO_SYMBOL" "DEPENDS")
     if (NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to MakeCPIO")
     endif()
@@ -56,7 +56,7 @@ function(MakeCPIO output_name input_files)
             > link.${output_name}.ld
         COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld --oformat ${LinkOFormat} -r -b binary archive.${output_name}.cpio -o ${output_name}
         BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
-        DEPENDS ${input_files} cpio_script.${output_name}.sh
+        DEPENDS ${input_files} cpio_script.${output_name}.sh ${MAKE_CPIO_DEPENDS}
         VERBATIM
         COMMENT "Generate CPIO archive ${output_name}"
     )
