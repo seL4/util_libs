@@ -458,7 +458,7 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     }
 
     /* Configure MUX */
-    err = mux_feature_enable(&io_ops->mux_sys, dev->mux);
+    err = mux_feature_enable(&io_ops->mux_sys, dev->mux, MUX_DIR_NOT_A_GPIO);
     if (err) {
         assert(!"Failed to configure I2C mux");
         return -1;
