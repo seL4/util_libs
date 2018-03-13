@@ -311,6 +311,26 @@ int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
                         enum kvfmt asize, enum kvfmt dsize,
                         i2c_slave_t* i2c_slave);
 
+/** Initialize an I2C slave device for GPIO bit-banged reading and writing.
+ *
+ * Initializes metadata to treat a set of GPIO pins as if they are addressig
+ * an I2C slave.
+ *
+ * @param[in]  bus     The I2C bus that this device resides on
+ * @param[in]  address The chip address of the slave device. The RW bit of
+ *                     the address should be set to 0.
+ * @param[in]  address_size The I2C hardware address bitlength: 7 or 10 bits.
+ * @param[in]  max_speed    The maximum speed usable with the target slave
+ *                          device. Device speed is one of: Standard, FM, FM+
+ *                          and HS.
+ * @param[out] i2c_slave A slave device structure to initialise
+ * @return             0 on success
+ */
+int i2c_bb_slave_init(i2c_bus_t* i2c_bus, int address,
+                      enum i2c_slave_address_size address_size,
+                      enum i2c_slave_speed max_speed,
+                      i2c_slave_t* i2c_slave);
+
 /**
  * Set the speed of the I2C bus
  * @param[in] i2c_bus  A handle to an I2C bus
