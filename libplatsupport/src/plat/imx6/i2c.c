@@ -259,7 +259,7 @@ master_start(struct i2c_bus_priv* dev, char addr)
 }
 
 static void
-slave_init(struct i2c_bus_priv* dev, char addr)
+internal_slave_init(struct i2c_bus_priv* dev, char addr)
 {
     dev->regs->address = addr;
     /* Enable the bus */
@@ -338,14 +338,14 @@ master_rxstart(struct i2c_bus_priv* dev, int slave)
 }
 
 static int
-imx6_i2c_read(i2c_bus_t* i2c_bus, void* data, size_t len, i2c_callback_fn cb, void* token)
+imx6_i2c_read(i2c_bus_t* i2c_bus, void* data, size_t len, UNUSED bool send_stop, i2c_callback_fn cb, void* token)
 {
     ZF_LOGF("Not implemented");
     return -1;
 }
 
 static int
-imx6_i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t len, i2c_callback_fn cb, void* token)
+imx6_i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t len, UNUSED bool send_stop, i2c_callback_fn cb, void* token)
 {
     ZF_LOGF("Not implemented");
     return -1;
@@ -359,12 +359,18 @@ imx6_i2c_master_stop(i2c_bus_t* i2c_bus)
 }
 
 static int
-imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
+imx6_i2c_start_write(i2c_slave_t* sl,
+                     const void* vdata, size_t len,
+                     UNUSED bool end_with_repeat_start,
+                     i2c_callback_fn cb, void* token)
 {
     struct i2c_bus_priv* dev;
-    dev = i2c_bus_get_priv(i2c_bus);
-    ZF_LOGD("Writing %d bytes to slave@0x%02x", len, slave);
-    master_txstart(dev, slave);
+
+    assert(sl != NULL && sl->bus != NULL);
+
+    dev = i2c_bus_get_priv(sl->bus);
+    ZF_LOGD("Writing %d bytes to slave@0x%02x", len, sl->address);
+    master_txstart(dev, sl->address);
 
     dev->tx_count = 0;
     dev->tx_buf = (const char*)vdata;
@@ -375,7 +381,7 @@ imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t le
 
     if (cb == NULL) {
         while (busy(dev)) {
-            i2c_handle_irq(i2c_bus);
+            i2c_handle_irq(sl->bus);
         }
         return dev->tx_count;
     } else {
@@ -384,15 +390,21 @@ imx6_i2c_start_write(i2c_bus_t* i2c_bus, int slave, const void* vdata, size_t le
 }
 
 static int
-imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_callback_fn cb, void* token)
+imx6_i2c_start_read(i2c_slave_t* sl,
+                    void* vdata, size_t len,
+                    UNUSED bool end_with_repeat_start,
+                    i2c_callback_fn cb, void* token)
 {
     struct i2c_bus_priv* dev;
-    dev = i2c_bus_get_priv(i2c_bus);
-    ZF_LOGD("Reading %d bytes from slave@0x%02x", len, slave);
-    if (slave == dev->regs->address) {
+
+    assert(sl != NULL && sl->bus != NULL);
+
+    dev = i2c_bus_get_priv(sl->bus);
+    ZF_LOGD("Reading %d bytes from slave@0x%02x", len, sl->address);
+    if (sl->address == dev->regs->address) {
         return -1;
     }
-    master_rxstart(dev, slave);
+    master_rxstart(dev, sl->address);
 
     dev->rx_count = -1;
     dev->rx_buf = (char*)vdata;
@@ -403,7 +415,7 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
 
     if (cb == NULL) {
         while (busy(dev)) {
-            i2c_handle_irq(i2c_bus);
+            i2c_handle_irq(sl->bus);
         }
         return dev->rx_count;
     } else {
@@ -412,23 +424,69 @@ imx6_i2c_start_read(i2c_bus_t* i2c_bus, int slave, void* vdata, size_t len, i2c_
 }
 
 static int
-imx6_i2c_set_address(i2c_bus_t* i2c_bus, int addr, i2c_aas_callback_fn aas_cb, void* aas_token)
+imx6_i2c_set_address(i2c_bus_t* i2c_bus, int addr)
 {
     struct i2c_bus_priv* dev;
     dev = i2c_bus_get_priv(i2c_bus);
-    i2c_bus->aas_cb = aas_cb;
-    i2c_bus->aas_token = aas_token;
 
-    slave_init(dev, addr);
+    internal_slave_init(dev, addr);
     return 0;
 }
 
+void
+imx6_i2c_register_slave_event_handler(i2c_bus_t *bus,
+                                      i2c_aas_callback_fn cb, void *token)
+{
+    assert(bus != NULL);
+    bus->aas_cb = cb;
+    bus->aas_token = token;
+}
+
+static const uint32_t i2c_speed_freqs[] = {
+    [I2C_SLAVE_SPEED_STANDARD] = 100000,
+    [I2C_SLAVE_SPEED_FAST] = 400000,
+    [I2C_SLAVE_SPEED_FASTPLUS] = 1000000,
+    [I2C_SLAVE_SPEED_HIGHSPEED] = 3400000
+};
+
 static long
-imx6_i2c_set_speed(i2c_bus_t* i2c_bus, long bps)
+imx6_i2c_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
 {
     struct i2c_bus_priv* dev;
+
+    if (speed < I2C_SLAVE_SPEED_STANDARD || speed > I2C_SLAVE_SPEED_HIGHSPEED) {
+        ZF_LOGE("imx6: I2C: Unsupported speed %d.", speed);
+        return -1;
+    }
+
     dev = i2c_bus_get_priv(i2c_bus);
-    return clk_set_freq(&dev->clock, bps);
+    /* "speed" is validated in the library code in arch_include/i2c.h. */
+    return clk_set_freq(&dev->clock, i2c_speed_freqs[speed]);
+}
+
+int
+imx6_i2c_slave_init(i2c_bus_t* i2c_bus, int address,
+                    enum i2c_slave_address_size address_size,
+                    enum i2c_slave_speed max_speed,
+                    uint32_t flags,
+                    i2c_slave_t* sl)
+{
+    assert(sl != NULL);
+
+    if (address_size == I2C_SLAVE_ADDR_7BIT) {
+        address = i2c_extract_address(address);
+    }
+
+    sl->address = address;
+    sl->address_size = address_size;
+    sl->max_speed = max_speed;
+    sl->i2c_opts = flags;
+    sl->bus = i2c_bus;
+
+    sl->slave_read      = &imx6_i2c_start_read;
+    sl->slave_write     = &imx6_i2c_start_write;
+
+    return 0;
 }
 
 int
@@ -476,14 +534,14 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     dev->regs->address = 0x00;
     dev->regs->control = I2CCON_ACK_EN;
 
-    i2c->start_read  = imx6_i2c_start_read;
-    i2c->start_write = imx6_i2c_start_write;
     i2c->read        = imx6_i2c_read;
     i2c->write       = imx6_i2c_write;
     i2c->set_speed   = imx6_i2c_set_speed;
-    i2c->set_address = imx6_i2c_set_address;
+    i2c->set_self_slave_address = imx6_i2c_set_address;
+    i2c->register_slave_event_handler = imx6_i2c_register_slave_event_handler;
     i2c->master_stop = imx6_i2c_master_stop;
     i2c->handle_irq  = imx6_i2c_handle_irq;
     i2c->priv        = (void*)dev;
+    i2c->slave_init  = imx6_i2c_slave_init;
     return 0;
 }
