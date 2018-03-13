@@ -34,7 +34,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct apq8064_mux* apq8064_mux)
 }
 
 static int
-apq8064_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
+apq8064_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
     struct apq8064_mux* m;
     if (mux == NULL || mux->priv == NULL) {

@@ -34,7 +34,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct imx31_mux* imx31_mux)
 }
 
 static int
-imx31_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
+imx31_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
     struct imx31_mux* m;
     if (mux == NULL || mux->priv == NULL) {

@@ -19,6 +19,7 @@
 #include <utils/util.h>
 #include <utils/arith.h>
 #include <utils/stringify.h>
+#include <utils/attribute.h>
 
 #include <platsupport/io.h>
 #include <platsupport/mux.h>

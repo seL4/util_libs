@@ -15,6 +15,7 @@
 typedef struct mux_sys mux_sys_t;
 
 #include <platsupport/plat/mux.h>
+#include <utils/arith.h>
 
 enum mux_gpio_dir {
     MUX_DIR_NOT_A_GPIO = 0,
