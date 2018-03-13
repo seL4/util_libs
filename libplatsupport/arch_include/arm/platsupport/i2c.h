@@ -302,7 +302,7 @@ int i2c_slave_init(i2c_bus_t* i2c_bus, int address,
  * @param[in]  dsize   The data word size in bytes
  *                     Positive values indicate LITTLE_ENDIAN while
  *                     negative values indicate BIG_ENDIAN.
- * @param[out] dev     A slave device structure to initialise
+ * @param[out] i2c_slave A slave device structure to initialise
  * @return             0 on success
  */
 int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
