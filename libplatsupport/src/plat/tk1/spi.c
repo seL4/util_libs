@@ -280,5 +280,5 @@ void
 spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
 {
     // TODO: implement support for multiple slaves
-    spi_bus->curr_slave = cfg;
+    spi_bus->curr_slave = (spi_slave_config_t *)cfg;
 }
