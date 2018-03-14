@@ -251,7 +251,7 @@ static int
 spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
 {
     if (mux_sys && mux_sys_valid(mux_sys)) {
-        mux_feature_enable(mux_sys, spi_bus->mux);
+        mux_feature_enable(mux_sys, spi_bus->mux, MUX_DIR_NOT_A_GPIO);
     } else {
 //        LOG_INFO("SPI: Skipping MUX initialisation as no mux subsystem was provided\n");
     }

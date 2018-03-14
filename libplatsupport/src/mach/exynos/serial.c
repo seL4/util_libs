@@ -494,7 +494,7 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
 
     /* reset and initialise hardware */
     if (mux_sys_valid(mux_sys)) {
-        if (mux_feature_enable(mux_sys, uart_mux[dev->id])) {
+        if (mux_feature_enable(mux_sys, uart_mux[dev->id], MUX_DIR_NOT_A_GPIO)) {
             printf("Failed to initialise MUX for UART %d\n", dev->id);
         }
 

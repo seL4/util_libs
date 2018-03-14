@@ -562,7 +562,7 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     ZF_LOGD("Memory for regs mapped");
 
     /* Configure MUX */
-    if (mux_sys_valid(mux) && mux_feature_enable(mux, dev->mux)) {
+    if (mux_sys_valid(mux) && mux_feature_enable(mux, dev->mux, MUX_DIR_NOT_A_GPIO)) {
         ZF_LOGD("Warning: failed to configure MUX");
     }
 

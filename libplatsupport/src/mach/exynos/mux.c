@@ -145,7 +145,8 @@ exynos_mux_configure(struct mux_cfg* cfg, int pin,
 }
 
 static int
-exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature)
+exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+                          UNUSED enum mux_gpio_dir mgd)
 {
     struct mux_feature_data* data = feature_data[mux_feature];
     (void)mux;
