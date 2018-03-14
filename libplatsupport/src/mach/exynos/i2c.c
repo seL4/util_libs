@@ -251,7 +251,9 @@ slave_init(struct i2c_bus_priv* dev, char addr)
 }
 
 int
-exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb, void* token)
+exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len,
+                UNUSED bool send_stop,
+                i2c_callback_fn cb, void* token)
 {
     struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
 
@@ -278,7 +280,9 @@ exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len, i2c_callback_fn cb,
 }
 
 static int
-exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len, i2c_callback_fn cb, void* token)
+exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len,
+                 UNUSED bool send_stop,
+                 i2c_callback_fn cb, void* token)
 {
     struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
 
