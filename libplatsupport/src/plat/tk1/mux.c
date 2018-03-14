@@ -75,6 +75,12 @@
 #define P_PULLUP                        BIT(4)
 #define P_PULLDOWN                      BIT(5)
 
+#ifdef CONFIG_DEBUG_BUILD
+#define PINMAP_COMPOSE_NAME(_name) .name = STRINGIFY(_n),
+#else
+#define PINMAP_COMPOSE_NAME(_name)
+#endif
+
 #define PINMAP_PINDESC(_gp, _mro, _msv, _in_out) \
     { \
         .gpio_pin = _gp, .mux_reg_index = _mro, .mux_sfio_value = _msv, \
@@ -85,7 +91,7 @@
 
 #define PINMAP_1PIN(_n, _gp0, _mro0, _msv0, _io0) \
     [_n] = { \
-        .name = STRINGIFY(_n), \
+        PINMAP_COMPOSE_NAME(_n) \
         { \
             PINMAP_PINDESC(_gp0, _mro0, _msv0, _io0), \
             PINMAP_NULLDESC, PINMAP_NULLDESC, PINMAP_NULLDESC, PINMAP_NULLDESC, \
@@ -95,7 +101,7 @@
 
 #define PINMAP_2PIN(_n, _gp0, _mro0, _msv0, _io0, _gp1, _mro1, _msv1, _io1) \
     [_n] = { \
-        .name = STRINGIFY(_n), \
+        PINMAP_COMPOSE_NAME(_n) \
         { \
             PINMAP_PINDESC(_gp0, _mro0, _msv0, _io0), \
             PINMAP_PINDESC(_gp1, _mro1, _msv1, _io1), \
@@ -106,7 +112,7 @@
 
 #define PINMAP_3PIN(_n, _gp0, _mro0, _msv0, _io0, _gp1, _mro1, _msv1, _io1, _gp2, _mro2, _msv2, _io2) \
     [_n] = { \
-        .name = STRINGIFY(_n), \
+        PINMAP_COMPOSE_NAME(_n) \
         { \
             PINMAP_PINDESC(_gp0, _mro0, _msv0, _io0), \
             PINMAP_PINDESC(_gp1, _mro1, _msv1, _io1), \
@@ -118,7 +124,7 @@
 
 #define PINMAP_4PIN(_n, _gp0, _mro0, _msv0, _io0, _gp1, _mro1, _msv1, _io1, _gp2, _mro2, _msv2, _io2, _gp3, _mro3, _msv3, _io3) \
     [_n] = { \
-        .name = STRINGIFY(_n), \
+        PINMAP_COMPOSE_NAME(_n) \
         { \
             PINMAP_PINDESC(_gp0, _mro0, _msv0, _io0), \
             PINMAP_PINDESC(_gp1, _mro1, _msv1, _io1), \
