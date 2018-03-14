@@ -103,7 +103,9 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
 {
     uint8_t data[7];
     int ret;
-    ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR, LITTLE8, LITTLE8,
+    ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR,
+                           I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
+                           LITTLE8, LITTLE8,
                            &pmic_rtc->i2c_slave);
     if (ret) {
         ZF_LOGD("Failed to register I2C slave");
