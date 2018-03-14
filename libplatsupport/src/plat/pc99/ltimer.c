@@ -117,8 +117,25 @@ static int hpet_ltimer_handle_irq(void *data, ps_irq_t *irq)
     /* our hpet driver doesn't do periodic timeouts, so emulate them here */
     pc99_ltimer_t *pc99_ltimer = data;
     if (pc99_ltimer->hpet.period > 0) {
-        return hpet_set_timeout(&pc99_ltimer->hpet.device,
+        // try a few times to set a timeout. If we continuously get ETIME then we have
+        // no choice but to panic as there is no meaningful error we can return here
+        // that will allow the user to work out what happened and recover
+        // The whole time we are doing this we are of course losing time as we have to keep on
+        // retrying the timeout with a new notion of the current time, but there is nothing
+        // better we can do with this interface
+        int retries = 10;
+        int error;
+        do {
+            error = hpet_set_timeout(&pc99_ltimer->hpet.device,
                 hpet_get_time(&pc99_ltimer->hpet.device) + pc99_ltimer->hpet.period);
+            retries--;
+        } while (error == ETIME && retries > 0);
+        if (error == ETIME) {
+            ZF_LOGF("Failed to reprogram periodic timeout. Unable to continue");
+        }
+        if (error != 0) {
+            ZF_LOGF("Unexpected error when reprogramming periodic timeout. Unable to continue.");
+        }
     }
     return 0;
 }
