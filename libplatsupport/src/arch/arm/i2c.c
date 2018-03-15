@@ -74,7 +74,7 @@ _do_kvread(i2c_kvslave_t* kvs, uint64_t reg, void* data, int count)
     /* Send the register address */
     ZF_LOGD("Seek register 0x%02llx", reg);
     _fill_reg(d, reg, kvs->address_fmt);
-    bytes = i2c_slave_write(kvs->slave, d, abytes, false, NULL, NULL);
+    bytes = i2c_slave_write(kvs->slave, d, abytes, true, NULL, NULL);
     if (bytes != abytes) {
         ZF_LOGE("Bus error on reg address select write.");
         return -1;
