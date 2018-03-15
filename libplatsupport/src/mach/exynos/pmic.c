@@ -86,7 +86,7 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
                          I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
                          0, &pmic->i2c_slave);
     if (ret) {
-        ZF_LOGD("Failed to register I2C slave");
+        ZF_LOGE("Failed to register I2C slave");
         return -1;
     }
 
@@ -98,7 +98,7 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
 
     /* Read the chip ID */
     if (pmic_reg_read(pmic, REG_CHIPID, &chip_id, 2)) {
-        ZF_LOGD("Bus error");
+        ZF_LOGE("Bus error");
         return -1;
     }
     /* Check the chip ID */
@@ -111,11 +111,11 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
         pmic->priv = (void*)&max77802_cfg;
         break;
     default:
-        ZF_LOGD("Unidentified chip 0x%02x", chip_id);
+        ZF_LOGE("Unidentified chip 0x%02x", chip_id);
         return -1;
     }
 
-    ZF_LOGD("found chip ID 0x%x", chip_id);
+    ZF_LOGE("found chip ID 0x%x", chip_id);
     return 0;
 }
 
