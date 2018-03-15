@@ -76,18 +76,18 @@ _do_kvread(i2c_kvslave_t* kvs, uint64_t reg, void* data, int count)
     _fill_reg(d, reg, kvs->address_fmt);
     bytes = i2c_slave_write(kvs->slave, d, abytes, false, NULL, NULL);
     if (bytes != abytes) {
-        ZF_LOGD("Bus error");
+        ZF_LOGE("Bus error on reg address select write.");
         return -1;
     }
     /* Receive the reply */
     ZF_LOGD("Read register %d", dbytes * count);
     bytes = i2c_slave_read(kvs->slave, d, dbytes * count, false, NULL, NULL);
     if (bytes < 0) {
-        ZF_LOGD("read error");
+        ZF_LOGE("Failed to read I2C register.");
         return bytes;
     }
     if (bytes != dbytes * count) {
-        ZF_LOGD("short read %d/%d", bytes, dbytes * count);
+        ZF_LOGW("short read %d/%d", bytes, dbytes * count);
     }
     /* Fix endianess */
     count = bytes / dbytes;
@@ -118,7 +118,7 @@ _do_kvwrite(i2c_kvslave_t* kvs, uint64_t reg, const void* data, int count)
     /* Send the request */
     bytes = i2c_slave_write(kvs->slave, d, abytes + count * dbytes, false, NULL, NULL);
     if (bytes <= 0) {
-        ZF_LOGD("Bus error (%d)", bytes);
+        ZF_LOGE("Bus error (%d)", bytes);
         return bytes;
     }
     count = (bytes - abytes) / dbytes;
