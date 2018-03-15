@@ -146,12 +146,11 @@ typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void
 /** I2C slave controller handle structure.
  *
  * You should initialize one of these using i2c_slave_init() or
- * i2c_kvslave_init() for each slave controller you intend to communicate with
+ * for each slave controller you intend to communicate with
  * on the bus.
  *
- * Then, use i2c_slave_read() and i2c_slave_write() or i2c_kvslave_read() and
- * i2c_kvslave_write() calls on this handle structure to communicate with the
- * desired slave controller.
+ * Then, use i2c_slave_read() and i2c_slave_write() calls on this handle
+ * structure to communicate with the desired slave controller.
  */
 typedef struct i2c_slave i2c_slave_t;
 struct i2c_slave {
@@ -166,8 +165,6 @@ struct i2c_slave {
     int        address;
     enum i2c_slave_address_size address_size;
     enum i2c_slave_speed        max_speed;
-    enum kvfmt data_fmt;
-    enum kvfmt address_fmt;
     /* This "i2c_opts" member is not meant to be managed directly by the caller,
      * but it is set internally by the driver based on the "i2c_opts" argument
      * passed to "i2c_slave_init()".
@@ -191,8 +188,8 @@ struct i2c_bus {
      * i2c_slave_t related API functions further down below.
      *
      * You must initialize an i2c_slave_t structure for each slave using the
-     * i2c_slave_init() or i2c_kvslave_init() API functions if you will be
-     * communicating with slave devices.
+     * i2c_slave_init() API function if you will be communicating with slave
+     * devices.
      *
      * If you will be using the controller in slave mode, you should register
      * a slave mode event handler to receive notifications of slave mode events.
@@ -287,49 +284,31 @@ int i2c_slave_init(i2c_bus_t* i2c_bus, int address,
                    uint32_t i2c_opts,
                    i2c_slave_t* i2c_slave);
 
+typedef struct i2c_kvslave_ {
+    i2c_slave_t *slave;
+    enum kvfmt data_fmt;
+    enum kvfmt address_fmt;
+} i2c_kvslave_t;
+
 /** Initialize an I2C slave device for key-value reading and writing.
  *
- * @param[in]  bus     The I2C bus that this device resides on
- * @param[in]  address The chip address of the slave device. The RW bit of
- *                     the address should be set to 0.
- * @param[in]  address_size The I2C hardware address bitlength: 7 or 10 bits.
- * @param[in]  max_speed    The maximum speed usable with the target slave
- *                          device. Device speed is one of: Standard, FM, FM+
- *                          and HS.
+ * This function and its accompanying library API (i2c_kvslave_read(),
+ * i2c_kvslave_write()) act as a *wrapper* around an already previously
+ * initialized instance of an i2c_slave_t.
+ *
+ * @param[in]  i2c_slave The I2C bus that this device resides on
  * @param[in]  asize   The address size in bytes
  *                     Positive values indicate LITTLE_ENDIAN while
  *                     negative values indicate BIG_ENDIAN.
  * @param[in]  dsize   The data word size in bytes
  *                     Positive values indicate LITTLE_ENDIAN while
  *                     negative values indicate BIG_ENDIAN.
- * @param[out] i2c_slave A slave device structure to initialise
+ * @param[out] i2c_kvslave A slave device structure to initialise
  * @return             0 on success
  */
-int i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
-                        enum i2c_slave_address_size address_size,
-                        enum i2c_slave_speed max_speed,
-                        enum kvfmt asize, enum kvfmt dsize,
-                        i2c_slave_t* i2c_slave);
-
-/** Initialize an I2C slave device for GPIO bit-banged reading and writing.
- *
- * Initializes metadata to treat a set of GPIO pins as if they are addressig
- * an I2C slave.
- *
- * @param[in]  bus     The I2C bus that this device resides on
- * @param[in]  address The chip address of the slave device. The RW bit of
- *                     the address should be set to 0.
- * @param[in]  address_size The I2C hardware address bitlength: 7 or 10 bits.
- * @param[in]  max_speed    The maximum speed usable with the target slave
- *                          device. Device speed is one of: Standard, FM, FM+
- *                          and HS.
- * @param[out] i2c_slave A slave device structure to initialise
- * @return             0 on success
- */
-int i2c_bb_slave_init(i2c_bus_t* i2c_bus, int address,
-                      enum i2c_slave_address_size address_size,
-                      enum i2c_slave_speed max_speed,
-                      i2c_slave_t* i2c_slave);
+int i2c_kvslave_init(i2c_slave_t* i2c_slave,
+                     enum kvfmt asize, enum kvfmt dsize,
+                     i2c_kvslave_t* i2c_kvslave);
 
 /**
  * Set the speed of the I2C bus
@@ -511,7 +490,7 @@ int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
  * @param[in] nregs      The number of registers to read
  * @return               The actual number of bytes read
  */
-int i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t start, void* data, int nregs);
+int i2c_kvslave_read(i2c_kvslave_t* i2c_kvslave, uint64_t start, void* data, int nregs);
 
 /**
  * Write registers to a register map I2C slave device
@@ -526,7 +505,7 @@ int i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t start, void* data, int nre
  * @param[in] nregs      The number of registers to write
  * @return               The actual number of bytes read
  */
-int i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t start, const void* data, int nregs);
+int i2c_kvslave_write(i2c_kvslave_t* i2c_kvslave, uint64_t start, const void* data, int nregs);
 
 
 /**** Streaming device ****/
