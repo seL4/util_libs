@@ -307,17 +307,14 @@ i2c_bb_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
     return speed;
 }
 
-int
+static int
 i2c_bb_slave_init(i2c_bus_t* i2c_bus, int address,
                   enum i2c_slave_address_size address_size,
                   enum i2c_slave_speed max_speed,
+                  uint32_t flags,
                   i2c_slave_t* sl)
 {
     assert(sl != NULL);
-
-    if (address_size == I2C_SLAVE_ADDR_7BIT) {
-        address = i2c_extract_address(address);
-    }
 
     sl->address = address;
     sl->address_size = address_size;
