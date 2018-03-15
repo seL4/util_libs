@@ -58,13 +58,14 @@ _fill_reg(char* buf, uint64_t reg, enum kvfmt fmt)
 
 /* Read no more than count registers into data with correct endianess */
 static int
-_do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
+_do_kvread(i2c_kvslave_t* kvs, uint64_t reg, void* data, int count)
 {
     int abytes, dbytes, bytes;
     char d[BUFFER_SIZE];
-    assert(i2c_slave);
-    abytes = ABS(i2c_slave->address_fmt);
-    dbytes = ABS(i2c_slave->data_fmt);
+    assert(kvs);
+    assert(kvs->slave);
+    abytes = ABS(kvs->address_fmt);
+    dbytes = ABS(kvs->data_fmt);
     assert(abytes < BUFFER_SIZE && dbytes < BUFFER_SIZE);
     /* Limit the amount of data to read to fit our buffer */
     if (count * dbytes > BUFFER_SIZE) {
@@ -72,15 +73,15 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
     }
     /* Send the register address */
     ZF_LOGD("Seek register 0x%02llx", reg);
-    _fill_reg(d, reg, i2c_slave->address_fmt);
-    bytes = i2c_slave_write(i2c_slave, d, abytes, false, NULL, NULL);
+    _fill_reg(d, reg, kvs->address_fmt);
+    bytes = i2c_slave_write(kvs->slave, d, abytes, false, NULL, NULL);
     if (bytes != abytes) {
         ZF_LOGD("Bus error");
         return -1;
     }
     /* Receive the reply */
     ZF_LOGD("Read register %d", dbytes * count);
-    bytes = i2c_slave_read(i2c_slave, d, dbytes * count, false, NULL, NULL);
+    bytes = i2c_slave_read(kvs->slave, d, dbytes * count, false, NULL, NULL);
     if (bytes < 0) {
         ZF_LOGD("read error");
         return bytes;
@@ -90,19 +91,20 @@ _do_kvread(i2c_slave_t* i2c_slave, uint64_t reg, void* data, int count)
     }
     /* Fix endianess */
     count = bytes / dbytes;
-    _fill_data(data, d, i2c_slave->data_fmt, count);
+    _fill_data(data, d, kvs->data_fmt, count);
     return count;
 }
 
 /* Write no more than count registers from data */
 static int
-_do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
+_do_kvwrite(i2c_kvslave_t* kvs, uint64_t reg, const void* data, int count)
 {
     int abytes, dbytes, bytes;
     char d[BUFFER_SIZE];
-    assert(i2c_slave);
-    abytes = ABS(i2c_slave->address_fmt);
-    dbytes = ABS(i2c_slave->data_fmt);
+    assert(kvs);
+    assert(kvs->slave);
+    abytes = ABS(kvs->address_fmt);
+    dbytes = ABS(kvs->data_fmt);
     assert(abytes < BUFFER_SIZE && dbytes < BUFFER_SIZE);
     /* Limit the amount of data to fit our buffer */
     if (count * dbytes + abytes > BUFFER_SIZE) {
@@ -110,11 +112,11 @@ _do_kvwrite(i2c_slave_t* i2c_slave, uint64_t reg, const void* data, int count)
     }
     /* Set up the register address */
     ZF_LOGD("Seek register 0x%02llx", reg);
-    _fill_reg(d, reg, i2c_slave->address_fmt);
+    _fill_reg(d, reg, kvs->address_fmt);
     /* Load up the data */
-    _fill_data(d + abytes, data, i2c_slave->data_fmt, count);
+    _fill_data(d + abytes, data, kvs->data_fmt, count);
     /* Send the request */
-    bytes = i2c_slave_write(i2c_slave, d, abytes + count * dbytes, false, NULL, NULL);
+    bytes = i2c_slave_write(kvs->slave, d, abytes + count * dbytes, false, NULL, NULL);
     if (bytes <= 0) {
         ZF_LOGD("Bus error (%d)", bytes);
         return bytes;
@@ -157,53 +159,72 @@ i2c_slave_init(i2c_bus_t* i2c_bus, int address,
 }
 
 int
-i2c_kvslave_init(i2c_bus_t* i2c_bus, int address,
-                 enum i2c_slave_address_size address_size,
-                 enum i2c_slave_speed max_speed,
+i2c_kvslave_init(i2c_slave_t* is,
                  enum kvfmt afmt, enum kvfmt dfmt,
-                 i2c_slave_t* i2c_slave)
+                 i2c_kvslave_t* kvs)
 {
-    ZF_LOGF_IF(!i2c_slave, "Slave output handle not supplied!");
-    ZF_LOGF_IF(!i2c_bus, "Controller handle not supplied!");
+    ZF_LOGF_IF(!kvs, "Slave output handle not supplied!");
+    ZF_LOGF_IF(!is, "Controller handle not supplied!");
 
-    switch (max_speed) {
-    case I2C_SLAVE_SPEED_STANDARD:
-    case I2C_SLAVE_SPEED_FAST:
-    case I2C_SLAVE_SPEED_FASTPLUS:
-    case I2C_SLAVE_SPEED_HIGHSPEED:
+    /* Validate address and data format arguments. */
+    switch (afmt) {
+    case BIG64:
+    case BIG32:
+    case BIG16:
+    case BIG8:
+    case STREAM:
+    case LITTLE8:
+    case LITTLE16:
+    case LITTLE32:
+    case LITTLE64:
         break;
     default:
+        ZF_LOGE("Invalid address format %d.", afmt);
         return -EINVAL;
     }
 
-    if (address_size != I2C_SLAVE_ADDR_7BIT
-           && address_size != I2C_SLAVE_ADDR_10BIT)
-    {
+    switch (dfmt) {
+    case BIG64:
+    case BIG32:
+    case BIG16:
+    case BIG8:
+    case STREAM:
+    case LITTLE8:
+    case LITTLE16:
+    case LITTLE32:
+    case LITTLE64:
+        break;
+    default:
+        ZF_LOGE("Invalid data format %d.", dfmt);
         return -EINVAL;
     }
 
-    ZF_LOGF_IF(!i2c_is_valid_address((address >> 1) & 0x7F),
-               "Invalid I2C address input %x.", address);
-
-    i2c_slave->bus = i2c_bus;
-    i2c_slave->address = address;
-    i2c_slave->data_fmt = dfmt;
-    i2c_slave->address_fmt = afmt;
-    return i2c_slave_init(i2c_bus, address, address_size, max_speed, 0, i2c_slave);
+    kvs->slave = is;
+    kvs->data_fmt = dfmt;
+    kvs->address_fmt = afmt;
+    return 0;
 }
 
 
 /* Loop until count registers have been read or an error occurs */
 int
-i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
+i2c_kvslave_read(i2c_kvslave_t* kvs, uint64_t reg, void* vdata, int count)
 {
-    int dbytes = ABS(i2c_slave->data_fmt);
+    assert(kvs != NULL);
+
+    int dbytes = ABS(kvs->data_fmt);
     char* data = (char*)vdata;
     int this = -1;
     int remain = count;
+
+    if (kvs->slave == NULL) {
+        ZF_LOGE("KV Slave lib doesn't have underlying slave instance.");
+        return -ENODEV;
+    }
+
     /* For large reads, copyin/out requires that they be split reads */
     while (remain > 0) {
-        this = _do_kvread(i2c_slave, reg, data, remain);
+        this = _do_kvread(kvs, reg, data, remain);
         if (this <= 0) {
             break;
         }
@@ -217,15 +238,23 @@ i2c_kvslave_read(i2c_slave_t* i2c_slave, uint64_t reg, void* vdata, int count)
 
 /* Loop until count registers have been written or an error occurs */
 int
-i2c_kvslave_write(i2c_slave_t* i2c_slave, uint64_t reg, const void* vdata, int count)
+i2c_kvslave_write(i2c_kvslave_t* kvs, uint64_t reg, const void* vdata, int count)
 {
-    int dbytes = ABS(i2c_slave->data_fmt);
+    assert(kvs != NULL);
+
+    int dbytes = ABS(kvs->data_fmt);
     char* data = (char*)vdata;
     int this = 0;
     int remain = count;
+
+    if (kvs->slave == NULL) {
+        ZF_LOGE("KV Slave lib doesn't have underlying slave instance.");
+        return -ENODEV;
+    }
+
     /* For large reads, copyin/out requires that they be split reads */
     while (remain > 0) {
-        this = _do_kvwrite(i2c_slave, reg, data, remain);
+        this = _do_kvwrite(kvs, reg, data, remain);
         if (this <= 0) {
             break;
         }
