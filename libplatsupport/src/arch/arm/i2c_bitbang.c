@@ -339,6 +339,7 @@ i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda,
     i2c_bb->speed = DEFAULT_SPEED;
     i2c_bb->gpio_sys = gpio_sys;
     /* Initialise the I2C bus structure */
+    i2c->slave_init  = i2c_bb_slave_init;
     i2c->read        = i2c_bb_read;
     i2c->write       = i2c_bb_write;
     i2c->set_speed   = i2c_bb_set_speed;
