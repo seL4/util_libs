@@ -168,7 +168,8 @@ i2c_bb_readbyte(struct i2c_bb* d, int send_nak)
 }
 
 static int
-i2c_bb_read(i2c_bus_t* bus, void* buf, size_t size, UNUSED bool send_stop,
+i2c_bb_read(i2c_bus_t* bus, void* buf, size_t size,
+            UNUSED bool end_with_repeat_start,
             i2c_callback_fn cb, void* token)
 {
     assert(!"Not implemented\n");
@@ -176,7 +177,8 @@ i2c_bb_read(i2c_bus_t* bus, void* buf, size_t size, UNUSED bool send_stop,
 }
 
 static int
-i2c_bb_write(i2c_bus_t* bus, const void* buf, size_t size, UNUSED bool send_stop,
+i2c_bb_write(i2c_bus_t* bus, const void* buf, size_t size,
+             UNUSED bool end_with_repeat_start,
              i2c_callback_fn cb, void* token)
 {
     assert(!"Not implemented\n");
@@ -193,7 +195,7 @@ i2c_bb_master_stop(i2c_bus_t* bus)
 static int
 i2c_bb_start_read(i2c_slave_t *sl,
                   void* vdata, size_t size,
-                  UNUSED bool send_stop,
+                  UNUSED bool end_with_repeat_start,
                   i2c_callback_fn cb, void* token)
 {
     struct i2c_bb* d;
@@ -226,7 +228,7 @@ i2c_bb_start_read(i2c_slave_t *sl,
 static int
 i2c_bb_start_write(i2c_slave_t *sl,
                    const void* vdata, size_t size,
-                   UNUSED bool send_stop,
+                   UNUSED bool end_with_repeat_start,
                    i2c_callback_fn cb, void* token)
 {
     struct i2c_bb* d;

@@ -208,9 +208,9 @@ struct i2c_bus {
     int (*master_stop)(i2c_bus_t* bus);
     void (*set_hsmode_master_address)(i2c_bus_t* bus, int addr);
     /* Slave mode functions: To be used when the controller is in slave mode. */
-    int (*read)(i2c_bus_t* bus, void* buf, size_t size, bool send_stop,
+    int (*read)(i2c_bus_t* bus, void* buf, size_t size, bool end_with_repeat_start,
                 i2c_callback_fn cb, void* token);
-    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, bool send_stop,
+    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, bool end_with_repeat_start,
                  i2c_callback_fn cb, void* token);
     void (*register_slave_event_handler)(i2c_bus_t *bus,
                                          i2c_aas_callback_fn cb, void *token);
