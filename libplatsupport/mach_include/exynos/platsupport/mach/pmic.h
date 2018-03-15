@@ -22,6 +22,7 @@
 
 typedef struct pmic {
     i2c_slave_t i2c_slave;
+    i2c_kvslave_t kvslave;
     void* priv;;
 } pmic_t;
 

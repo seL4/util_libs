@@ -56,13 +56,13 @@ id_valid(pmic_rtc_t* dev, int id)
 static int
 pmic_rtc_reg_read(pmic_rtc_t* dev, uint8_t reg, void* data, int count)
 {
-    return i2c_kvslave_read(&dev->i2c_slave, reg, data, count);
+    return i2c_kvslave_read(&dev->kvslave, reg, data, count);
 }
 
 static int
 pmic_rtc_reg_write(pmic_rtc_t* dev, uint8_t reg, const void* data, int count)
 {
-    return i2c_kvslave_write(&dev->i2c_slave, reg, data, count);
+    return i2c_kvslave_write(&dev->kvslave, reg, data, count);
 }
 
 static int
@@ -103,12 +103,19 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
 {
     uint8_t data[7];
     int ret;
-    ret = i2c_kvslave_init(i2c, MAX77686RTC_BUSADDR,
+    ret = i2c_slave_init(i2c, MAX77686RTC_BUSADDR,
                            I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
-                           LITTLE8, LITTLE8,
-                           &pmic_rtc->i2c_slave);
+                           0, &pmic_rtc->i2c_slave);
     if (ret) {
         ZF_LOGD("Failed to register I2C slave");
+        return -1;
+    }
+
+    ret = i2c_kvslave_init(&pmic_rtc->i2c_slave,
+                           LITTLE8, LITTLE8,
+                           &pmic_rtc->kvslave);
+    if (ret) {
+        ZF_LOGD("Failed to initialize I2C KV-slave lib instance.");
         return -1;
     }
 

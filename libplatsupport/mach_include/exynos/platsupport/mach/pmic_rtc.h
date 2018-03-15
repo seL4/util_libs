@@ -30,6 +30,7 @@ struct rtc_time {
 
 typedef struct pmic_rtc {
     i2c_slave_t i2c_slave;
+    i2c_kvslave_t kvslave;
 } pmic_rtc_t;
 
 /**

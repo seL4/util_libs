@@ -61,13 +61,13 @@ pmic_get_priv(pmic_t* pmic) {
 static int
 pmic_reg_read(pmic_t* pmic, uint8_t reg, void* data, int count)
 {
-    return !(i2c_kvslave_read(&pmic->i2c_slave, reg, data, count) == count);
+    return !(i2c_kvslave_read(&pmic->kvslave, reg, data, count) == count);
 }
 
 static int
 pmic_reg_write(pmic_t* pmic, uint8_t reg, const void* data, int count)
 {
-    return !(i2c_kvslave_write(&pmic->i2c_slave, reg, data, count) == count);
+    return !(i2c_kvslave_write(&pmic->kvslave, reg, data, count) == count);
 }
 
 static int
@@ -82,13 +82,20 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
 {
     uint16_t chip_id;
     int ret;
-    ret = i2c_kvslave_init(i2c, addr,
-                           I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
-                           LITTLE8, LITTLE8, &pmic->i2c_slave);
+    ret = i2c_slave_init(i2c, addr,
+                         I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
+                         0, &pmic->i2c_slave);
     if (ret) {
         ZF_LOGD("Failed to register I2C slave");
         return -1;
     }
+
+    ret = i2c_kvslave_init(&pmic->i2c_slave, LITTLE8, LITTLE8, &pmic->kvslave);
+    if (ret) {
+        ZF_LOGE("Failed to initialize I2C KV-slave lib instance.");
+        return -1;
+    }
+
     /* Read the chip ID */
     if (pmic_reg_read(pmic, REG_CHIPID, &chip_id, 2)) {
         ZF_LOGD("Bus error");
