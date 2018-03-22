@@ -86,3 +86,54 @@ set(common_link_string "<LINK_FLAGS> ${CRTObjFiles} <OBJECTS> ${libgcc} <LINK_LI
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER>  <FLAGS> <CMAKE_C_LINK_FLAGS> ${common_link_string}")
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER>  <FLAGS> <CMAKE_CXX_LINK_FLAGS> ${common_link_string}")
 set(CMAKE_ASM_LINK_EXECUTABLE "<CMAKE_ASM_COMPILER>  <FLAGS> <CMAKE_ASM_LINK_FLAGS> ${common_link_string}")
+
+# Now that we have defined executable linking we can perform try_compile style tests for some
+# additional flags
+# First we want to check what we can set the -mfloat-abi to on arm and if that matches what
+# is requested
+if(KernelArchARM)
+    # Define a helper macro for performing our own compilation tests for floating point
+    function(SimpleCCompilationTest var flags)
+        if (NOT (DEFINED "${var}"))
+            message(STATUS "Performing test ${var} with flags ${flags}")
+            file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void main(void){}")
+            execute_process(COMMAND "${CMAKE_C_COMPILER}" ${flags} -o test_program test_program.c
+                RESULT_VARIABLE result
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+                OUTPUT_QUIET
+                ERROR_QUIET
+            )
+            file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c")
+            file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program")
+            if ("${result}" EQUAL 0)
+                set("${var}" TRUE CACHE INTERNAL "")
+                message(STATUS "Test ${var} PASSED")
+            else()
+                set("${var}" FALSE CACHE INTERNAL "")
+                message(STATUS "Test ${var} FAILED")
+            endif()
+        endif()
+    endfunction(SimpleCCompilationTest)
+    if(KernelHaveFPU)
+        SimpleCCompilationTest(HARD_FLOAT "-mfloat-abi=hard")
+        if(NOT HARD_FLOAT)
+            SimpleCCompilationTest(SOFTFP_FLOAT "-mfloat-abi=softfp")
+            if(NOT SOFTFP_FLOAT)
+                message(WARNING "Kernel supports harding floating point but toolchain does not")
+                add_compile_options(-mfloat-abi=soft)
+            else()
+                add_compile_options(-mfloat-abi=softfp)
+            endif()
+        else()
+            add_compile_options(-mfloat-abi=hard)
+        endif()
+    else()
+        set(CMAKE_REQUIRED_FLAGS "-mfloat-abi=soft")
+        SimpleCCompilationTest(SOFT_FLOAT "-mfloat-abi=soft")
+        if (NOT SOFT_FLOAT)
+            message(FATAL_ERROR "Kernel does not support hardware floating point but toolchain cannot build software floating point")
+        else()
+            add_compile_options(-mfloat-abi=soft)
+        endif()
+    endif()
+endif()
