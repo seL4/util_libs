@@ -87,10 +87,7 @@ set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER>  <FLAGS> <CMAKE_C_LINK_FLAGS> ${
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER>  <FLAGS> <CMAKE_CXX_LINK_FLAGS> ${common_link_string}")
 set(CMAKE_ASM_LINK_EXECUTABLE "<CMAKE_ASM_COMPILER>  <FLAGS> <CMAKE_ASM_LINK_FLAGS> ${common_link_string}")
 
-# Now that we have defined executable linking we can perform try_compile style tests for some
-# additional flags
-# First we want to check what we can set the -mfloat-abi to on arm and if that matches what
-# is requested
+# We want to check what we can set the -mfloat-abi to on arm and if that matches what is requested
 if(KernelArchARM)
     # Define a helper macro for performing our own compilation tests for floating point
     function(SimpleCCompilationTest var flags)
