@@ -88,7 +88,11 @@ set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER>  <FLAGS> <CMAKE_CXX_LINK_FLA
 set(CMAKE_ASM_LINK_EXECUTABLE "<CMAKE_ASM_COMPILER>  <FLAGS> <CMAKE_ASM_LINK_FLAGS> ${common_link_string}")
 
 # We want to check what we can set the -mfloat-abi to on arm and if that matches what is requested
-if(KernelArchARM)
+if(KernelSel4ArchAarch64)
+    if(NOT KernelHaveFPU)
+        add_compile_options(-mgeneral-regs-only)
+    endif()
+else()
     # Define a helper macro for performing our own compilation tests for floating point
     function(SimpleCCompilationTest var flags)
         if (NOT (DEFINED "${var}"))
