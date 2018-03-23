@@ -904,7 +904,7 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     tk1_i2c_state_t *s = tk1_i2c_get_state(ib);
     UNUSED uint32_t int_status;
-    int err, do_callback=0, callback_status, callback_nbytes=0;
+    int err, do_callback=0, callback_status, callback_nbytes=0, reason_known=0;
 
     const uint32_t error_int_statuses_mask =
         TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT
@@ -927,6 +927,8 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
      * occured, if any such data exists.
      */
     if (int_status & data_available_int_statuses_mask) {
+        reason_known = 1;
+
         if (int_status & TK1I2C_INTSTATUS_MMODE_TX_FIFO_DATA_REQ_BIT
             && s->master.is_write) {
 
@@ -999,6 +1001,7 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
      * condition.
      */
     if (int_status & error_int_statuses_mask) {
+        reason_known = 1;
         do_callback = 1;
         callback_status = I2CSTAT_ERROR;
         callback_nbytes = s->master.xfer_cursor;
@@ -1026,6 +1029,7 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
     }
 
     if (int_status & xfer_successful_completion_statuses_mask) {
+        reason_known = 1;
         do_callback = 1;
         callback_nbytes = s->master.xfer_cursor;
 
@@ -1048,7 +1052,9 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
         if (int_status & TK1I2C_INTSTATUS_MMODE_ALL_PACKETS_XFER_COMPLETE_BIT) {
             ZF_LOGD(IRQPREFIX"Got an \"ALL_PKTS_XFER_COMPLETE\" IRQ.", r);
         }
-    } else {
+    }
+
+    if (!reason_known) {
         ZF_LOGE(IRQPREFIX"IRQ occurred for unknown reason.", r);
     }
 
