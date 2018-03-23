@@ -1023,7 +1023,9 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
             tk1_i2c_handle_arbitration_loss(ib);
             callback_status = I2CSTAT_ARBITRATION_LOST;
         }
-    } else if (int_status & xfer_successful_completion_statuses_mask) {
+    }
+
+    if (int_status & xfer_successful_completion_statuses_mask) {
         do_callback = 1;
         callback_nbytes = s->master.xfer_cursor;
 
