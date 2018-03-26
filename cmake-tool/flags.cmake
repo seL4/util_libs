@@ -92,7 +92,7 @@ if(KernelSel4ArchAarch64)
     if(NOT KernelHaveFPU)
         add_compile_options(-mgeneral-regs-only)
     endif()
-else()
+elseif(KernelArchARM)
     # Define a helper macro for performing our own compilation tests for floating point
     function(SimpleCCompilationTest var flags)
         if (NOT (DEFINED "${var}"))
