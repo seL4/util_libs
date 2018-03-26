@@ -125,7 +125,7 @@ To rebuild the project
 
 If a project supports different configurations they will typically provide some configuration `.cmake` files to
 allow you to initialise the project in a certain way. Configurations are provided when initialising the build
-directory by passsing `-C <file>` to `cmake`. For example given some typical project structure the `cmake`
+directory by passing `-C <file>` to `cmake`. For example given some typical project structure the `cmake`
 in the last example could be come
 
 ```sh
@@ -135,7 +135,7 @@ cmake -C../projects/awesome_project/configs/arm_debug.cmake -DCROSS_COMPILER_PRE
 Note that multiple `-C` options can be given, although if they try and set the same options only one of the
 settings will actually get used. This means in the previously example we might have two different configuration
 files for `arm.cmake` and `x86.cmake`, and then two other files for `debug.cmake` and `release.cmake`. We could
-now combine `arm.cmake` with either `debug.cmake` or `release.cmake`, similary with `x86.cmake`. For example
+now combine `arm.cmake` with either `debug.cmake` or `release.cmake`, similarly with `x86.cmake`. For example
 
 ```sh
 cmake -C../projects/awesome_project/configs/arm.cmake -C../projects/awesome_project/configs/debug.cmake -DCROSS_COMPILER_PREFIX=arm-linux-gnueabi- -DCMAKE_TOOLCHAIN_FILE=../kernel/gcc.cmake -G Ninja ..
@@ -195,7 +195,7 @@ which has helpers for putting libraries and binaries together into a final syste
 This structure means that the kernel is completely responsible for building itself, but exports the settings
 it used and the binaries it creates so that the rest of this build system can use it and build the final image.
 
-In this directory are the following filles
+In this directory are the following files:
 
  * `README.md` What you are reading
  * `default-CMakeLists.txt` An example CMakeLists.txt file that you could use as the CMakeLists.txt file in
