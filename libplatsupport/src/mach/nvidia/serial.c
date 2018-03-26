@@ -239,13 +239,7 @@ uart_handle_irq(ps_chardevice_t* d)
 
         ZF_LOGE("Parity, overrun, or framing error.");
         if (d->read_descriptor.data != NULL) {
-            struct chardev_xmit_descriptor *rd = &d->read_descriptor;
-
-            if (rd->callback != NULL) {
-                rd->callback(d, CHARDEV_STAT_ERROR,
-                             0,
-                             rd->token);
-            }
+            tk1_uart_invoke_callback(d, CHARDEV_STAT_ERROR, 0, true, false);
         }
         break;
 
@@ -305,6 +299,10 @@ uart_handle_irq(ps_chardevice_t* d)
             if (rd->bytes_transfered >= rd->bytes_requested) {
                 ZF_LOGV("Buffer of %dB will be overrun.", rd->bytes_requested);
 
+                tk1_uart_invoke_callback(d, CHARDEV_STAT_INCOMPLETE,
+                                         rd->bytes_transfered,
+                                         true, false);
+
                 /* We use bytes_requested as a flag to indicate to the this IRQ
                  * handler that it shouldn't call the callback again.
                  * If bytes_requested is 0, we won't get here, so this callback
@@ -312,12 +310,6 @@ uart_handle_irq(ps_chardevice_t* d)
                  * caller's buffer can hold.
                  */
                 rd->bytes_requested = 0;
-
-                if (rd->callback != NULL) {
-                    rd->callback(d, CHARDEV_STAT_INCOMPLETE,
-                                 rd->bytes_transfered,
-                                 rd->token);
-                }
                 break;
             }
 
@@ -333,12 +325,9 @@ uart_handle_irq(ps_chardevice_t* d)
          * I.e, c will be -1 if the loop exited normally.
          */
         if (c == -1 && rd->bytes_transfered > 0) {
-            if (rd->callback != NULL) {
-                /* Only send COMPLETE status if we didn't overrun. */
-                rd->callback(d, CHARDEV_STAT_COMPLETE,
-                             rd->bytes_transfered,
-                             rd->token);
-            }
+            tk1_uart_invoke_callback(d, CHARDEV_STAT_COMPLETE,
+                                     rd->bytes_transfered,
+                                     true, false);
         }
 
         break;
@@ -370,10 +359,9 @@ uart_handle_irq(ps_chardevice_t* d)
                 /* Disable the THR_EMPTY IRQ until a new write request is made. */
                 tk1_uart_set_thr_irq(regs, false);
 
-                if (wd->callback != NULL) {
-                    wd->callback(d, CHARDEV_STAT_COMPLETE, wd->bytes_transfered,
-                                 wd->token);
-                }
+                tk1_uart_invoke_callback(d, CHARDEV_STAT_COMPLETE,
+                                         wd->bytes_transfered,
+                                         false, true);
             }
         } else {
             /* If there's no input data buffer to read from, disable the
