@@ -454,6 +454,7 @@ tk1_uart_read(ps_chardevice_t* d, void* vdata,
         int c;
 
         while ((c = uart_getchar(d)) == -1) {
+            /* Ideally we should use a cpu_relax() type of opcode here. */
         }
 
         /* Read the data synchronously. */
@@ -565,6 +566,7 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
 
     /* Disable the receive IRQ while changing line configuration. */
     tk1_uart_set_rbr_irq(regs, false);
+    THREAD_MEMORY_RELEASE();
 
     switch (char_size) {
         case 5:
