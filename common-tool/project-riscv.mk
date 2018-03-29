@@ -42,6 +42,14 @@ elfloader: libcpio common FORCE
 	$(STAGE_BASE)/bin/$< $(IMAGE_ROOT)/$@-$(ARCH)-$(PLAT) 2>&1 \
 		| while read line; do echo " [GEN_IMAGE] $$line"; done; \
 		exit $${PIPESTATUS[0]}
+	@# The following commands use riscv-pk to package up the ELF image in a bbl boot loader image.
+	$(Q)mkdir -p $(BUILD_BASE)/bbl
+	$(Q)(cd $(BUILD_BASE)/bbl && \
+	${TOOLS_ROOT}/riscv-pk/configure --quiet \
+		--host=$(CONFIG_CROSS_COMPILER_PREFIX:"%-"=%) \
+		--with-payload=$(IMAGE_ROOT)/$@-$(ARCH)-$(PLAT) && \
+	$(MAKE) $(MAKE_SILENT) clean && $(MAKE) $(MAKE_SILENT) > /dev/null)
+	$(Q)cp $(BUILD_BASE)/bbl/bbl $(IMAGE_ROOT)/$@-$(ARCH)-$(PLAT)
 
 capDL-$(ARCH)-$(PLAT): export TOOLPREFIX=$(CONFIG_CROSS_COMPILER_PREFIX:"%"=%)
 capDL-$(ARCH)-$(PLAT): kernel_elf common elfloader
