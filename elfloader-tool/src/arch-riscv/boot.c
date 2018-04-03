@@ -19,7 +19,6 @@
 #include <cpio/cpio.h>
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
-#define NULL ((void *) 0)
 
 #define PTE_TYPE_TABLE 0x00
 #define PTE_TYPE_TABLE_GLOBAL 0x02
