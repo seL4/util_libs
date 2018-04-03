@@ -51,7 +51,7 @@
 #define ZF_LOG_INFO    3
 #define ZF_LOG_WARN    4
 #define ZF_LOG_ERROR   5
-#define ZF_LOG_FATAL   6
+#define ZF_LOG_FATAL   0xFFFF
 #define ZF_LOG_NONE    0xFFFF
 
 /* Log level configuration:
