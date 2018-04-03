@@ -288,7 +288,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     unsigned long next_phys_addr;
     const char *elf_filename;
     unsigned long unused;
-
+    (void) max_user_images;
     /* Load kernel. */
     void *kernel_elf = cpio_get_file(_archive_start, "kernel.elf", &unused);
 
@@ -358,6 +358,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 int num_apps = 0;
 void main(int hardid, unsigned long dtb)
 {
+    (void) hardid;
     puts("ELF-loader started on\n");
 
     spike_dtb = dtb;
@@ -396,7 +397,7 @@ void main(int hardid, unsigned long dtb)
 }
 
 void boot_seconday_core(int hartid) {
-
+  (void) hartid;
 #if CONFIG_MAX_NUM_NODES > 1
     /* TODO: check that we have right number of hw cores that can support CONFIG_MAX_NUM_NODES */
     while(!node_boot_lock && hartid < CONFIG_MAX_NUM_NODES);

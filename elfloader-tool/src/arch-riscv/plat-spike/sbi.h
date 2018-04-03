@@ -85,6 +85,8 @@ static inline void sbi_remote_sfence_vma(const unsigned long *hart_mask,
 					 unsigned long start,
 					 unsigned long size)
 {
+	(void) start;
+	(void) size;
 	SBI_CALL_1(SBI_REMOTE_SFENCE_VMA, hart_mask);
 }
 
@@ -93,6 +95,9 @@ static inline void sbi_remote_sfence_vma_asid(const unsigned long *hart_mask,
 					      unsigned long size,
 					      unsigned long asid)
 {
+	(void) start;
+	(void) size;
+	(void) asid;
 	SBI_CALL_1(SBI_REMOTE_SFENCE_VMA_ASID, hart_mask);
 }
 
