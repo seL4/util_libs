@@ -12,7 +12,7 @@
 #include <autoconf.h>
 
 #include <types.h>
-#include "elf/elf.h"
+#include <binaries/elf/elf.h>
 #include "elfloader.h"
 #include <platform.h>
 
@@ -283,10 +283,10 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
                  int max_user_images, int *num_images)
 {
     int i;
-    unsigned long kernel_phys_start, kernel_phys_end;
-    unsigned long next_phys_addr;
+    uint64_t kernel_phys_start, kernel_phys_end;
+    uint64_t next_phys_addr;
     const char *elf_filename;
-    unsigned long unused;
+    uint64_t unused;
     (void) max_user_images;
     /* Load kernel. */
     void *kernel_elf = cpio_get_file(_archive_start, "kernel.elf", &unused);
