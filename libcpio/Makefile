@@ -19,6 +19,13 @@ CFILES := $(sort $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c))
 # Header files/directories this library provides
 HDRFILES := $(sort $(wildcard $(SOURCE_DIR)/include/*))
 
-CFLAGS += -Wall -W -mcmodel=medany
+CFLAGS += -Wall -W
+
+ifeq (${ARCH}, riscv)
+	# libcpio is linked into both user code as well as the elfloader, in the case of the elfloader
+	# we need to compile such that we can run at any virtual address, and not just low ones.
+	# This results in the libcpio code being slightly less efficient for non elfloader users.
+	CFLAGS += -mcmodel=medany
+endif
 
 include $(SEL4_COMMON)/common.mk
