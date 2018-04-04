@@ -96,7 +96,7 @@ void main(void)
         /* Our serial port is no longer accessible */
     }
 
-    ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
+    ((init_arm_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry);
 

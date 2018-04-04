@@ -52,20 +52,27 @@ config_option(ElfloaderErrata764369 ARM_ERRATA_764369
 add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
-
-set(linkerScript "${CMAKE_CURRENT_LIST_DIR}/src/arch-arm/linker.lds")
+set(linkerScript "${CMAKE_CURRENT_LIST_DIR}/src/arch-${KernelArch}/linker.lds")
 
 file(GLOB files
     src/*.c
     src/arch-${KernelArch}/*.c
+    src/arch-${KernelArch}/*.S
     src/plat/${KernelPlatform}/*.c
     src/binaries/elf/*.c
     src/arch-${KernelArch}/${KernelWordSize}/*.c
-    src/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}/*.c
     src/plat/${KernelPlatform}/*.S
     src/arch-${KernelArch}/${KernelWordSize}/*.S
-    src/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}/*.S
 )
+
+if(KernelArchARM)
+    file(GLOB arm_files
+        src/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}/*.c
+        src/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}/*.S
+    )
+    list(APPEND files
+        ${arm_files})
+endif()
 
 if(ElfloaderImageEFI)
     file(GLOB efi_files
@@ -104,9 +111,14 @@ target_include_directories(elfloader PRIVATE
     "include/plat/${KernelPlatform}"
     "include/arch-${KernelArch}"
     "include/arch-${KernelArch}/${KernelWordSize}"
-    "include/arch-${KernelArch}/armv/${KernelArmArmV}"
-    "include/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}"
 )
+if(KernelArchARM)
+    target_include_directories(elfloader PRIVATE
+        "include/arch-${KernelArch}/armv/${KernelArmArmV}"
+        "include/arch-${KernelArch}/armv/${KernelArmArmV}/${KernelWordSize}"
+    )
+endif()
+
 target_link_libraries(elfloader PRIVATE Configuration cpio)
 add_dependencies(elfloader elfloader_linker)
 set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostartfiles -static -Wl,--build-id=none")
