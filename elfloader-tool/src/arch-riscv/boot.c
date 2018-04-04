@@ -377,7 +377,7 @@ void main(int hardid, unsigned long dtb)
    node_boot_lock = 1;
 #endif
 
-    ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
+    ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry, 0, dtb);
 
@@ -402,8 +402,8 @@ void boot_seconday_core(int hartid) {
        :
    );
 
-    // Where is dtb?
-  ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
+  // Where is dtb?
+  ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry, hartid);
 #endif
