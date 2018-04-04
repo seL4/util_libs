@@ -98,8 +98,6 @@ unsigned long l3pt_elfloader[PTES_PER_PT] __attribute__((aligned(4096)));
 unsigned long l2pt_kernel[PTES_PER_PT] __attribute__((aligned(4096)));
 char elfloader_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(CONFIG_KERNEL_STACK_BITS)];
 
-volatile static unsigned long spike_dtb, kernel_dtb;
-
 #if CONFIG_MAX_NUM_NODES > 1
 /* sync variable to prevent other nodes from booting
  * until kernel data structures initialized */
@@ -129,12 +127,6 @@ map_kernel_window(struct image_info *kernel_info)
 #endif
 
     l1pt[0] = PTE64_PT_CREATE((unsigned long)(&l2pt_elfloader));
-#if __riscv_xlen == 32
-    l2pt_elfloader[0] = PTE64_CREATE((unsigned long)(spike_dtb >> 12) << PTE64_PPN0_SHIFT, PTE_TYPE_SRWX);
-#else
-    l2pt_elfloader[0] = PTE64_PT_CREATE((uint64_t)(&l3pt_elfloader));
-    l3pt_elfloader[0] = PTE64_CREATE((uint64_t)(spike_dtb >> 12) << PTE64_PPN0_SHIFT, PTE_TYPE_SRWX);
-#endif
 }
 
 /**********************************MMU ******************************************/
@@ -359,8 +351,6 @@ void main(int hardid, unsigned long dtb)
 {
     (void) hardid;
     puts("ELF-loader started on\n");
-
-    spike_dtb = dtb;
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
     /* Unpack ELF images into memory. */
