@@ -152,9 +152,6 @@ if [ "${STRIP}" = "y" ]; then
     ${TOOLPREFIX}strip --strip-all ${TEMP_DIR}/cpio/*
 fi
 
-dd if=/dev/urandom of=dummypayload bs=4 count=1
-cp dummypayload ${TEMP_DIR}/cpio
-
 if [ "${HASH}" = "y" ]; then
     if [ "${HASH_SHA}" = "y" ]; then
         # (2 Invocations so the hash gets printed on the terminal)
