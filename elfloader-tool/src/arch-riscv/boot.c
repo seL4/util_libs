@@ -379,7 +379,7 @@ void main(int hardid, unsigned long dtb)
 
     ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry, 0, 0);
+                                            user_info.virt_entry, 0, dtb);
 
   /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
@@ -402,6 +402,7 @@ void boot_seconday_core(int hartid) {
        :
    );
 
+    // Where is dtb?
   ((init_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry, hartid);
