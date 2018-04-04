@@ -81,9 +81,6 @@ CONFIG_USER_CFLAGS:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_USER_CFLAGS}))
 STARTGROUP := -Wl,--start-group
 ENDGROUP := -Wl,--end-group
 
-#STARTGROUP :=
-#ENDGROUP :=
-
 ifeq (${CONFIG_USER_CFLAGS},)
     CFLAGS += $(WARNINGS:%=-W%) -nostdinc -std=gnu11
     CXXFLAGS += $(WARNINGS:%=-W%) -nostdinc $(call cc-option,-std=gnu++14,-std=gnu++98)
