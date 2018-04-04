@@ -40,7 +40,7 @@ struct chardev_xmit_descriptor {
     /// The number of bytes transfered thus far
     size_t bytes_transfered;
     /// The total number of bytes to transfer
-    size_t bytes_requested;
+    volatile size_t bytes_requested;
     /// The source or destination for the data
     void* data;
 };
