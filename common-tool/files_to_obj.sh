@@ -110,7 +110,7 @@ popd > /dev/null
 
 # Generate a linker script.
 LINK_SCRIPT="${TEMP_DIR}/linkscript.ld"
-echo "SECTIONS { ._archive_cpio : ALIGN(8) { ${SYMBOL} = . ; *(.*) ; ${SYMBOL}_end = . ; } }" \
+echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${SYMBOL} = . ; *(.*) ; ${SYMBOL}_end = . ; } }" \
         > ${LINK_SCRIPT}
 
 # Generate an output object file. We switch to the same directory as ${ARCHIVE}
