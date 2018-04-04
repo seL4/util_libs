@@ -64,11 +64,9 @@ NK_CFLAGS += $(call cc-option, -mfloat-abi=soft)
 else
 ifeq ($(__ARM_64__), y)
 NK_CFLAGS += $(call cc-option, -mgeneral-regs-only)
-else
 endif
 endif
 
-LDFLAGS = -nodefaultlibs
 ifeq (${ARCH}, riscv)
 CFLAGS   += -nodefaultlibs -mcmodel=medany -nostdinc
 ifeq (${KERNEL_32}, y)
@@ -76,8 +74,6 @@ CFLAGS   += -march=rv32ima -mabi=ilp32 -fno-pic
 else
 CFLAGS   += -march=rv64imac -mabi=lp64
 endif
-else
-CFLAGS   += -nodefaultlibs
 endif
 
 include $(SEL4_COMMON)/common.mk
