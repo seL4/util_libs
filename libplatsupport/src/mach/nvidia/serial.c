@@ -177,6 +177,52 @@ int uart_putchar(ps_chardevice_t* d, int c)
 }
 
 static void
+tk1_uart_invoke_callback(ps_chardevice_t *d, enum chardev_status stat,
+                         size_t n_bytes_xferred,
+                         bool invoke_read, bool invoke_write)
+{
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
+
+    if (!invoke_read && !invoke_write) {
+        ZF_LOGW("invoke_cb called with no indication of what should be done.");
+        return;
+    }
+
+    if (invoke_read) {
+        if (d->read_descriptor.callback != NULL
+            && d->read_descriptor.bytes_requested > 0) {
+            d->read_descriptor.callback(d, stat,
+                                        n_bytes_xferred,
+                                        d->read_descriptor.token);
+
+            /* If the client set bytes_requested to 0 inside of the callback,
+             * that is a signal to us that we should close any asynchronous
+             * reading from the line.
+             */
+            if (d->read_descriptor.bytes_requested == 0) {
+                tk1_uart_set_rbr_irq(regs, false);
+            }
+        }
+    }
+    if (invoke_write) {
+        if (d->write_descriptor.callback != NULL
+            && d->write_descriptor.bytes_requested > 0) {
+            d->write_descriptor.callback(d, stat,
+                                        n_bytes_xferred,
+                                        d->write_descriptor.token);
+
+            /* If the client set bytes_requested to 0 inside of the callback,
+             * that is a signal to us that we should consider the async write
+             * to be closed.
+             */
+            if (d->write_descriptor.bytes_requested == 0) {
+                tk1_uart_set_thr_irq(regs, false);
+            }
+        }
+    }
+}
+
+static void
 uart_handle_irq(ps_chardevice_t* d)
 {
     tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
