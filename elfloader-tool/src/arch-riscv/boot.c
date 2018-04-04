@@ -95,13 +95,7 @@ unsigned long l1pt[PTES_PER_PT] __attribute__((aligned(4096)));
 unsigned long l2pt_elfloader[PTES_PER_PT] __attribute__((aligned(4096)));
 unsigned long l3pt_elfloader[PTES_PER_PT] __attribute__((aligned(4096)));
 unsigned long l2pt_kernel[PTES_PER_PT] __attribute__((aligned(4096)));
-char elfloader_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(CONFIG_KERNEL_STACK_BITS)];
-
-#if CONFIG_MAX_NUM_NODES > 1
-/* sync variable to prevent other nodes from booting
- * until kernel data structures initialized */
-static volatile int node_boot_lock = 0;
-#endif /* CONFIG_MAX_NUM_NODES > 1 */
+char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
 void
 map_kernel_window(struct image_info *kernel_info)
@@ -173,38 +167,10 @@ void main(int hardid, unsigned long dtb)
        :
    );
 
-#if CONFIG_MAX_NUM_NODES > 1
-   node_boot_lock = 1;
-#endif
-
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
                                             user_info.virt_entry, 0, dtb);
 
   /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
-}
-
-void boot_seconday_core(int hartid) {
-  (void) hartid;
-#if CONFIG_MAX_NUM_NODES > 1
-    /* TODO: check that we have right number of hw cores that can support CONFIG_MAX_NUM_NODES */
-    while(!node_boot_lock && hartid < CONFIG_MAX_NUM_NODES);
-
-    //uint64_t vm_mode = 0x8llu << 60;
-
-    asm volatile("sfence.vma");
-
-    asm volatile(
-        "csrw sptbr, %0\n"
-       :
-       : "r" (vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
-       :
-   );
-
-  // Where is dtb?
-  ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                            user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry, hartid);
-#endif
 }
