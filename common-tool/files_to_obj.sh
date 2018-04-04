@@ -36,6 +36,9 @@ OUTPUT_FILE="$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
 SYMBOL=$2
 shift 2
 
+# RISC-V doesn't seem to support relocatable linking
+# so we disable this flag if `spike` is the target platform
+RELOCATABLE=-r
 # Determine ".o" file to generate.
 case "$PLAT" in
     "imx31"|"imx6"|"imx7"|"omap3"|"am335x"|\
@@ -69,6 +72,7 @@ case "$PLAT" in
         else
             FORMAT=elf32-littleriscv
         fi
+        RELOCATABLE=
         ;;
     *)
         echo "$0: Unknown platform \"$PLAT\""
@@ -117,7 +121,7 @@ echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${SYMBOL} = . ; *(.*) ; ${SYMBOL}_e
 # in order to avoid symbols containing ${TEMP_DIR} polluting the namespace.
 pushd "$(dirname ${ARCHIVE})" >/dev/null
 ${TOOLPREFIX}ld -T ${LINK_SCRIPT} \
-	--oformat ${FORMAT} -b binary $(basename ${ARCHIVE}) \
+	--oformat ${FORMAT} ${RELOCATABLE} -b binary $(basename ${ARCHIVE}) \
         -o ${OUTPUT_FILE}
 popd >/dev/null
 
