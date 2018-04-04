@@ -96,9 +96,8 @@ SECTIONS
     *(.rodata.*)
 
     . = ALIGN(8);
-    . = . + 4;
     _archive_start = .;
-      *(.archive_ar)
+      *(._archive_cpio)
     _archive_end = .;
   }
 
