@@ -13,7 +13,7 @@
 menuconfig LIB_ELFLOADER
     bool "Build elfloader"
     default y
-    depends on ARCH_RISCV
+    depends on ARCH_ARM || ARCH_RISCV
     select LIB_CPIO
 
 choice
@@ -25,6 +25,7 @@ choice
 
     config IMAGE_BINARY
         bool "Binary Boot Image"
+        depends on ARCH_ARM
         help
             Generate binary boot image
 
@@ -108,7 +109,7 @@ config GPT_PTIMER_NS_PL1_ACCESS
 
 config ARM_ERRATA_764369
     bool "Workaround for ARM errata 764369"
-    depends on LIB_ELFLOADER
+    depends on LIB_ELFLOADER && ARCH_ARM
     default y
     help
         Work around for a Cortex-A9 errata. Derived from Linux kernel.
