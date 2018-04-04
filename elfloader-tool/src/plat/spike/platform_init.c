@@ -9,7 +9,7 @@
  *
  * @TAG(DATA61_GPL)
  */
-#include "../elfloader.h"
+#include <elfloader.h>
 
 void platform_init(void)
 {
