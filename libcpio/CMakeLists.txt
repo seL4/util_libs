@@ -15,5 +15,9 @@ cmake_minimum_required(VERSION 3.7.2)
 project(libcpio C)
 
 add_library(cpio EXCLUDE_FROM_ALL src/cpio.c)
+if(KernelArchRiscV)
+	target_compile_options(cpio PRIVATE "-mcmodel=medany")
+endif()
+
 target_include_directories(cpio PUBLIC include)
 target_link_libraries(cpio Configuration muslc)
