@@ -28,6 +28,11 @@ SECTIONS
 
 
   /* text: Program code section */
+  .start :
+    {
+        *(.text.start)
+    }
+
   .text :
   {
     *(.text)

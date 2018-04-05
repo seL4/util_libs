@@ -15,6 +15,7 @@
 .extern elfloader_stack_alloc
 
 #define BIT(n) (1 << (n))
+.section ".text.start"
 
 _start:
 
