@@ -17,8 +17,7 @@
  * Approved for Public Release, Distribution Unlimited.
  */
 
-#ifndef __PLATSUPPORT_PLAT_SERIAL_H__
-#define __PLATSUPPORT_PLAT_SERIAL_H__
+#pragma once
 
 #define UART0_PADDR  0xFF000000
 #define UART1_PADDR  0xFF010000
@@ -37,4 +36,3 @@ enum chardev_id {
 };
 
 
-#endif /* __PLATSUPPORT_PLAT_SERIAL_H__ */

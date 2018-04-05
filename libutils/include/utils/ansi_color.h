@@ -19,8 +19,7 @@
  * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ANSI_COLOR_H
-#define ANSI_COLOR_H
+#pragma once
 
 #define COLOR_PREFIX     "\x1B["
 #define COLOR_SEP        ";"
@@ -78,4 +77,3 @@
 #define COLORIZE(text,forecolor,...) ANSI_COLOR(forecolor,__VA_ARGS__) text COLOR_RESET
 #define COLORIZE2(text,forecolor,backcolor,...) ANSI_COLOR2(forecolor,backcolor,__VA_ARGS__) text COLOR_RESET
 
-#endif

@@ -14,8 +14,7 @@
  * Approved for Public Release, Distribution Unlimited.
  */
 
-#ifndef _PLATSUPPORT_PLAT_CLOCK_H_
-#define _PLATSUPPORT_PLAT_CLOCK_H_
+#pragma once
 
 enum clk_id
 {
@@ -31,4 +30,3 @@ enum clock_gate
 };
 
 
-#endif /* _PLATSUPPORT_PLAT_CLOCK_H_ */
