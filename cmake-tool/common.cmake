@@ -26,6 +26,10 @@ elseif(KernelSel4ArchAarch32 OR KernelSel4ArchArmHyp)
     set(LinkOFormat "elf32-littlearm")
 elseif(KernelSel4ArchAarch64)
     set(LinkOFormat "elf64-littleaarch64")
+elseif(KernelSel4ArchRiscV32)
+    set(LinkOFormat "elf32-littleriscv")
+elseif(KernelSel4ArchRiscV64)
+    set(LinkOFormat "elf64-littleriscv")
 endif()
 
 # Function for declaring rules to build a cpio archive that can be linked
@@ -47,12 +51,18 @@ function(MakeCPIO output_name input_files)
         set(append "--append")
     endforeach()
     list(APPEND commands "true")
+
+    # RiscV doesn't support linking with -r
+    set(relocate "-r")
+    if(KernelArchRiscV)
+        set(relocate "")
+    endif()
     add_custom_command(OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
         COMMAND echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
             > link.${output_name}.ld
-        COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld --oformat ${LinkOFormat} -r -b binary archive.${output_name}.cpio -o ${output_name}
+        COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld --oformat ${LinkOFormat} ${relocate} -b binary archive.${output_name}.cpio -o ${output_name}
         BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
@@ -117,6 +127,29 @@ function(DeclareRootserver rootservername)
         get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
         get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
         set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
+    elseif(KernelArchRiscV)
+        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-riscv-${KernelPlatform}")
+        # On RISC-V we need to package up our final elf image into the Berkeley boot loader
+        # which is what the following custom command is achieving
+
+        # Get host string which is our cross compiler minus the trailing '-'
+        string(REGEX REPLACE "^(.*)-$" "\\1" host ${CROSS_COMPILER_PREFIX})
+        add_custom_command(OUTPUT "${IMAGE_NAME}"
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
+            COMMAND cd ${CMAKE_BINARY_DIR}/bbl &&
+                    ${BBL_PATH}/configure --quiet
+                    --host=${host}
+                    --with-payload=$<TARGET_FILE:elfloader> &&
+                    make -s clean && make -s > /dev/null
+            COMMAND cp ${CMAKE_BINARY_DIR}/bbl/bbl ${IMAGE_NAME}
+            DEPENDS $<TARGET_FILE:elfloader> elfloader
+            )
+        add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" elfloader ${rootservername})
+        set_property(TARGET "${rootservername}" PROPERTY OUTPUT_NAME "${rootservername}")
+        get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
+        get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
+        set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
+
     endif()
     # Store the image and kernel image as properties
     set_property(TARGET rootserver_image PROPERTY IMAGE_NAME "${IMAGE_NAME}")
@@ -189,6 +222,13 @@ function(GenerateSimulateScript)
         set(script "qemu-system-arm -machine xilinx-zynq-a9 ${graphic} -m size=1024M -s -serial null -serial mon:stdio -kernel ${IMAGE_NAME}")
     elseif(KernelPlatformWandQ)
         set(script "qemu-system-arm -machine sabrelite ${graphic} -m size=2048M -s -serial mon:stdio -kernel ${IMAGE_NAME}")
+    elseif(KernelPlatformSpike)
+        if (KernelSel4ArchRiscV32)
+            set(binary "qemu-system-riscv32")
+        elseif(KernelSel4ArchRiscV64)
+            set(binary "qemu-system-riscv64")
+        endif()
+        set(script "${binary} -machine spike_v1.10 ${graphic} -m size=4095M -s -serial mon:stdio -kernel ${IMAGE_NAME}")
     else()
         set(error "Unsupported platform or architecture for simulation")
     endif()

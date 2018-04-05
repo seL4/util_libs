@@ -19,7 +19,7 @@ include(${KERNEL_FLAGS_PATH})
 set(configure_string "")
 
 config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
-    "elf;ElfloaderImageELF;IMAGE_ELF;KernelArchARM"
+    "elf;ElfloaderImageELF;IMAGE_ELF;KernelArchARM OR KernelArchRiscV"
     "binary;ElfloaderImageBinary;IMAGE_BINARY;KernelArchARM"
     "efi;ElfloaderImageEFI;IMAGE_EFI;KernelArchARM"
 )
@@ -53,6 +53,9 @@ add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
 set(linkerScript "${CMAKE_CURRENT_LIST_DIR}/src/arch-${KernelArch}/linker.lds")
+if (KernelArchRiscV)
+    add_compile_options(-mcmodel=medany)
+endif()
 
 file(GLOB files
     src/*.c
@@ -144,8 +147,10 @@ else()
         set(PlatformEntryAddr 0x90000000)
     elseif(KernelPlatformZynq7000)
         set(PlatformEntryAddr 0x10000000)
+    elseif(KernelPlatformSpike)
+        set(PlatformEntryAddr 0x80400000)
     else()
-        if (KernelArchARM)
+        if (KernelArchARM OR KernelArchRiscV)
             message(FATAL_ERROR "Unknown platform when generating image")
         endif()
     endif()
