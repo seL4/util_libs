@@ -47,26 +47,25 @@ void
 map_kernel_window(struct image_info *kernel_info)
 {
     uint32_t i;
-
-   for(i = 0; i < 20; i++)
- #if __riscv_xlen == 32
-      l1pt[513] = PTE64_CREATE((uint64_t)(513 << 20), PTE_TYPE_SRWX);
- #else
-     /* Sv39 - 1 GiB mappings */
-     l1pt[i] = PTE64_CREATE((uint64_t)(i << 28), PTE_TYPE_SRWX);
- #endif
-
+    // first create a complete set of 1-to-1 mappings for all of memory. this is a brute
+    // force way to ensure this elfloader is mapped into the new address space
+    for(i = 0; i < PTES_PER_PT; i++) {
 #if __riscv_xlen == 32
-     l1pt[512] = PTE64_CREATE((uint32_t)(kernel_info->phys_region_start >> 12) << 10, PTE_TYPE_SRWX);
+        l1pt[i] = PTE64_CREATE((uint64_t)(i << 20), PTE_TYPE_SRWX);
 #else
-     l1pt[510] = PTE64_CREATE((uint64_t)(kernel_info->phys_region_start >> 12) << PTE64_PPN0_SHIFT, PTE_TYPE_SRWX);
-     l1pt[256] = PTE64_CREATE((uint64_t)(kernel_info->phys_region_start >> 12) << PTE64_PPN0_SHIFT, PTE_TYPE_SRWX);
+        l1pt[i] = PTE64_CREATE((uint64_t)(i << 28), PTE_TYPE_SRWX);
 #endif
-
-    l1pt[0] = PTE64_PT_CREATE((unsigned long)(&l2pt_elfloader));
+    }
+    //Now create any neccessary entries for the kernel vaddr->paddr
+    i = (kernel_info->virt_region_start >> ((CONFIG_PT_LEVELS - 1) * (__riscv_xlen == 32 ? 10 : 9) + 12)) % PTES_PER_PT;
+    for (int page = 0; i < PTES_PER_PT; i++, page++) {
+#if __riscv_xlen == 32
+         l1pt[i] = PTE64_CREATE((uint32_t)((kernel_info->phys_region_start >> 12) + page) << 10, PTE_TYPE_SRWX);
+#else
+         l1pt[i] = PTE64_CREATE((uint64_t)((kernel_info->phys_region_start >> 12) + page) << PTE64_PPN0_SHIFT, PTE_TYPE_SRWX);
+#endif
+    }
 }
-
-
 
 #if __riscv_xlen == 32
 #define LW lw
