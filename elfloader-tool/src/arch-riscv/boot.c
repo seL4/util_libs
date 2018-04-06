@@ -41,9 +41,6 @@ struct image_info kernel_info;
 struct image_info user_info;
 
 unsigned long l1pt[PTES_PER_PT] __attribute__((aligned(4096)));
-unsigned long l2pt_elfloader[PTES_PER_PT] __attribute__((aligned(4096)));
-unsigned long l3pt_elfloader[PTES_PER_PT] __attribute__((aligned(4096)));
-unsigned long l2pt_kernel[PTES_PER_PT] __attribute__((aligned(4096)));
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
 void
