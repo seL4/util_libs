@@ -35,7 +35,7 @@ It is assumed that
  * CMake of an appropriate version is installed
  * You are using the Ninja CMake generator 
  * Your understand how to checkout projects using the repo tool as described on the
-   [Getting started](https://wiki.sel4.systems/Getting%20started) page
+   [Getting started](https://docs.sel4.systems/GettingStarted) page
 
 ##### Basic build initialisation
 
