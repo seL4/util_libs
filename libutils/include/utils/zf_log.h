@@ -362,10 +362,12 @@ static inline void _zf_log_unused(const int dummy, ...) {(void)dummy;}
 #endif
 
 #if ZF_LOG_ALLOW_FATAL
-	#define ZF_LOGF(...) \
-			_ZF_LOG_IMP(ZF_LOG_FATAL, _ZF_LOG_TAG, __VA_ARGS__)
-	#define ZF_LOGF_MEM(...) \
-			_ZF_LOG_MEM_IMP(ZF_LOG_FATAL, _ZF_LOG_TAG, __VA_ARGS__)
+	#define ZF_LOGF(...) do { \
+			    _ZF_LOG_IMP(ZF_LOG_FATAL, _ZF_LOG_TAG, __VA_ARGS__); UNREACHABLE();\
+    } while (0)
+	#define ZF_LOGF_MEM(...) do { \
+			    _ZF_LOG_MEM_IMP(ZF_LOG_FATAL, _ZF_LOG_TAG, __VA_ARGS__); UNREACHABLE();\
+    } while (0)
 #else
 	#define ZF_LOGF(...) _ZF_LOG_UNUSED(__VA_ARGS__)
 	#define ZF_LOGF_MEM(...) _ZF_LOG_UNUSED(__VA_ARGS__)
