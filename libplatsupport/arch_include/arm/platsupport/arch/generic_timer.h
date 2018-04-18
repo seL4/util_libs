@@ -15,10 +15,8 @@
 #include <platsupport/timer.h>
 #include <autoconf.h>
 
-/* TODO move to armv7 dir */
-#ifdef CONFIG_ARCH_ARM_V7A
-#ifdef CONFIG_ARM_CORTEX_A15
 
+#ifdef CONFIG_EXPORT_PCNT_USER
 typedef struct {
     uint32_t freq;
 } generic_timer_t;
@@ -34,5 +32,4 @@ get_generic_timer_properties(void) {
 int generic_timer_init(generic_timer_t *timer);
 uint64_t generic_timer_get_time(generic_timer_t *timer);
 
-#endif /* CONFIG_ARM_CORTEX_A15 */
-#endif /* CONFIG_ARCH_ARM_V7A */
+#endif /* CONFIG_EXPORT_PCNT_USER */
