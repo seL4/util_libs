@@ -181,7 +181,6 @@ function(GenerateSimulateScript)
     set(KERNEL_IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,KERNEL_IMAGE_NAME>")
     set(IMAGE_NAME "$<TARGET_PROPERTY:rootserver_image,IMAGE_NAME>")
     # Define simulation script target if it doesn't exist to simplify the generator expressions
-    add_custom_target(simulation_script_prop_target)
     if(NOT (TARGET simulation_script_prop_target))
         add_custom_target(simulation_script_prop_target)
     endif()
