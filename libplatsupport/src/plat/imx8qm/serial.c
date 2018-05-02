@@ -169,15 +169,14 @@ static void
 imx8_uart_set_baud(ps_chardevice_t* d, long bps)
 {
     imx8_uart_regs_t* regs = imx8_uart_get_priv(d);
-    uint32_t sbr, osr, osr_val;
+    uint32_t sbr, osr_val;
     uint8_t rx_e, tx_e;
     // check the state of the rx and tx enable, disable if enabled
     tx_e = imx8_uart_check_and_disable_transmitter(regs);
     rx_e = imx8_uart_check_and_disable_receiver(regs);
 
     osr_val = ((regs->baud & LPUART_BAUD_OSR_MASK)>>LPUART_BAUD_OSR_OFFSET);
-    osr = (osr_val > 0) ? (osr_val - 1) : 0;
-    sbr = UART_REF_CLK / (bps * (osr + 1));
+    sbr = UART_REF_CLK / (bps * (osr_val + 1));
     regs->baud = regs->baud | sbr; // oring here because there other other flags in this register
     // re-enable the tx or rx before exiting if they were before callin this function
     imx8_uart_reenable_transmitter(regs, tx_e);
@@ -201,7 +200,7 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
 
     // Receiver and Transmitter need to be disabled to change the ctrl M7 bit
     te_flag = imx8_uart_check_and_disable_transmitter(regs);
-    re_flag = imx8_uart_check_and_disable_transmitter(regs);
+    re_flag = imx8_uart_check_and_disable_receiver(regs);
     ctrl = regs->ctrl;
     /* Character size */
     switch (char_size){
@@ -245,8 +244,16 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     } else {
         return -1;
     }
+
+    regs->ctrl &= ~(LPUART_CTRL_TIE | LPUART_CTRL_TCIE | LPUART_CTRL_TE |
+                    LPUART_CTRL_RIE | LPUART_CTRL_RE);
+
+    regs->fifo = FIFO_TXFLUSH | FIFO_RXFLUSH;
+    regs->water |= WATERMARK_SET_RXWATER(1);
+
     /* Apply the changes */
     regs->ctrl = ctrl;
+
     /* Now set the board rate */
     imx8_uart_set_baud(d, bps);
     /* Re-enable the transmitter and receiver if they were before */
@@ -288,10 +295,6 @@ int uart_init(const struct dev_defn* defn,
     dev->flags      = SERIAL_AUTO_CR;
 
     regs = imx8_uart_get_priv(dev);
-
-    /* Software reset */
-    regs->global |= LPUART_GLOBAL_RST;
-    while (!(regs->global & LPUART_GLOBAL_RST));
 
     /* Line configuration */
     serial_configure(dev, 115200, 8, PARITY_NONE, 1);

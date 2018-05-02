@@ -21,11 +21,11 @@
 #define UART4_PADDR  0x5A090000
 #define UART5_PADDR  0x5A0A0000
 
-#define UART1_IRQ    257
-#define UART2_IRQ    258
-#define UART3_IRQ    259
-#define UART4_IRQ    260
-#define UART5_IRQ    261
+#define UART1_IRQ    377
+#define UART2_IRQ    378
+#define UART3_IRQ    379
+#define UART4_IRQ    380
+#define UART5_IRQ    381
 
 #define DEFAULT_SERIAL_PADDR        UART2_PADDR
 #define DEFAULT_SERIAL_INTERRUPT    UART2_IRQ
@@ -167,7 +167,10 @@ struct imx8_uart_regs {
 #define FIFO_RXFE               BIT(3)
 #define FIFO_RXFIFOSIZE_MASK    (0x7 * BIT(0))
 
-#define WATERMARK_RXCOUND_MASK (0x7F * BIT(24))
+#define WATERMARK_RXCOUNT_MASK (0x7F * BIT(24))
 #define WATERMARK_RXWATER_MASK (0x3F * BIT(16))
 #define WATERMARK_TXCOUNT_MASK (0x7F * BIT(8))
 #define WATERMARK_TXWATER_MASK (0x3F * BIT(0))
+
+#define WATERMARK_SET_RXCOUNT(x) (x << 24) & WATERMARK_RXCOUNT_MASK
+#define WATERMARK_SET_RXWATER(x) (x << 16) & WATERMARK_RXWATER_MASK
