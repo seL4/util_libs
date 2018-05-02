@@ -50,7 +50,8 @@ int uart_putchar(ps_chardevice_t* d, int c)
     imx8_uart_regs_t* regs = imx8_uart_get_priv(d);
     if (regs->stat & LPUART_STAT_TDRE) {
         if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            uart_putchar(d, '\r');
+            regs->data = '\r';
+            while( !(regs->stat & LPUART_STAT_TDRE)); /* Wait for \r to go through */
         }
         regs->data = regs->data | c;
         return c;
