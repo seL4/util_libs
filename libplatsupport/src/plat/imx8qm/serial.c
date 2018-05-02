@@ -19,7 +19,7 @@
 
 #include "../../chardev.h"
 
-#define UART_REF_CLK           133000000
+#define UART_REF_CLK 80000000
 
 typedef volatile struct imx8_uart_regs imx8_uart_regs_t;
 
