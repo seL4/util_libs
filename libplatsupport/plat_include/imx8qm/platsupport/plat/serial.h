@@ -52,6 +52,7 @@ struct imx8_uart_regs {
     uint32_t ctrl;     /* 0x018 Control Register */
     uint32_t data;     /* 0x01C Data Register */
     uint32_t match;    /* Match Address Register */
+    uint32_t res0;
     uint32_t fifo;     /* FIFO Register */
     uint32_t water;    /* Watermark Register */
 };
