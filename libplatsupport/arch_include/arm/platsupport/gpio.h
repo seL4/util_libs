@@ -142,7 +142,7 @@ static inline int gpio_clr(gpio_t* gpio)
  */
 static inline int gpio_get(gpio_t* gpio)
 {
-    char data;
+    char data = 0;
     int ret;
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
