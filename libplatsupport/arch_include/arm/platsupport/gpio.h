@@ -237,6 +237,18 @@ static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
 
+/**
+ * Read from a GPIO pin or a daisy chain of GPIO pins.
+ *
+ * You can chain GPIO pins together and read from them all at once, or read from
+ * a single GPIO pin using this function. The buffer supplied for output will
+ * only be touched as far as "len" bits.
+ *
+ * @param gpio      An initialized gpio_t handle from gpio_new().
+ * @param data      A buffer in which the driver should place the data it reads.
+ * @param len       The number of chained GPIO pins to read from.
+ * @return          The number of bits of data read.
+ */
 static inline int
 gpio_read(gpio_t* gpio, char* data, int len)
 {
@@ -246,6 +258,19 @@ gpio_read(gpio_t* gpio, char* data, int len)
     return gpio->gpio_sys->read(gpio, data, len);
 }
 
+/** Write to a GPIO pin or a daisy chain of GPIO pins.
+ *
+ * You can chain pins together and write to them in a single invocation; or
+ * write to a single gpio pin, using this function. The "len" argument will
+ * determine how many chained pins the driver will attempt to write to.
+ *
+ * @param gpio      An initialized gpio_t handle from gpio_new().
+ * @param data      A buffer from which the driver will draw the data to be
+ *                  written out.
+ * @param len       The number of bits to write out from the buffer to chained
+ *                  GPIO pins.
+ * @return          The number of bits of data written out.
+ */
 static inline int
 gpio_write(gpio_t* gpio, const char* data, int len)
 {
