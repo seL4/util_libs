@@ -447,7 +447,7 @@ tegra_gpio_read(gpio_t* gpio, char* data, int len)
         }
     }
 
-    return 0;
+    return len;
 }
 
 static int
@@ -473,7 +473,7 @@ tegra_gpio_write(gpio_t* gpio, const char* data, int len)
         }
     }
 
-    return 0;
+    return len;
 }
 
 static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
