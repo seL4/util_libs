@@ -581,10 +581,10 @@ tk1_mux_feature_enable(mux_sys_t* mux, enum mux_feature feat,
             return -1;
         }
 
-        /* Set the drive strength divisor to 0 for max drive strength. */
+        /* Set the drive strength divisor to 8 for moderate drive strength. */
         tk1_mux_set_drive_strength_for_pin(mux,
                                            map->pins[i].mux_reg_index,
-                                           0, 0);
+                                           8, 8);
         ZF_LOGD("Feature enable: feat %d, Mux pad index 0x%x(offset 0x%x), GPIO %d. Reg state AFTER 0x%x.",
                 feat,
                 map->pins[i].mux_reg_index,
