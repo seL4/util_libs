@@ -442,6 +442,7 @@ tegra_gpio_read(gpio_t* gpio, char* data, int len)
 
             val = gpio_get_input(gpio->gpio_sys, curr_gpio->id);
             val <<= j;
+            data[i] &= ~BIT(j);
             data[i] |= val;
         }
     }
