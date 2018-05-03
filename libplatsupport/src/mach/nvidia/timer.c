@@ -85,14 +85,17 @@ int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns)
     }
     /* ack any pending irqs */
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
-    tmr->tmr_map->pvt = BIT(PVT_E_BIT) | ticks;
+    tmr->tmr_map->pvt = BIT(PVT_E_BIT) | ticks
+        | ((periodic) ? BIT(PVT_PERIODIC_E_BIT) : 0);
     return 0;
 }
 
 void nv_tmr_handle_irq(nv_tmr_t *tmr)
 {
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
-    tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
+    if (!(tmr->tmr_map->pvt & BIT(PVT_PERIODIC_E_BIT))) {
+        tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
+    }
 }
 
 uint64_t nv_tmr_get_time(nv_tmr_t *tmr)
