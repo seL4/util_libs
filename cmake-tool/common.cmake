@@ -149,7 +149,8 @@ function(DeclareRootserver rootservername)
         get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
         get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
         set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
-
+    else()
+        message(FATAL_ERROR "Unsupported architecture.")
     endif()
     # Store the image and kernel image as properties
     set_property(TARGET rootserver_image PROPERTY IMAGE_NAME "${IMAGE_NAME}")
