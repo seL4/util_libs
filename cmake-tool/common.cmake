@@ -133,6 +133,9 @@ function(DeclareRootserver rootservername)
         # which is what the following custom command is achieving
 
         # Get host string which is our cross compiler minus the trailing '-'
+        if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
+            message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
+        endif()
         string(REGEX REPLACE "^(.*)-$" "\\1" host ${CROSS_COMPILER_PREFIX})
         add_custom_command(OUTPUT "${IMAGE_NAME}"
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
