@@ -25,21 +25,21 @@ For a complete guide to CMake you can read the [extensive documentation](https:/
 but for the purposes here we will assume a particular workflow with CMake involving out of tree builds.
 
 CMake is not itself a build tool, but rather is a build generator. This means that it generates build scripts,
-typically Makefiles or Ninja scripts, which will be used either by a took like GNU Make or Ninja to perform
+typically Makefiles or Ninja scripts, which will be used either by a tool like GNU Make or Ninja to perform
 the actual build.
 
-##### Pre-requisites
+#### Pre-requisites
 
 It is assumed that
 
  * CMake of an appropriate version is installed
  * You are using the Ninja CMake generator 
- * Your understand how to checkout projects using the repo tool as described on the
+ * You understand how to checkout projects using the repo tool as described on the
    [Getting started](https://docs.sel4.systems/GettingStarted) page
 
-##### Basic build initialisation
+#### Basic build initialisation
 
-Assuming you are in the root directory of a project you should start with
+Assuming you are in the root directory of a seL4-based project you should start with
 
 ```sh
 mkdir build
@@ -84,20 +84,18 @@ initialised with CMake you can do either
 ccmake ..
 ```
 
-For a ncurses based configuration editor or
+for a ncurses based configuration editor or
 
 ```sh
 cmake-gui ..
 ```
 
-For a graphical configuration editor
+for a graphical configuration editor.  In both invocations the path `..` should be the same path as was used in the original `cmake` invocation.
 
-In both invocations the path `..` should be the same path as was used in the original `cmake` invocation
-
-CMake itself has two different kinds of options
+CMake itself has two different kinds of options:
 
  * Booleans: These are either `ON` or `OFF`
- * Strings: These can be set to any value, although they may be restricted by whoever wrote the project
+ * Strings: These can be set to any value, although they may be restricted to a set of values by whoever wrote the project.
 
 String options can have 'hints' given to them that they should only take on one of several fixed values. The
 CMake configuration editors will respect these and provide a radio selection.
@@ -106,34 +104,34 @@ As you change configuration options the CMake scripts for the project are not co
 rerun by telling it to '(c)onfigure'. This may result in additional options appearing in the configuration editor,
 or some options being removed, depending on what their dependencies where. For example if there is option `A` that
 is dependent on option `B` being true, and you change `B` to true, `A` will not show up until you (c)onfigure and
-it reprocesses the CMake files.
+the CMake files are reprocessed.
 
-When you are done changing options you can either '(g)enerate and exit' or '(q)uit without generator'. If you
+When you are done changing options you can either '(g)enerate and exit' or '(q)uit without generation'. If you
 quit without generating then your changes will be discarded, you may do this at any time. You will only be
 allowed to generate if you run (c)onfigure after doing any changes and CMake believes your configuration has
 reached a fixed point.
 
-After changing any options and generating you probably want to
+After changing any options and generating call
 
 ```sh
 ninja
 ```
 
-To rebuild the project
+to rebuild the project.
 
-##### Initial configurations
+#### Initial configurations
 
 If a project supports different configurations they will typically provide some configuration `.cmake` files to
 allow you to initialise the project in a certain way. Configurations are provided when initialising the build
 directory by passing `-C <file>` to `cmake`. For example given some typical project structure the `cmake`
-in the last example could be come
+in the last example could become
 
 ```sh
 cmake -C../projects/awesome_project/configs/arm_debug.cmake -DCROSS_COMPILER_PREFIX=arm-linux-gnueabi- -DCMAKE_TOOLCHAIN_FILE=../kernel/gcc.cmake -G Ninja ..
 ```
 
 Note that multiple `-C` options can be given, although if they try and set the same options only one of the
-settings will actually get used. This means in the previously example we might have two different configuration
+settings will actually get used. This means in the previous example we might have two different configuration
 files for `arm.cmake` and `x86.cmake`, and then two other files for `debug.cmake` and `release.cmake`. We could
 now combine `arm.cmake` with either `debug.cmake` or `release.cmake`, similarly with `x86.cmake`. For example
 
@@ -143,9 +141,9 @@ cmake -C../projects/awesome_project/configs/arm.cmake -C../projects/awesome_proj
 
 Nothing stops you from trying to initialise with both `arm.cmake` and `x86.cmake`, but since they are probably
 setting some of the same options only one will actually take effect. If the project has multiple configuration
-files you should check which can be composed
+files you should check which can be composed.
 
-##### [sel4test](https://github.com/seL4/sel4test) example
+#### [sel4test](https://github.com/seL4/sel4test) example
 
 In the previous examples we ended up with some relatively long `cmake` invocations. These can be aliased/scripted
 in various ways. One such example is in the [sel4test](https://github.com/seL4/sel4test) project, which has
@@ -161,7 +159,7 @@ This will create a `build_ia32_debug_simulation` directory and initialise it wit
 `simulation.cmake` and `sel4test.cmake` files from the `projects/sel4test/configs` directory. It will also
 select the system `gcc` as the cross compiler under the assumption you are building on an x86 machine.
 
-If you configured with some like
+If you configured with something like
 
 ```sh
 ./projects/sel4test/configure sabre verification
@@ -173,7 +171,7 @@ and `sel4test.cmake`. In this case it will also set the cross compiler to `arm-l
 Not all projects have the configuration complexity of sel4test, but this serves as an example of how a given
 project might simplify its configuration process.
 
-##### CMAKE_BUILD_TYPE
+#### CMAKE_BUILD_TYPE
 
 The `CMAKE_BUILD_TYPE` option is an option that will appear in the CMake configuration editors that is not
 defined by a project, but is rather defined by CMake itself. This option configures the kind of build to do;
@@ -183,19 +181,19 @@ to the way the kernel has to be built it side steps many of the CMake systems.
 ## Using in a project
 
 This section describes how pieces of the build system fit together and how you might use it in a new project.
-There are a few different pieces that can be fit together in different ways depending on your projects needs
-and desired customisation. This is reflected in the split of files in this directory.
+There are a few different pieces that can be fit together in different ways depending on your project's needs
+and desired customisation. This is reflected in the split of files in the cmake-tool directory.
 
 ### Basic structure
 
 The build system here is in two pieces. One piece is in the seL4 kernel repository, which has all of the basic
-compiler toolchain and flags setting as well as helpers for generating configurations. The other piece is here,
+compiler toolchain and flags settings as well as helpers for generating configurations. The other piece is in seL4_tools/cmake-tool,
 which has helpers for putting libraries and binaries together into a final system image (along with the kernel).
 
 This structure means that the kernel is completely responsible for building itself, but exports the settings
-it used and the binaries it creates so that the rest of this build system can use it and build the final image.
+it uses and the binaries it creates so that the rest of this build system can use it and build the final image.
 
-In this directory are the following files:
+The cmake-tool directory has the following files:
 
  * `README.md` What you are reading
  * `default-CMakeLists.txt` An example CMakeLists.txt file that you could use as the CMakeLists.txt file in
@@ -323,7 +321,7 @@ up the base flags and environment and finalising the Configuration library. We n
 directory (the second argument in `add_subdirectory`) as we are giving a directory that is not a subdirectory of
 the root source directory.
 
-For simplicity of the user the kernel path could be encoded directly into the projects CMakeLists.txt, so you could
+For simplicity, the kernel path could be encoded directly into the projects CMakeLists.txt, so you could
 add
 
 ```cmake
@@ -336,12 +334,12 @@ before
 include(../buildsystem/cmake-tool/base.cmake)
 ```
 
-in `awesome_system/awesome/CMakeLists.txt`, removing the need for `-DKERNEL_PATH` in the `cmake` invocation
+in `awesome_system/awesome/CMakeLists.txt`, removing the need for `-DKERNEL_PATH` in the `cmake` invocation.
 
 ### Configuration
 
 To provide a configuration system that was compatible with how the previous build system provided configuration
-various helpers and systems exist to
+various helpers and systems exist to:
 
  * Automate configuration variables that appear in the cmake-gui with various kinds of dependencies
  * Generate C configuration headers that declare these variables in format similar to what Kconfig did
@@ -379,10 +377,9 @@ Stepping through line by line
 
 For more details of the different `config_*` helpers read the comments on the functions in `kernel/tools/helpers.cmake`
 
-# Gotchas
+## Gotchas
 
 List of gotchas and easy mistakes that can be made when using cmake
 
  * Configuration files passed to to cmake with `-C` *must* end in `.cmake`, otherwise CMake will silently throw
    away your file
-
