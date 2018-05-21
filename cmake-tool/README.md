@@ -309,7 +309,7 @@ and so is relative to that directory.
 
 The contents of `awesome_system/awesome/CMakeLists.txt` would be something like
 
-```c
+```cmake
 cmake_minimum_required(VERSION 3.7.2)
 include(../buildsystem/cmake-tool/base.cmake)
 add_subdirectory(../seL4_libs seL4_libs)
@@ -326,13 +326,13 @@ the root source directory.
 For simplicity of the user the kernel path could be encoded directly into the projects CMakeLists.txt, so you could
 add
 
-```c
+```cmake
 set(KERNEL_PATH ../seL4)
 ```
 
 before
 
-```c
+```cmake
 include(../buildsystem/cmake-tool/base.cmake)
 ```
 
@@ -349,7 +349,7 @@ various helpers and systems exist to
 
 A simple fragment of a CMake script that demonstrates how these three things fit together is
 
-```c
+```cmake
 set(configure_string "")
 config_option(EnableAwesome HAVE_AWESOME "Makes library awesome" DEFAULT ON)
 add_config_library(MyLibrary "${configure_string}")
