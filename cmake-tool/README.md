@@ -9,12 +9,12 @@
 
      @TAG(DATA61_BSD)
 -->
-CMake seL4 Build System
-=======================
+
+# CMake seL4 Build System
 
 > Description of the CMake based build system for building the seL4 kernel and seL4 based projects
 
-# Using projects
+## Using projects
 
 This section is a small tutorial on how to interact with and build a project that is using this build system.
 If you are developing a project then should read the 'using in a project' section.
@@ -180,7 +180,7 @@ defined by a project, but is rather defined by CMake itself. This option configu
 release, debug, release with debug information, etc. Note that the seL4 kernel ignores this setting as due
 to the way the kernel has to be built it side steps many of the CMake systems.
 
-# Using in a project
+## Using in a project
 
 This section describes how pieces of the build system fit together and how you might use it in a new project.
 There are a few different pieces that can be fit together in different ways depending on your projects needs
