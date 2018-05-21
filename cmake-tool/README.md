@@ -216,6 +216,8 @@ The cmake-tool directory has the following files:
    to include this file directly
  * `flags.cmake` Sets up build flags and linker invocations based off the exported kernel flags. This is included
    by `base.cmake` and there should be no need to include this file directly
+ * `init-build.sh` shell script that performs the initial configuration and generation for a new CMake build directory.
+ * `helpers/*` helper functions that are commonly imported by `common.cmake`
 
 ### Kernel directory
 
