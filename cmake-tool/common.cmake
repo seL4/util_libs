@@ -163,8 +163,11 @@ function(DeclareRootserver rootservername)
         message(FATAL_ERROR "Unsupported architecture.")
     endif()
     # Store the image and kernel image as properties
-    set_property(TARGET rootserver_image PROPERTY IMAGE_NAME "${IMAGE_NAME}")
-    set_property(TARGET rootserver_image PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME}")
+    # We use relative paths to the build directory
+    file(RELATIVE_PATH IMAGE_NAME_REL ${CMAKE_BINARY_DIR} ${IMAGE_NAME})
+    file(RELATIVE_PATH KERNEL_IMAGE_NAME_REL ${CMAKE_BINARY_DIR} ${KERNEL_IMAGE_NAME})
+    set_property(TARGET rootserver_image PROPERTY IMAGE_NAME "${IMAGE_NAME_REL}")
+    set_property(TARGET rootserver_image PROPERTY KERNEL_IMAGE_NAME "${KERNEL_IMAGE_NAME_REL}")
 endfunction(DeclareRootserver)
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
