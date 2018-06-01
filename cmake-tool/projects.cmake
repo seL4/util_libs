@@ -17,7 +17,7 @@ file(GLOB result RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 if(KernelArchRiscV)
-	set(BBL_PATH ${CMAKE_SOURCE_DIR}/projects/riscv-pk CACHE STRING "BBL Folder location")
+	set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
 	mark_as_advanced(FORCE BBL_PATH)
 endif()
 # We sort the results to ensure that builds are deterministic. Whilst build scripts
