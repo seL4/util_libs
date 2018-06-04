@@ -57,6 +57,11 @@ if (KernelArchRiscV)
     add_compile_options(-mcmodel=medany)
 endif()
 
+if (KernelSel4ArchAarch64)
+    # NEON registers aren't necessarily initialized for use before elfloader starts
+    add_compile_options(-mgeneral-regs-only)
+endif()
+
 file(GLOB files
     src/*.c
     src/arch-${KernelArch}/*.c
