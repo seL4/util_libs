@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.8.2)
 
 function(ApplyData61ElfLoaderSettings)
     if(KernelArchARM)
-        set(binary_list "tx1;hikey;am335x")
+        set(binary_list "tx1;hikey;am335x;odroidc2")
         if(${KernelARMPlatform} STREQUAL "hikey" AND ${KernelArmSel4Arch} STREQUAL "aarch64")
             set(ElfloaderImage "efi" CACHE STRING "" FORCE)
         elseif(${KernelARMPlatform} STREQUAL "rpi3" AND ${KernelArmSel4Arch} STREQUAL "aarch64")
