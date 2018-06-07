@@ -51,7 +51,7 @@ struct imx6_eth_data {
     volatile struct descriptor *rx_ring;
     unsigned int rx_size;
     unsigned int tx_size;
-    struct dma_buf_cookie *rx_cookies;
+    void **rx_cookies;                   // Array (of rx_size elements) of type 'void *'
     unsigned int rx_remain;
     unsigned int tx_remain;
     void **tx_cookies;
@@ -103,17 +103,18 @@ static void fill_rx_bufs(struct eth_driver *driver) {
     __sync_synchronize();
     while (dev->rx_remain > 0) {
         /* request a buffer */
-        struct dma_buf_cookie cookie_bufs;
-        void *cookie = &cookie_bufs;
+        void *cookie = NULL;
         int next_rdt = (dev->rdt + 1) % dev->rx_size;
+
+        // This fn ptr is either lwip_allocate_rx_buf or lwip_pbuf_allocate_rx_buf (in src/lwip.c)
         uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie);
         if (!phys) {
+            // NOTE: This condition could happen if 
+            //       CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS < CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT
             break;
         }
 
-        dev->rx_cookies[dev->rdt].vbuf = cookie_bufs.vbuf;
-        dev->rx_cookies[dev->rdt].pbuf = cookie_bufs.pbuf;
-
+        dev->rx_cookies[dev->rdt] = cookie;
         dev->rx_ring[dev->rdt].phys = phys;
         dev->rx_ring[dev->rdt].len = 0;
 
@@ -175,7 +176,7 @@ static int initialize_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man
     }
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct descriptor) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct descriptor) * dev->tx_size);
-    dev->rx_cookies = malloc(sizeof(struct dma_buf_cookie) * dev->rx_size);
+    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
     dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
@@ -232,7 +233,7 @@ static void complete_rx(struct eth_driver *eth_driver) {
             /* not complete yet */
             break;
         }
-        void *cookie = &dev->rx_cookies[dev->rdh];
+        void *cookie = dev->rx_cookies[dev->rdh];
         unsigned int len = dev->rx_ring[dev->rdh].len;
         /* update rdh */
         dev->rdh = (dev->rdh + 1) % dev->rx_size;
