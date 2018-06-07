@@ -449,6 +449,10 @@ lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *
     /* if the driver did not already cause it to happen, allocate the preallocated buffers */
     if (!pbuf_dma && !iface->bufs) {
         initialize_free_bufs(iface);
+        if (iface->bufs == NULL) {
+            LOG_ERROR("Fault preallocating bufs");
+            goto error;
+        }
     }
     iface->ethif_init = ethif_init;
     return iface;
