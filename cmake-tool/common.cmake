@@ -121,7 +121,7 @@ function(DeclareRootserver rootservername)
         # to do this so that we can put the rootserver image name as a property and have the
         # elfloader pull it out using a generator expression, since generator expression cannot
         # nest (i.e. in the expansion of $<TARGET_FILE:tgt> 'tgt' cannot itself be a generator
-        # expression. Nor can a generator exrepssion expand to another generator expression and
+        # expression. Nor can a generator expression expand to another generator expression and
         # get expanded again. As a result we just fix the output name and location of the rootserver
         set_property(TARGET "${rootservername}" PROPERTY OUTPUT_NAME "${rootservername}")
         get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
@@ -133,11 +133,11 @@ function(DeclareRootserver rootservername)
         # which is what the following custom command is achieving
 
         # TODO: Currently we do not support native RISC-V builds, because there
-        # is no natve environment to test this. Thus CROSS_COMPILER_PREFIX is
+        # is no native environment to test this. Thus CROSS_COMPILER_PREFIX is
         # always set and the BBL build below uses it to create the the
         # "--host=..." parameter. For now, make the build fail if
         # CROSS_COMPILER_PREFIX if not set. It seems that native builds can
-        # simply omit the host paramteter.
+        # simply omit the host parameter.
         if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
             message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
         endif()
