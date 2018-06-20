@@ -38,7 +38,6 @@ if(LibPicotcp)
     file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build.sh" CONTENT "${CMAKE_COMMAND} -E env \
         \"PLATFORM_CFLAGS=$<JOIN:${compile_options}, >\" \
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
-        \"SEL4=1\" \
         make -s -j")
 
     # build picotcp using its very own build system
