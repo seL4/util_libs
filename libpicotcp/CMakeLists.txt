@@ -18,6 +18,11 @@ config_option(LibPicotcp LIB_PICOTCP
     "Build libpicotcp"
     DEFAULT OFF
 )
+config_option(LibPicotcpBsd LIB_PICOTCP_BSD
+    "Build libpicotcp with bsd socket support"
+    DEFAULT OFF
+    DEPENDS LibPicotcp)
+
 if(LibPicotcp)
     # find pico tcp location
     find_file(PICOTCP_PATH picotcp PATHS ${CMAKE_SOURCE_DIR}/projects CMAKE_FIND_ROOT_PATH_BOTH)
@@ -66,4 +71,22 @@ if(LibPicotcp)
     add_dependencies(picotcp picotcp_sources)
     set_property(TARGET picotcp PROPERTY INTERFACE_LINK_LIBRARIES picotcp_sources)
     target_include_directories(picotcp INTERFACE "${SOURCE_DIR}/build/include")
+endif()
+if(LibPicotcpBsd)
+    # find pico tcp location
+    find_file(PICOTCP_BSD_PATH picotcp-bsd PATHS ${CMAKE_SOURCE_DIR}/projects CMAKE_FIND_ROOT_PATH_BOTH)
+    mark_as_advanced(FORCE PICOTCP_BSD_PATH)
+    if("${PICOTCP_BSD_PATH}" STREQUAL "PICOTCP_BSD_PATH-NOTFOUND")
+        message(FATAL_ERROR "Failed to find picotcp-bsd. Consider cmake -DPICOTCP_BSD_PATH=/path/to/picotcp-bsd")
+    endif()
+
+    add_definitions(-DSTDSOCKET)
+    add_definitions(-U__linux__)
+    add_definitions(-D_SYS_POLL_H)
+
+    # create picotcp_bsd library
+    add_library(picotcp_bsd STATIC EXCLUDE_FROM_ALL ${PICOTCP_BSD_PATH}/pico_bsd_sockets.c
+                                                    ${PICOTCP_BSD_PATH}/pico_osal_noos.c)
+    target_include_directories(picotcp_bsd PUBLIC ${PICOTCP_BSD_PATH})
+    target_link_libraries(picotcp_bsd muslc picotcp)
 endif()
