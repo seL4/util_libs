@@ -82,25 +82,22 @@ function(DeclareCakeMLLib library_name)
     if (NOT EXISTS "${CAKEMLDIR}")
         message(FATAL_ERROR "CAKEMLDIR \"${CAKEMLDIR}\" is not a valid directory")
     endif()
-    # Generate rules for copy our sources over
-    foreach(file IN LISTS PARSE_CML_LIB_SOURCES)
-        # Copy the file to our build directory
-        get_filename_component(theory "${file}" NAME)
-        set(theory "${CMAKE_CURRENT_BINARY_DIR}/${theory}")
-        get_absolute_source_or_binary(file_abs "${file}")
-        add_custom_command(
-            OUTPUT "${theory}"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${file_abs}" "${theory}"
-            DEPENDS ${CMAKE_CML_LIB_DEPENDS} "${file_abs}"
-        )
-        list(APPEND theories "${theory}")
-    endforeach()
+    # Generate rule for copy our sources over
+    add_custom_command(
+        OUTPUT ${library_name}cakeml_copy.stamp
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PARSE_CML_LIB_SOURCES} "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND touch "${library_name}cakeml_copy.stamp"
+        DEPENDS ${CMAKE_CML_LIB_DEPENDS} "${PARSE_CML_LIB_SOURCES}"
+        COMMAND_EXPAND_LISTS
+    )
+    add_custom_target(${library_name}cakeml_copy_theory_files
+        DEPENDS ${CMAKE_CML_LIB_DEPENDS} "${PARSE_CML_LIB_SOURCES}" ${library_name}cakeml_copy.stamp
+    )
     # Create a target for copying all of our files
     set(SEXP_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.sexp")
 	set(ASM_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.S")
     set(BUILD_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml")
     set(HOLMAKEFILE "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile")
-    add_custom_target(${library_name}cakeml_copy_theory_files DEPENDS ${theories})
     # Write out a build script. We don't bother with bracket arguments here as there aren't too many
     # things to escape and we need to expand several variables throughout
     file(WRITE "${BUILD_SCRIPT}.temp"
@@ -189,7 +186,7 @@ endif
 		# configurable. We don't expect many other plain strings to be in the assembly file so we
 		# do a somewhat risky 'sed' to change the name of the main function
 		COMMAND sed -i "s/cdecl(main)/cdecl(${PARSE_CML_LIB_RUNTIME_ENTRY})/g" "${ASM_FILE}"
-		DEPENDS ${theories} ${library_name}cakeml_copy_theory_files "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
+		DEPENDS ${library_name}cakeml_copy_theory_files ${library_name}cakeml_copy.stamp "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 		VERBATIM
 	)
