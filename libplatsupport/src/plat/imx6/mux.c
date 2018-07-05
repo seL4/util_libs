@@ -24,7 +24,7 @@
 #endif
 
 #define IMX6_IOMUXC_PADDR 0x020E0000
-#define IMX6_IOMUXC_SIZE  0x1000
+#define IMX6_IOMUXC_SIZE  0x4000
 
 #define IOMUXC_MUXCTL_OFFSET        0x4C
 #define IOMUXC_PADCTL_OFFSET        0x360
@@ -789,11 +789,21 @@ imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
     return 0;
 }
 
+static void *imx6_mux_get_vaddr(mux_sys_t *mux) {
+    struct imx6_mux* m;
+    if (mux == NULL || mux->priv == NULL) {
+        return NULL;
+    }
+    m = get_mux_priv(mux);
+    return (void *)m->iomuxc;
+}
+
 static int
 imx6_mux_init_common(mux_sys_t* mux)
 {
     set_mux_priv(mux, &_mux);
     mux->feature_enable = &imx6_mux_feature_enable;
+    mux->get_mux_vaddr = &imx6_mux_get_vaddr;
     return 0;
 }
 

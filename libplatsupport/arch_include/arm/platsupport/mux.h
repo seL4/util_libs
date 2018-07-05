@@ -27,6 +27,7 @@ enum mux_gpio_dir {
 struct mux_sys {
     int (*feature_enable)(mux_sys_t* mux, enum mux_feature, enum mux_gpio_dir);
     int (*feature_disable)(mux_sys_t* mux, enum mux_feature);
+    void *(*get_mux_vaddr)(mux_sys_t *mux);
     void *priv;
 };
 
@@ -35,6 +36,14 @@ struct mux_sys {
 static inline int mux_sys_valid(const mux_sys_t* mux_sys)
 {
     return mux_sys && mux_sys->priv;
+}
+
+/**
+ * Returns the vaddr of the mux controller so a driver can directly
+ * access the MUX controller and bypass the muxc.
+ */
+static inline void * mux_sys_get_vaddr(mux_sys_t *mux) {
+    return (mux && mux->get_mux_vaddr) ? mux->get_mux_vaddr(mux) : NULL;
 }
 
 /**
