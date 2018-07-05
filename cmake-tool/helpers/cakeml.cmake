@@ -37,9 +37,9 @@ find_program(HOLMAKE_BIN NAMES "Holmake")
 #  INCLUDES - List of any additional INCLUDES to add to the INCLUDES list in the Holmakefile
 function(DeclareCakeMLLib library_name)
     cmake_parse_arguments(PARSE_ARGV 1 PARSE_CML_LIB
-    	""
-    	"TRANSLATION_THEORY;RUNTIME_ENTRY;CAKEML_ENTRY;STACK_SIZE;HEAP_SIZE"
-    	"SOURCES;DEPENDS;INCLUDES"
+        ""
+        "TRANSLATION_THEORY;RUNTIME_ENTRY;CAKEML_ENTRY;STACK_SIZE;HEAP_SIZE"
+        "SOURCES;DEPENDS;INCLUDES"
     )
     if (NOT "${PARSE_CML_LIB_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to DeclareCakeMLLib ${PARSE_CML_LIB_UNPARSED_ARGUMENTS}")
@@ -58,18 +58,18 @@ function(DeclareCakeMLLib library_name)
     endif()
     # default stack and heap size
     if ("${PARSE_CML_LIB_STACK_SIZE}" STREQUAL "")
-    	set(PARSE_CML_LIB_STACK_SIZE "1000")
+        set(PARSE_CML_LIB_STACK_SIZE "1000")
     endif()
     if ("${PARSE_CML_LIB_HEAP_SIZE}" STREQUAL "")
-    	set(PARSE_CML_LIB_HEAP_SIZE "1000")
+        set(PARSE_CML_LIB_HEAP_SIZE "1000")
     endif()
     # Work out what --target we need to pass to cake
     if (KernelSel4ArchX86_64)
-    	set(CAKE_TARGET "x64")
+        set(CAKE_TARGET "x64")
     else()
         # We don't generate an error right here incase configuration is still going on
         # Setting the target to "unknown" will happily cause 'cake' to fail if it gets to that point
-    	set(CAKE_TARGET "unknown")
+        set(CAKE_TARGET "unknown")
     endif()
     # Check we have all the right tools setup
     if (${HOLMAKE_BIN} STREQUAL "HOLMAKE_BIN-NOTFOUND")
@@ -95,7 +95,7 @@ function(DeclareCakeMLLib library_name)
     )
     # Create a target for copying all of our files
     set(SEXP_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.sexp")
-	set(ASM_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.S")
+    set(ASM_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.S")
     set(BUILD_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml")
     set(HOLMAKEFILE "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile")
     # Write out a build script. We don't bother with bracket arguments here as there aren't too many
@@ -168,29 +168,29 @@ endif
     # a small optimization around not rerunning cake (holmake does not fairly fast) if we file(WRITE)
     # the same contents back out
     add_custom_command(OUTPUT "${BUILD_SCRIPT}" "${HOLMAKEFILE}"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${BUILD_SCRIPT}.temp ${BUILD_SCRIPT}
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HOLMAKEFILE}.temp ${HOLMAKEFILE}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${BUILD_SCRIPT}.temp ${BUILD_SCRIPT}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HOLMAKEFILE}.temp ${HOLMAKEFILE}
         DEPENDS "${BUILD_SCRIPT}.temp" "${HOLMAKEFILE}.temp"
     )
     add_custom_target(${library_name}cakeml_copy_build_script DEPENDS "${BUILD_SCRIPT}" "${HOLMAKEFILE}")
-	add_custom_command(OUTPUT "${ASM_FILE}"
-		BYPRODUCTS "${SEXP_FILE}"
-		COMMAND ${HOLMAKE_BIN} --quiet
-		COMMAND sh -c "cake --sexp=true --exclude_prelude=true --heap_size=${PARSE_CML_LIB_HEAP_SIZE} --stack_size=${PARSE_CML_LIB_STACK_SIZE} --target=${CAKE_TARGET} < ${SEXP_FILE} > ${ASM_FILE}"
-		# the 'cake' program is garbage and does not return an exit code upon failure and instead
-		# just outputs nothing over stdout. We therefore test for an empty file and then both delete
-		# the file to trigger rebuilds in future and generate an explicit error code
-		COMMAND sh -c "if ! [ -s ${ASM_FILE} ]; then rm ${ASM_FILE}; fi"
-		COMMAND test -s "${ASM_FILE}"
-		# 'cake' currently just outputs a global 'main' symbol as its entry point and this is not
-		# configurable. We don't expect many other plain strings to be in the assembly file so we
-		# do a somewhat risky 'sed' to change the name of the main function
-		COMMAND sed -i "s/cdecl(main)/cdecl(${PARSE_CML_LIB_RUNTIME_ENTRY})/g" "${ASM_FILE}"
-		DEPENDS ${library_name}cakeml_copy_theory_files ${library_name}cakeml_copy.stamp "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-		VERBATIM
-	)
-	add_custom_target(${library_name}cakeml_asm_theory_target DEPENDS "${ASM_FILE}")
-	add_library(${library_name} STATIC EXCLUDE_FROM_ALL "${ASM_FILE}")
-	add_dependencies(${library_name} ${library_name}cakeml_asm_theory_target)
+    add_custom_command(OUTPUT "${ASM_FILE}"
+        BYPRODUCTS "${SEXP_FILE}"
+        COMMAND ${HOLMAKE_BIN} --quiet
+        COMMAND sh -c "cake --sexp=true --exclude_prelude=true --heap_size=${PARSE_CML_LIB_HEAP_SIZE} --stack_size=${PARSE_CML_LIB_STACK_SIZE} --target=${CAKE_TARGET} < ${SEXP_FILE} > ${ASM_FILE}"
+        # the 'cake' program is garbage and does not return an exit code upon failure and instead
+        # just outputs nothing over stdout. We therefore test for an empty file and then both delete
+        # the file to trigger rebuilds in future and generate an explicit error code
+        COMMAND sh -c "if ! [ -s ${ASM_FILE} ]; then rm ${ASM_FILE}; fi"
+        COMMAND test -s "${ASM_FILE}"
+        # 'cake' currently just outputs a global 'main' symbol as its entry point and this is not
+        # configurable. We don't expect many other plain strings to be in the assembly file so we
+        # do a somewhat risky 'sed' to change the name of the main function
+        COMMAND sed -i "s/cdecl(main)/cdecl(${PARSE_CML_LIB_RUNTIME_ENTRY})/g" "${ASM_FILE}"
+        DEPENDS ${library_name}cakeml_copy_theory_files ${library_name}cakeml_copy.stamp "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        VERBATIM
+    )
+    add_custom_target(${library_name}cakeml_asm_theory_target DEPENDS "${ASM_FILE}")
+    add_library(${library_name} STATIC EXCLUDE_FROM_ALL "${ASM_FILE}")
+    add_dependencies(${library_name} ${library_name}cakeml_asm_theory_target)
 endfunction(DeclareCakeMLLib)
