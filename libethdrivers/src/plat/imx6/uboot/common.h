@@ -44,9 +44,15 @@
 #error Read section CONFIG_SKIP_LOWLEVEL_INIT in README.
 #endif
 
+#ifndef ROUND
 #define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
+#endif
+#ifndef DIV_ROUND
 #define DIV_ROUND(n,d)		(((n) + ((d)/2)) / (d))
+#endif
+#ifndef DIV_ROUND_UP
 #define DIV_ROUND_UP(n,d)	(((n) + (d) - 1) / (d))
+#endif
 #define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
 
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
