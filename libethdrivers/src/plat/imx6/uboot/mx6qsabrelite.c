@@ -128,7 +128,15 @@ static int imx_iomux_v3_setup_multiple_pads(void *base, iomux_v3_cfg_t const *pa
 int setup_iomux_enet(ps_io_ops_t *io_ops)
 {
     int ret;
-    void *base = RESOURCE(&io_ops->io_mapper, IOMUXC);
+    void *base;
+    int unmapOnExit = 0;
+
+    if (mux_sys_valid(&io_ops->mux_sys)) {
+        base = mux_sys_get_vaddr(&io_ops->mux_sys);
+    } else {
+        base = RESOURCE(&io_ops->io_mapper, IOMUXC);
+        unmapOnExit=1;
+    }
     if (!base) {
         return 1;
     }
@@ -153,6 +161,8 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
 	    return ret;
 	}
 
-    UNRESOURCE(&io_ops->io_mapper, IOMUXC, base);
+    if (unmapOnExit) {
+        UNRESOURCE(&io_ops->io_mapper, IOMUXC, base);
+    }
     return 0;
 }
