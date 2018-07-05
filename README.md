@@ -34,3 +34,4 @@ Collection of OS independent utility libs:
   * verification.h - macros for verification in Isabelle.
   * zf_log_config.h - provides zf_log config.
   * zf_log.h - an open source logging library.
+  * libpicotcp - a wrapper library to include [picotcp](https://github.com/tass-belgium/picotcp).
