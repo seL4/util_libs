@@ -82,25 +82,44 @@ function(DeclareCakeMLLib library_name)
     if (NOT EXISTS "${CAKEMLDIR}")
         message(FATAL_ERROR "CAKEMLDIR \"${CAKEMLDIR}\" is not a valid directory")
     endif()
-    # Generate rule for copy our sources over
+    # Generate a directory at the top level of the binary directory for placing our CakeML related
+    # files. Placing all the CakeML related sources together simplifies development of of CakeML
+    # projects
+    set(CML_DIR "${CMAKE_BINARY_DIR}/cakeml_${library_name}")
+    set(SEXP_FILE "${CML_DIR}/cake.sexp")
+    set(ASM_FILE "${CML_DIR}/cake.S")
+    set(BUILD_SCRIPT "${CML_DIR}/buildScript.sml")
+    set(HOLMAKEFILE "${CML_DIR}/Holmakefile")
+    # Ensure this desired directory exists
+    file(MAKE_DIRECTORY "${CML_DIR}")
+    # Glob any existing symlinks in our CML dir. We use this if we rebuild to make sure we clean up
+    # any symlinks that may not be needed anymore
+    file(GLOB cakeml_symlinks "${CML_DIR}/*Script.sml")
+    # Remove our generated build script
+    list(REMOVE_ITEM cakeml_symlinks "${BUILD_SCRIPT}")
+    # Generate rule for symlinking our sources
+    set(stampfile "${CMAKE_CURRENT_BINARY_DIR}/${library_name}cakeml_symlink.stamp")
     add_custom_command(
-        OUTPUT ${library_name}cakeml_copy.stamp
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PARSE_CML_LIB_SOURCES} "${CMAKE_CURRENT_BINARY_DIR}"
-        COMMAND touch "${library_name}cakeml_copy.stamp"
-        DEPENDS ${CMAKE_CML_LIB_DEPENDS} "${PARSE_CML_LIB_SOURCES}"
+        OUTPUT "${stampfile}"
+        # First remove any existing symlinks to prevent any confusion if dependencies are changed
+        # between builds.
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${cakeml_symlinks}
+        # Symlink any of our files. We have to escape into some inline shell expressions here since
+        # we want to support our sources containing generator expressions, and we do not know the value
+        # of these until build time
+        COMMAND ln -s ${PARSE_CML_LIB_SOURCES} "${CML_DIR}"
+        COMMAND touch "${stampfile}"
+        # We do not depend upon the sources here as there is no need to recreate the symlinks if the
+        # sources change. This requires that the later build rules do depend upon the original sources
         COMMAND_EXPAND_LISTS
     )
-    add_custom_target(${library_name}cakeml_copy_theory_files
-        DEPENDS ${CMAKE_CML_LIB_DEPENDS} "${PARSE_CML_LIB_SOURCES}" ${library_name}cakeml_copy.stamp
+    add_custom_target(${library_name}cakeml_symlink_theory_files
+        DEPENDS ${library_name}cakeml_copy.stamp
     )
-    # Create a target for copying all of our files
-    set(SEXP_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.sexp")
-    set(ASM_FILE "${PARSE_CML_LIB_TRANSLATION_THEORY}.S")
-    set(BUILD_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml")
-    set(HOLMAKEFILE "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile")
     # Write out a build script. We don't bother with bracket arguments here as there aren't too many
     # things to escape and we need to expand several variables throughout
-    file(WRITE "${BUILD_SCRIPT}.temp"
+    set(BUILD_SCRIPT_TEMP "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml.temp")
+    file(WRITE "${BUILD_SCRIPT_TEMP}"
 "open preamble basis ${PARSE_CML_LIB_TRANSLATION_THEORY}Theory
 val _ = new_theory \"build\"
 val _ = translation_extends \"${PARSE_CML_LIB_TRANSLATION_THEORY}\";
@@ -117,7 +136,8 @@ val _ = export_theory ();
     # We use a mixture of bracket arguments, in order to avoid excessive escape sequences, and
     # regular strings in order to expand variables. This allows us to create a super crappy templating
     # system that is just good enough for what we need.
-    file(WRITE "${HOLMAKEFILE}.temp"
+    set(HOLMAKEFILE_TEMP "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile.temp")
+    file(WRITE "${HOLMAKEFILE_TEMP}"
 "CAKEML_DIR = ${CAKEMLDIR}
 "
 [==[
@@ -168,9 +188,10 @@ endif
     # a small optimization around not rerunning cake (holmake does not fairly fast) if we file(WRITE)
     # the same contents back out
     add_custom_command(OUTPUT "${BUILD_SCRIPT}" "${HOLMAKEFILE}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${BUILD_SCRIPT}.temp ${BUILD_SCRIPT}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HOLMAKEFILE}.temp ${HOLMAKEFILE}
-        DEPENDS "${BUILD_SCRIPT}.temp" "${HOLMAKEFILE}.temp"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${BUILD_SCRIPT_TEMP} ${BUILD_SCRIPT}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HOLMAKEFILE_TEMP} ${HOLMAKEFILE}
+        DEPENDS "${BUILD_SCRIPT_TEMP}" "${HOLMAKEFILE_TEMP}"
+        WORKING_DIRECTORY "${CML_DIR}"
     )
     add_custom_target(${library_name}cakeml_copy_build_script DEPENDS "${BUILD_SCRIPT}" "${HOLMAKEFILE}")
     add_custom_command(OUTPUT "${ASM_FILE}"
@@ -186,8 +207,8 @@ endif
         # configurable. We don't expect many other plain strings to be in the assembly file so we
         # do a somewhat risky 'sed' to change the name of the main function
         COMMAND sed -i "s/cdecl(main)/cdecl(${PARSE_CML_LIB_RUNTIME_ENTRY})/g" "${ASM_FILE}"
-        DEPENDS ${library_name}cakeml_copy_theory_files ${library_name}cakeml_copy.stamp "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        DEPENDS ${PARSE_CML_LIB_SOURCES} "${stampfile}" "${BUILD_SCRIPT}" "${HOLMAKEFILE}" ${library_name}cakeml_copy_build_script
+        WORKING_DIRECTORY "${CML_DIR}"
         VERBATIM
     )
     add_custom_target(${library_name}cakeml_asm_theory_target DEPENDS "${ASM_FILE}")
