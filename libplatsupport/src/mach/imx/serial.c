@@ -229,6 +229,19 @@ int uart_init(const struct dev_defn* defn,
     regs->fcr |= UART_FCR_RXTL(1);               /* Set the rx tigger level to 1.     */
     regs->cr1 |= UART_CR1_RRDYEN;                /* Enable recv interrupt.            */
 
+
+#ifdef CONFIG_PLAT_IMX6
+    /* The UART1 on the IMX6 has the problem that the MUX is not correctly set, and the RX PIN is 
+     * not routed correctly.
+     */
+    if ((defn->id == IMX_UART1) && mux_sys_valid(&ops->mux_sys)) {
+        if (mux_feature_enable(&ops->mux_sys, MUX_UART1, 0)) {
+            // Failed to configure the mux 
+            return -1;
+        }
+    }
+#endif
+
     return 0;
 }
 
