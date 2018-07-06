@@ -695,6 +695,13 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enu
         DMUX("Muxing CLKO1 to MUX0\n");
         m->iomuxc->sw_mux_ctl_pad_gpio00    = IOMUXC_MUXCTL_MODE(0);
         return 0;
+
+    case MUX_UART1:
+        DMUX("Muxing for UART1\n");
+        m->iomuxc->sw_mux_ctl_pad_sd3_data6 = IOMUXC_MUXCTL_MODE(1);
+        m->iomuxc->uart1_uart_rx_data_select_input  = IOMUXC_IS_DAISY(3);
+        return 0;
+
     default:
         return -1;
     }
