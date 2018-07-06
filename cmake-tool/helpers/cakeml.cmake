@@ -120,8 +120,9 @@ function(DeclareCakeMLLib library_name)
     # things to escape and we need to expand several variables throughout
     set(BUILD_SCRIPT_TEMP "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml.temp")
     file(WRITE "${BUILD_SCRIPT_TEMP}"
-"open preamble basis ${PARSE_CML_LIB_TRANSLATION_THEORY}Theory
-val _ = new_theory \"build\"
+"open preamble basis ${PARSE_CML_LIB_TRANSLATION_THEORY}Theory;
+
+val _ = new_theory \"build\";
 val _ = translation_extends \"${PARSE_CML_LIB_TRANSLATION_THEORY}\";
 val st = ml_translatorLib.get_ml_prog_state();
 val maincall =
