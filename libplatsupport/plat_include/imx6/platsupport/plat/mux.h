@@ -17,6 +17,7 @@ enum mux_feature {
     MUX_I2C2,
     MUX_I2C3,
     MUX_GPIO0_CLKO1,
+    MUX_UART1,
     NMUX_FEATURES
 };
 
