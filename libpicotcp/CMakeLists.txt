@@ -53,11 +53,19 @@ if(LibPicotcp)
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND "true"
         EXCLUDE_FROM_ALL
-        BUILD_ALWAYS ON
         DEPENDS muslc
         BUILD_BYPRODUCTS "<SOURCE_DIR>/build/lib/libpicotcp.a"
     )
 
+    file (GLOB deps ${PICOTCP_PATH}/modules/*.c ${PICOTCP_PATH}/modules/*.h
+        ${PICOTCP_PATH}/stack/*.c ${PICOTCP_PATH}/include/**/*.h)
+
+    # Add file dependencies to picotcp
+    ExternalProject_Add_StepDependencies(picotcp_external
+        download
+        DEPENDS ${PICOTCP_PATH}/Makefile
+        DEPENDS ${deps}
+    )
     # get the dir that the picotcp sources have been copied to by ExternalProject_Add
     ExternalProject_Get_Property(picotcp_external SOURCE_DIR)
 
