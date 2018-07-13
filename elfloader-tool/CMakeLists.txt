@@ -127,9 +127,9 @@ if(KernelArchARM)
     )
 endif()
 
-target_link_libraries(elfloader PRIVATE Configuration cpio)
+target_link_libraries(elfloader PRIVATE Configuration cpio gcc)
 add_dependencies(elfloader elfloader_linker)
-set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostartfiles -static -Wl,--build-id=none")
+set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none")
 
 if (ElfloaderImageEFI)
     set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
