@@ -20,4 +20,4 @@ if(KernelArchRiscV)
 endif()
 
 target_include_directories(cpio PUBLIC include)
-target_link_libraries(cpio Configuration muslc)
+target_link_libraries(cpio Configuration)
