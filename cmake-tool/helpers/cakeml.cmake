@@ -92,18 +92,13 @@ function(DeclareCakeMLLib library_name)
     set(HOLMAKEFILE "${CML_DIR}/Holmakefile")
     # Ensure this desired directory exists
     file(MAKE_DIRECTORY "${CML_DIR}")
-    # Glob any existing symlinks in our CML dir. We use this if we rebuild to make sure we clean up
-    # any symlinks that may not be needed anymore
-    file(GLOB cakeml_symlinks "${CML_DIR}/*Script.sml")
-    # Remove our generated build script
-    list(REMOVE_ITEM cakeml_symlinks "${BUILD_SCRIPT}")
     # Generate rule for symlinking our sources
     set(stampfile "${CMAKE_CURRENT_BINARY_DIR}/${library_name}cakeml_symlink.stamp")
     add_custom_command(
         OUTPUT "${stampfile}"
         # First remove any existing symlinks to prevent any confusion if dependencies are changed
         # between builds.
-        COMMAND ${CMAKE_COMMAND} -E remove -f ${cakeml_symlinks}
+        COMMAND bash -c "find '${CML_DIR}' -name '*.sml' -type l | xargs rm"
         # Symlink any of our files. We have to escape into some inline shell expressions here since
         # we want to support our sources containing generator expressions, and we do not know the value
         # of these until build time
@@ -112,6 +107,7 @@ function(DeclareCakeMLLib library_name)
         # We do not depend upon the sources here as there is no need to recreate the symlinks if the
         # sources change. This requires that the later build rules do depend upon the original sources
         COMMAND_EXPAND_LISTS
+        VERBATIM
     )
     add_custom_target(${library_name}cakeml_symlink_theory_files
         DEPENDS ${library_name}cakeml_copy.stamp
