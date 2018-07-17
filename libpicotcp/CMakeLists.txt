@@ -75,6 +75,8 @@ if(LibPicotcp)
     ExternalProject_Get_Property(picotcp_external SOURCE_DIR)
     set (BUILD_DIR "${SOURCE_DIR}/picotcp/build/")
 
+    DeclareExternalProjObjectFiles(picotcp_external "${BUILD_DIR}/lib/" FILES "libpicotcp.a")
+
     # create a library which is the sources
     add_library(picotcp_sources STATIC IMPORTED GLOBAL)
     add_dependencies(picotcp_sources picotcp_external)
