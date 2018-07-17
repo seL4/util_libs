@@ -45,6 +45,9 @@ if(LibPicotcp)
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
         make -s -j")
 
+    add_custom_target(get_muslc)
+    add_dependencies(get_muslc muslc)
+
     # build picotcp using its very own build system
     ExternalProject_Add(picotcp_external
         URL file:///${PICOTCP_PATH}
@@ -53,8 +56,8 @@ if(LibPicotcp)
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND "true"
         EXCLUDE_FROM_ALL
-        DEPENDS muslc
         BUILD_BYPRODUCTS "<SOURCE_DIR>/build/lib/libpicotcp.a"
+        DEPENDS get_muslc
     )
 
     file (GLOB deps ${PICOTCP_PATH}/modules/*.c ${PICOTCP_PATH}/modules/*.h
