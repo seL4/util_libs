@@ -40,7 +40,7 @@ if(LibPicotcp)
     string(APPEND compile_options " -I$<JOIN:$<TARGET_PROPERTY:muslc,INTERFACE_INCLUDE_DIRECTORIES>, -I>")
 
     # generate a build.sh script to avoid nasty escape issues, we then invoke this in ExternalProject_Add
-    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build.sh" CONTENT "${CMAKE_COMMAND} -E env \
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/picotcp_external/picotcp/build.sh" CONTENT "${CMAKE_COMMAND} -E env \
         \"PLATFORM_CFLAGS=$<JOIN:${compile_options}, >\" \
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
         make -s -j")
@@ -50,13 +50,15 @@ if(LibPicotcp)
 
     # build picotcp using its very own build system
     ExternalProject_Add(picotcp_external
-        URL file:///${PICOTCP_PATH}
-        CONFIGURE_COMMAND "true"
-        BUILD_COMMAND sh "${CMAKE_CURRENT_BINARY_DIR}/build.sh"
+        SOURCE_DIR "picotcp_external"
+        DOWNLOAD_COMMAND rsync -qur --exclude='.git' ${PICOTCP_PATH} <SOURCE_DIR>
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND cd <SOURCE_DIR>/picotcp/ && sh build.sh
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND "true"
         EXCLUDE_FROM_ALL
-        BUILD_BYPRODUCTS "<SOURCE_DIR>/build/lib/libpicotcp.a"
+        BUILD_BYPRODUCTS "<SOURCE_DIR>/picotcp/build/lib/libpicotcp.a"
         DEPENDS get_muslc
     )
 
@@ -71,17 +73,18 @@ if(LibPicotcp)
     )
     # get the dir that the picotcp sources have been copied to by ExternalProject_Add
     ExternalProject_Get_Property(picotcp_external SOURCE_DIR)
+    set (BUILD_DIR "${SOURCE_DIR}/picotcp/build/")
 
     # create a library which is the sources
     add_library(picotcp_sources STATIC IMPORTED GLOBAL)
     add_dependencies(picotcp_sources picotcp_external)
-    set_property(TARGET picotcp_sources PROPERTY IMPORTED_LOCATION "${SOURCE_DIR}/build/lib/libpicotcp.a")
+    set_property(TARGET picotcp_sources PROPERTY IMPORTED_LOCATION "${BUILD_DIR}/lib/libpicotcp.a")
 
     # create a library which is the header files, that depends on the sources
     add_library(picotcp INTERFACE)
     add_dependencies(picotcp picotcp_sources)
     set_property(TARGET picotcp PROPERTY INTERFACE_LINK_LIBRARIES picotcp_sources)
-    target_include_directories(picotcp INTERFACE "${SOURCE_DIR}/build/include")
+    target_include_directories(picotcp INTERFACE "${BUILD_DIR}/include")
 endif()
 if(LibPicotcpBsd)
     # find pico tcp location
