@@ -56,7 +56,7 @@ if(LibPicotcp)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cd <SOURCE_DIR>/picotcp/ && sh build.sh
         BUILD_IN_SOURCE 1
-        INSTALL_COMMAND "true"
+        INSTALL_COMMAND ""
         EXCLUDE_FROM_ALL
         BUILD_BYPRODUCTS "<SOURCE_DIR>/picotcp/build/lib/libpicotcp.a"
         DEPENDS get_muslc
