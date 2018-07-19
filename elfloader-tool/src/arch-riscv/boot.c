@@ -58,10 +58,14 @@ typedef uint64_t seL4_Word;
 
 #define GET_PT_INDEX(addr, n) (((addr) >> (((PT_INDEX_BITS) * ((CONFIG_PT_LEVELS) - (n))) + RISCV_PGSHIFT)) % PTES_PER_PT)
 
+#define VIRT_PHYS_ALIGNED(virt, phys, level_bits) (IS_ALIGNED((virt), (level_bits)) && IS_ALIGNED((phys), (level_bits)))
+
 struct image_info kernel_info;
 struct image_info user_info;
 
 unsigned long l1pt[PTES_PER_PT] __attribute__((aligned(4096)));
+unsigned long l2pt[PTES_PER_PT] __attribute__((aligned(4096)));
+
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
 void
@@ -79,9 +83,30 @@ map_kernel_window(struct image_info *kernel_info)
     //Now create any neccessary entries for the kernel vaddr->paddr
     l1_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
 
-    for (int page = 0; l1_index < PTES_PER_PT; l1_index++, page++)
+    /* Check if aligned to top level page table. For Sv32, 2MiB. For Sv39, 1GiB */
+    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PTE_LEVEL_BITS))
     {
-        l1pt[l1_index] = PTE_CREATE_LEAF((seL4_Word)(kernel_info->phys_region_start + (page << PTE_LEVEL_BITS)));
+        for (int page = 0; l1_index < PTES_PER_PT; l1_index++, page++)
+        {
+            l1pt[l1_index] = PTE_CREATE_LEAF((seL4_Word)(kernel_info->phys_region_start + (page << PTE_LEVEL_BITS)));
+        }
+    }
+#if CONFIG_PT_LEVELS == 3
+    else if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PT_LEVEL_2_BITS))
+    {
+        uint32_t l2_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_2);
+        l1pt[l1_index] = PTE_CREATE_NEXT((seL4_Word)l2pt);
+
+        for (int page = 0; l2_index < PTES_PER_PT; l2_index++, page++)
+        {
+            l2pt[l2_index] = PTE_CREATE_LEAF(kernel_info->phys_region_start + (page << PT_LEVEL_2_BITS));
+        }
+    }
+#endif
+    else
+    {
+        printf("Kernel not properly aligned\n");
+        abort();
     }
 }
 
