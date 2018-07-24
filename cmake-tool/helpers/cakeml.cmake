@@ -98,7 +98,7 @@ function(DeclareCakeMLLib library_name)
         OUTPUT "${stampfile}"
         # First remove any existing symlinks to prevent any confusion if dependencies are changed
         # between builds.
-        COMMAND bash -c "find '${CML_DIR}' -name '*.sml' -type l | xargs rm"
+        COMMAND bash -c "find '${CML_DIR}' -name '*.sml' -type l | xargs rm -f"
         # Symlink any of our files. We have to escape into some inline shell expressions here since
         # we want to support our sources containing generator expressions, and we do not know the value
         # of these until build time
