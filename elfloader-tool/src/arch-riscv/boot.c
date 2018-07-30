@@ -30,7 +30,7 @@
 #define PTE_TYPE_SRWX 0xCE
 
 #define RISCV_PGSHIFT 12
-#define RISCV_PGSIZE (1 << RISCV_PGSHIFT)
+#define RISCV_PGSIZE BIT(RISCV_PGSHIFT)
 
 // page table entry (PTE) field
 #define PTE_V     0x001 // Valid
@@ -49,7 +49,7 @@ typedef uint32_t seL4_Word;
 typedef uint64_t seL4_Word;
 #endif
 
-#define PTES_PER_PT (1 << PT_INDEX_BITS)
+#define PTES_PER_PT BIT(PT_INDEX_BITS)
 
 #define PTE_CREATE(PPN)          (unsigned long)(((uint32_t)PPN) | PTE_TYPE_SRWX | PTE_V)
 #define PTE_CREATE_PPN(PT_BASE)  (unsigned long)(((PT_BASE) >> RISCV_PGSHIFT) << PTE_PPN0_SHIFT)
