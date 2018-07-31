@@ -28,7 +28,7 @@ mark_as_advanced(FORCE
     CMAKE_C_COMPILER
 )
 
-find_file(KERNEL_PATH kernel PATHS ${CMAKE_SOURCE_DIR})
+find_file(KERNEL_PATH kernel PATHS ${CMAKE_SOURCE_DIR} NO_CMAKE_FIND_ROOT_PATH)
 mark_as_advanced(FORCE KERNEL_PATH)
 if("${KERNEL_PATH}" STREQUAL "KERNEL_PATH-NOTFOUND")
     message(FATAL_ERROR "Failed to find kernel. Consider cmake -DKERNEL_PATH=/path/to/kernel")
