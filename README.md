@@ -16,6 +16,7 @@ Provides tools used to build seL4 projects
 * elfloader-tool: loads the arm kernel.
 * common-tool: most of the build system.
 * misc: miscellaneous extra tools.
+* dts: device tree specifications for different kernel platforms.
 
 License
 -------
