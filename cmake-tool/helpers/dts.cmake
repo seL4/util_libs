@@ -22,3 +22,30 @@ function(FindDTS var platform)
     endif()
     set(${var} ${${platform}_FOUND_DTS} PARENT_SCOPE)
 endfunction()
+
+# generate a dtb from a dts file using the dtc tool
+function(GenDTB dts_file var)
+    # find the dtc tool
+    find_program(DTC_TOOL dtc)
+    if ("${DTC_TOOL}" STREQUAL "DTC_TOOL-NOTFOUND")
+        message(FATAL_ERROR "Cannot find 'dtc' program.")
+    endif()
+    # check the dts we have been given exists
+    if (NOT EXISTS "${dts_file}")
+        message(FATAL_ERROR "Cannot find dts file ${dts_file}")
+    endif()
+    # put all the files into /dtb in the binary dir
+    set(dtb_dir "${CMAKE_BINARY_DIR}/dtb")
+    file(MAKE_DIRECTORY "${dtb_dir}")
+    # generate a file name
+    get_filename_component(FILE_NAME ${dts_file} NAME_WE)
+    set(filename "${dtb_dir}/${FILE_NAME}.dtb")
+    set(${var} ${filename} PARENT_SCOPE)
+    # now add the command to generate the dtb
+    execute_process(
+        COMMAND ${DTC_TOOL} -I dts -O dtb -o ${filename} ${dts_file}
+    )
+    if (NOT EXISTS "${filename}")
+        message(FATAL_ERROR "failed to gen ${filename}")
+    endif()
+endfunction()
