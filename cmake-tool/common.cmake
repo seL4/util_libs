@@ -81,7 +81,7 @@ get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
 
 function(DeclareRootserver rootservername)
     SetSeL4Start(${rootservername})
-    set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS " -T ${real_list}/../common-tool/tls_rootserver.lds ")
+    set_property(TARGET ${rootservername} APPEND_STRING PROPERTY LINK_FLAGS " -T ${real_list}/tls_rootserver.lds ")
     if("${KernelArch}" STREQUAL "x86")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelSel4Arch}-${KernelPlatform}")
         set(KERNEL_IMAGE_NAME "${CMAKE_BINARY_DIR}/images/kernel-${KernelSel4Arch}-${KernelPlatform}")
