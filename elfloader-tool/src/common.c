@@ -21,12 +21,10 @@
 
 #include <elfloader.h>
 
-#ifdef CONFIG_HASH_INSTRUCTIONS
-  #ifdef CONFIG_HASH_SHA
-    #include "crypt_sha256.h"
-  #else
-    #include "crypt_md5.h"
-  #endif
+#ifdef CONFIG_HASH_SHA
+#include "crypt_sha256.h"
+#elif CONFIG_HASH_MD5
+#include "crypt_md5.h"
 #endif
 
 #include "hash.h"
@@ -130,7 +128,7 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
         abort();
     }
 
-#ifdef CONFIG_HASH_INSTRUCTIONS
+#ifndef CONFIG_HASH_NONE
 
     /* Get the binary file that contains the SHA256 Hash */
     unsigned long unused;
@@ -173,7 +171,7 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
         }
     }
 
-#endif  /* CONFIG_HASH_INSTRUCTIONS */
+#endif  /* CONFIG_HASH_NONE */
 
     /* Print diagnostics. */
     printf("ELF-loading image '%s'\n", name);

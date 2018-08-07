@@ -49,6 +49,13 @@ config_option(ElfloaderErrata764369 ARM_ERRATA_764369
     DEPENDS "KernelArmCortexA9" DEFAULT_DISABLED OFF
 )
 
+config_choice(ElfloaderHashInstructions HASH_INSTRUCTIONS
+    "Perform a SHA256/MD5 Hash of the of each elf file that the elfloader checks on load"
+    "hash_none;ElfloaderHashNone;HASH_NONE;ElfloaderImageELF"
+    "hash_sha;ElfloaderHashSHA;HASH_SHA;ElfloaderImageELF"
+    "hash_md5;ElfloaderHashMD5;HASH_MD5;ElfloaderImageELF"
+)
+
 add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
@@ -64,6 +71,7 @@ endif()
 
 file(GLOB files
     src/*.c
+    src/utils/*.c
     src/arch-${KernelArch}/*.c
     src/arch-${KernelArch}/*.S
     src/plat/${KernelPlatform}/*.c
@@ -100,7 +108,29 @@ add_compile_options(-fno-pie)
 # Sort files to make build reproducible
 list(SORT files)
 
-MakeCPIO(archive.o "$<TARGET_FILE:kernel.elf>;$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>" CPIO_SYMBOL _archive_start)
+set(cpio_files "")
+list(APPEND cpio_files "$<TARGET_FILE:kernel.elf>")
+list(APPEND cpio_files "$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>")
+if(NOT ${ElfloaderHashInstructions} STREQUAL "hash_none")
+    set(hash_command "")
+    if(ElfloaderHashSHA)
+        set(hash_command "sha256sum")
+    else()
+        set(hash_command "md5sum")
+    endif()
+    add_custom_command(OUTPUT "kernel.bin"
+        COMMAND bash -c "${hash_command} $<TARGET_FILE:kernel.elf> | cut -d ' ' -f 1 | xxd -r -p > ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin"
+        VERBATIM
+        DEPENDS "$<TARGET_FILE:kernel.elf>")
+    add_custom_command(OUTPUT "app.bin"
+        COMMAND bash -c "${hash_command} $<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE> | cut -d ' ' -f 1 | xxd -r -p > ${CMAKE_CURRENT_BINARY_DIR}/app.bin"
+        VERBATIM
+        DEPENDS "$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>")
+    list(APPEND cpio_files "${CMAKE_CURRENT_BINARY_DIR}/kernel.bin")
+    list(APPEND cpio_files "${CMAKE_CURRENT_BINARY_DIR}/app.bin")
+endif()
+
+MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 
 # Generate linker script
 separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
