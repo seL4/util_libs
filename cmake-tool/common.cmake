@@ -37,6 +37,22 @@ elseif(KernelSel4ArchRiscV64)
     set(LinkOFormat "elf64-littleriscv")
 endif()
 
+# Checks the existence of an argument to cpio -o.
+# flag refers to a variable in the parent scope that contains the argument, if
+# the argument isn't supported then the flag is set to the empty string in the parent scope.
+function(CheckCPIOArgument flag)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile "Testfile contents")
+    execute_process(COMMAND bash -c "echo cpio-testfile | cpio ${${flag}} -o"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        OUTPUT_QUIET
+        ERROR_QUIET
+        RESULT_VARIABLE result)
+    if(result)
+        set(${flag} "" PARENT_SCOPE)
+    endif()
+    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile)
+endfunction()
+
 # Function for declaring rules to build a cpio archive that can be linked
 # into another target
 function(MakeCPIO output_name input_files)
@@ -48,6 +64,9 @@ function(MakeCPIO output_name input_files)
     if (NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
         set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
     endif()
+    # Check that the reproducible flag is available. Don't use it if it isn't.
+    set(reproducible_flag "--reproducible")
+    CheckCPIOArgument(reproducible_flag)
     set(append "")
     foreach(file IN LISTS input_files)
         # Try and generate reproducible cpio meta-data as we do this:
@@ -55,7 +74,7 @@ function(MakeCPIO output_name input_files)
         # - --owner=root:root sets user and group values to 0:0
         # - --reproducible creates reproducible archives with consistent inodes and device numbering
         list(APPEND commands
-            "bash;-c;cd `dirname ${file}` && mkdir -p temp && cd temp && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} --reproducible --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp;&&"
+            "bash;-c;cd `dirname ${file}` && mkdir -p temp && cd temp && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} ${reproducible_flag} --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp;&&"
         )
         set(append "--append")
     endforeach()
