@@ -163,6 +163,20 @@ unsigned elf64_getNumSections(void *elfFile);
 char * elf64_getStringTable(void *elfFile, int string_segment);
 char * elf64_getSegmentStringTable(void *elfFile);
 
+/* Assume the field is at least 4-byte aligned and little-endian */
+static uint64_t elf64_read64(void *addr)
+{
+    uint64_t ret;
+    if (((uintptr_t)addr) % 8 == 0) {
+        ret = *((uint64_t *)addr);
+    } else {
+        ret = *((uint32_t *)(((uintptr_t)addr) + 4));
+        ret = ret << 32;
+        ret |= *((uint32_t *)addr);
+    }
+    return ret;
+}
+
 static inline struct Elf64_Shdr *
 elf64_getSectionTable(struct Elf64_Header *file) {
     /* Cast heaven! */
@@ -201,7 +215,8 @@ uint16_t elf64_getNumProgramHeaders(struct Elf64_Header *file);
 static inline struct Elf64_Phdr *
 elf64_getProgramHeaderTable(struct Elf64_Header *file) {
     /* Cast hell! */
-    return (struct Elf64_Phdr*) (uintptr_t) (((uintptr_t) file) + file->e_phoff);
+    uint64_t e_phoff = elf64_read64(&file->e_phoff);
+    return (struct Elf64_Phdr*) (uintptr_t) (((uintptr_t) file) + e_phoff);
 }
 
 /* accessor functions */
@@ -220,30 +235,35 @@ elf64_getProgramHeaderType(struct Elf64_Header *file, uint16_t ph)
 static inline uint64_t
 elf64_getProgramHeaderFileSize(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_filesz;
+    struct Elf64_Phdr  *phdr = &elf64_getProgramHeaderTable(file)[ph];
+    return elf64_read64(&phdr->p_filesz);
 }
 
 static inline uint64_t
 elf64_getProgramHeaderMemorySize(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_memsz;
+    struct Elf64_Phdr  *phdr = &elf64_getProgramHeaderTable(file)[ph];
+    return elf64_read64(&phdr->p_memsz);
 }
 
 static inline uint64_t
 elf64_getProgramHeaderVaddr(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_vaddr;
+    struct Elf64_Phdr  *phdr = &elf64_getProgramHeaderTable(file)[ph];
+    return elf64_read64(&phdr->p_vaddr);
 }
 
 static inline uint64_t
 elf64_getProgramHeaderPaddr(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_paddr;
+    struct Elf64_Phdr  *phdr = &elf64_getProgramHeaderTable(file)[ph];
+    return elf64_read64(&phdr->p_paddr);
 }
 
 static inline uint64_t
 elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_offset;
+    struct Elf64_Phdr  *phdr = &elf64_getProgramHeaderTable(file)[ph];
+    return elf64_read64(&phdr->p_offset);
 }
 

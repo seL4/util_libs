@@ -239,7 +239,7 @@ elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
 uint64_t
 elf64_getEntryPoint (struct Elf64_Header *elfFile)
 {
-    return elfFile->e_entry;
+    return elf64_read64(&elfFile->e_entry);
 }
 
 /*

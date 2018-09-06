@@ -11,6 +11,8 @@
  */
 
 #include <strops.h>
+#include <printf.h>
+#include <abort.h>
 
 /* Both memset and memcpy need a custom type that allows us to use a word
  * that has the aliasing properties of a char.
@@ -99,14 +101,45 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     unsigned char *d = (unsigned char *)dest;
     const unsigned char *s = (const unsigned char *)src;
 
+    /* For ARM, we also need to consider if src is aligned.           *
+     * There are two cases: (1) If rs == 0 and rd == 0, dest          *
+     * and src are copy_unit-aligned. (2) If (rs == rd && rs != 0),   *
+     * src and dest can be made copy_unit-aligned by copying rs bytes *
+     * first. (1) is a special case of (2).                           */
+
+    size_t copy_unit = BYTE_PER_WORD;
+    while (1) {
+        int rs = (uintptr_t)s % copy_unit;
+        int rd = (uintptr_t)d % copy_unit;
+        if (rs == rd) break;
+        if (copy_unit == 1) break;
+        copy_unit >>= 1;
+    }
+
 #ifdef HAS_MAY_ALIAS
-    /* copy byte by byte until word aligned */
-    for (; (uintptr_t)d % BYTE_PER_WORD != 0 && n > 0; d++, s++, n--) {
+    /* copy byte by byte until copy-unit aligned */
+    for (; (uintptr_t)d % copy_unit != 0 && n > 0; d++, s++, n--) {
         *d = *s;
     }
-    /* copy word by word as long as we can */
-    for (; n > BYTE_PER_WORD - 1; n -= BYTE_PER_WORD, s += BYTE_PER_WORD, d += BYTE_PER_WORD) {
-        *(u_alias *)d = *(const u_alias *)s;
+    /* copy unit by unit as long as we can */
+    for (; n > copy_unit - 1; n -= copy_unit, s += copy_unit, d += copy_unit) {
+        switch (copy_unit) {
+            case 8:
+                *(uint64_t *)d = *(const uint64_t *)s;
+                break;
+            case 4:
+                *(uint32_t *)d = *(const uint32_t *)s;
+                break;
+            case 2:
+                *(uint16_t *)d = *(const uint16_t *)s;
+                break;
+            case 1:
+                *(uint8_t *)d = *(const uint8_t *)s;
+                break;
+            default:
+                printf("Invalid copy unit %ld\n", copy_unit);
+                abort();
+        }
     }
     /* copy any remainder byte by byte */
     for (; n > 0; d++, s++, n--) {
