@@ -112,7 +112,7 @@ function(DeclareRootserver rootservername)
         if(Kernel64)
             add_custom_command(
                 OUTPUT "${KERNEL_IMAGE_NAME}"
-                COMMAND ${CROSS_COMPILE_PREFIX}objcopy -O elf32-i386 $<TARGET_FILE:kernel.elf> "${KERNEL_IMAGE_NAME}"
+                COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O elf32-i386 $<TARGET_FILE:kernel.elf> "${KERNEL_IMAGE_NAME}"
                 VERBATIM
                 DEPENDS kernel.elf
                 COMMENT "objcopy kernel into bootable elf"
