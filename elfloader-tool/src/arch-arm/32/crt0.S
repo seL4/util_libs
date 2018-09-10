@@ -28,6 +28,9 @@ BEGIN_FUNC(_start)
     /* Enable SMP */
     mrc     ACTLR(r0)
     orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
+#ifdef CONFIG_ARM_CORTEX_A9
+    orr     r0, r0, #1              /* enable FW bit    */
+#endif
     mcr     ACTLR(r0)
 #endif /* CONFIG_MAX_NUM_NODES > 1 */
 
@@ -43,6 +46,9 @@ BEGIN_FUNC(non_boot_core)
     /* Enable SMP */
     mrc     ACTLR(r0)
     orr     r0, r0, #(1 << 6)       /* enable SMP bit   */
+#ifdef CONFIG_ARM_CORTEX_A9
+    orr     r0, r0, #1              /* enable FW bit    */
+#endif
     mcr     ACTLR(r0)
 
     ldr     r0, =smp_aps_index
