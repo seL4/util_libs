@@ -12,6 +12,8 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
+include("${CMAKE_CURRENT_LIST_DIR}/settings.cmake")
+
 # Include the base part of the build system and setup flags etc
 include("${CMAKE_CURRENT_LIST_DIR}/base.cmake")
 
