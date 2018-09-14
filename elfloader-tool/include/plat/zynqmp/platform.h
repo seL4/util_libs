@@ -20,10 +20,17 @@
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
+#include <autoconf.h>
+
+
 #define ZYNQMP_UART0_BASE        0xFF000000
 #define ZYNQMP_UART1_BASE        0xFF010000
 
-#define UART_PPTR              ZYNQMP_UART0_BASE
 
+#ifdef CONFIG_PLAT_ZYNQMP_ULTRA96
+#define UART_PPTR              ZYNQMP_UART1_BASE
+#else
+#define UART_PPTR              ZYNQMP_UART0_BASE
+#endif
 
 #endif /* _PLATFORM_H_ */
