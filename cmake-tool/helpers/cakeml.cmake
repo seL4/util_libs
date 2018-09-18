@@ -122,7 +122,7 @@ val _ = new_theory \"build\";
 val _ = translation_extends \"${PARSE_CML_LIB_TRANSLATION_THEORY}\";
 val st = ml_translatorLib.get_ml_prog_state();
 val maincall =
-  ``Tdec (Dlet unknown_loc (Pcon NONE []) (App Opapp [Var (Short \"${PARSE_CML_LIB_CAKEML_ENTRY}\"); Con NONE []]))``;
+  ``Dlet unknown_loc (Pcon NONE []) (App Opapp [Var (Short \"${PARSE_CML_LIB_CAKEML_ENTRY}\"); Con NONE []])``;
 val prog = ``SNOC ^maincall ^(get_thm st |> concl |> rator |> rator |> rator |> rand)``
            |> EVAL |> concl |> rhs;
 val _ = astToSexprLib.write_ast_to_file \"${SEXP_FILE}\" prog;
