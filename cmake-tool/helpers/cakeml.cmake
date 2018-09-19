@@ -191,9 +191,11 @@ endif
         WORKING_DIRECTORY "${CML_DIR}"
     )
     add_custom_target(${library_name}cakeml_copy_build_script DEPENDS "${BUILD_SCRIPT}" "${HOLMAKEFILE}")
+    # Extra options for Holmake, provide them to init-build.sh with -DHOL_EXTRA_OPTS="--arg1;--arg2"
+    set(HOL_EXTRA_OPTS "$ENV{HOL_EXTRA_OPTS}" CACHE STRING "Extra arguments to provide to Holmake when building CakeML code")
     add_custom_command(OUTPUT "${ASM_FILE}"
         BYPRODUCTS "${SEXP_FILE}"
-        COMMAND ${HOLMAKE_BIN} --quiet
+        COMMAND ${HOLMAKE_BIN} --quiet ${HOL_EXTRA_OPTS}
         COMMAND sh -c "cake --sexp=true --exclude_prelude=true --heap_size=${PARSE_CML_LIB_HEAP_SIZE} --stack_size=${PARSE_CML_LIB_STACK_SIZE} --target=${CAKE_TARGET} < ${SEXP_FILE} > ${ASM_FILE}"
         # the 'cake' program is garbage and does not return an exit code upon failure and instead
         # just outputs nothing over stdout. We therefore test for an empty file and then both delete
