@@ -89,7 +89,7 @@ if(NOT "${libgcc_eh}" STREQUAL "libgcc_eh.a")
 endif()
 set(
     CRTObjFiles
-    "${CMAKE_CURRENT_BINARY_DIR}/lib/crt1.o ${CMAKE_CURRENT_BINARY_DIR}/lib/crti.o ${CRTBeginFile}"
+    "${CMAKE_CURRENT_BINARY_DIR}/lib/crt0.o ${CMAKE_CURRENT_BINARY_DIR}/lib/crti.o ${CRTBeginFile}"
 )
 set(FinObjFiles "${CRTEndFile} ${CMAKE_CURRENT_BINARY_DIR}/lib/crtn.o")
 
