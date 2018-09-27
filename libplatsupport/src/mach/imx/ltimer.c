@@ -17,6 +17,7 @@
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 
 #include <utils/util.h>
 
