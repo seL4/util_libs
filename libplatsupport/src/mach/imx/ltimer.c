@@ -156,14 +156,9 @@ static void destroy(void *data)
     ps_free(&imx_ltimer->ops.malloc_ops, sizeof(imx_ltimer), imx_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
+    assert(ltimer != NULL);
     ltimer->handle_irq = handle_irq;
     ltimer->get_time = get_time;
     ltimer->get_resolution = get_resolution;
@@ -171,11 +166,49 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     ltimer->reset = reset;
     ltimer->destroy = destroy;
 
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(imx_ltimer_t), &ltimer->data);
+    int error = ps_calloc(&ops.malloc_ops, 1, sizeof(imx_ltimer_t), &ltimer->data);
     if (error) {
         return error;
     }
     assert(ltimer->data != NULL);
+    return 0;
+}
+
+static int init_ltimer(ltimer_t *ltimer)
+{
+    assert(ltimer != NULL);
+    imx_ltimer_t *imx_ltimer = ltimer->data;
+
+    int error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timestamp_vaddr);
+    if (error) {
+        ZF_LOGE("Failed to init timestamp timer");
+        ltimer_destroy(ltimer);
+        return error;
+    }
+
+    imx_start_timestamp(&imx_ltimer->timers);
+
+    error = imx_init_timeout(&imx_ltimer->timers, imx_ltimer->timeout_vaddr);
+    if (error) {
+        ZF_LOGE("Failed to init timeout timer");
+        ltimer_destroy(ltimer);
+        return error;
+    }
+    return 0;
+}
+
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+{
+    int error = ltimer_default_describe(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    error = create_ltimer(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
     imx_ltimer_t *imx_ltimer = ltimer->data;
 
     /* map the frames we need */
@@ -191,10 +224,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         return -1;
     }
 
-    error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timestamp_vaddr);
+    init_ltimer(ltimer);
     if (error) {
-        ZF_LOGE("Failed to init timestamp timer");
-        ltimer_destroy(ltimer);
         return error;
     }
 
