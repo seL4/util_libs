@@ -39,6 +39,11 @@ typedef struct {
     epit_t timeout;
 } imx_timers_t;
 
+typedef struct {
+    void *timestamp_vaddr;
+    void *timeout_vaddr;
+} static_timer_params_t;
+
 static inline void handle_irq_timestamp(imx_timers_t *timers)
 {
     gpt_handle_irq(&timers->timestamp);
