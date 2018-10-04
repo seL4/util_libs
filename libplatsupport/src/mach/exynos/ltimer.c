@@ -138,14 +138,9 @@ static void destroy(void *data)
     ps_free(&pwm_ltimer->ops.malloc_ops, sizeof(pwm_ltimer), pwm_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
+    assert(ltimer != NULL);
     ltimer->handle_irq = handle_irq;
     ltimer->get_time = get_time;
     ltimer->get_resolution = get_resolution;
@@ -153,17 +148,19 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     ltimer->reset = reset;
     ltimer->destroy = destroy;
 
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(pwm_ltimer_t), &ltimer->data);
+    int error = ps_calloc(&ops.malloc_ops, 1, sizeof(pwm_ltimer_t), &ltimer->data);
     if (error) {
         return error;
     }
     assert(ltimer->data != NULL);
+
+    return 0;
+}
+
+static int init_ltimer(ltimer_t *ltimer)
+{
+    assert(ltimer != NULL);
     pwm_ltimer_t *pwm_ltimer = ltimer->data;
-    pwm_ltimer->ops = ops;
-    pwm_ltimer->vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);
-    if (pwm_ltimer->vaddr == NULL) {
-        destroy(ltimer->data);
-    }
 
     /* setup pwm */
     pwm_config_t config = {
@@ -172,6 +169,34 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     pwm_init(&pwm_ltimer->pwm, config);
     pwm_start(&pwm_ltimer->pwm);
+    return 0;
+}
+
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+{
+
+    int error = ltimer_default_describe(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    error = create_ltimer(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    pwm_ltimer_t *pwm_ltimer = ltimer->data;
+    pwm_ltimer->ops = ops;
+    pwm_ltimer->vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);
+    if (pwm_ltimer->vaddr == NULL) {
+        destroy(ltimer->data);
+    }
+
+    init_ltimer(ltimer);
+    if (error) {
+        return error;
+    }
+
     /* success! */
     return 0;
 }
