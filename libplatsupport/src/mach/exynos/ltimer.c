@@ -24,6 +24,8 @@ typedef struct {
     pwm_t pwm;
     void *vaddr;
     ps_io_ops_t ops;
+    /* Flag whether the pwm_ltimer was initialised statically e.g. via ltimer_static_init */
+    bool is_static;
 } pwm_ltimer_t;
 
 static ps_irq_t irqs[] = {
@@ -131,7 +133,7 @@ static void destroy(void *data)
 {
     assert(data);
     pwm_ltimer_t *pwm_ltimer = data;
-    if (pwm_ltimer->vaddr) {
+    if (pwm_ltimer->vaddr && !pwm_ltimer->is_static) {
         pwm_stop(&pwm_ltimer->pwm);
         ps_pmem_unmap(&pwm_ltimer->ops, pmems[0], pwm_ltimer->vaddr);
     }
@@ -172,6 +174,37 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
+int ltimer_static_init(ltimer_t *ltimer, ps_io_ops_t ops, void *params)
+{
+
+    if (params == NULL) {
+        return -1;
+    }
+
+    void *timer_vaddr = params;
+
+    int error = create_ltimer(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    pwm_ltimer_t *pwm_ltimer = ltimer->data;
+
+    pwm_ltimer->ops = ops;
+    pwm_ltimer->vaddr = timer_vaddr;
+
+    error = init_ltimer(ltimer);
+    if (error) {
+        return error;
+    }
+
+    /* Flag the pwm timer as being statically initialized */
+    pwm_ltimer->is_static = true;
+
+    return 0;
+
+}
+
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 {
 
@@ -196,6 +229,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     if (error) {
         return error;
     }
+
+    pwm_ltimer->is_static = false;
 
     /* success! */
     return 0;
