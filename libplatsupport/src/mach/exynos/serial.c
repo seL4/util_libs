@@ -473,34 +473,37 @@ serial_configure(ps_chardevice_t *d, long bps, int char_size,
            || uart_set_stop(d, stop_bits);
 }
 
+static void
+mux_uart_init(enum mux_feature feature, mux_sys_t* mux_sys)
+{
+    if (mux_sys_valid(mux_sys)) {
+        if (mux_feature_enable(mux_sys, feature, MUX_DIR_NOT_A_GPIO)) {
+            printf("Failed to initialise MUX for UART\n");
+        }
+    }
+}
+
+static void
+chardevice_init(ps_chardevice_t* dev, void* vaddr, const int* irqs)
+{
+    assert(dev != NULL);
+    memset(dev, 0, sizeof(*dev));
+    dev->vaddr      = vaddr;
+    dev->read       = &exynos_uart_read;
+    dev->write      = &exynos_uart_write;
+    dev->handle_irq = &uart_handle_irq;
+    dev->irqs       = irqs;
+    dev->flags      = SERIAL_AUTO_CR;
+    /* TODO */
+    dev->clk        = NULL;
+}
+
 int
 exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
                    clk_t* clk_src, ps_chardevice_t* dev)
 {
     int v;
-    memset(dev, 0, sizeof(*dev));
-    dev->id         = id;
-    dev->vaddr      = vaddr;
-    dev->read       = &exynos_uart_read;
-    dev->write      = &exynos_uart_write;
-    dev->handle_irq = &uart_handle_irq;
-    dev->irqs       = &uart_irqs[id][0];
-    dev->flags      = SERIAL_AUTO_CR;
-
-    /* TODO */
-    dev->clk        = NULL;
-
     uart_flush(dev);
-
-    /* reset and initialise hardware */
-    if (mux_sys_valid(mux_sys)) {
-        if (mux_feature_enable(mux_sys, uart_mux[dev->id], MUX_DIR_NOT_A_GPIO)) {
-            printf("Failed to initialise MUX for UART %d\n", dev->id);
-        }
-
-    } else {
-        //    printf("INFO: Skipping MUX initialisation for UART %d\n", dev->id);
-    }
 
     if (clk_src != NULL) {
         clk = clk_src;
@@ -525,6 +528,16 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     return 0;
 }
 
+static clk_t*
+clk_init(enum clk_id clock_id, ps_io_ops_t* ops)
+{
+    assert(ops != NULL);
+    if (clock_sys_valid(&ops->clock_sys)) {
+        return clk_get_clock(&ops->clock_sys, clock_id);
+    }
+    return NULL;
+}
+
 int
 serial_init(enum chardev_id id, ps_io_ops_t* ops,
             ps_chardevice_t* dev)
@@ -535,11 +548,10 @@ serial_init(enum chardev_id id, ps_io_ops_t* ops,
     if (vaddr == NULL) {
         return -1;
     }
-    if (clock_sys_valid(&ops->clock_sys)) {
-        clk = clk_get_clock(&ops->clock_sys, uart_clk[id]);
-    } else {
-        clk = NULL;
-    }
+    clk = clk_init(uart_clk[id], ops);
+    mux_uart_init(uart_mux[id], (mux_sys_t*)&ops->mux_sys);
+    chardevice_init(dev, vaddr, &uart_irqs[id][0]);
+    dev->id = id;
     return exynos_serial_init(id, vaddr, &ops->mux_sys, clk, dev);
 }
 
