@@ -24,6 +24,12 @@
 #define EXYNOS_UART_RX_IRQ INT_RX
 #define EXYNOS_UART_TX_IRQ INT_TX
 
+typedef struct {
+    void *vaddr;
+    enum clk_id clock_id;
+    enum mux_feature uart_mux_feature;
+} static_serial_params_t;
+
 /*
  * Initialiase an exynos serial device
  * @param[in] id      the id of the character device

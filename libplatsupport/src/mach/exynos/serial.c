@@ -572,3 +572,26 @@ ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)
     }
     return NULL;
 }
+
+ps_chardevice_t*
+ps_cdev_static_init(const ps_io_ops_t *o, ps_chardevice_t* d, void *params)
+{
+
+    if (params == NULL) {
+        return NULL;
+    }
+
+    static_serial_params_t *serial_params = (static_serial_params_t*) params;
+    clk_t* clk;
+
+    enum clk_id clock_id = serial_params->clock_id;
+    enum mux_feature uart_mux_feature = serial_params->uart_mux_feature;
+    void* vaddr = serial_params->vaddr;
+    if (vaddr == NULL) {
+        return NULL;
+    }
+    clk = clk_init(clock_id, o);
+    mux_uart_init(uart_mux_feature,(mux_sys_t*) &o->mux_sys);
+    chardevice_init(d, vaddr, NULL);
+    return exynos_serial_init(0, vaddr, &o->mux_sys, clk, d) ? NULL : d;
+}

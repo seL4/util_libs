@@ -79,6 +79,17 @@ ps_chardevice_t* ps_cdev_init(enum chardev_id id,
                               ps_chardevice_t* dev);
 
 /*
+ * Statically initialise a device
+ * @param ops: a structure containing OS specific operations for memory access
+ * @param dev: a character device structure to populate
+ * @param params: a pointer generally used to pass machine or platform
+ *  specific parameters
+ */
+ps_chardevice_t* ps_cdev_static_init(const ps_io_ops_t *ops,
+                                     ps_chardevice_t* dev,
+                                     void *params);
+
+/*
  * Create a pseudo device: initialise with nop function pointers
  * @param o: a structure containing OS specific operations for memory access
  * @param d: a character device structure to populate
