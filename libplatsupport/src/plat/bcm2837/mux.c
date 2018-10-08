@@ -16,12 +16,6 @@
 #include "../../services.h"
 
 int
-imx6_mux_init(void* iomuxc, mux_sys_t* mux)
-{
-    return -1;
-}
-
-int
 mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     return -1;
