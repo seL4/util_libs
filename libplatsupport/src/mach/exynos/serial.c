@@ -22,14 +22,6 @@
 
 #include "../../common.h"
 
-#define UART_DEBUG
-
-#ifdef UART_DEBUG
-#define DUART(...) printf("UART: " __VA_ARGS__)
-#else
-#define DUART(...) do{}while(0);
-#endif
-
 /* TX FIFO IRQ threshold ratio {0..7}.
  * The absolute value depends on the FIFO size of the individual UART
  * A high value avoids underruns, but increases IRQ overhead */
@@ -364,7 +356,7 @@ uart_handle_irq(ps_chardevice_t *d)
         uart_handle_rx_irq(d);
     }
     if (sts) {
-        DUART("Unhandled IRQ (status 0x%x)\n", sts);
+        ZF_LOGE("Unhandled IRQ (status 0x%x)\n", sts);
     }
 }
 
@@ -478,7 +470,7 @@ mux_uart_init(enum mux_feature feature, mux_sys_t* mux_sys)
 {
     if (mux_sys_valid(mux_sys)) {
         if (mux_feature_enable(mux_sys, feature, MUX_DIR_NOT_A_GPIO)) {
-            printf("Failed to initialise MUX for UART\n");
+            ZF_LOGE("Failed to initialise MUX for UART\n");
         }
     }
 }

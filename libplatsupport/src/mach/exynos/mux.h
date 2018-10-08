@@ -14,20 +14,6 @@
 
 #include <platsupport/mux.h>
 
-//#define MUX_DEBUG
-#ifdef MUX_DEBUG
-#define DMUX(...) printf("MUX: " __VA_ARGS__)
-#else
-#define DMUX(...) do{}while(0)
-#endif
-
-//#define GPIO_DEBUG
-#ifdef GPIO_DEBUG
-#define DGPIO(...) printf("GPIO: " __VA_ARGS__)
-#else
-#define DGPIO(...) do{}while(0)
-#endif
-
 /* Value encodings */
 #define MUXVALUE_CPD(con, pud, drv) ((con) << 0 | (pud) << 4 | (drv) << 6)
 #define MUXVALUE_CON(mval)          (((mval) >> 0) & 0xf)

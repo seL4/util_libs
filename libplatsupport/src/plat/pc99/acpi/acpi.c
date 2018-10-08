@@ -13,23 +13,12 @@
 #include <platsupport/plat/acpi/acpi.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils/util.h>
 #include <assert.h>
 
 #include "walker.h"
 #include "acpi.h"
 
-#undef DEBUG
-#define DEBUG 4
-
-#ifdef DEBUG
-#  include <stdio.h>
-#  define DPRINTF(lvl, ...) do{ if(lvl < DEBUG){printf(__VA_ARGS__);fflush(stdout);}}while(0)
-#else
-#  define DPRINTF() do{ /* nothing */ }while(0)
-#  if DEBUG < 5
-#    error NO DEBUG
-#  endif
-#endif
 
 // sum bytes at the given location
 uint8_t
@@ -77,7 +66,7 @@ split_available(RegionList_t* dst, size_t size, int force_ptr)
 {
     /* default: no region found */
     int index = -1;
-    DPRINTF(1, "Region 0/%d: size = %zu/%zu\n", dst->region_count, dst->regions[0].size, size);
+    ZF_LOGD("Region 0/%d: size = %zu/%zu\n", dst->region_count, dst->regions[0].size, size);
     /* Find region to split */
     if (!force_ptr) { /* first preference if permitted */
         index = find_space(dst, size, ACPI_AVAILABLE);
@@ -86,7 +75,7 @@ split_available(RegionList_t* dst, size_t size, int force_ptr)
         index = find_space(dst, size, ACPI_AVAILABLE_PTR);
     }
 
-    DPRINTF(1, "found index %d\n", index);
+    ZF_LOGD("found index %d\n", index);
 
     /* split the region */
     if (index >= 0) {
@@ -108,7 +97,7 @@ create_copy_region(const Region_t* src, RegionList_t* dlist,
         memcpy(dst->start, src->start, src->size);
         return index;
     } else {
-        DPRINTF(1, "err: could not split region\n");
+        ZF_LOGD("err: could not split region\n");
         /* Error */
         return -1;
     }
@@ -126,14 +115,14 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
     int index;
     const Region_t *src;
 
-    DPRINTF(1, "ti %d, pi %d\n", table_index, parent);
+    ZF_LOGD("ti %d, pi %d\n", table_index, parent);
 
     /* hold the index of the newly created dlist region */
     index = -1;
 
     /* table specific generation */
     src = &slist->regions[table_index];
-    DPRINTF(1, "copy -> %s\n", acpi_sig_str(src->type));
+    ZF_LOGD("copy -> %s\n", acpi_sig_str(src->type));
     switch (src->type) {
     case ACPI_RSDP:
         /* Split region */
@@ -153,9 +142,9 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
                                             child, index);
                 /* This downcast is correct as an RSDP is defined as being in the bottom 4G of memory */
                 dst_tbl->rsdt_address = (uint32_t)(uintptr_t)p;
-                DPRINTF(1, "Got address %p\n", p);
+                ZF_LOGD("Got address %p\n", p);
             } else {
-                DPRINTF(1, "err: unable to find rsdt\n");
+                ZF_LOGD("err: unable to find rsdt\n");
             }
 
             /* find and copy XSDT */
@@ -165,9 +154,9 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
                 void* p = _acpi_copy_tables(slist, dlist,
                                             child, index);
                 dst_tbl->xsdt_address = (uint64_t)(uintptr_t)p;
-                DPRINTF(1, "Got address %p\n", p);
+                ZF_LOGD("Got address %p\n", p);
             } else {
-                DPRINTF(1, "err: unable to find xsdt\n");
+                ZF_LOGD("err: unable to find xsdt\n");
             }
 
             /* recompute checksums */
@@ -176,7 +165,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             dst_tbl->extended_checksum -=
                 acpi_calc_checksum(dst->start, dst->size);
         } else {
-            DPRINTF(1, "err: unable to copy region\n");
+            ZF_LOGD("err: unable to copy region\n");
         }
         break;
 
@@ -212,7 +201,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             for (int i = 0; i < children; i++) {
                 void* p;
                 p = _acpi_copy_tables(slist, dlist, child[i], index);
-                DPRINTF(1, "Got address %p\n", p);
+                ZF_LOGD("Got address %p\n", p);
                 if (p == NULL) {
                     /*
                      * we tolerate a little wasted space to recover
@@ -249,7 +238,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
 
         /* calculate sizes */
         entries = acpi_rsdt_entry_count(rsdt);
-        DPRINTF(1, "Found rsdt with %d entries\n", entries);
+        ZF_LOGD("Found rsdt with %d entries\n", entries);
         sub_size = entries * sizeof(uint64_t);
         hdr_size = sizeof(acpi_xsdt_t);
 

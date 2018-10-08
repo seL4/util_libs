@@ -47,14 +47,14 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
                                                         (uintptr_t)table_paddr, sizeof(acpi_header_t), 1, PS_MEM_NORMAL);
 
     if (header == NULL) {
-        fprintf(stderr, "Failed to map paddr %p, size %zu\n", table_paddr, sizeof(acpi_header_t));
+        ZF_LOGD("Failed to map paddr %p, size %zu\n", table_paddr, sizeof(acpi_header_t));
         assert(header != NULL);
         return NULL;
     }
 
     size_t length = acpi_table_length(header);
     if (length == 0xffffffff) {
-        fprintf(stderr, "Skipping table %s, unknown\n", header->signature);
+        ZF_LOGD("Skipping table %s, unknown\n", header->signature);
         ps_io_unmap(&acpi->io_mapper, (void *) header, sizeof(acpi_header_t));
         return NULL;
     }
@@ -65,7 +65,7 @@ acpi_map_table(acpi_t *acpi, void *table_paddr)
         header = ps_io_map(&acpi->io_mapper, (uintptr_t)table_paddr, length, 1, PS_MEM_NORMAL);
 
         if (header == NULL) {
-            fprintf(stderr, "Failed tomap paddr %p, size %"PRIu32"\n", table_paddr, header->length);
+            ZF_LOGD("Failed tomap paddr %p, size %"PRIu32"\n", table_paddr, header->length);
             assert(header != NULL);
             return NULL;
         }
@@ -90,7 +90,7 @@ acpi_sig_search(acpi_t *acpi, const char* sig, int sig_len, void* start, void* e
     while (start < end && !found) {
         vaddr = ps_io_map(&acpi->io_mapper, (uintptr_t) start, getpagesize(), 1, PS_MEM_NORMAL);
         if (vaddr == NULL) {
-            fprintf(stderr, "Failed to map physical page %p\n", start);
+            ZF_LOGD("Failed to map physical page %p\n", start);
             return NULL;
         }
 
@@ -104,7 +104,7 @@ acpi_sig_search(acpi_t *acpi, const char* sig, int sig_len, void* start, void* e
     }
 
     if (!found) {
-        fprintf(stderr, "Faied to find sig %s in range %p <-> %p\n", sig, start, end);
+        ZF_LOGD("Faied to find sig %s in range %p <-> %p\n", sig, start, end);
         return NULL;
     }
 
@@ -126,7 +126,7 @@ acpi_parse_table(acpi_t *acpi, void *table_paddr)
     size_t length = acpi_table_length(header_vaddr);
     acpi_header_t *copy = (acpi_header_t *) malloc(length);
     if (copy == NULL) {
-        fprintf(stderr, "Failed to malloc object size %zu\n", length);
+        ZF_LOGD("Failed to malloc object size %zu\n", length);
         assert(copy != NULL);
         return NULL;
     }
@@ -203,7 +203,7 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
      * need to parse and sort out dups.
      */
     case ACPI_XSDT: {
-        fprintf(stderr, "Warning: skipping table ACPI XSDT\n");
+        ZF_LOGW("Warning: skipping table ACPI XSDT\n");
 //            acpi_xsdt_t* xsdt = (acpi_xsdt_t*)table;
         break;
     }
@@ -251,21 +251,21 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
     case ACPI_BERT: {
 //            acpi_bert_t* bert = (acpi_bert_t*)table;
         /* not complemetely implemented so exclude */
-        fprintf(stderr, "Warning: skipping table ACPI_BERT (unimplemented)");
+        ZF_LOGW("Warning: skipping table ACPI_BERT (unimplemented)");
         remove_region(regions, this_rec);
         break;
     }
     case ACPI_EINJ: {
 //            acpi_einj_t* einj = (acpi_einj_t*)table;
         /* not complemetely implemented so exclude */
-        fprintf(stderr, "Warning: skipping table ACPI_EINJ (unimplemented)");
+        ZF_LOGW("Warning: skipping table ACPI_EINJ (unimplemented)");
         remove_region(regions, this_rec);
         break;
     }
     case ACPI_HEST: {
 //            acpi_hest_t* hest = (acpi_hest_t*)table;
         /* not complemetely implemented so exclude */
-        fprintf(stderr, "Warning: skipping table ACPI_HEST (unimplemented)");
+        ZF_LOGW("Warning: skipping table ACPI_HEST (unimplemented)");
         remove_region(regions, this_rec);
         break;
     }
@@ -281,12 +281,12 @@ _acpi_parse_tables(acpi_t *acpi, void* table_addr, RegionList_t* regions,
     case ACPI_SLIT:
     case ACPI_SRAT:
         /* Not implemented */
-        fprintf(stderr, "Warning: skipping table %s (unimplemented)", header->signature);
+        ZF_LOGE("Warning: skipping table %s (unimplemented)", header->signature);
         remove_region(regions, this_rec);
         break;
 
     default:
-        fprintf(stderr, "Warning: skipping table %s (unimplemented)", header->signature);
+        ZF_LOGE("Warning: skipping table %s (unimplemented)", header->signature);
         remove_region(regions, this_rec);
     }
     return;

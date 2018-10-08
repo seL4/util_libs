@@ -10,16 +10,10 @@
  * @TAG(DATA61_BSD)
  */
 
+#include <utils/util.h>
 #include <platsupport/irq_combiner.h>
 #include "../../services.h"
 
-//#define DEBUG_COMBINER
-
-#ifdef DEBUG_MAPPINGS
-#define DCOMBINER(...) printf("Combiner:" __VA_ARGS__)
-#else
-#define DCOMBINER(...) do{}while(0)
-#endif
 
 #define NGROUPS 32
 
@@ -132,7 +126,7 @@ int
 irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* combiner)
 {
     /* Map memory */
-    DCOMBINER("Mapping device ID %d\n", id);
+    ZF_LOGD("Mapping device ID %d\n", id);
     switch (id) {
     case IRQ_COMBINER0:
         MAP_IF_NULL(io_ops, EXYNOS_IRQ_COMBINER, _combiner_regs);

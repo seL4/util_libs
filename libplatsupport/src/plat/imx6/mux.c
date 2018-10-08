@@ -12,16 +12,9 @@
 
 #include <stdint.h>
 #include "mux.h"
-#include <utils/attribute.h>
+#include <utils/util.h>
 #include <platsupport/gpio.h>
 #include "../../services.h"
-
-//#define MUX_DEBUG
-#ifdef MUX_DEBUG
-#define DMUX(...) printf("MUX: " __VA_ARGS__)
-#else
-#define DMUX(...) do{}while(0)
-#endif
 
 #define IMX6_IOMUXC_PADDR 0x020E0000
 #define IMX6_IOMUXC_SIZE  0x4000
@@ -665,7 +658,7 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enu
     assert(((int)&m->iomuxc->usdhc1_wp_on_select_input & 0xfff) == 0x94C);
     switch (mux_feature) {
     case MUX_I2C1:
-        DMUX("Muxing for I2C1\n");
+        ZF_LOGD("Muxing for I2C1\n");
         m->iomuxc->i2c1_scl_in_select_input  = IOMUXC_IS_DAISY(0x0);
         m->iomuxc->sw_mux_ctl_pad_eim_data21 = IOMUXC_MUXCTL_MODE(6)
                                                | IOMUXC_MUXCTL_FORCE_INPUT;
@@ -674,7 +667,7 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enu
                                                | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_I2C2:
-        DMUX("Muxing for I2C2\n");
+        ZF_LOGD("Muxing for I2C2\n");
         m->iomuxc->i2c2_scl_in_select_input = IOMUXC_IS_DAISY(0x1);
         m->iomuxc->sw_mux_ctl_pad_key_col3  = IOMUXC_MUXCTL_MODE(4)
                                               | IOMUXC_MUXCTL_FORCE_INPUT;
@@ -683,7 +676,7 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enu
                                               | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_I2C3:
-        DMUX("Muxing for I2C3\n");
+        ZF_LOGD("Muxing for I2C3\n");
         m->iomuxc->i2c3_scl_in_select_input = IOMUXC_IS_DAISY(0x2);
         m->iomuxc->sw_mux_ctl_pad_gpio05    = IOMUXC_MUXCTL_MODE(6)
                                               | IOMUXC_MUXCTL_FORCE_INPUT;
@@ -692,12 +685,12 @@ imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enu
                                               | IOMUXC_MUXCTL_FORCE_INPUT;
         return 0;
     case MUX_GPIO0_CLKO1:
-        DMUX("Muxing CLKO1 to MUX0\n");
+        ZF_LOGD("Muxing CLKO1 to MUX0\n");
         m->iomuxc->sw_mux_ctl_pad_gpio00    = IOMUXC_MUXCTL_MODE(0);
         return 0;
 
     case MUX_UART1:
-        DMUX("Muxing for UART1\n");
+        ZF_LOGD("Muxing for UART1\n");
         m->iomuxc->sw_mux_ctl_pad_sd3_data6 = IOMUXC_MUXCTL_MODE(1);
         m->iomuxc->uart1_uart_rx_data_select_input  = IOMUXC_IS_DAISY(3);
         return 0;
@@ -789,7 +782,7 @@ imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
         break;
 
     default:
-        DMUX("Unable to mux GPIOID 0x%x\n", gpio_id);
+        ZF_LOGD("Unable to mux GPIOID 0x%x\n", gpio_id);
         return -1;
     }
     *reg = IOMUXC_MUXCTL_MODE(5);

@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <platsupport/mux.h>
 #include <platsupport/gpio.h>
-#include <utils/attribute.h>
+#include <utils/util.h>
 #include "../../services.h"
 #include "mux.h"
 
@@ -59,7 +59,7 @@ exynos_mux_set_con(struct mux_cfg* _cfg, int pin, int func)
     v = cfg->con;
     v &= ~BITFIELD_MASK(pin, 4);
     v |= func << BITFIELD_SHIFT(pin, 4);
-    DMUX("con.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
+    ZF_LOGD("con.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->con, cfg->con, v);
     cfg->con = v;
     cfg->conpdn |= 0x3 << BITFIELD_SHIFT(pin, 2);
 }
@@ -74,7 +74,7 @@ exynos_mux_set_dat(struct mux_cfg* _cfg, int pin, int val)
     if (val) {
         v |= BIT(BITFIELD_SHIFT(pin, 1));
     }
-    DMUX("dat.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
+    ZF_LOGD("dat.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->dat, cfg->dat, v);
     cfg->dat = v;
 }
 
@@ -95,7 +95,7 @@ exynos_mux_set_pud(struct mux_cfg* cfg, int pin, int pud)
     v = cfg->pud;
     v &= ~BITFIELD_MASK(pin, 2);
     v |= pud << BITFIELD_SHIFT(pin, 2);
-    DMUX("pud.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->pud, cfg->pud, v);
+    ZF_LOGD("pud.%d @ 0x%08x : 0x%08x->0x%08x\n", pin, (uint32_t)&cfg->pud, cfg->pud, v);
     cfg->pud = v;
     cfg->pudpdn = v;
 }
@@ -131,7 +131,7 @@ exynos_mux_set_drv(struct mux_cfg* _cfg, int pin, int _drv)
     v = cfg->drv;
     v &= BITFIELD_MASK(pin, 2);
     v |= drv << BITFIELD_SHIFT(pin, 2);
-    DMUX("drv @ 0x%08x : 0x%08x->0x%08x\n", (uint32_t)&cfg->drv, cfg->drv, v);
+    ZF_LOGD("drv @ 0x%08x : 0x%08x->0x%08x\n", (uint32_t)&cfg->drv, cfg->drv, v);
     cfg->drv = v;
 }
 
@@ -153,7 +153,7 @@ exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
     for (; data->port != GPIOPORT_NONE; data++) {
         struct mux_cfg*  cfg;
         /* Apply */
-        DMUX("Enabling feature: bank %d, port %d, pin %d\n",
+        ZF_LOGD("Enabling feature: bank %d, port %d, pin %d\n",
              GPIOPORT_GET_BANK(data->port),
              GPIOPORT_GET_PORT(data->port),
              data->pin);
@@ -165,7 +165,7 @@ exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
                              MUXVALUE_CON(data->value),
                              MUXVALUE_PUD(data->value),
                              MUXVALUE_DRV(data->value));
-        DMUX("con.%d @ 0x%08x : 0x%08x (conpdn:0x%08x)\n", data->pin, (uint32_t)&cfg->con, cfg->con, cfg->conpdn);
+        ZF_LOGD("con.%d @ 0x%08x : 0x%08x (conpdn:0x%08x)\n", data->pin, (uint32_t)&cfg->con, cfg->con, cfg->conpdn);
 
     }
     return 0;
@@ -410,7 +410,7 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
     struct mux_cfg* cfg;
     assert(gpio);
 
-    DGPIO("Configuring GPIO on port %d pin %d\n", GPIOID_PORT(id), GPIOID_PIN(id));
+    ZF_LOGD("Configuring GPIO on port %d pin %d\n", GPIOID_PORT(id), GPIOID_PIN(id));
 
     gpio->id = id;
     gpio->gpio_sys = gpio_sys;

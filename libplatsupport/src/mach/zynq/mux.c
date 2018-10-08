@@ -15,13 +15,6 @@
 #include <platsupport/mux.h>
 #include "../../services.h"
 
-//#define MUX_DEBUG
-#ifdef MUX_DEBUG
-#define DMUX(...) printf("MUX: " __VA_ARGS__)
-#else
-#define DMUX(...) do{}while(0)
-#endif
-
 /* Zynq MUX is on the SLCR, along with just about everything else. */
 struct slcr;
 

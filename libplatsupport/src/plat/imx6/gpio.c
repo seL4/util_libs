@@ -12,15 +12,9 @@
 
 #include <stdint.h>
 #include "mux.h"
+#include <utils/util.h>
 #include <platsupport/gpio.h>
 #include "../../services.h"
-
-//#define GPIO_DEBUG
-#ifdef GPIO_DEBUG
-#define DGPIO(...) printf("GPIO: " __VA_ARGS__)
-#else
-#define DGPIO(...) do{}while(0)
-#endif
 
 #define IMX6_GPIO1_PADDR  0x0209C000
 #define IMX6_GPIO2_PADDR  0x020A0000
@@ -95,12 +89,12 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
     gpio->next = NULL;
 
     bank = imx6_gpio_get_bank(gpio);
-    DGPIO("Configuring GPIO on port %d pin %d\n",
+    ZF_LOGD("Configuring GPIO on port %d pin %d\n",
           GPIOID_PORT(id), GPIOID_PIN(id));
 
     /* MUX the GPIO */
     if (imx6_mux_enable_gpio(gpio_priv->mux, id)) {
-        DGPIO("Invalid GPIO\n");
+        ZF_LOGE("Invalid GPIO\n");
         return -1;
     }
 
@@ -108,12 +102,12 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
     v = bank->direction;
     if (dir == GPIO_DIR_IN) {
         v &= ~BIT(pin);
-        DGPIO("configuring {%d,%d} for input %p => 0x%x->0x%x\n",
+        ZF_LOGD("configuring {%d,%d} for input %p => 0x%x->0x%x\n",
               GPIOID_PORT(id), GPIOID_PIN(id),
               &bank->direction, bank->direction, v);
     } else {
         v |= BIT(pin);
-        DGPIO("configuring {%d,%d} for output %p => 0x%x->0x%x\n",
+        ZF_LOGD("configuring {%d,%d} for output %p => 0x%x->0x%x\n",
               GPIOID_PORT(id), GPIOID_PIN(id),
               &bank->direction, bank->direction, v);
     }
@@ -139,11 +133,11 @@ imx6_gpio_write(gpio_t* gpio, const char* data, int len)
         v = bank->data;
         if (*data++) {
             v |= (1U << pin);
-            DGPIO("data(%p) => 0x%x->0x%x\n",
+            ZF_LOGD("data(%p) => 0x%x->0x%x\n",
                   &bank->data, bank->data, v);
         } else {
             v &= ~(1U << pin);
-            DGPIO("data(%p) => 0x%x->0x%x\n",
+            ZF_LOGD("data(%p) => 0x%x->0x%x\n",
                   &bank->data, bank->data, v);
         }
         bank->data = v;
@@ -170,7 +164,7 @@ imx6_gpio_read(gpio_t* gpio, char* data, int len)
 
         v = bank->data;
 
-        DGPIO("data(%p) <=> 0x%x\n",  &bank->data, v);
+        ZF_LOGD("data(%p) <=> 0x%x\n",  &bank->data, v);
         if (v & (1U << pin)) {
             *data++ = 0xff;
         } else {

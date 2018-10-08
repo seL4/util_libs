@@ -15,13 +15,6 @@
 #include <utils/attribute.h>
 #include "../../services.h"
 
-//#define MUX_DEBUG
-#ifdef MUX_DEBUG
-#define DMUX(...) printf("MUX: " __VA_ARGS__)
-#else
-#define DMUX(...) do{}while(0)
-#endif
-
 int
 imx6_mux_init(void* iomuxc, mux_sys_t* mux)
 {

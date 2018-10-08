@@ -18,13 +18,6 @@
 #include <platsupport/dma330.h>
 #include "string.h"
 
-//#define DMA330_DEBUG
-#ifdef DMA330_DEBUG
-#define D330(...) printf("DMA330: " __VA_ARGS__)
-#else
-#define D330(...) do{}while(0)
-#endif
-
 /* Debug control */
 #define DBGCMD_EXEC            0b00
 #define DBGINST_CHDBG          BIT(0)
@@ -559,7 +552,7 @@ dma330_xfer(dma330_t* dma330_ptr, int ch, uintptr_t program, dma330_signal_cb cb
         return -1;
     }
 
-    D330("Executing 0x%x on channel %d\n", program, ch);
+    ZF_LOGD("Executing 0x%x on channel %d\n", program, ch);
     dma330->channel_data[ch].cb = cb;
     dma330->channel_data[ch].token = token;
 
@@ -568,7 +561,7 @@ dma330_xfer(dma330_t* dma330_ptr, int ch, uintptr_t program, dma330_signal_cb cb
         UNUSED uint32_t status;
         while (dmac_get_status(dma330, ch) == CHSTS_EXECUTING);
         status = CHSTS_STATUS(dmac_get_status(dma330, ch));
-        D330("Transfer @ 0x%x completed with status: 0x%x\n", program, status);
+        ZF_LOGD("Transfer @ 0x%x completed with status: 0x%x\n", program, status);
         if (dmac_has_fault(dma330, ch)) {
             dmac_print_fault(dma330, ch);
         }
@@ -596,7 +589,7 @@ dma330_handle_irq(dma330_t* dma330_ptr)
         sig &= 0x3;
         cdata = &dma330->channel_data[ch];
 
-        D330("IRQ: Channel %d.%d\n", ch, sig);
+        ZF_LOGD("IRQ: Channel %d.%d\n", ch, sig);
 
         /* We should only get an IRQ if a callback is registered */
         assert(cdata->cb);
@@ -674,7 +667,7 @@ dma330_copy_compile(int channel, void* vbin)
 int
 dma330_copy_configure(uintptr_t pdst, uintptr_t psrc, size_t len, void* vbin)
 {
-    D330("Copy configure @ 0x%x: 0x%x -> 0x%x (%d bytes)\n",
+    ZF_LOGD("Copy configure @ 0x%x: 0x%x -> 0x%x (%d bytes)\n",
          (uint32_t)vbin, (uint32_t)psrc, (uint32_t)pdst, len);
     char* bin = (char*)vbin;
     uint32_t cfg = 0;

@@ -167,11 +167,11 @@ tk1_gpio_debug_print_locks(gpio_sys_t *gs)
 
         if (*v_cnf & BIT(GPIO_BIT(i))) {
             total++;
-            printf("GPIO: Pin %d has its lock set: CNF lock: regval %x.\n",
+            ZF_LOGD("GPIO: Pin %d has its lock set: CNF lock: regval %x.\n",
                    i, *v_cnf);
         }
     }
-    printf("GPIO: lock scan: %d pins have their locks set.\n", total);
+    ZF_LOGD("GPIO: lock scan: %d pins have their locks set.\n", total);
 }
 
 static int
