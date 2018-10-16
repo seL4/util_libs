@@ -134,13 +134,14 @@ val _ = export_theory ();
     # regular strings in order to expand variables. This allows us to create a super crappy templating
     # system that is just good enough for what we need.
     set(HOLMAKEFILE_TEMP "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile.temp")
+    string(REPLACE ";" " " CAKEML_INCLUDES_SPACE_SEP "${PARSE_CML_LIB_INCLUDES}")
     file(WRITE "${HOLMAKEFILE_TEMP}"
 "CAKEML_DIR = ${CAKEMLDIR}
 "
 [==[
 INCLUDES = $(CAKEML_DIR)/characteristic $(CAKEML_DIR)/basis $(CAKEML_DIR)/misc $(CAKEML_DIR)/translator \
            $(CAKEML_DIR)/semantics $(CAKEML_DIR)/unverified/sexpr-bootstrap $(CAKEML_DIR)/compiler/parsing \
-           ]==] "${PARSE_CML_LIB_INCLUDES}
+           ]==] "${CAKEML_INCLUDES_SPACE_SEP}
 "
 [==[
 OPTIONS = QUIT_ON_FAILURE
