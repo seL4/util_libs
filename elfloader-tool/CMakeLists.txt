@@ -22,7 +22,6 @@ config_choice(ElfloaderImage ELFLOADER_IMAGE "Boot image type"
     "elf;ElfloaderImageELF;IMAGE_ELF;KernelArchARM OR KernelArchRiscV"
     "binary;ElfloaderImageBinary;IMAGE_BINARY;KernelArchARM"
     "efi;ElfloaderImageEFI;IMAGE_EFI;KernelArchARM"
-    "uimage;ElfloaderImageUimage;IMAGE_UIMAGE;KernelArchARM"
 )
 
 config_choice(ElfloaderMode ELFLOADER_MODE "seL4 mode"
@@ -39,7 +38,7 @@ config_option(ElfloaderMonitorHook ARM_MONITOR_HOOK
 )
 
 config_option(ElfloaderGPTPtimersNSPL1Access GPT_PTIMER_NS_PL1_ACCESS
-    "Enable the GPT physical timer access for NS PL1"
+    "Enalbe the GPT physical timer access for NS PL1"
     DEFAULT ON
     DEPENDS "ElfloaderModeNSSup" DEFAULT_DISABLED OFF
 )
@@ -167,7 +166,7 @@ if (ElfloaderImageEFI)
 else()
     if(KernelPlatImx6 OR KernelPlatformRpi3 OR KernelPlatformOdroidc2)
         set(PlatformEntryAddr 0x20000000)
-    elseif(KernelPlatformKZM OR KernelPlatformOMAP3 OR KernelPlatformAM335X OR KernelPlatformImx7Sabre OR KernelPlatformTx2)
+    elseif(KernelPlatformKZM OR KernelPlatformOMAP3 OR KernelPlatformAM335X OR KernelPlatformImx7Sabre)
         set(PlatformEntryAddr 0x82000000)
     elseif(KernelPlatExynos5 OR KernelPlatformExynos4)
         set(PlatformEntryAddr 0x41000000)
