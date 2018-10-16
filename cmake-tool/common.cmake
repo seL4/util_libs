@@ -135,13 +135,19 @@ function(DeclareRootserver rootservername)
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" "${KERNEL_IMAGE_NAME}" kernel.elf $<TARGET_FILE:${rootservername}> ${rootservername})
     elseif("${KernelArch}" STREQUAL "arm")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}")
-        if(NOT "${ElfloaderImage}" STREQUAL "elf")
+        if("${ElfloaderImage}" IN_LIST "binary;efi")
             # If not an elf we construct an intermediate rule to do an objcopy to binary
             add_custom_command(OUTPUT "${IMAGE_NAME}"
                 COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
                 DEPENDS $<TARGET_FILE:elfloader> elfloader
             )
-        else ()
+        elseif("${ElfloaderImage}" STREQUAL "uimage")
+            # Add custom command for converting to uboot image
+            add_custom_command(OUTPUT "${IMAGE_NAME}"
+            COMMAND mkimage  -A arm64 -O qnx -T kernel -C none -a $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -e $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -d $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
+            DEPENDS $<TARGET_FILE:elfloader> elfloader
+            )
+        else()
             add_custom_command(OUTPUT "${IMAGE_NAME}"
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
                 DEPENDS $<TARGET_FILE:elfloader> elfloader
