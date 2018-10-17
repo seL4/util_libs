@@ -182,8 +182,17 @@ int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
 
+/* The following #ifdef is for some platform specific init for tk1, tx1, tx2
+ * currently this custom init is only one line each hence using the ifdef.
+ * If the platform specific code becomes any larger, then it should be considered
+ * moving into a per platform nv_timer_plat_init function
+ */
+#ifdef CONFIG_PLAT_TX2
+    /* Route the interrupt to the correct shared interrupt number. */
+    tmr->tmr_shared_map->TKEIE[config.id] = BIT(config.id);
+#else
     /* Just unconditionally set the divisor as if "clk_m" is always 12MHz,
-     * because it actually is always 12MHz.
+     * because it actually is always 12MHz on TK1 or TX1.
      *
      * Nvidia manual, section 5.2.2, Table 14:
      * "clk_m: This clock (with DFT control) runs at 12 MHz, 13 MHz, 16.8 MHz,
@@ -191,6 +200,7 @@ int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
      * supported."
      */
     tmr->tmrus_map->usec_cfg = TMRUS_USEC_CFG_DEFAULT;
+#endif
 
     return 0;
 }

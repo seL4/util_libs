@@ -9,10 +9,14 @@
  *
  * @TAG(DATA61_BSD)
  */
-/* Implementation of a logical timer for omap platforms
- *
- * We use two GPTS: one for the time and relative timeouts, the other
- * for absolute timeouts.
+
+/*
+ * Implementation of a logical timer for NVIDIA platforms.
+ * NVIDIA has their own local timer implementations,
+ * that vary slightly from platform to platform.  TK1 and TX1 are similar;
+ * TX2 spreads them out over multiple 64k blocks.  TX2 also requires specific
+ * interrupt routing from the NVidia timer to the shared interrupt controller.
+ * Refer to the respective reference manual for more specific platform differences.
  */
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
@@ -24,7 +28,7 @@
 
 typedef struct {
     nv_tmr_t nv_tmr;
-    void *vaddr;
+    void *vaddr; /* base of TKE block */
     ps_io_ops_t ops;
     uint64_t period;
 } nv_tmr_ltimer_t;
@@ -33,7 +37,7 @@ static pmem_region_t pmem =
 {
     .type = PMEM_TYPE_DEVICE,
     .base_addr = NV_TMR_PADDR,
-    .length = PAGE_SIZE_4K
+    .length =  NV_TMR_SIZE
 };
 
 size_t get_num_irqs(void *data)
