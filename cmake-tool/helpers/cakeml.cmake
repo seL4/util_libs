@@ -66,6 +66,10 @@ function(DeclareCakeMLLib library_name)
     # Work out what --target we need to pass to cake
     if (KernelSel4ArchX86_64)
         set(CAKE_TARGET "x64")
+    elseif(KernelArchArmV6 OR KernelArchArmV7a OR KernelArchArmV7ve)
+        set(CAKE_TARGET "arm6")
+    elseif(KernelArchArmV8a)
+        set(CAKE_TARGET "arm8")
     else()
         # We don't generate an error right here incase configuration is still going on
         # Setting the target to "unknown" will happily cause 'cake' to fail if it gets to that point
