@@ -15,6 +15,7 @@ cmake_minimum_required(VERSION 3.8.2)
 project(cakeml C ASM)
 
 find_program(HOLMAKE_BIN NAMES "Holmake")
+find_program(CAKEML_BIN NAMES "cake")
 
 # Turns a selection of CakeML HOL scripts (Script.sml files) into a library that can
 # be linked against. Note that the library *only* contains the output of the CakeML
@@ -85,6 +86,9 @@ function(DeclareCakeMLLib library_name)
     endif()
     if (NOT EXISTS "${CAKEMLDIR}")
         message(FATAL_ERROR "CAKEMLDIR \"${CAKEMLDIR}\" is not a valid directory")
+    endif()
+    if (${CAKEML_BIN} STREQUAL "CAKEML_BIN-NOTFOUND")
+        message(FATAL_ERROR "Failed to find cake binary. Consider cmake -DCAKEML_BIN=/path/to/cake")
     endif()
     # Generate a directory at the top level of the binary directory for placing our CakeML related
     # files. Placing all the CakeML related sources together simplifies development of of CakeML
@@ -201,7 +205,7 @@ endif
     add_custom_command(OUTPUT "${ASM_FILE}"
         BYPRODUCTS "${SEXP_FILE}"
         COMMAND env CAKEML_DIR=${CAKEMLDIR} ${HOLMAKE_BIN} --quiet ${HOL_EXTRA_OPTS}
-        COMMAND sh -c "cake --sexp=true --exclude_prelude=true --heap_size=${PARSE_CML_LIB_HEAP_SIZE} --stack_size=${PARSE_CML_LIB_STACK_SIZE} --target=${CAKE_TARGET} < ${SEXP_FILE} > ${ASM_FILE}"
+        COMMAND sh -c "${CAKEML_BIN} --sexp=true --exclude_prelude=true --heap_size=${PARSE_CML_LIB_HEAP_SIZE} --stack_size=${PARSE_CML_LIB_STACK_SIZE} --target=${CAKE_TARGET} < ${SEXP_FILE} > ${ASM_FILE}"
         # the 'cake' program is garbage and does not return an exit code upon failure and instead
         # just outputs nothing over stdout. We therefore test for an empty file and then both delete
         # the file to trigger rebuilds in future and generate an explicit error code
