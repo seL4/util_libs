@@ -16,8 +16,8 @@
 #include <utils/util.h>
 #include <lwip/netif.h>
 #include "cpsw/cpswif.h"
-#include <sel4platsupport/plat/cpsw.h>
-#include <sel4platsupport/plat/interrupt.h>
+#include <ethdrivers/plat/cpsw.h>
+#include <ethdrivers/plat/interrupt.h>
 #include "lwiplib.h"
 
 #define DEFAULT_MAC "\x00\x19\xb8\x00\xf0\xa3"

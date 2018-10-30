@@ -61,9 +61,9 @@
 #include <ethdrivers/raw.h>
 
 /* DriverLib Header Files required for this interface driver. */
-#include <sel4platsupport/plat/cpsw.h>
-#include <sel4platsupport/plat/mdio.h>
-#include <sel4platsupport/plat/phy.h>
+#include <ethdrivers/plat/cpsw.h>
+#include <ethdrivers/plat/mdio.h>
+#include <ethdrivers/plat/phy.h>
 
 #define PORT_1                                   0x0
 #define PORT_2                                   0x1

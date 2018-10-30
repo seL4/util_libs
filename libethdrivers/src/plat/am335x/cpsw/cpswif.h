@@ -54,7 +54,7 @@
  * Configurations for AM335x
  */
 #ifdef CONFIG_PLAT_AM335X
-#include <sel4platsupport/plat/hw/soc_AM335x.h>
+#include <ethdrivers/plat/hw/soc_AM335x.h>
 
 #define MAX_CPSW_INST                   1
 #define CPSW0_SS_REGS                   SOC_CPSW_SS_REGS
