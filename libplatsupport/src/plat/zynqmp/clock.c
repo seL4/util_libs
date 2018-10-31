@@ -22,11 +22,6 @@
 
 static struct clock cpu_1x_clk = { CLK_OPS_DEFAULT(CPU_1X) };
 
-int clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
-{
-   return 0;
-}
-
 void clk_print_clock_tree(clock_sys_t* sys)
 {
    clk_t *clk = clk_get_clock(sys, CLK_CPU_1X);

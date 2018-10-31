@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2018, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,11 +10,15 @@
  * @TAG(DATA61_BSD)
  */
 
-#include <stdint.h>
-#include <platsupport/gpio.h>
+#include <utils/attribute.h>
+#include <platsupport/mux.h>
 
-int mux_sys_init(ps_io_ops_t* io_ops, mux_sys_t* mux)
+/**
+ * Weak symbol definition of mux_sys_init. Platforms should provide
+ * their own symbol with an implementation
+ */
+WEAK int
+mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
 {
     return 0;
 }
-
