@@ -47,3 +47,5 @@ enum chardev_id {
 
 #include <platsupport/mach/serial.h>
 
+#define DEFAULT_SERIAL_PADDR EXYNOS_UART2_PADDR
+#define DEFAULT_SERIAL_INTERRUPT EXYNOS_UART2_IRQ

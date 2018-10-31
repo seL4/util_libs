@@ -14,3 +14,6 @@
 #include <platsupport/mach/serial.h>
 
 #define PS_SERIAL_DEFAULT   NV_UARTD
+
+#define DEFAULT_SERIAL_PADDR UARTD_PADDR
+#define DEFAULT_SERIAL_INTERRUPT UARTD_IRQ

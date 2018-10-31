@@ -32,3 +32,6 @@ enum chardev_id {
     /* defaults */
     PS_SERIAL_DEFAULT = BCM2837_UART0
 };
+
+#define DEFAULT_SERIAL_PADDR UART_PADDR_0
+#define DEFAULT_SERIAL_INTERRUPT UART_IRQ_0

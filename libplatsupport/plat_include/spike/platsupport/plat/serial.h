@@ -20,3 +20,6 @@ enum chardev_id {
 };                                     
 
 #define PS_SERIAL_DEFAULT 0
+
+#define DEFAULT_SERIAL_PADDR NULL
+#define DEFAULT_SERIAL_INTERRUPT 0
