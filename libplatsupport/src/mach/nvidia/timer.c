@@ -18,7 +18,7 @@
 #include <inttypes.h>
 
 #include <platsupport/timer.h>
-#include <platsupport/mach/timer.h>
+#include <platsupport/plat/timer.h>
 
 /* enable bit */
 #define PVT_E_BIT           31

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2018, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,11 +10,5 @@
  * @TAG(DATA61_BSD)
  */
 
-#pragma once
-#include <platsupport/mach/serial.h>
-#include <platsupport/mach/serial_tk1_tx1_defs.h>
-
-#define PS_SERIAL_DEFAULT   NV_UARTD
-
-#define DEFAULT_SERIAL_PADDR UARTD_PADDR
-#define DEFAULT_SERIAL_INTERRUPT UARTD_IRQ
+#include <platsupport/mach/timer_tk1_tx1_defs.h>
+#include <platsupport/mach/timer.h>

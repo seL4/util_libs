@@ -12,6 +12,7 @@
 
 #pragma once
 #include <platsupport/mach/serial.h>
+#include <platsupport/mach/serial_tk1_tx1_defs.h>
 
 #define PS_SERIAL_DEFAULT   NV_UARTA
 

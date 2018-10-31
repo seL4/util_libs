@@ -12,22 +12,6 @@
 #pragma once
 #include <autoconf.h>
 
-/* the UARTs are in one page, so we only map the first one */
-#define UARTA_PADDR  0x70006000
-#define UARTB_PADDR  0x70006000
-#define UARTC_PADDR  0x70006000
-#define UARTD_PADDR  0x70006000
-
-#define UARTA_OFFSET 0x0
-#define UARTB_OFFSET 0x40
-#define UARTC_OFFSET 0x200
-#define UARTD_OFFSET 0x300
-
-#define UARTA_IRQ    68
-#define UARTB_IRQ    69
-#define UARTC_IRQ    78
-#define UARTD_IRQ    122
-
 /* Official device IDs, as recognized by ps_cdev_init().
  *
  * The first 4 IDs, NV_UART[ABCD] are "real" devices, and the next 4 IDs,
