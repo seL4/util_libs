@@ -72,7 +72,7 @@
 #define CON_TXMODE(x)         (CON_MODE_##x << 2)
 #define CON_RXMODE(x)         (CON_MODE_##x << 0)
 #define CON_RX_TIMEOUT(x)     (((x) & 0xf) << 12)
-#define CON_RX_TIMEOUT_MASK   CON_RX_TIMEOuT(0xf)
+#define CON_RX_TIMEOUT_MASK   CON_RX_TIMEOUT(0xf)
 #define CON_RX_TIMEOUT_EMPTY  BIT(11)
 #define CON_TXIRQTYPE_LEVEL   BIT(9)
 #define CON_RXIRQTYPE_LEVEL   BIT(8)
