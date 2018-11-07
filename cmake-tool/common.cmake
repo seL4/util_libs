@@ -135,7 +135,8 @@ function(DeclareRootserver rootservername)
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" "${KERNEL_IMAGE_NAME}" kernel.elf $<TARGET_FILE:${rootservername}> ${rootservername})
     elseif("${KernelArch}" STREQUAL "arm")
         set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}")
-        if("${ElfloaderImage}" IN_LIST "binary;efi")
+        set(binary_efi_list "binary;efi")
+        if(${ElfloaderImage} IN_LIST binary_efi_list)
             # If not an elf we construct an intermediate rule to do an objcopy to binary
             add_custom_command(OUTPUT "${IMAGE_NAME}"
                 COMMAND ${CROSS_COMPILER_PREFIX}objcopy -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
