@@ -135,6 +135,12 @@ typedef struct {
     ttc_id_t id;
 } ttc_t;
 
+/* Static ltimer initialisation parameters for ltimer_static_init */
+typedef struct {
+    void *timestamp_vaddr;
+    void *timeout_vaddr;
+} static_timer_params_t;
+
 static UNUSED timer_properties_t ttc_properties = {
     .upcounter = true,
     .timeouts = true,
