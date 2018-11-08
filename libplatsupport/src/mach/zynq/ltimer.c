@@ -190,13 +190,8 @@ static void destroy(void *data)
     ps_free(&ttc_ltimer->ops.malloc_ops, sizeof(ttc_ltimer), ttc_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
     ltimer->handle_irq = handle_irq;
     ltimer->get_time = get_time;
     ltimer->get_resolution = get_resolution;
@@ -204,31 +199,21 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     ltimer->reset = reset;
     ltimer->destroy = destroy;
 
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(ttc_ltimer_t), &ltimer->data);
+    int error = ps_calloc(&ops.malloc_ops, 1, sizeof(ttc_ltimer_t), &ltimer->data);
     if (error) {
         return error;
     }
     assert(ltimer->data != NULL);
+
+    return 0;
+}
+
+static int init_ltimer(ltimer_t *ltimer)
+{
+    int error;
+
+    assert(ltimer != NULL);
     ttc_ltimer_t *ttc_ltimer = ltimer->data;
-    ttc_ltimer->ops = ops;
-
-    /* Default timeout timer */
-    pmem_region_t region;
-    error = get_nth_pmem(ltimer->data, 0, &region);
-    assert(error == 0);
-    ttc_ltimer->vaddr_timeout = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
-    if (ttc_ltimer->vaddr_timeout == NULL) {
-        error = -1;
-    }
-
-    /* Default timestamp timer */
-    pmem_region_t region_timestamp;
-    error = get_nth_pmem(ltimer->data, 1, &region_timestamp);
-    assert(error == 0);
-    ttc_ltimer->vaddr_timestamp = ps_pmem_map(&ops, region_timestamp, false, PS_MEM_NORMAL);
-    if (ttc_ltimer->vaddr_timestamp == NULL) {
-        error = -1;
-    }
 
     ttc_config_t config = {
         .vaddr = ttc_ltimer->vaddr_timeout,
@@ -252,11 +237,46 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         ttc_freerun(&ttc_ltimer->ttc_timestamp);
         error = ttc_start(&ttc_ltimer->ttc_timestamp);
     }
+}
 
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+{
+    int error = ltimer_default_describe(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    error = create_ltimer(ltimer, ops);
+    if (error) {
+        return error;
+    }
+
+    ttc_ltimer_t *ttc_ltimer = ltimer->data;
+    ttc_ltimer->ops = ops;
+
+    /* Default timeout timer */
+    pmem_region_t region;
+    error = get_nth_pmem(ltimer->data, 0, &region);
+    assert(error == 0);
+    ttc_ltimer->vaddr_timeout = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
+    if (ttc_ltimer->vaddr_timeout == NULL) {
+        error = -1;
+    }
+
+    /* Default timestamp timer */
+    pmem_region_t region_timestamp;
+    error = get_nth_pmem(ltimer->data, 1, &region_timestamp);
+    assert(error == 0);
+    ttc_ltimer->vaddr_timestamp = ps_pmem_map(&ops, region_timestamp, false, PS_MEM_NORMAL);
+    if (ttc_ltimer->vaddr_timestamp == NULL) {
+        error = -1;
+    }
+
+    error = init_ltimer(ltimer);
     if (error) {
         destroy(ttc_ltimer);
     }
-    return error;
+    return 0;
 }
 
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
