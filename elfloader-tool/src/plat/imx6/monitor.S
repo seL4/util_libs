@@ -65,10 +65,10 @@ smc_handler:
     push {lr}
     blx r0
     isb
-    mrc p15, 0, r5, c1, c1, 0
+    mrc p15, 0, r12, c1, c1, 0
     /* set the NS bit */
-    orr r5, r5, #1
-    mcr p15, 0, r5, c1, c1, 0
+    orr r12, r12, #1
+    mcr p15, 0, r12, c1, c1, 0
     pop {lr}
     isb
     movs pc, lr
