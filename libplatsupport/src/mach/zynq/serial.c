@@ -380,29 +380,21 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     return 0;
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+static void zynq_uart_dev_init(ps_chardevice_t* dev, const ps_io_ops_t* ops)
 {
-    zynq_uart_regs_t* regs;
-
-    /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
-    if (vaddr == NULL) {
-        return -1;
-    }
-
     memset(dev, 0, sizeof(*dev));
 
     /* Set up all the  device properties. */
-    dev->id         = defn->id;
-    dev->vaddr      = (void*)vaddr;
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
-    dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
+}
+
+static int zynq_uart_init(ps_chardevice_t* dev)
+{
+    zynq_uart_regs_t* regs;
 
     regs = zynq_uart_get_priv(dev);
 
@@ -442,4 +434,24 @@ int uart_init(const struct dev_defn* defn,
     regs->txwm = UART_TXWM_TTRIG(UART_TX_FIFO_SIZE - 1) & UART_TXWM_TTRIG_MASK;
 
     return 0;
+}
+
+int uart_init(const struct dev_defn* defn,
+              const ps_io_ops_t* ops,
+              ps_chardevice_t* dev)
+{
+    /* Attempt to map the virtual address, assure this works */
+    void* vaddr = chardev_map(defn, ops);
+    if (vaddr == NULL) {
+        return -1;
+    }
+
+    zynq_uart_dev_init(dev, ops);
+    /* Set up the remaining device properties. */
+    dev->id         = defn->id;
+    dev->vaddr      = (void*)vaddr;
+    dev->irqs       = defn->irqs;
+
+    int error = zynq_uart_init(dev);
+    return error;
 }
