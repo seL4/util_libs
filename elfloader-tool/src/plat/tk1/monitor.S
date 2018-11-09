@@ -64,10 +64,10 @@ smc_handler:
     ldr sp, [pc, #-12]
     push {lr}
     blx  r0
-    mrc p15, 0, r0, c1, c1, 0
+    mrc p15, 0, r12, c1, c1, 0
     /* set the NS bit */
-    orr r0, r0, #1
-    mcr p15, 0, r0, c1, c1, 0
+    orr r12, r12, #1
+    mcr p15, 0, r12, c1, c1, 0
     pop {lr}
     movs pc, lr
 
