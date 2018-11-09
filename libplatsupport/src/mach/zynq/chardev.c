@@ -45,3 +45,16 @@ ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, struct ps_chardevice* d) 
     }
     return NULL;
 }
+
+ps_chardevice_t*
+ps_cdev_static_init(const ps_io_ops_t *o, ps_chardevice_t* d, void *params)
+{
+
+    if (params == NULL) {
+        return NULL;
+    }
+
+    void* vaddr = params;
+
+    return uart_static_init(vaddr, o, d) ? NULL : d;
+}

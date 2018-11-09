@@ -32,6 +32,7 @@ chardev_map(const struct dev_defn* d, const ps_io_ops_t* o)
 }
 
 int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+int uart_static_init(void *vaddr, const ps_io_ops_t* ops, ps_chardevice_t* dev);
 ssize_t uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED);
 ssize_t uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED);
 int uart_getchar(ps_chardevice_t *d);

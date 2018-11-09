@@ -436,6 +436,18 @@ static int zynq_uart_init(ps_chardevice_t* dev)
     return 0;
 }
 
+int uart_static_init(void *vaddr,
+                     const ps_io_ops_t* ops,
+                     ps_chardevice_t* dev)
+{
+    zynq_uart_dev_init(dev, ops);
+    dev->vaddr = vaddr;
+
+    int error = zynq_uart_init(dev);
+    return error;
+
+}
+
 int uart_init(const struct dev_defn* defn,
               const ps_io_ops_t* ops,
               ps_chardevice_t* dev)
