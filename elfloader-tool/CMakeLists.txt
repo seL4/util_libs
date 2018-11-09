@@ -35,7 +35,7 @@ config_choice(ElfloaderMode ELFLOADER_MODE "seL4 mode"
 config_option(ElfloaderMonitorHook ARM_MONITOR_HOOK
     "Install SMC call handlers in monitor mode."
     DEFAULT OFF
-    DEPENDS "KernelPlatformTK1"
+    DEPENDS "KernelPlatformTK1 OR KernelPlatImx6"
 )
 
 config_option(ElfloaderGPTPtimersNSPL1Access GPT_PTIMER_NS_PL1_ACCESS
