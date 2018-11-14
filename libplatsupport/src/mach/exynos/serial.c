@@ -175,11 +175,28 @@ uart_fill_fifo(ps_chardevice_t *d, const char* data, size_t len)
     return len;
 }
 
+static void
+uart_drain_tx_fifo(ps_chardevice_t *d)
+{
+    if (d->write_descriptor.data) {
+        exynos_handle_tx_irq(d);
+    }
+}
+
 static ssize_t
 exynos_uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t wcb, void* token)
 {
     const char* data = (const char*)vdata;
     int sent;
+
+    /*
+     * Try to further drain the TX FIFO before writing.
+     * This is a slight optimisation to maximize the amount of
+     * data we can write and possibly free up the write
+     * descriptor (instead of returning failure).
+     */
+    uart_drain_tx_fifo(d);
+
     if (d->write_descriptor.data) {
         /* Transaction is already in progress */
         return -1;
