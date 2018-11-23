@@ -175,9 +175,13 @@ int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
         break;
     };
 
-    tmr->tmr_map = (void *) (config.vaddr + offset);
-    tmr->tmrus_map = (void *) (config.vaddr + TMRUS_OFFSET);
-    tmr->tmr_shared_map = (void *) config.vaddr;
+    /* If the offset is across a page boundary we require a separate mapping. */
+    if (offset >= PAGE_SIZE_4K) {
+        offset = 0;
+    }
+    tmr->tmr_map = (void *) (config.vaddr_tmr + offset);
+    tmr->tmrus_map = (void *) (config.vaddr_base + TMRUS_OFFSET);
+    tmr->tmr_shared_map = (void *) config.vaddr_base;
 
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);

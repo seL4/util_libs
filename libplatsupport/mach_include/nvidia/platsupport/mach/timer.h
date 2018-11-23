@@ -37,7 +37,10 @@ typedef enum {
 
 
 typedef struct {
-    uintptr_t vaddr;
+    /* vaddr of the base timer device registers */
+    uintptr_t vaddr_base;
+    /* second vaddr mapping for platforms that have timers on separate pages (TX2) */
+    uintptr_t vaddr_tmr;
     nv_tmr_id_t id;
 } nv_tmr_config_t;
 

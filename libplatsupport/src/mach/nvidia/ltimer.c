@@ -25,10 +25,16 @@
 #include <utils/util.h>
 
 #define NV_TMR_ID TMR0
+#define NV_TMR_ID_OFFSET TMR0_OFFSET
 
 typedef struct {
     nv_tmr_t nv_tmr;
-    void *vaddr; /* base of TKE block */
+    /* base of TKE block */
+    void *vaddr_base;
+    /* base of TKE block or second timer mapping if timers are on different pages.
+     * if timers are on single page, then this is same as vaddr_base.
+     */
+    void *vaddr_tmr;
     ps_io_ops_t ops;
     uint64_t period;
 } nv_tmr_ltimer_t;
@@ -37,7 +43,7 @@ static pmem_region_t pmem =
 {
     .type = PMEM_TYPE_DEVICE,
     .base_addr = NV_TMR_PADDR,
-    .length =  NV_TMR_SIZE
+    .length =  PAGE_SIZE_4K
 };
 
 size_t get_num_irqs(void *data)
@@ -55,13 +61,23 @@ static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
 
 static size_t get_num_pmems(void *data)
 {
-    return 1;
+    /* If the timer offset is greater than a 4k page, we require a second mapping */
+    if (NV_TMR_ID_OFFSET >= PAGE_SIZE_4K) {
+        return 2;
+    } else {
+        return 1;
+    }
 }
 
 static int get_nth_pmem(void *data, size_t n, pmem_region_t *paddr)
 {
-    assert(n == 0);
+    assert(n < get_num_pmems(NULL));
+
     *paddr = pmem;
+    if (n == 1) {
+        /* If the timer offset is greater than a 4k page, we require a second mapping */
+        paddr->base_addr += NV_TMR_ID_OFFSET;
+    }
     return 0;
 }
 
@@ -128,10 +144,16 @@ static void destroy(void *data)
 {
     assert(data);
     nv_tmr_ltimer_t *nv_tmr_ltimer = data;
-    if (nv_tmr_ltimer->vaddr) {
+    if (nv_tmr_ltimer->vaddr_base) {
         nv_tmr_stop(&nv_tmr_ltimer->nv_tmr);
         nv_tmr_handle_irq(&nv_tmr_ltimer->nv_tmr);
-        ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem, nv_tmr_ltimer->vaddr);
+        ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem, nv_tmr_ltimer->vaddr_base);
+        if (nv_tmr_ltimer->vaddr_base != nv_tmr_ltimer->vaddr_tmr) {
+            /* We have two mappings and need to unmap the second one also */
+            pmem_region_t pmem_tmr = pmem;
+            pmem_tmr.base_addr += NV_TMR_ID_OFFSET;
+            ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem_tmr, nv_tmr_ltimer->vaddr_tmr);
+        }
     }
     ps_free(&nv_tmr_ltimer->ops.malloc_ops, sizeof(nv_tmr_ltimer), nv_tmr_ltimer);
 }
@@ -157,14 +179,24 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     nv_tmr_ltimer_t *nv_tmr_ltimer = ltimer->data;
     nv_tmr_ltimer->ops = ops;
-    nv_tmr_ltimer->vaddr = ps_pmem_map(&ops, pmem, false, PS_MEM_NORMAL);
-    if (nv_tmr_ltimer->vaddr == NULL) {
+    nv_tmr_ltimer->vaddr_base = ps_pmem_map(&ops, pmem, false, PS_MEM_NORMAL);
+    if (NV_TMR_ID_OFFSET >= PAGE_SIZE_4K) {
+        /* If the timer offset is greater than a 4k page, we require a second mapping */
+        pmem_region_t pmem_tmr = pmem;
+        pmem_tmr.base_addr += NV_TMR_ID_OFFSET;
+        nv_tmr_ltimer->vaddr_tmr = ps_pmem_map(&ops, pmem_tmr, false, PS_MEM_NORMAL);
+    } else {
+        /* If all timers are on one page, we set vaddr_tmr to the same as vaddr_base */
+        nv_tmr_ltimer->vaddr_tmr = nv_tmr_ltimer->vaddr_base;
+    }
+    if (nv_tmr_ltimer->vaddr_base == NULL || nv_tmr_ltimer->vaddr_tmr == NULL) {
         destroy(ltimer->data);
     }
 
     /* setup nv_tmr */
     nv_tmr_config_t config = {
-        .vaddr = (uintptr_t) nv_tmr_ltimer->vaddr,
+        .vaddr_base = (uintptr_t) nv_tmr_ltimer->vaddr_base,
+        .vaddr_tmr =  (uintptr_t) nv_tmr_ltimer->vaddr_tmr,
         .id = TMR0
     };
 
