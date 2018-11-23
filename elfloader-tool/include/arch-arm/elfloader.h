@@ -16,8 +16,8 @@
 typedef void (*init_arm_kernel_t)(paddr_t ui_p_reg_start,
                                   paddr_t ui_p_reg_end,
                                   uintptr_t pv_offset,
-                                  vaddr_t v_entry);
-
+                                  vaddr_t v_entry,
+                                  paddr_t dtb, uint32_t dtb_size);
 
 
 /* Enable the mmu. */

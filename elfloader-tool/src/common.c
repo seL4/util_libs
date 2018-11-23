@@ -20,6 +20,7 @@
 #include <cpio/cpio.h>
 
 #include <elfloader.h>
+#include <fdt.h>
 
 #ifdef CONFIG_HASH_SHA
 #include "crypt_sha256.h"
@@ -262,10 +263,11 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
  *  We attempt to check for some of these, but some may go unnoticed.
  */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
-                 int max_user_images, int *num_images)
+                 int max_user_images, int *num_images, void **dtb, uint32_t *dtb_size)
 {
     int i;
     uint64_t kernel_phys_start, kernel_phys_end;
+    uintptr_t dtb_phys_start, dtb_phys_end;
     paddr_t next_phys_addr;
     const char *elf_filename;
     unsigned long unused;
@@ -283,8 +285,37 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     }
 
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
-    next_phys_addr = load_elf("kernel", kernel_elf,
-                              (paddr_t)kernel_phys_start, kernel_info, 0, unused, "kernel.bin");
+
+    /*
+     * Move the DTB out of the way, if it's present.
+     */
+    if (dtb && *dtb) {
+        /* keep it page aligned */
+        next_phys_addr = dtb_phys_start = ROUND_UP(kernel_phys_end, PAGE_BITS);
+
+        *dtb_size = fdt_size(*dtb);
+        if (!*dtb_size) {
+            printf("Invalid device tree blob supplied!\n");
+            abort();
+        }
+
+        /* Make sure this is a sane thing to do */
+        ensure_phys_range_valid(next_phys_addr, next_phys_addr + *dtb_size);
+
+        memmove((void *)next_phys_addr, *dtb, *dtb_size);
+        next_phys_addr += *dtb_size;
+        next_phys_addr = ROUND_UP(next_phys_addr, PAGE_BITS);
+        dtb_phys_end = next_phys_addr;
+
+        printf("Loaded dtb from %p\n", *dtb);
+        printf("   paddr=[%lx..%lx]\n", dtb_phys_start, dtb_phys_end - 1);
+        *dtb = (void *)dtb_phys_start;
+    } else {
+        next_phys_addr = ROUND_UP(kernel_phys_end, PAGE_BITS);
+    }
+
+    load_elf("kernel", kernel_elf,
+             (paddr_t)kernel_phys_start, kernel_info, 0, unused, "kernel.bin");
 
     /*
      * Load userspace images.

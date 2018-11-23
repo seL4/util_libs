@@ -121,13 +121,14 @@ uint64_t vm_mode = 0x9llu << 60;
 #endif
 
 int num_apps = 0;
-void main(void)
+void main(UNUSED int hardid, void *dtb)
 {
+    uint32_t dtb_size;
     printf("ELF-loader started on\n");
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
     /* Unpack ELF images into memory. */
-    load_images(&kernel_info, &user_info, 1, &num_apps);
+    load_images(&kernel_info, &user_info, 1, &num_apps, &dtb, &dtb_size);
     if (num_apps != 1) {
         printf("No user images loaded!\n");
         abort();
@@ -146,6 +147,7 @@ void main(void)
         :
     );
 
+    /* TODO: pass DTB to kernel. */
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                                   user_info.phys_region_end, user_info.phys_virt_offset,
                                                   user_info.virt_entry);
