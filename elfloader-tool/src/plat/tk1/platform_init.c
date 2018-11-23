@@ -283,6 +283,11 @@ static void enable_ns_access_cp(void)
 
 void platform_init(void)
 {
+#if defined(CONFIG_ARM_MONITOR_HOOK) || defined(CONFIG_ARM_NS_SUPERVISOR_MODE) \
+    || defined(CONFIG_ARM_HYPERVISOR_MODE) || defined(CONFIG_ARM_MONITOR_MODE)
+    /* mon_init_done needs to explicitly initialised when booting a binary image */
+    mon_init_done = 0;
+#endif
 #ifdef CONFIG_ARM_MONITOR_HOOK
     install_monitor_hook();
 #endif
