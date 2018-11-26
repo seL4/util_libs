@@ -39,6 +39,37 @@
 #define EXYNOS5_CMU_CDREX_SIZE  EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_MEM_SIZE    EXYNOS5_CMU_SIZE
 
+/* Available clock sources for the peripheral block */
+#if defined(CONFIG_PLAT_EXYNOS5422)
+#define OFFSET_SCLKCPLL    (0x20 / 4)
+#define OFFSET_SCLKDPLL    (0x28 / 4)
+#define OFFSET_SCLKEPLL    (0x30 / 4)
+#define OFFSET_SCLKRPLL    (0x40 / 4)
+#define OFFSET_SCLKIPLL    (0x50 / 4)
+#define OFFSET_SCLKSPLL    (0x60 / 4)
+#define OFFSET_SCLKVPLL    (0x70 / 4)
+#define OFFSET_SCLKMPLL    (0x80 / 4)
+
+#define CLKID_SCLKCPLL     CLKID(TOP, 8, 0)
+#define CLKID_SCLKDPLL     CLKID(TOP, 10, 0)
+#define CLKID_SCLKEPLL     CLKID(TOP, 12, 0)
+#define CLKID_SCLKRPLL     CLKID(TOP, 16, 0)
+#define CLKID_SCLKIPLL     CLKID(TOP, 20, 0)
+#define CLKID_SCLDVPLL     CLKID(TOP, 24, 0)
+#define CLKID_SCLKVPLL     CLKID(TOP, 28, 0)
+#define CLKID_SCLKMPLL     CLKID(TOP, 32, 0)
+
+static enum clk_id clk_src_peri_blk[] = {
+                                            CLK_MASTER,
+                                            CLK_SCLKCPLL,
+                                            -1, //CLK_SCLKDPLL
+                                            CLK_SCLKMPLL,
+                                            -1, //CLK_SCKLSPLL
+                                            -1, //CLK_SCKLIPLL
+                                            CLK_SCLKEPLL,
+                                            -1 //CLK_SCLKRPLL,
+                                        };
+#else
 #define OFFSET_SCLKCPLL    (0x20 / 4)
 #define OFFSET_SCLKEPLL    (0x30 / 4)
 #define OFFSET_SCLKVPLL    (0x40 / 4)
@@ -53,6 +84,20 @@
 #define CLKID_SCLKMPLL     CLKID(CORE, 0, 2)
 #define CLKID_SCLKBPLL     CLKID(CDREX, 0, 0)
 
+static enum clk_id clk_src_peri_blk[] = {
+                                            CLK_MASTER,
+                                            CLK_MASTER,
+                                            -1, // CLK_HDMI27M
+                                            -1, // CLK_DPTXPHY
+                                            -1, // CLK_UHOSTPHY
+                                            -1, // CLK_HDMIPHY
+                                            CLK_SCLKMPLL,
+                                            CLK_SCLKEPLL,
+                                            CLK_SCLKVPLL,
+                                            CLK_SCLKCPLL
+                                        };
+#endif
+
 #define CLKID_UART0      CLKID(TOP, 20, 0)
 #define CLKID_UART1      CLKID(TOP, 20, 1)
 #define CLKID_UART2      CLKID(TOP, 20, 2)
@@ -63,20 +108,6 @@
 #define CLKID_SPI2       CLKID(TOP, 21, 6)
 #define CLKID_SPI0_ISP   CLKID(TOP, 28, 0)
 #define CLKID_SPI1_ISP   CLKID(TOP, 28, 1)
-
-/* Available clock sources for the peripheral block */
-static enum clk_id clk_src_peri_blk[] = {
-                                            CLK_MASTER,
-                                            CLK_MASTER,
-                                            -1, /* CLK_HDMI27M   */
-                                            -1, /* CLK_DPTXPHY   */
-                                            -1, /* CLK_UHOSTPHY  */
-                                            -1, /* CLK_HDMIPHY   */
-                                            CLK_SCLKMPLL,
-                                            CLK_SCLKEPLL,
-                                            CLK_SCLKVPLL,
-                                            CLK_SCLKCPLL
-                                        };
 
 volatile struct clk_regs* _clk_regs[NCLKREGS];
 
@@ -134,19 +165,23 @@ static struct mpsk_tbl _vpll_tbl[] = {
 };
 
 static struct pll_priv sclkmpll_priv = PLL_PRIV(SCLKMPLL, MPS, _ambcgpll_tbl);
-static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, MPS, _ambcgpll_tbl);
 static struct pll_priv sclkcpll_priv = PLL_PRIV(SCLKCPLL, MPS, _ambcgpll_tbl);
-static struct pll_priv sclkgpll_priv = PLL_PRIV(SCLKGPLL, MPS, _ambcgpll_tbl);
 
 static struct pll_priv sclkepll_priv = PLL_PRIV(SCLKEPLL, MPSK, _epll_tbl);
 static struct pll_priv sclkvpll_priv = PLL_PRIV(SCLKVPLL, MPSK, _vpll_tbl);
 
 static struct clock sclkmpll_clk  = { CLK_OPS(SCLKMPLL, pll, &sclkmpll_priv) };
-static struct clock sclkbpll_clk  = { CLK_OPS(SCLKBPLL, pll, &sclkbpll_priv) };
 static struct clock sclkcpll_clk  = { CLK_OPS(SCLKCPLL, pll, &sclkcpll_priv) };
-static struct clock sclkgpll_clk  = { CLK_OPS(SCLKGPLL, pll, &sclkgpll_priv) };
 static struct clock sclkepll_clk  = { CLK_OPS(SCLKEPLL, pll, &sclkepll_priv) };
 static struct clock sclkvpll_clk  = { CLK_OPS(SCLKVPLL, pll, &sclkvpll_priv) };
+
+#if !defined(CONFIG_PLAT_EXYNOS5422)
+static struct pll_priv sclkbpll_priv = PLL_PRIV(SCLKBPLL, MPS, _ambcgpll_tbl);
+static struct pll_priv sclkgpll_priv = PLL_PRIV(SCLKGPLL, MPS, _ambcgpll_tbl);
+
+static struct clock sclkgpll_clk  = { CLK_OPS(SCLKGPLL, pll, &sclkgpll_priv) };
+static struct clock sclkbpll_clk  = { CLK_OPS(SCLKBPLL, pll, &sclkbpll_priv) };
+#endif
 
 /* The SPI div register is a special case as we have 2 dividers, one of which
  * is 2 nibbles wide */
@@ -394,11 +429,13 @@ clk_t* ps_clocks[] = {
     [CLK_UART3   ]   = &uart3_clk,
     [CLK_PWM     ]   = &pwm_clk,
     [CLK_SCLKMPLL]   = &sclkmpll_clk,
-    [CLK_SCLKBPLL]   = &sclkbpll_clk,
     [CLK_SCLKCPLL]   = &sclkcpll_clk,
-    [CLK_SCLKGPLL]   = &sclkgpll_clk,
     [CLK_SCLKEPLL]   = &sclkepll_clk,
-    [CLK_SCLKVPLL]   = &sclkvpll_clk
+    [CLK_SCLKVPLL]   = &sclkvpll_clk,
+#if !defined(CONFIG_PLAT_EXYNOS5422)
+    [CLK_SCLKBPLL]   = &sclkbpll_clk,
+    [CLK_SCLKGPLL]   = &sclkgpll_clk,
+#endif
 };
 
 /* These frequencies are NOT the recommended

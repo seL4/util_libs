@@ -54,6 +54,20 @@ struct pll_regs {
     uint32_t con2;
 };
 
+#if defined(CONFIG_PLAT_EXYNOS5422)
+struct clk_regs {
+    volatile uint32_t pll_lock[64];   /* 0x000 */
+    volatile uint32_t pll_con[64];    /* 0x100 */
+    volatile uint32_t src[64];        /* 0x200 */
+    volatile uint32_t srcmask[64];    /* 0x300 */
+    volatile uint32_t srcstat[64];    /* 0x400 */
+    volatile uint32_t div[64];        /* 0x500 */
+    volatile uint32_t divstat[64];    /* 0x600 */
+    volatile uint32_t gate[128];      /* 0x700 */
+    volatile uint32_t clkout;         /* 0xA00 */
+    volatile uint32_t spare[4];       /* 0xB00 */
+};
+#else
 struct clk_regs {
     volatile uint32_t pll_lock[64];   /* 0x000 */
     volatile uint32_t pll_con[64];    /* 0x100 */
@@ -66,6 +80,8 @@ struct clk_regs {
     volatile uint32_t clkout;         /* 0xA00 */
     volatile uint32_t clkout_divstat; /* 0xA04 */
 };
+#endif
+
 typedef volatile struct clk_regs clk_regs_io_t;
 
 struct mpsk_tbl {
