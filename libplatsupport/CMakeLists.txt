@@ -34,6 +34,12 @@ file(GLOB deps src/mach/${KernelArmMach}/*.c src/plat/${KernelPlatform}/*.c src/
         src/*.c src/plat/${KernelPlatform}/acpi/*.c
 )
 
+if(KernelPlatformExynos5422)
+    list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_5422_clock.c)
+elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos5250)
+    list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
+endif()
+
 list(SORT deps)
 
 add_config_library(platsupport "${configure_string}")

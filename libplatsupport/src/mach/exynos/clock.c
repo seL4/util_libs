@@ -71,36 +71,14 @@ _div_recal(clk_t* clk)
 freq_t
 _pll_get_freq(clk_t* clk)
 {
-    clk_regs_io_t** clk_regs;
-    volatile struct pll_regs* pll_regs;
     const struct pll_priv* pll_priv;
-    int clkid, c, r, o, pll_idx;
-    uint32_t v, p, m, s;
-    uint32_t muxstat;
-    clk_regs = clk_get_clk_regs(clk);
+    int clkid, pll_idx;
+
     pll_priv = exynos_clk_get_priv_pll(clk);
     clkid = pll_priv->clkid;
     pll_idx = pll_priv->pll_offset;
-    clkid_decode(clkid, &c, &r, &o);
 
-    if(config_set(CONFIG_PLAT_EXYNOS5422)) {
-        v = clk_regs[c]->pll_con[pll_idx];
-    } else {
-        pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
-        muxstat = exynos_cmu_get_srcstat(clk_regs, clkid);
-        if (muxstat & 0x1) {
-            /* Muxed or bypassed to FINPLL */
-            return clk_get_freq(clk->parent);
-        } else {
-            v = pll_regs->con0 & PLL_MPS_MASK;
-        }
-    }
-
-    m = (v >> 16) & 0x1ff;
-    p = (v >>  8) &  0x3f;
-    s = (v >>  0) &   0x7;
-
-    return ((uint64_t)clk_get_freq(clk->parent) * m / p) >> s;
+    return exynos_pll_get_freq(clk, clkid, pll_idx);
 }
 
 freq_t

@@ -123,6 +123,8 @@ freq_t _pll_get_freq(clk_t* clk);
 freq_t _pll_set_freq(clk_t* clk, freq_t hz);
 void   _pll_recal(clk_t* clk);
 clk_t* _pll_init(clk_t* clk);
+/* PLL get_freq */
+uint32_t exynos_pll_get_freq(clk_t* clk, int clkid, uint32_t pll_idx);
 
 /**** helpers ****/
 static inline void
@@ -230,3 +232,15 @@ exynos_cmu_set_gate(clk_regs_io_t** regs, int clkid, int v)
     clkbf_set(&regs[c]->gate[r], o * CLK_GATE_BITS, CLK_GATE_BITS, v);
 }
 
+static inline void
+exynos_mpll_get_pms(int v, uint32_t* p, uint32_t* m, uint32_t* s)
+{
+    *m = (v >> 16) & 0x1ff;
+    *p = (v >>  8) &  0x3f;
+    *s = (v >>  0) &   0x7;
+}
+
+static inline uint32_t
+exynos_pll_calc_freq(uint64_t fin, uint32_t p, uint32_t m, uint32_t s) {
+    return (fin * m / p) >> s;
+}
