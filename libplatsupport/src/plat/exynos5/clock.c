@@ -11,6 +11,11 @@
  */
 #include "../../arch/arm/clock.h"
 #include "../../mach/exynos/clock.h"
+#if defined(CONFIG_PLAT_EXYNOS5422)
+#include "exynos_5422_clock.h"
+#else
+#include "exynos_common_clock.h"
+#endif
 #include "../../services.h"
 #include <assert.h>
 #include <string.h>
@@ -38,65 +43,6 @@
 #define EXYNOS5_CMU_R1X_SIZE    EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_CDREX_SIZE  EXYNOS5_CMU_SIZE
 #define EXYNOS5_CMU_MEM_SIZE    EXYNOS5_CMU_SIZE
-
-/* Available clock sources for the peripheral block */
-#if defined(CONFIG_PLAT_EXYNOS5422)
-#define OFFSET_SCLKCPLL    (0x20 / 4)
-#define OFFSET_SCLKDPLL    (0x28 / 4)
-#define OFFSET_SCLKEPLL    (0x30 / 4)
-#define OFFSET_SCLKRPLL    (0x40 / 4)
-#define OFFSET_SCLKIPLL    (0x50 / 4)
-#define OFFSET_SCLKSPLL    (0x60 / 4)
-#define OFFSET_SCLKVPLL    (0x70 / 4)
-#define OFFSET_SCLKMPLL    (0x80 / 4)
-
-#define CLKID_SCLKCPLL     CLKID(TOP, 8, 0)
-#define CLKID_SCLKDPLL     CLKID(TOP, 10, 0)
-#define CLKID_SCLKEPLL     CLKID(TOP, 12, 0)
-#define CLKID_SCLKRPLL     CLKID(TOP, 16, 0)
-#define CLKID_SCLKIPLL     CLKID(TOP, 20, 0)
-#define CLKID_SCLDVPLL     CLKID(TOP, 24, 0)
-#define CLKID_SCLKVPLL     CLKID(TOP, 28, 0)
-#define CLKID_SCLKMPLL     CLKID(TOP, 32, 0)
-
-static enum clk_id clk_src_peri_blk[] = {
-                                            CLK_MASTER,
-                                            CLK_SCLKCPLL,
-                                            -1, //CLK_SCLKDPLL
-                                            CLK_SCLKMPLL,
-                                            -1, //CLK_SCKLSPLL
-                                            -1, //CLK_SCKLIPLL
-                                            CLK_SCLKEPLL,
-                                            -1 //CLK_SCLKRPLL,
-                                        };
-#else
-#define OFFSET_SCLKCPLL    (0x20 / 4)
-#define OFFSET_SCLKEPLL    (0x30 / 4)
-#define OFFSET_SCLKVPLL    (0x40 / 4)
-#define OFFSET_SCLKGPLL    (0x50 / 4)
-#define OFFSET_SCLKMPLL    (0x00 / 4)
-#define OFFSET_SCLKBPLL    (0x10 / 4)
-
-#define CLKID_SCLKCPLL     CLKID(TOP, 6, 2)
-#define CLKID_SCLKEPLL     CLKID(TOP, 6, 3)
-#define CLKID_SCLKVPLL     CLKID(TOP, 6, 4)
-#define CLKID_SCLKGPLL     CLKID(TOP, 6, 7)
-#define CLKID_SCLKMPLL     CLKID(CORE, 0, 2)
-#define CLKID_SCLKBPLL     CLKID(CDREX, 0, 0)
-
-static enum clk_id clk_src_peri_blk[] = {
-                                            CLK_MASTER,
-                                            CLK_MASTER,
-                                            -1, // CLK_HDMI27M
-                                            -1, // CLK_DPTXPHY
-                                            -1, // CLK_UHOSTPHY
-                                            -1, // CLK_HDMIPHY
-                                            CLK_SCLKMPLL,
-                                            CLK_SCLKEPLL,
-                                            CLK_SCLKVPLL,
-                                            CLK_SCLKCPLL
-                                        };
-#endif
 
 #define CLKID_UART0      CLKID(TOP, 20, 0)
 #define CLKID_UART1      CLKID(TOP, 20, 1)
