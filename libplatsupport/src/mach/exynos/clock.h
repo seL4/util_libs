@@ -12,6 +12,15 @@
 #pragma once
 
 #include "../../arch/arm/clock.h"
+#define DIV_SEP_BITS 4
+#define DIV_VAL_BITS 4
+
+/* CON 0 */
+#define PLL_MPS_MASK    PLL_MPS(0x1ff, 0x3f, 0x7)
+#define PLL_ENABLE      BIT(31)
+#define PLL_LOCKED      BIT(29)
+/* CON 1*/
+#define PLL_K_MASK      MASK(16)
 
 /* CLKID is used to decode the register bank and offset of a particular generic clock */
 #define CLKID(cmu, reg, offset)  ((CLKREGS_##cmu) << 10 | (reg) << 3 | (offset) << 0)
