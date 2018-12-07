@@ -44,8 +44,11 @@ function(GenDTB dts_file var)
     # now add the command to generate the dtb
     execute_process(
         COMMAND ${DTC_TOOL} -I dts -O dtb -o ${filename} ${dts_file}
+        OUTPUT_VARIABLE output
+        ERROR_VARIABLE output
     )
     if (NOT EXISTS "${filename}")
-        message(FATAL_ERROR "failed to gen ${filename}")
+        message(FATAL_ERROR "${output}
+            failed to gen ${filename}")
     endif()
 endfunction()
