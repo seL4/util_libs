@@ -44,6 +44,7 @@ function(ApplyCommonReleaseVerificationSettings release verification)
     # 'verification' (verification friendly features) builds
     if (release)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+        set(KernelPrinting OFF CACHE BOOL "" FORCE)
     else()
         set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
     endif()
