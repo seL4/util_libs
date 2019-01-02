@@ -106,7 +106,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     libpci_device_list[libpci_num_devices].subsystem_id = libpci_read_reg16(bus, dev, fun, PCI_SUBSYSTEM_ID);
     libpci_read_ioconfig(&libpci_device_list[libpci_num_devices].cfg, bus, dev, fun);
 
-#if (ZF_LOG_LEVEL >= ZF_LOG_VERBOSE)
+#if (ZF_LOG_LEVEL == ZF_LOG_VERBOSE)
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, false);
 #endif
 
