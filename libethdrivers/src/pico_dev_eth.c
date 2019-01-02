@@ -17,6 +17,7 @@
 #include <ethdrivers/pico_dev_eth.h>
 #include <ethdrivers/helpers.h>
 #include <string.h>
+#include <inttypes.h>
 #include "debug.h"
 #include <utils/zf_log.h>
 
@@ -134,7 +135,7 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
     pico_device_eth *pico_iface = (pico_device_eth*)iface;
 
     if (buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
-        ZF_LOGE("Requested RX buffer of size %d which can never be fullfilled by preallocated buffers of size %d",
+        ZF_LOGE("Requested RX buffer of size %zu which can never be fullfilled by preallocated buffers of size %d",
                 buf_size, CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE);
         return 0;
     }
@@ -155,13 +156,12 @@ static uintptr_t pico_allocate_rx_buf(void *iface, size_t buf_size, void **cooki
 
     dma_addr_t *buf = pico_iface->bufs[buf_no];
     ps_dma_cache_invalidate(&pico_iface->dma_man, buf->virt, buf_size);
-    *cookie = buf_no;
+    *(long *) cookie = buf_no;
     return buf->phys;
 }
 
 static void pico_tx_complete(void *iface, void *cookie) {
-    pico_device_eth *pico_iface = (pico_device_eth*)iface;
-    free_buf_pool(iface, (int)cookie);
+    free_buf_pool(iface, (long) cookie);
 }
 
 static void pico_rx_complete(void *iface, unsigned int num_bufs, void **cookies, unsigned int *lens) {
@@ -172,10 +172,10 @@ static void pico_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
         ZF_LOGE("RX buffer of size is smaller than MTU. Frame splitting unhandled.\n");
         /* Frame splitting is not handled. Warn and return bufs to pool. */
         for (int i=0; i<num_bufs; i++) {
-            free_buf_pool(pico_iface, cookies[i]);
+            free_buf_pool(pico_iface, (long) cookies[i]);
         }
     } else {
-        int buf_no = cookies[0];
+        int buf_no = (long) cookies[0];
         /* Store the information about the rx bufs */
         pico_iface->rx_queue[pico_iface->rx_count] = buf_no;
         pico_iface->rx_lens[buf_no] = lens[0];
@@ -202,7 +202,7 @@ static int pico_eth_send(struct pico_device *dev, void *input_buf, int len) {
         return 0;
     }
 
-    int buf_no = alloc_buf_pool(eth_device);
+    long buf_no = alloc_buf_pool(eth_device);
     if (buf_no < 0) {
         return 0;
     }
@@ -213,15 +213,15 @@ static int pico_eth_send(struct pico_device *dev, void *input_buf, int len) {
     ps_dma_cache_clean(&eth_device->dma_man, buf.virt, len);
 
     unsigned int length = len;
-    status = eth_device->driver.i_fn.raw_tx(&eth_device->driver, 1, &buf.phys, &length, buf_no);
+    status = eth_device->driver.i_fn.raw_tx(&eth_device->driver, 1, &buf.phys, &length, (void *) buf_no);
 
     switch(status) {
     case ETHIF_TX_FAILED:
-        pico_tx_complete(dev, buf_no);
+        pico_tx_complete(dev, (void *) buf_no);
         ZF_LOGE("Failed tx\n");
         return 0; // Error for PICO
     case ETHIF_TX_COMPLETE:
-        pico_tx_complete(dev, buf_no);
+        pico_tx_complete(dev, (void *) buf_no);
     case ETHIF_TX_ENQUEUED:
         break;
     }
