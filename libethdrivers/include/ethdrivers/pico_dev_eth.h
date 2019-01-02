@@ -18,6 +18,10 @@
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
 
+#ifdef PACKED
+#undef PACKED
+#endif
+/* PACKED is redefined by picotcp */
 #include <pico_stack.h>
 #include <pico_device.h>
 

@@ -14,6 +14,8 @@ cmake_minimum_required(VERSION 3.7.2)
 include(ExternalProject)
 project(libpicotcp NONE)
 
+set(configure_string "")
+
 config_option(LibPicotcp LIB_PICOTCP
     "Build libpicotcp"
     DEFAULT OFF
@@ -22,6 +24,8 @@ config_option(LibPicotcpBsd LIB_PICOTCP_BSD
     "Build libpicotcp with bsd socket support"
     DEFAULT OFF
     DEPENDS LibPicotcp)
+
+add_config_library(picotcp "${configure_string}")
 
 if(LibPicotcp)
     # find pico tcp location
