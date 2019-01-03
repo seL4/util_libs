@@ -56,7 +56,7 @@ static void destroy_free_bufs(pico_device_eth *pico_iface) {
             }
         }
         free(pico_iface->dma_bufs);
-	pico_iface->dma_bufs = NULL;
+        pico_iface->dma_bufs = NULL;
     }
 
     if (pico_iface->buf_pool) {
