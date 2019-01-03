@@ -145,6 +145,7 @@ static int reset(void *data)
     spt_ltimer_t *spt_ltimer = data;
     spt_stop(&spt_ltimer->spt);
     spt_start(&spt_ltimer->spt);
+    system_timer_reset(&spt_ltimer->system);
     return 0;
 }
 

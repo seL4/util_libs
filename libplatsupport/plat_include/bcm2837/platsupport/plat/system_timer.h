@@ -71,3 +71,5 @@ uint64_t system_timer_get_time(system_timer_t *timer);
 int system_timer_set_timeout(system_timer_t *timer, uint64_t ns);
 
 int system_timer_handle_irq(system_timer_t *timer);
+
+int system_timer_reset(system_timer_t *timer);

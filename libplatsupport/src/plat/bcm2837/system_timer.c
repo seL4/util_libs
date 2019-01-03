@@ -95,3 +95,14 @@ int system_timer_handle_irq(system_timer_t *timer) {
 
     return 0;
 }
+
+int system_timer_reset(system_timer_t *timer) {
+    if (timer == NULL) {
+        return EINVAL;
+    }
+
+    /* Just clear the one timer that is used. */
+    timer->regs->ctrl = BIT(SYSTEM_TIMER_MATCH);
+
+    return 0;
+}
