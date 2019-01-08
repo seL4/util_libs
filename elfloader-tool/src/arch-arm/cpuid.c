@@ -35,6 +35,12 @@
 #define CPUID_ARCH_ARMv6    0x7
 #define CPUID_ARCH_CPUID    0xF
 
+#pragma GCC push_options
+/*
+ * At O2 the switch gets optimised into a table, (at least on GCC 7.4 and 8.2)
+ * which isn't handled properly for position independent code (i.e. when booting on EFI).
+ */
+#pragma GCC optimize "-O1"
 static const char* cpuid_get_implementer_str(uint32_t cpuid)
 {
     switch (CPUID_IMPL(cpuid)) {
@@ -78,6 +84,7 @@ static const char* cpuid_get_arch_str(uint32_t cpuid)
         return "<Reserved>";
     }
 }
+#pragma GCC pop_options
 
 void print_cpuid(void)
 {
