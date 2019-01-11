@@ -12,7 +12,7 @@
 cmake_minimum_required(VERSION 3.8.2)
 
 # This path is guaranteed to exist
-find_path(DTS_PATH "sabre.dts" PATHS ${CMAKE_CURRENT_LIST_DIR}/../../dts CMAKE_FIND_ROOT_PATH_BOTH)
+find_path(DTS_PATH "sabre.dts" PATHS ${KERNEL_PATH}/tools/dts CMAKE_FIND_ROOT_PATH_BOTH)
 # find a dts file matching platform.dts and put into a cache variable named
 # <platform>_FOUND_DTS
 function(FindDTS var platform)
