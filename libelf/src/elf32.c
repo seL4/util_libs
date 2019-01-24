@@ -79,7 +79,6 @@
  * by the laws in force in New South Wales, Australia.
  */
 #include <elf/elf.h>
-#include <elf/debug.h>
 #include <string.h>
 #include <inttypes.h>
 
@@ -190,30 +189,6 @@ elf32_getSegmentStringTable(struct Elf32_Header *elfFile)
 	}
 }
 
-#ifdef ELF_DEBUG
-void
-elf32_printStringTable(struct Elf32_Header *elfFile)
-{
-	int counter;
-	struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-	char * stringTable;
-
-	if (!sections) {
-		printf("No sections.\n");
-		return;
-	}
-
-	stringTable = ((void *)elfFile) + sections[elfFile->e_shstrndx].sh_offset;
-
-	printf("File is %p; sections is %p; string table is %p\n", elfFile, sections, stringTable);
-
-	for (counter=0; counter < sections[elfFile->e_shstrndx].sh_size; counter++) {
-		printf("%02x %c ", stringTable[counter],
-				stringTable[counter] >= 0x20 ? stringTable[counter] : '.');
-	}
-}
-#endif
-
 int
 elf32_getSegmentType (struct Elf32_Header *elfFile, int segment)
 {
@@ -237,93 +212,4 @@ uint32_t
 elf32_getEntryPoint (struct Elf32_Header *elfFile)
 {
 	return elfFile->e_entry;
-}
-
-/*
- * Debugging functions
- */
-
-/*
- * prints out some details of one elf file
- */
-void
-elf32_fprintf(FILE *f, struct Elf32_Header *file, int size, const char *name, int flags)
-{
-	struct Elf32_Phdr *segments;
-	unsigned numSegments;
-	struct Elf32_Shdr *sections;
-	unsigned numSections;
-	int i, r;
-	// char *str_table;
-
-	fprintf(f, "Found an elf32 file called \"%s\" located "
-		"at address %p\n", name, file);
-
-	if ((r = elf32_checkFile(file)) != 0) {
-		char *magic = (char*) file;
-		fprintf(f, "Invalid elf file (%d)\n", r);
-		fprintf(f, "Magic is: %2.2hhx %2.2hhx %2.2hhx %2.2hhx\n",
-			magic[0], magic[1], magic[2], magic[3]);
-		return;
-	}
-
-	/*
-	 * get a pointer to the table of program segments
-	 */
-	segments = elf32_getProgramHeaderTable(file);
-	numSegments = elf32_getNumProgramHeaders(file);
-
-	sections = elf32_getSectionTable(file);
-	numSections = elf32_getNumSections(file);
-
-	if ((uintptr_t) sections >  ((uintptr_t) file + size)) {
-		fprintf(f, "Corrupted elfFile..\n");
-		return;
-	}
-
-		/*
-		 * print out info about each section
-		 */
-
-	if (flags & ELF_PRINT_PROGRAM_HEADERS) {
-		/*
-		 * print out info about each program segment
-		 */
-		fprintf(f, "Program Headers:\n");
-		fprintf(f, "  Type           Offset   VirtAddr   PhysAddr   "
-			"FileSiz MemSiz  Flg Align\n");
-		for (i = 0; i < numSegments; i++) {
-			if (segments[i].p_type != 1) {
-				fprintf(f, "segment %d is not loadable, "
-					"skipping\n", i);
-			} else {
-				fprintf(f, "  LOAD           0x%06" PRIx32 " 0x%08" PRIx32 " 0x%08" PRIx32  \
-				       " 0x%05" PRIx32" 0x%05" PRIx32 " %c%c%c 0x%04" PRIx32 "\n",
-				//fprintf(f, "  LOAD           0x%" PRIxPTR " 0x%" PRIxPTR " 0x%" PRIxPTR
-				//	" 0x%" PRIxPTR" 0x%" PRIxPTR " %c%c%c 0x%" PRIxPTR "\n",
-					segments[i].p_offset, segments[i].p_vaddr,
-					segments[i].p_paddr,
-					segments[i].p_filesz, segments[i].p_memsz,
-					segments[i].p_flags & PF_R ? 'R' : ' ',
-					segments[i].p_flags & PF_W ? 'W' : ' ',
-					segments[i].p_flags & PF_X ? 'E' : ' ',
-					segments[i].p_align);
-			}
-		}
-	}
-	if (flags & ELF_PRINT_SECTIONS) {
-		// str_table = elf32_getSegmentStringTable(file);
-
-		printf("Section Headers:\n");
-		printf("  [Nr] Name              Type            Addr     Off\n");
-		for (i = 0; i < numSections; i++) {
-			//if (elf_checkSection(file, i) == 0) {
-			fprintf(f, "[%2d] %s %"PRIx32" %"PRIx32"\n", i, elf32_getSectionName(file, i),
-				//fprintf(f, "[%2d] %-17.17s %-15.15s %x %x\n", i, elf32_getSectionName(file, i), " ",
-				///fprintf(f, "%-17.17s %-15.15s %08x %06x\n", elf32_getSectionName(file, i), " "	/* sections[i].sh_type
-				//									 */ ,
-				sections[i].sh_addr, sections[i].sh_offset);
-			//}
-		}
-	}
 }

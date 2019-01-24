@@ -109,11 +109,6 @@ ELF file into memory.
 #include "elf32.h"
 #include "elf64.h"
 
-/**/
-#define ELF_PRINT_PROGRAM_HEADERS 1
-#define ELF_PRINT_SECTIONS 2
-#define ELF_PRINT_ALL (ELF_PRINT_PROGRAM_HEADERS | ELF_PRINT_SECTIONS)
-
 /**
  * Checks that elfFile points to a valid elf file.
  *

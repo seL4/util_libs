@@ -79,7 +79,6 @@
  * by the laws in force in New South Wales, Australia.
  */
 #include <elf/elf.h>
-#include <elf/debug.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -270,13 +269,6 @@ elf_getEntryPoint(void *elfFile)
 	return ISELF32 (elfFile)
 		? elf32_getEntryPoint (elfFile)
 		: elf64_getEntryPoint (elfFile);
-}
-
-void
-elf_fprintf(FILE *f, void *file, int size, const char *name, int flags)
-{
-	elf32_fprintf(f, file, size, name, flags);
-
 }
 
 int
