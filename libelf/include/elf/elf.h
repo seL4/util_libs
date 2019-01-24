@@ -300,6 +300,6 @@ uint32_t elf_getSectionType(void *elfFile, int i);
 
 void *elf_getSection(void *elfFile, int i);
 void elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr,
-			      uint64_t *p_paddr, uint64_t *p_filesz,
-			      uint64_t *p_offset, uint64_t *p_memsz);
+                              uint64_t *p_paddr, uint64_t *p_filesz,
+                              uint64_t *p_offset, uint64_t *p_memsz);
 

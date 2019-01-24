@@ -84,33 +84,33 @@
 int
 elf64_checkFile(void *elfFile)
 {
-	struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
-	if (fileHdr->e_ident[EI_MAG0] != ELFMAG0
-	    || fileHdr->e_ident[EI_MAG1] != ELFMAG1
-	    || fileHdr->e_ident[EI_MAG2] != ELFMAG2
-	    || fileHdr->e_ident[EI_MAG3] != ELFMAG3)
-		return -1;	/* not an elf file */
-	if (fileHdr->e_ident[EI_CLASS] != ELFCLASS64)
-		return -2;	/* not 64-bit file */
+    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    if (fileHdr->e_ident[EI_MAG0] != ELFMAG0
+        || fileHdr->e_ident[EI_MAG1] != ELFMAG1
+        || fileHdr->e_ident[EI_MAG2] != ELFMAG2
+        || fileHdr->e_ident[EI_MAG3] != ELFMAG3)
+        return -1;  /* not an elf file */
+    if (fileHdr->e_ident[EI_CLASS] != ELFCLASS64)
+        return -2;  /* not 64-bit file */
 #if 0
-	if (fileHdr->e_ident[EI_DATA] != ELFDATA2LSB)
-		return -3;	/* not big-endian file */
-	if (fileHdr->e_ident[EI_VERSION] != 1)
-		return -4;	/* wrong version of elf */
-	if (fileHdr->e_machine != 8)
-		return -5;	/* wrong architecture (not MIPS) */
-	if (fileHdr->e_type != 2)
-		return -6;	/* not an executable program */
-	if (fileHdr->e_phentsize != sizeof(struct Elf64_Phdr))
-		return -7;	/* unexpected size of program segment
-				 * header */
-	if (fileHdr->e_phnum == 0)
-		return -8;	/* no program segments */
-	if ((fileHdr->e_flags & 0x7e) != 0)
-		return -9;	/* wrong flags (did you forgot to compile
-				 * with -mno-abicalls?) */
+    if (fileHdr->e_ident[EI_DATA] != ELFDATA2LSB)
+        return -3;  /* not big-endian file */
+    if (fileHdr->e_ident[EI_VERSION] != 1)
+        return -4;  /* wrong version of elf */
+    if (fileHdr->e_machine != 8)
+        return -5;  /* wrong architecture (not MIPS) */
+    if (fileHdr->e_type != 2)
+        return -6;  /* not an executable program */
+    if (fileHdr->e_phentsize != sizeof(struct Elf64_Phdr))
+        return -7;  /* unexpected size of program segment
+                 * header */
+    if (fileHdr->e_phnum == 0)
+        return -8;  /* no program segments */
+    if ((fileHdr->e_flags & 0x7e) != 0)
+        return -9;  /* wrong flags (did you forgot to compile
+                 * with -mno-abicalls?) */
 #endif
-	return 0;		/* elf file looks OK */
+    return 0;       /* elf file looks OK */
 }
 
 struct Elf64_Phdr *
@@ -121,8 +121,8 @@ elf64_getProgramSegmentTable(void *elfFile)
  * getNumProgramSegments.
  */
 {
-	struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
-	return (struct Elf64_Phdr *) ((size_t)fileHdr->e_phoff + (size_t) elfFile);
+    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    return (struct Elf64_Phdr *) ((size_t)fileHdr->e_phoff + (size_t) elfFile);
 }
 
 unsigned
@@ -131,106 +131,106 @@ elf64_getNumSections(void *elfFile)
  * Returns the number of program segments in this elf file.
  */
 {
-	struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
-	return fileHdr->e_shnum;
+    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    return fileHdr->e_shnum;
 }
 
-char           *
+char *
 elf64_getStringTable(void *elfFile, int string_segment)
 {
-	struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-	return (char *) elfFile + sections[string_segment].sh_offset;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return (char *) elfFile + sections[string_segment].sh_offset;
 }
 
-char           *
+char *
 elf64_getSegmentStringTable(void *elfFile)
 {
-	struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
-	if (fileHdr->e_shstrndx == 0) {
-		return NULL;
-	} else {
-		return elf64_getStringTable(elfFile, fileHdr->e_shstrndx);
-	}
+    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    if (fileHdr->e_shstrndx == 0) {
+        return NULL;
+    } else {
+        return elf64_getStringTable(elfFile, fileHdr->e_shstrndx);
+    }
 }
 
 char *
 elf64_getSectionName(void *elfFile, int i)
 {
-	struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-	char           *str_table = elf64_getSegmentStringTable(elfFile);
-	if (str_table == NULL) {
-		return "<corrupted>";
-	} else {
-		return str_table + sections[i].sh_name;
-	}
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    char *str_table = elf64_getSegmentStringTable(elfFile);
+    if (str_table == NULL) {
+        return "<corrupted>";
+    } else {
+        return str_table + sections[i].sh_name;
+    }
 }
 
 uint64_t
 elf64_getSectionSize(void *elfFile, int i)
 {
-	struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-	return sections[i].sh_size;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return sections[i].sh_size;
 }
 
 uint64_t
 elf64_getSectionAddr(struct Elf64_Header *elfFile, int i)
 {
-	struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-	return sections[i].sh_addr;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return sections[i].sh_addr;
 }
 
-void           *
+void *
 elf64_getSection(void *elfFile, int i)
 {
-	struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-	return (char *)elfFile + sections[i].sh_offset;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return (char *)elfFile + sections[i].sh_offset;
 }
 
-void           *
+void *
 elf64_getSectionNamed(void *elfFile, const char *str, int *id)
 {
-	int             numSections = elf64_getNumSections(elfFile);
-	int             i;
-	for (i = 0; i < numSections; i++) {
-		if (strcmp(str, elf64_getSectionName(elfFile, i)) == 0) {
+    int numSections = elf64_getNumSections(elfFile);
+    int i;
+    for (i = 0; i < numSections; i++) {
+        if (strcmp(str, elf64_getSectionName(elfFile, i)) == 0) {
             if (id != NULL) {
                 *id = i;
             }
-			return elf64_getSection(elfFile, i);
-		}
-	}
-	return NULL;
+            return elf64_getSection(elfFile, i);
+        }
+    }
+    return NULL;
 }
 
 uint16_t
 elf64_getNumProgramHeaders(struct Elf64_Header *elfFile)
 {
-	return elfFile->e_phnum;
+    return elfFile->e_phnum;
 }
 
 int
 elf64_getSegmentType (void *elfFile, int segment)
 {
-	return elf64_getProgramSegmentTable(elfFile)[segment].p_type;
+    return elf64_getProgramSegmentTable(elfFile)[segment].p_type;
 }
 
 void
 elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
-		     uint64_t *p_paddr, uint64_t *p_filesz, uint64_t *p_offset,
-		     uint64_t *p_memsz)
+                     uint64_t *p_paddr, uint64_t *p_filesz, uint64_t *p_offset,
+                     uint64_t *p_memsz)
 {
-	struct Elf64_Phdr *segments;
+    struct Elf64_Phdr *segments;
 
-	segments = elf64_getProgramSegmentTable(elfFile);
-	*p_vaddr = segments[segment].p_vaddr;
-	*p_paddr = segments[segment].p_paddr;
-	*p_filesz = segments[segment].p_filesz;
-	*p_offset = segments[segment].p_offset;
-	*p_memsz = segments[segment].p_memsz;
+    segments = elf64_getProgramSegmentTable(elfFile);
+    *p_vaddr = segments[segment].p_vaddr;
+    *p_paddr = segments[segment].p_paddr;
+    *p_filesz = segments[segment].p_filesz;
+    *p_offset = segments[segment].p_offset;
+    *p_memsz = segments[segment].p_memsz;
 }
 
 uint64_t
 elf64_getEntryPoint (struct Elf64_Header *elfFile)
 {
-	return elfFile->e_entry;
+    return elfFile->e_entry;
 }
