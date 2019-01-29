@@ -113,18 +113,6 @@ elf64_checkFile(void *elfFile)
     return 0;       /* elf file looks OK */
 }
 
-struct Elf64_Phdr *
-elf64_getProgramSegmentTable(void *elfFile)
-/*
- * Returns a pointer to the program segment table, which is an array of
- * ELF64_Phdr_t structs.  The size of the array can be found by calling
- * getNumProgramSegments.
- */
-{
-    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
-    return (struct Elf64_Phdr *) ((size_t)fileHdr->e_phoff + (size_t) elfFile);
-}
-
 unsigned
 elf64_getNumSections(void *elfFile)
 /*
@@ -206,27 +194,6 @@ uint16_t
 elf64_getNumProgramHeaders(struct Elf64_Header *elfFile)
 {
     return elfFile->e_phnum;
-}
-
-int
-elf64_getSegmentType (void *elfFile, int segment)
-{
-    return elf64_getProgramSegmentTable(elfFile)[segment].p_type;
-}
-
-void
-elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
-                     uint64_t *p_paddr, uint64_t *p_filesz, uint64_t *p_offset,
-                     uint64_t *p_memsz)
-{
-    struct Elf64_Phdr *segments;
-
-    segments = elf64_getProgramSegmentTable(elfFile);
-    *p_vaddr = segments[segment].p_vaddr;
-    *p_paddr = segments[segment].p_paddr;
-    *p_filesz = segments[segment].p_filesz;
-    *p_offset = segments[segment].p_offset;
-    *p_memsz = segments[segment].p_memsz;
 }
 
 uint64_t

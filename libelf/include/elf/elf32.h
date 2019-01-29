@@ -150,7 +150,6 @@ struct Elf32_Rela {
 };
 
 int elf32_checkFile(struct Elf32_Header *file);
-struct Elf32_Phdr *elf32_getProgramSegmentTable(struct Elf32_Header *file);
 unsigned elf32_getNumSections(struct Elf32_Header *file);
 char *elf32_getStringTable(struct Elf32_Header *file);
 char *elf32_getSegmentStringTable(struct Elf32_Header *file);
@@ -180,10 +179,6 @@ uint32_t elf32_getSectionSize(struct Elf32_Header *file, int i);
 uint32_t elf32_getSectionAddr(struct Elf32_Header *elfFile, int i);
 void *elf32_getSection(struct Elf32_Header *file, int i);
 void *elf32_getSectionNamed(struct Elf32_Header *file, const char *str, int *i);
-int elf32_getSegmentType (struct Elf32_Header *file, int segment);
-void elf32_getSegmentInfo(struct Elf32_Header *file, int segment, uint64_t *p_vaddr,
-                          uint64_t *p_paddr, uint64_t *p_filesz,
-                          uint64_t *p_offset, uint64_t *p_memsz);
 uint32_t elf32_getEntryPoint (struct Elf32_Header *file);
 
 /* Program header functions */

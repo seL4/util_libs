@@ -147,7 +147,6 @@ struct Elf64_Dyn {
 };
 
 int elf64_checkFile(void *elfFile);
-struct Elf64_Phdr *elf64_getProgramSegmentTable(void *elfFile);
 unsigned elf64_getNumSections(void *elfFile);
 char *elf64_getStringTable(void *elfFile, int string_segment);
 char *elf64_getSegmentStringTable(void *elfFile);
@@ -177,10 +176,6 @@ uint64_t elf64_getSectionSize(void *elfFile, int i);
 uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
 void *elf64_getSection(void *elfFile, int i);
 void *elf64_getSectionNamed(void *elfFile, const char *str, int *i);
-int elf64_getSegmentType (void *elfFile, int segment);
-void elf64_getSegmentInfo(void *elfFile, int segment, uint64_t *p_vaddr,
-                          uint64_t *p_paddr, uint64_t *p_filesz,
-                          uint64_t *p_offset, uint64_t *p_memsz);
 uint64_t elf64_getEntryPoint (struct Elf64_Header *elfFile);
 
 /* Program Headers functions */

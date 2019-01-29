@@ -251,18 +251,6 @@ elf_getSectionNamed(void *elfFile, const char *_str, int *i)
         : elf64_getSectionNamed(elfFile, _str, i);
 }
 
-void
-elf_getProgramHeaderInfo(void *elfFile, uint16_t ph, uint64_t *p_vaddr,
-                         uint64_t *p_paddr, uint64_t *p_filesz,
-                         uint64_t *p_offset, uint64_t *p_memsz)
-{
-    *p_vaddr = elf_getProgramHeaderVaddr(elfFile, ph);
-    *p_paddr = elf_getProgramHeaderPaddr(elfFile, ph);
-    *p_filesz = elf_getProgramHeaderFileSize(elfFile, ph);
-    *p_offset = elf_getProgramHeaderOffset(elfFile, ph);
-    *p_memsz = elf_getProgramHeaderMemorySize(elfFile, ph);
-}
-
 uint64_t
 elf_getEntryPoint(void *elfFile)
 {
