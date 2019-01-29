@@ -82,6 +82,7 @@
 #include <string.h>
 #include <inttypes.h>
 
+/* ELF header functions */
 int
 elf32_checkFile(struct Elf32_Header *file)
 {
@@ -93,6 +94,20 @@ elf32_checkFile(struct Elf32_Header *file)
     if (file->e_ident[EI_CLASS] != ELFCLASS32)
         return -2;  /* not 32-bit file */
     return 0;       /* elf file looks OK */
+}
+
+uint32_t
+elf32_getEntryPoint (struct Elf32_Header *elfFile)
+{
+    return elfFile->e_entry;
+}
+
+/* Returns the number of program segments in this elf file. */
+uint16_t
+elf32_getNumProgramHeaders(struct Elf32_Header *elfFile)
+{
+    struct Elf32_Header *fileHdr = elfFile;
+    return fileHdr->e_phnum;
 }
 
 /*
@@ -111,40 +126,19 @@ elf32_getStringTable(struct Elf32_Header *elfFile)
     return (char *)elfFile + sections[elfFile->e_shstrndx].sh_offset;
 }
 
-/* Returns the number of program segments in this elf file. */
-uint16_t
-elf32_getNumProgramHeaders(struct Elf32_Header *elfFile)
-{
-    struct Elf32_Header *fileHdr = elfFile;
-    return fileHdr->e_phnum;
-}
-
 char *
-elf32_getSectionName(struct Elf32_Header *elfFile, int i)
+elf32_getSegmentStringTable(struct Elf32_Header *elfFile)
 {
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    char *str_table = elf32_getSegmentStringTable(elfFile);
-    if (str_table == NULL) {
-        return "<corrupted>";
+    struct Elf32_Header *fileHdr = (struct Elf32_Header *) elfFile;
+    if (fileHdr->e_shstrndx == 0) {
+        return NULL;
     } else {
-        return str_table + sections[i].sh_name;
+        return elf32_getStringTable(elfFile);
     }
 }
 
-uint32_t
-elf32_getSectionSize(struct Elf32_Header *elfFile, int i)
-{
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return sections[i].sh_size;
-}
 
-uint32_t
-elf32_getSectionAddr(struct Elf32_Header *elfFile, int i)
-{
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return sections[i].sh_addr;
-}
-
+/* Section header functions */
 void *
 elf32_getSection(struct Elf32_Header *elfFile, int i)
 {
@@ -169,18 +163,27 @@ elf32_getSectionNamed(struct Elf32_Header *elfFile, const char *str, int *id)
 }
 
 char *
-elf32_getSegmentStringTable(struct Elf32_Header *elfFile)
+elf32_getSectionName(struct Elf32_Header *elfFile, int i)
 {
-    struct Elf32_Header *fileHdr = (struct Elf32_Header *) elfFile;
-    if (fileHdr->e_shstrndx == 0) {
-        return NULL;
+    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
+    char *str_table = elf32_getSegmentStringTable(elfFile);
+    if (str_table == NULL) {
+        return "<corrupted>";
     } else {
-        return elf32_getStringTable(elfFile);
+        return str_table + sections[i].sh_name;
     }
 }
 
 uint32_t
-elf32_getEntryPoint (struct Elf32_Header *elfFile)
+elf32_getSectionAddr(struct Elf32_Header *elfFile, int i)
 {
-    return elfFile->e_entry;
+    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
+    return sections[i].sh_addr;
+}
+
+uint32_t
+elf32_getSectionSize(struct Elf32_Header *elfFile, int i)
+{
+    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
+    return sections[i].sh_size;
 }

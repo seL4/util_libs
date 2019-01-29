@@ -146,10 +146,17 @@ struct Elf64_Dyn {
     } d_un;
 };
 
+/* ELF header functions */
 int elf64_checkFile(void *elfFile);
-unsigned elf64_getNumSections(void *elfFile);
-char *elf64_getStringTable(void *elfFile, int string_segment);
-char *elf64_getSegmentStringTable(void *elfFile);
+
+uint64_t elf64_getEntryPoint (struct Elf64_Header *elfFile);
+
+static inline struct Elf64_Phdr *
+elf64_getProgramHeaderTable(struct Elf64_Header *file)
+{
+    /* Cast hell! */
+    return (struct Elf64_Phdr*) (uintptr_t) (((uintptr_t) file) + file->e_phoff);
+}
 
 static inline struct Elf64_Shdr *
 elf64_getSectionTable(struct Elf64_Header *file)
@@ -158,7 +165,22 @@ elf64_getSectionTable(struct Elf64_Header *file)
     return (struct Elf64_Shdr*) (uintptr_t) (((uintptr_t) file) + file->e_shoff);
 }
 
-/* accessor functions */
+uint16_t elf64_getNumProgramHeaders(struct Elf64_Header *file);
+
+unsigned elf64_getNumSections(void *elfFile);
+
+char *elf64_getStringTable(void *elfFile, int string_segment);
+
+char *elf64_getSegmentStringTable(void *elfFile);
+
+
+/* Section header functions */
+void *elf64_getSection(void *elfFile, int i);
+
+void *elf64_getSectionNamed(void *elfFile, const char *str, int *i);
+
+char *elf64_getSectionName(void *elfFile, int i);
+
 static inline uint32_t
 elf64_getSectionType(struct Elf64_Header *file, uint16_t s)
 {
@@ -171,31 +193,12 @@ elf64_getSectionFlags(struct Elf64_Header *file, uint16_t s)
     return elf64_getSectionTable(file)[s].sh_flags;
 }
 
-char *elf64_getSectionName(void *elfFile, int i);
-uint64_t elf64_getSectionSize(void *elfFile, int i);
 uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
-void *elf64_getSection(void *elfFile, int i);
-void *elf64_getSectionNamed(void *elfFile, const char *str, int *i);
-uint64_t elf64_getEntryPoint (struct Elf64_Header *elfFile);
 
-/* Program Headers functions */
+uint64_t elf64_getSectionSize(void *elfFile, int i);
+
+
 /* Program header functions */
-uint16_t elf64_getNumProgramHeaders(struct Elf64_Header *file);
-
-static inline struct Elf64_Phdr *
-elf64_getProgramHeaderTable(struct Elf64_Header *file)
-{
-    /* Cast hell! */
-    return (struct Elf64_Phdr*) (uintptr_t) (((uintptr_t) file) + file->e_phoff);
-}
-
-/* accessor functions */
-static inline uint32_t
-elf64_getProgramHeaderFlags(struct Elf64_Header *file, uint16_t ph)
-{
-    return elf64_getProgramHeaderTable(file)[ph].p_flags;
-}
-
 static inline uint32_t
 elf64_getProgramHeaderType(struct Elf64_Header *file, uint16_t ph)
 {
@@ -203,15 +206,9 @@ elf64_getProgramHeaderType(struct Elf64_Header *file, uint16_t ph)
 }
 
 static inline uint64_t
-elf64_getProgramHeaderFileSize(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_filesz;
-}
-
-static inline uint64_t
-elf64_getProgramHeaderMemorySize(struct Elf64_Header *file, uint16_t ph)
-{
-    return elf64_getProgramHeaderTable(file)[ph].p_memsz;
+    return elf64_getProgramHeaderTable(file)[ph].p_offset;
 }
 
 static inline uint64_t
@@ -227,9 +224,21 @@ elf64_getProgramHeaderPaddr(struct Elf64_Header *file, uint16_t ph)
 }
 
 static inline uint64_t
-elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderFileSize(struct Elf64_Header *file, uint16_t ph)
 {
-    return elf64_getProgramHeaderTable(file)[ph].p_offset;
+    return elf64_getProgramHeaderTable(file)[ph].p_filesz;
+}
+
+static inline uint64_t
+elf64_getProgramHeaderMemorySize(struct Elf64_Header *file, uint16_t ph)
+{
+    return elf64_getProgramHeaderTable(file)[ph].p_memsz;
+}
+
+static inline uint32_t
+elf64_getProgramHeaderFlags(struct Elf64_Header *file, uint16_t ph)
+{
+    return elf64_getProgramHeaderTable(file)[ph].p_flags;
 }
 
 static inline uint32_t

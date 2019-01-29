@@ -81,6 +81,7 @@
 #include <elf/elf.h>
 #include <string.h>
 
+/* ELF header functions */
 int
 elf64_checkFile(void *elfFile)
 {
@@ -113,6 +114,18 @@ elf64_checkFile(void *elfFile)
     return 0;       /* elf file looks OK */
 }
 
+uint64_t
+elf64_getEntryPoint (struct Elf64_Header *elfFile)
+{
+    return elfFile->e_entry;
+}
+
+uint16_t
+elf64_getNumProgramHeaders(struct Elf64_Header *elfFile)
+{
+    return elfFile->e_phnum;
+}
+
 unsigned
 elf64_getNumSections(void *elfFile)
 /*
@@ -141,32 +154,8 @@ elf64_getSegmentStringTable(void *elfFile)
     }
 }
 
-char *
-elf64_getSectionName(void *elfFile, int i)
-{
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-    char *str_table = elf64_getSegmentStringTable(elfFile);
-    if (str_table == NULL) {
-        return "<corrupted>";
-    } else {
-        return str_table + sections[i].sh_name;
-    }
-}
 
-uint64_t
-elf64_getSectionSize(void *elfFile, int i)
-{
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-    return sections[i].sh_size;
-}
-
-uint64_t
-elf64_getSectionAddr(struct Elf64_Header *elfFile, int i)
-{
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-    return sections[i].sh_addr;
-}
-
+/* Section header functions */
 void *
 elf64_getSection(void *elfFile, int i)
 {
@@ -190,14 +179,28 @@ elf64_getSectionNamed(void *elfFile, const char *str, int *id)
     return NULL;
 }
 
-uint16_t
-elf64_getNumProgramHeaders(struct Elf64_Header *elfFile)
+char *
+elf64_getSectionName(void *elfFile, int i)
 {
-    return elfFile->e_phnum;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    char *str_table = elf64_getSegmentStringTable(elfFile);
+    if (str_table == NULL) {
+        return "<corrupted>";
+    } else {
+        return str_table + sections[i].sh_name;
+    }
 }
 
 uint64_t
-elf64_getEntryPoint (struct Elf64_Header *elfFile)
+elf64_getSectionAddr(struct Elf64_Header *elfFile, int i)
 {
-    return elfFile->e_entry;
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return sections[i].sh_addr;
+}
+
+uint64_t
+elf64_getSectionSize(void *elfFile, int i)
+{
+    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    return sections[i].sh_size;
 }
