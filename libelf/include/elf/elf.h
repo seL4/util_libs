@@ -106,8 +106,6 @@ ELF file into memory.
 #include <stdio.h>
 
 #include <elf.h>
-#include "elf32.h"
-#include "elf64.h"
 
 /* ELF header functions */
 

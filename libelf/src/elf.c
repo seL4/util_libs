@@ -79,6 +79,8 @@
  * by the laws in force in New South Wales, Australia.
  */
 #include <elf/elf.h>
+#include <elf/elf32.h>
+#include <elf/elf64.h>
 #include <string.h>
 #include <stdio.h>
 
