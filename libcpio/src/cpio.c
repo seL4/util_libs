@@ -90,10 +90,14 @@ static unsigned int cpio_strlen(const char *str) {
  * Return -1 if the header is not valid, 1 if it is EOF.
  */
 int cpio_parse_header(struct cpio_header *archive,
-        const char **filename, unsigned long *_filesize, void **data,
-        struct cpio_header **next)
+        const char **_filename, unsigned long *_filesize, void **_data,
+        struct cpio_header **_next)
 {
+    const char *filename;
     unsigned long filesize;
+    void *data;
+    struct cpio_header *next;
+
     /* Ensure magic header exists. */
     if (cpio_strncmp(archive->c_magic, CPIO_HEADER_MAGIC,
                 sizeof(archive->c_magic)) != 0)
@@ -101,20 +105,29 @@ int cpio_parse_header(struct cpio_header *archive,
 
     /* Get filename and file size. */
     filesize = parse_hex_str(archive->c_filesize, sizeof(archive->c_filesize));
-    *filename = ((char *)archive) + sizeof(struct cpio_header);
+    filename = ((char *)archive) + sizeof(struct cpio_header);
 
     /* Ensure filename is not the trailer indicating EOF. */
-    if (cpio_strncmp(*filename, CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0)
+    if (cpio_strncmp(filename, CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0)
         return 1;
 
     /* Find offset to data. */
     unsigned long filename_length = parse_hex_str(archive->c_namesize,
             sizeof(archive->c_namesize));
-    *data = (void *)align_up(((unsigned long)archive)
+    data = (void *)align_up(((unsigned long)archive)
             + sizeof(struct cpio_header) + filename_length, CPIO_ALIGNMENT);
-    *next = (struct cpio_header *)align_up(((unsigned long)*data) + filesize, CPIO_ALIGNMENT);
+    next = (struct cpio_header *)align_up(((unsigned long)data) + filesize, CPIO_ALIGNMENT);
+    if (_filename) {
+        *_filename = filename;
+    }
     if(_filesize){
         *_filesize = filesize;
+    }
+    if (_data) {
+        *_data = data;
+    }
+    if (_next) {
+        *_next = next;
     }
     return 0;
 }
