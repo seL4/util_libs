@@ -225,7 +225,7 @@ size_t elf_getSectionStringTableIndex(elf_t *elf);
  *
  * \return The string table, or NULL if the section is not a string table.
  */
-char *elf_getStringTable(elf_t *elfFile, size_t string_segment);
+const char *elf_getStringTable(elf_t *elfFile, size_t string_segment);
 
 /**
  * Get the string table for section header names.
@@ -234,7 +234,7 @@ char *elf_getStringTable(elf_t *elfFile, size_t string_segment);
  *
  * \return The string table, or NULL if there is no table.
  */
-char *elf_getSectionStringTable(elf_t *elfFile);
+const char *elf_getSectionStringTable(elf_t *elfFile);
 
 
 /* Section header functions */
@@ -267,7 +267,7 @@ void *elf_getSectionNamed(elf_t *elfFile, const char *str, size_t *i);
  *
  * \return The name of a given section.
  */
-char *elf_getSectionName(elf_t *elfFile, size_t i);
+const char *elf_getSectionName(elf_t *elfFile, size_t i);
 
 /**
  * Return the offset to the name of a given section in the section header

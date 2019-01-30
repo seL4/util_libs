@@ -205,10 +205,10 @@ elf_getSectionStringTableIndex(elf_t *elf)
     }
 }
 
-char *
+const char *
 elf_getStringTable(elf_t *elf, size_t string_segment)
 {
-    char *string_table = elf_getSection(elf, string_segment);
+    const char *string_table = elf_getSection(elf, string_segment);
     if (string_table == NULL) {
         return NULL; /* no such section */
     }
@@ -225,7 +225,7 @@ elf_getStringTable(elf_t *elf, size_t string_segment)
     return string_table;
 }
 
-char *
+const char *
 elf_getSectionStringTable(elf_t *elf)
 {
     size_t index = elf_getSectionStringTableIndex(elf);
@@ -271,11 +271,11 @@ elf_getSectionNamed(elf_t *elfFile, const char *str, size_t *id)
     return NULL;
 }
 
-char *
+const char *
 elf_getSectionName(elf_t *elf, size_t i)
 {
     size_t str_table_idx = elf_getSectionStringTableIndex(elf);
-    char *str_table = elf_getStringTable(elf, str_table_idx);
+    const char *str_table = elf_getStringTable(elf, str_table_idx);
     size_t offset = elf_getSectionNameOffset(elf, i);
     size_t size = elf_getSectionSize(elf, str_table_idx);
 
