@@ -84,19 +84,34 @@ static unsigned int cpio_strlen(const char *str) {
     return (s - str);
 }
 
+/* Calculate the remaining length in a CPIO file after reading a header. */
+static unsigned long cpio_len_next(unsigned long len, void *prev, void *next) {
+    unsigned long diff = (unsigned long) (next - prev);
+    if (len < diff) {
+        return 0;
+    }
+    return len;
+}
+
 /*
  * Parse the header of the given CPIO entry.
  *
  * Return -1 if the header is not valid, 1 if it is EOF.
  */
-int cpio_parse_header(struct cpio_header *archive,
+int cpio_parse_header(struct cpio_header *archive, unsigned long len,
         const char **_filename, unsigned long *_filesize, void **_data,
         struct cpio_header **_next)
 {
     const char *filename;
     unsigned long filesize;
+    unsigned long filename_length;
     void *data;
     struct cpio_header *next;
+
+    /* Ensure header is accessible */
+    if (len < sizeof(struct cpio_header)) {
+        return -1;
+    }
 
     /* Ensure magic header exists. */
     if (cpio_strncmp(archive->c_magic, CPIO_HEADER_MAGIC,
@@ -105,15 +120,25 @@ int cpio_parse_header(struct cpio_header *archive,
 
     /* Get filename and file size. */
     filesize = parse_hex_str(archive->c_filesize, sizeof(archive->c_filesize));
+    filename_length = parse_hex_str(archive->c_namesize, sizeof(archive->c_namesize));
+
+    /* Ensure header + filename + file contents are accessible */
+    if (len < sizeof(struct cpio_header) + filename_length + filesize) {
+        return -1;
+    }
+
     filename = ((char *)archive) + sizeof(struct cpio_header);
+    /* Ensure filename is terminated */
+    if (filename[filename_length - 1] != 0) {
+        return -1;
+    }
 
     /* Ensure filename is not the trailer indicating EOF. */
-    if (cpio_strncmp(filename, CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0)
+    if (filename_length >= sizeof(CPIO_FOOTER_MAGIC) && cpio_strncmp(filename,
+                CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0)
         return 1;
 
     /* Find offset to data. */
-    unsigned long filename_length = parse_hex_str(archive->c_namesize,
-            sizeof(archive->c_namesize));
     data = (void *)align_up(((unsigned long)archive)
             + sizeof(struct cpio_header) + filename_length, CPIO_ALIGNMENT);
     next = (struct cpio_header *)align_up(((unsigned long)data) + filesize, CPIO_ALIGNMENT);
@@ -141,7 +166,7 @@ int cpio_parse_header(struct cpio_header *archive,
  *
  * Runs in O(n) time.
  */
-void *cpio_get_entry(void *archive, int n, const char **name, unsigned long *size)
+void *cpio_get_entry(void *archive, unsigned long len, int n, const char **name, unsigned long *size)
 {
     int i;
     struct cpio_header *header = archive;
@@ -150,9 +175,10 @@ void *cpio_get_entry(void *archive, int n, const char **name, unsigned long *siz
     /* Find n'th entry. */
     for (i = 0; i <= n; i++) {
         struct cpio_header *next;
-        int error = cpio_parse_header(header, name, size, &result, &next);
+        int error = cpio_parse_header(header, len, name, size, &result, &next);
         if (error)
             return NULL;
+        len = cpio_len_next(len, header, next);
         header = next;
     }
 
@@ -167,7 +193,7 @@ void *cpio_get_entry(void *archive, int n, const char **name, unsigned long *siz
  *
  * Runs in O(n) time.
  */
-void *cpio_get_file(void *archive, const char *name, unsigned long *size)
+void *cpio_get_file(void *archive, unsigned long len, const char *name, unsigned long *size)
 {
     struct cpio_header *header = archive;
 
@@ -177,17 +203,18 @@ void *cpio_get_file(void *archive, const char *name, unsigned long *size)
         void *result;
         const char *current_filename;
 
-        int error = cpio_parse_header(header, &current_filename,
+        int error = cpio_parse_header(header, len, &current_filename,
                 size, &result, &next);
         if (error)
             return NULL;
         if (cpio_strncmp(current_filename, name, -1) == 0)
             return result;
+        len = cpio_len_next(len, header, next);
         header = next;
     }
 }
 
-int cpio_info(void *archive, struct cpio_info *info) {
+int cpio_info(void *archive, unsigned long len, struct cpio_info *info) {
     struct cpio_header *header, *next;
     const char *current_filename;
     void *result;
@@ -200,8 +227,7 @@ int cpio_info(void *archive, struct cpio_info *info) {
 
     header = archive;
     while (1) {
-        error = cpio_parse_header(header, &current_filename, &size,
-                &result, &next);
+        error = cpio_parse_header(header, len, &current_filename, &size, &result, &next);
         if (error == -1) {
             return error;
         } else if (error == 1) {
@@ -209,6 +235,7 @@ int cpio_info(void *archive, struct cpio_info *info) {
             return 0;
         }
         info->file_count++;
+        len = cpio_len_next(len, header, next);
         header = next;
 
         // Check if this is the maximum file path size.
@@ -221,7 +248,7 @@ int cpio_info(void *archive, struct cpio_info *info) {
     return 0;
 }
 
-void cpio_ls(void *archive, char **buf, unsigned long buf_len) {
+void cpio_ls(void *archive, unsigned long len, char **buf, unsigned long buf_len) {
     const char *current_filename;
     struct cpio_header *header, *next;
     void *result;
@@ -230,11 +257,11 @@ void cpio_ls(void *archive, char **buf, unsigned long buf_len) {
 
     header = archive;
     for (i = 0; i < buf_len; i++) {
-        error = cpio_parse_header(header, &current_filename, &size,
-                &result, &next);
+        error = cpio_parse_header(header, len, &current_filename, &size, &result, &next);
         // Break on an error or nothing left to read.
         if (error) break;
         cpio_strcpy(buf[i],  current_filename);
+        len = cpio_len_next(len, header, next);
         header = next;
     }
 }
