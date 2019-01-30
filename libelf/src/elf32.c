@@ -79,79 +79,126 @@
  * by the laws in force in New South Wales, Australia.
  */
 #include <elf/elf.h>
-#include <string.h>
+#include <elf/elf32.h>
 #include <inttypes.h>
+#include <string.h>
 
 /* ELF header functions */
 int
-elf32_checkFile(struct Elf32_Header *file)
+elf32_checkFile(elf_t *elf)
 {
-    if (file->e_ident[EI_MAG0] != ELFMAG0
-        || file->e_ident[EI_MAG1] != ELFMAG1
-        || file->e_ident[EI_MAG2] != ELFMAG2
-        || file->e_ident[EI_MAG3] != ELFMAG3)
-        return -1;  /* not an elf file */
-    if (file->e_ident[EI_CLASS] != ELFCLASS32)
-        return -2;  /* not 32-bit file */
-    return 0;       /* elf file looks OK */
-}
-
-uint32_t
-elf32_getEntryPoint (struct Elf32_Header *elfFile)
-{
-    return elfFile->e_entry;
-}
-
-/* Returns the number of program segments in this elf file. */
-uint16_t
-elf32_getNumProgramHeaders(struct Elf32_Header *elfFile)
-{
-    struct Elf32_Header *fileHdr = elfFile;
-    return fileHdr->e_phnum;
-}
-
-/*
- * Returns the number of program segments in this elf file.
- */
-unsigned
-elf32_getNumSections(struct Elf32_Header *elfFile)
-{
-    return elfFile->e_shnum;
-}
-
-char *
-elf32_getStringTable(struct Elf32_Header *elfFile)
-{
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return (char *)elfFile + sections[elfFile->e_shstrndx].sh_offset;
-}
-
-char *
-elf32_getSegmentStringTable(struct Elf32_Header *elfFile)
-{
-    struct Elf32_Header *fileHdr = (struct Elf32_Header *) elfFile;
-    if (fileHdr->e_shstrndx == 0) {
-        return NULL;
-    } else {
-        return elf32_getStringTable(elfFile);
+    if (elf->elfSize < sizeof(struct Elf32_Header)) {
+        return -1; /* file smaller than ELF header */
     }
+
+    struct Elf32_Header *header = elf->elfFile;
+    if (header->e_ident[EI_MAG0] != ELFMAG0 ||
+            header->e_ident[EI_MAG1] != ELFMAG1 ||
+            header->e_ident[EI_MAG2] != ELFMAG2 ||
+            header->e_ident[EI_MAG3] != ELFMAG3) {
+        return -1; /* not an ELF file */
+    }
+
+    if (header->e_ident[EI_CLASS] != ELFCLASS32) {
+        return -1; /* not a 32-bit ELF */
+    }
+
+    if (header->e_phentsize != sizeof(struct Elf32_Phdr)) {
+        return -1; /* unexpected program header size */
+    }
+
+    if (header->e_shentsize != sizeof(struct Elf32_Shdr)) {
+        return -1; /* unexpected section header size */
+    }
+
+    if (header->e_shstrndx >= header->e_shnum) {
+        return -1; /* invalid section header string table section */
+    }
+
+    elf->elfClass = header->e_ident[EI_CLASS];
+    return 0; /* elf header looks OK */
+}
+
+int
+elf32_checkProgramHeaderTable(elf_t *elf)
+{
+    struct Elf32_Header *header = elf->elfFile;
+    size_t ph_end = header->e_phoff + header->e_phentsize * header->e_phnum;
+    if (elf->elfSize < ph_end || ph_end < header->e_phoff) {
+        return -1; /* invalid program header table */
+    }
+
+    return 0;
+}
+
+int
+elf32_checkSectionTable(elf_t *elf)
+{
+    struct Elf32_Header *header = elf->elfFile;
+    size_t sh_end = header->e_shoff + header->e_shentsize * header->e_shnum;
+    if (elf->elfSize < sh_end || sh_end < header->e_shoff) {
+        return -1; /* invalid section header table */
+    }
+
+    return 0;
+}
+
+char *
+elf32_getStringTable(elf_t *elf, int string_segment)
+{
+    char *string_table = elf32_getSection(elf, string_segment);
+    if (string_table == NULL) {
+        return NULL; /* no such section */
+    }
+
+    if (elf32_getSectionType(elf, string_segment) != SHT_STRTAB) {
+        return NULL; /* not a string table */
+    }
+
+    uint32_t size = elf32_getSectionSize(elf, string_segment);
+    if (string_table[size - 1] != 0) {
+        return NULL; /* string table is not null-terminated */
+    }
+
+    return string_table;
+}
+
+char *
+elf32_getSectionStringTable(elf_t *elf)
+{
+    uint16_t index = elf32_getSectionStringTableIndex(elf);
+    return elf32_getStringTable(elf, index);
 }
 
 
 /* Section header functions */
 void *
-elf32_getSection(struct Elf32_Header *elfFile, int i)
+elf32_getSection(elf_t *elf, int i)
 {
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return (char *)elfFile + sections[i].sh_offset;
+    if (i == 0 || i >= elf32_getNumSections(elf)) {
+        return NULL; /* no such section */
+    }
+
+    size_t section_offset = elf32_getSectionOffset(elf, i);
+    size_t section_size = elf32_getSectionSize(elf, i);
+    if (section_size == 0) {
+        return NULL; /* section is empty */
+    }
+
+    size_t section_end = section_offset + section_size;
+    /* possible wraparound - check that section end is not before section start */
+    if (section_end > elf->elfSize || section_end < section_offset) {
+        return NULL;
+    }
+
+    return elf->elfFile + section_offset;
 }
 
 void *
-elf32_getSectionNamed(struct Elf32_Header *elfFile, const char *str, int *id)
+elf32_getSectionNamed(elf_t *elfFile, const char *str, int *id)
 {
     int numSections = elf32_getNumSections(elfFile);
-    int i;
-    for (i = 0; i < numSections; i++) {
+    for (int i = 0; i < numSections; i++) {
         if (strcmp(str, elf32_getSectionName(elfFile, i)) == 0) {
             if (id != NULL) {
                 *id = i;
@@ -163,27 +210,29 @@ elf32_getSectionNamed(struct Elf32_Header *elfFile, const char *str, int *id)
 }
 
 char *
-elf32_getSectionName(struct Elf32_Header *elfFile, int i)
+elf32_getSectionName(elf_t *elf, int i)
 {
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    char *str_table = elf32_getSegmentStringTable(elfFile);
-    if (str_table == NULL) {
+    uint16_t str_table_idx = elf32_getSectionStringTableIndex(elf);
+    char *str_table = elf32_getStringTable(elf, str_table_idx);
+    uint32_t offset = elf32_getSectionNameOffset(elf, i);
+    uint32_t size = elf32_getSectionSize(elf, str_table_idx);
+
+    if (str_table == NULL || offset > size) {
         return "<corrupted>";
-    } else {
-        return str_table + sections[i].sh_name;
     }
+
+    return str_table + offset;
 }
 
-uint32_t
-elf32_getSectionAddr(struct Elf32_Header *elfFile, int i)
+void *
+elf32_getProgramSegment(elf_t *elf, uint16_t ph)
 {
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return sections[i].sh_addr;
-}
+    struct Elf32_Phdr p = elf32_getProgramHeaderTable(elf)[ph];
+    size_t segment_end = p.p_offset + p.p_filesz;
+    /* possible wraparound - check that segment end does is not before start */
+    if (elf->elfSize < segment_end || segment_end < p.p_offset) {
+        return NULL;
+    }
 
-uint32_t
-elf32_getSectionSize(struct Elf32_Header *elfFile, int i)
-{
-    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
-    return sections[i].sh_size;
+    return elf->elfFile + p.p_offset;
 }

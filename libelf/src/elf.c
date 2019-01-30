@@ -84,196 +84,311 @@
 #include <string.h>
 #include <stdio.h>
 
-#define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
-#define ISELF64(elfFile) ( ((struct Elf64_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
-
 /* ELF header functions */
 int
-elf_checkFile(void *elfFile)
+elf_newFile(void *file, size_t size, elf_t *res)
 {
-    return ISELF32 (elfFile)
-        ? elf32_checkFile(elfFile)
-        : elf64_checkFile(elfFile);
+    return elf_newFile_maybe_unsafe(file, size, true, true, res);
+}
+
+int
+elf_newFile_maybe_unsafe(void *file, size_t size, bool check_pht, bool check_st, elf_t *res)
+{
+    elf_t new_file = {
+        .elfFile = file,
+        .elfSize = size
+    };
+
+    int status = elf_checkFile(&new_file);
+    if (status < 0) {
+        return status;
+    }
+
+    if (check_pht) {
+        status = elf_checkProgramHeaderTable(&new_file);
+        if (status < 0) {
+            return status;
+        }
+    }
+
+    if (check_st) {
+        status = elf_checkSectionTable(&new_file);
+        if (status < 0) {
+            return status;
+        }
+    }
+
+    if (res) {
+        *res = new_file;
+    }
+
+    return status;
+}
+
+/*
+ * Checks that elfFile points to a valid elf file. Returns 0 if the elf
+ * file is valid, < 0 if invalid.
+ */
+int
+elf_checkFile(elf_t *elfFile)
+{
+    int res = elf32_checkFile(elfFile);
+    if (res == 0) {
+        return 0;
+    }
+
+    res = elf64_checkFile(elfFile);
+    if (res == 0) {
+        return 0;
+    }
+
+    return -1;
+}
+
+int
+elf_checkProgramHeaderTable(elf_t *elfFile)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_checkProgramHeaderTable(elfFile);
+    } else {
+        return elf64_checkProgramHeaderTable(elfFile);
+    }
+}
+
+int
+elf_checkSectionTable(elf_t *elfFile)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_checkSectionTable(elfFile);
+    } else {
+        return elf64_checkSectionTable(elfFile);
+    }
 }
 
 uint64_t
-elf_getEntryPoint(void *elfFile)
+elf_getEntryPoint(elf_t *elfFile)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getEntryPoint (elfFile)
-        : elf64_getEntryPoint (elfFile);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getEntryPoint(elfFile);
+    } else {
+        return elf64_getEntryPoint(elfFile);
+    }
 }
 
 uint16_t
-elf_getNumProgramHeaders(void *elfFile)
+elf_getNumProgramHeaders(elf_t *elfFile)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getNumProgramHeaders(elfFile)
-        : elf64_getNumProgramHeaders(elfFile);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getNumProgramHeaders(elfFile);
+    } else {
+        return elf64_getNumProgramHeaders(elfFile);
+    }
 }
 
 unsigned
-elf_getNumSections(void *elfFile)
+elf_getNumSections(elf_t *elfFile)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getNumSections(elfFile)
-        : elf64_getNumSections(elfFile);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getNumSections(elfFile);
+    } else {
+        return elf64_getNumSections(elfFile);
+    }
 }
 
 char *
-elf_getStringTable(void *elfFile, int string_segment)
+elf_getStringTable(elf_t *elfFile, int string_segment)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getStringTable(elfFile)
-        : elf64_getStringTable(elfFile, string_segment);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getStringTable(elfFile, string_segment);
+    } else {
+        return elf64_getStringTable(elfFile, string_segment);
+    }
 }
 
 char *
-elf_getSegmentStringTable(void *elfFile)
+elf_getSectionStringTable(elf_t *elfFile)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSegmentStringTable(elfFile)
-        : elf64_getSegmentStringTable(elfFile);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionStringTable(elfFile);
+    } else {
+        return elf64_getSectionStringTable(elfFile);
+    }
 }
 
 
 /* Section header functions */
 void *
-elf_getSection(void *elfFile, int i)
+elf_getSection(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSection(elfFile, i)
-        : elf64_getSection(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSection(elfFile, i);
+    } else {
+        return elf64_getSection(elfFile, i);
+    }
 }
 
 void *
-elf_getSectionNamed(void *elfFile, const char *_str, int *i)
+elf_getSectionNamed(elf_t *elfFile, const char *_str, int *i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionNamed(elfFile, _str, i)
-        : elf64_getSectionNamed(elfFile, _str, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionNamed(elfFile, _str, i);
+    } else {
+        return elf64_getSectionNamed(elfFile, _str, i);
+    }
 }
 
 char *
-elf_getSectionName(void *elfFile, int i)
+elf_getSectionName(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionName(elfFile, i)
-        : elf64_getSectionName(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionName(elfFile, i);
+    } else {
+        return elf64_getSectionName(elfFile, i);
+    }
 }
 
 uint32_t
-elf_getSectionType(void *elfFile, int i)
+elf_getSectionType(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionType(elfFile, i)
-        : elf64_getSectionType(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionType(elfFile, i);
+    } else {
+        return elf64_getSectionType(elfFile, i);
+    }
 }
 
 uint32_t
-elf_getSectionFlags(void *elfFile, int i)
+elf_getSectionFlags(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionFlags(elfFile, i)
-        : elf64_getSectionFlags(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionFlags(elfFile, i);
+    } else {
+        return elf64_getSectionFlags(elfFile, i);
+    }
 }
 
 uint64_t
-elf_getSectionAddr(void *elfFile, int i)
+elf_getSectionAddr(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionAddr(elfFile, i)
-        : elf64_getSectionAddr(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionAddr(elfFile, i);
+    } else {
+        return elf64_getSectionAddr(elfFile, i);
+    }
 }
 
 uint64_t
-elf_getSectionSize(void *elfFile, int i)
+elf_getSectionSize(elf_t *elfFile, int i)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getSectionSize(elfFile, i)
-        : elf64_getSectionSize(elfFile, i);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionSize(elfFile, i);
+    } else {
+        return elf64_getSectionSize(elfFile, i);
+    }
 }
 
 
-/* Program headers functions */
-uint32_t
-elf_getProgramHeaderType(void *elfFile, uint16_t ph)
+/* Program headers function */
+void *
+elf_getProgramSegment(elf_t *elf, uint16_t ph)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderType(elfFile, ph)
-        : elf64_getProgramHeaderType(elfFile, ph);
-}
-
-uint64_t
-elf_getProgramHeaderOffset(void *elfFile, uint16_t ph)
-{
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderOffset(elfFile, ph)
-        : elf64_getProgramHeaderOffset(elfFile, ph);
-}
-
-uint64_t
-elf_getProgramHeaderVaddr(void *elfFile, uint16_t ph)
-{
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderVaddr(elfFile, ph)
-        : elf64_getProgramHeaderVaddr(elfFile, ph);
-}
-
-uint64_t
-elf_getProgramHeaderPaddr(void *elfFile, uint16_t ph)
-{
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderPaddr(elfFile, ph)
-        : elf64_getProgramHeaderPaddr(elfFile, ph);
-}
-
-uint64_t
-elf_getProgramHeaderFileSize(void *elfFile, uint16_t ph)
-{
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderFileSize(elfFile, ph)
-        : elf64_getProgramHeaderFileSize(elfFile, ph);
-}
-
-uint64_t
-elf_getProgramHeaderMemorySize(void *elfFile, uint16_t ph)
-{
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderMemorySize(elfFile, ph)
-        : elf64_getProgramHeaderMemorySize(elfFile, ph);
+    if (elf_isElf32(elf)) {
+        return elf32_getProgramSegment(elf, ph);
+    } else {
+        return elf64_getProgramSegment(elf, ph);
+    }
 }
 
 uint32_t
-elf_getProgramHeaderFlags(void *elfFile, uint16_t ph)
+elf_getProgramHeaderType(elf_t *elfFile, uint16_t ph)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderFlags(elfFile, ph)
-        : elf64_getProgramHeaderFlags(elfFile, ph);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderType(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderType(elfFile, ph);
+    }
+}
+
+uint64_t
+elf_getProgramHeaderOffset(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderOffset(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderOffset(elfFile, ph);
+    }
+}
+
+uint64_t
+elf_getProgramHeaderVaddr(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderVaddr(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderVaddr(elfFile, ph);
+    }
+}
+
+uint64_t
+elf_getProgramHeaderPaddr(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderPaddr(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderPaddr(elfFile, ph);
+    }
+}
+
+uint64_t
+elf_getProgramHeaderFileSize(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderFileSize(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderFileSize(elfFile, ph);
+    }
+}
+
+uint64_t
+elf_getProgramHeaderMemorySize(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderMemorySize(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderMemorySize(elfFile, ph);
+    }
 }
 
 uint32_t
-elf_getProgramHeaderAlign(void *elfFile, uint16_t ph)
+elf_getProgramHeaderFlags(elf_t *elfFile, uint16_t ph)
 {
-    return ISELF32 (elfFile)
-        ? elf32_getProgramHeaderAlign(elfFile, ph)
-        : elf64_getProgramHeaderAlign(elfFile, ph);
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderFlags(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderFlags(elfFile, ph);
+    }
+}
+
+uint32_t
+elf_getProgramHeaderAlign(elf_t *elfFile, uint16_t ph)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getProgramHeaderAlign(elfFile, ph);
+    } else {
+        return elf64_getProgramHeaderAlign(elfFile, ph);
+    }
 }
 
 
 /* Utility functions */
 int
-elf_getMemoryBounds(void *elfFile, int phys, uint64_t *min, uint64_t *max)
+elf_getMemoryBounds(elf_t *elfFile, int phys, uint64_t *min, uint64_t *max)
 {
     uint64_t mem_min = UINT64_MAX;
     uint64_t mem_max = 0;
     int i;
 
-    if (elf_checkFile(elfFile) != 0) {
-        return 0;
-    }
-
-    for (i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
+    for(i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
         uint64_t sect_min, sect_max;
 
         if (elf_getProgramHeaderMemorySize(elfFile, i) == 0) {
@@ -302,7 +417,7 @@ elf_getMemoryBounds(void *elfFile, int phys, uint64_t *min, uint64_t *max)
 }
 
 int
-elf_vaddrInProgramHeader(void *elfFile, uint16_t ph, uint64_t vaddr)
+elf_vaddrInProgramHeader(elf_t *elfFile, uint16_t ph, uint64_t vaddr)
 {
     uint64_t min = elf_getProgramHeaderVaddr(elfFile, ph);
     uint64_t max = min + elf_getProgramHeaderMemorySize(elfFile, ph);
@@ -314,7 +429,7 @@ elf_vaddrInProgramHeader(void *elfFile, uint16_t ph, uint64_t vaddr)
 }
 
 uint64_t
-elf_vtopProgramHeader(void *elfFile, uint16_t ph, uint64_t vaddr)
+elf_vtopProgramHeader(elf_t *elfFile, uint16_t ph, uint64_t vaddr)
 {
     uint64_t ph_phys = elf_getProgramHeaderPaddr(elfFile, ph);
     uint64_t ph_virt = elf_getProgramHeaderVaddr(elfFile, ph);
@@ -326,28 +441,24 @@ elf_vtopProgramHeader(void *elfFile, uint16_t ph, uint64_t vaddr)
 }
 
 int
-elf_loadFile(void *elfFile, int phys)
+elf_loadFile(elf_t *elf, int phys)
 {
     int i;
 
-    if (elf_checkFile(elfFile) != 0) {
-        return 0;
-    }
-
-    for (i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
+    for(i = 0; i < elf_getNumProgramHeaders(elf); i++) {
         /* Load that section */
         uint64_t dest, src;
         size_t len;
         if (phys) {
-            dest = elf_getProgramHeaderPaddr(elfFile, i);
+            dest = elf_getProgramHeaderPaddr(elf, i);
         } else {
-            dest = elf_getProgramHeaderVaddr(elfFile, i);
+            dest = elf_getProgramHeaderVaddr(elf, i);
         }
-        len = elf_getProgramHeaderFileSize(elfFile, i);
-        src = (uint64_t) (uintptr_t) elfFile + elf_getProgramHeaderOffset(elfFile, i);
+        len = elf_getProgramHeaderFileSize(elf, i);
+        src = (uint64_t) (uintptr_t) elf->elfFile + elf_getProgramHeaderOffset(elf, i);
         memcpy((void *) (uintptr_t) dest, (void *) (uintptr_t) src, len);
         dest += len;
-        memset((void *) (uintptr_t) dest, 0, elf_getProgramHeaderMemorySize(elfFile, i) - len);
+        memset((void *) (uintptr_t) dest, 0, elf_getProgramHeaderMemorySize(elf, i) - len);
     }
 
     return 1;

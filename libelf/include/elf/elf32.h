@@ -81,6 +81,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <elf/elf.h>
 
 /*
  * File header
@@ -150,102 +151,156 @@ struct Elf32_Rela {
 };
 
 /* ELF header functions */
-int elf32_checkFile(struct Elf32_Header *file);
+int elf32_checkFile(elf_t *elf);
 
-uint32_t elf32_getEntryPoint (struct Elf32_Header *file);
+int elf32_checkProgramHeaderTable(elf_t *elf);
+
+int elf32_checkSectionTable(elf_t *elf);
+
+static inline bool
+elf_isElf32(elf_t *elf)
+{
+    return elf->elfClass == ELFCLASS32;
+}
+
+static inline struct Elf32_Header
+elf32_getHeader(elf_t *elf)
+{
+    return *(struct Elf32_Header *) elf->elfFile;
+}
+
+static inline uint32_t
+elf32_getEntryPoint(elf_t *elf)
+{
+    return elf32_getHeader(elf).e_entry;
+}
 
 static inline struct Elf32_Phdr *
-elf32_getProgramHeaderTable(struct Elf32_Header *file)
+elf32_getProgramHeaderTable(elf_t *file)
 {
-    /* Cast heaven! */
-    return (struct Elf32_Phdr*) (uintptr_t) (((uintptr_t) file) + file->e_phoff);
+    return file->elfFile + elf32_getHeader(file).e_phoff;
 }
 
 static inline struct Elf32_Shdr *
-elf32_getSectionTable(struct Elf32_Header *file)
+elf32_getSectionTable(elf_t *elf)
 {
-    /* Cast heaven! */
-    return (struct Elf32_Shdr*) (uintptr_t) (((uintptr_t) file) + file->e_shoff);
+    return elf->elfFile + elf32_getHeader(elf).e_shoff;
 }
 
-uint16_t elf32_getNumProgramHeaders(struct Elf32_Header *file);
+static inline uint16_t
+elf32_getNumProgramHeaders(elf_t *elf)
+{
+    return elf32_getHeader(elf).e_phnum;
+}
 
-unsigned elf32_getNumSections(struct Elf32_Header *file);
+static inline uint16_t
+elf32_getNumSections(elf_t *elf)
+{
+    return elf32_getHeader(elf).e_shnum;
+}
 
-char *elf32_getStringTable(struct Elf32_Header *file);
+static inline uint16_t
+elf32_getSectionStringTableIndex(elf_t *elf)
+{
+    return elf32_getHeader(elf).e_shstrndx;
+}
 
-char *elf32_getSegmentStringTable(struct Elf32_Header *file);
+char *elf32_getStringTable(elf_t *elf, int string_segment);
+
+char *elf32_getSectionStringTable(elf_t *elf);
 
 
 /* Section header functions */
-void *elf32_getSection(struct Elf32_Header *file, int i);
+void *elf32_getSection(elf_t *elf, int i);
 
-void *elf32_getSectionNamed(struct Elf32_Header *file, const char *str, int *i);
+void *elf32_getSectionNamed(elf_t *elf, const char *str, int *i);
 
-char *elf32_getSectionName(struct Elf32_Header *file, int i);
+char *elf32_getSectionName(elf_t *elf, int i);
 
 static inline uint32_t
-elf32_getSectionType(struct Elf32_Header *file, uint16_t s)
+elf32_getSectionNameOffset(elf_t *elf, uint16_t s)
 {
-    return elf32_getSectionTable(file)[s].sh_type;
+    return elf32_getSectionTable(elf)[s].sh_name;
 }
 
 static inline uint32_t
-elf32_getSectionFlags(struct Elf32_Header *file, uint16_t s)
+elf32_getSectionType(elf_t *elf, int i)
 {
-    return elf32_getSectionTable(file)[s].sh_flags;
+    return elf32_getSectionTable(elf)[i].sh_type;
 }
 
-uint32_t elf32_getSectionAddr(struct Elf32_Header *elfFile, int i);
+static inline uint32_t
+elf32_getSectionFlags(elf_t *elf, int i)
+{
+    return elf32_getSectionTable(elf)[i].sh_flags;
+}
 
-uint32_t elf32_getSectionSize(struct Elf32_Header *file, int i);
+static inline uint32_t
+elf32_getSectionAddr(elf_t *elf, int i)
+{
+    return elf32_getSectionTable(elf)[i].sh_addr;
+}
+
+static inline uint32_t
+elf32_getSectionOffset(elf_t *elf, int i)
+{
+    return elf32_getSectionTable(elf)[i].sh_offset;
+}
+
+static inline uint32_t
+elf32_getSectionSize(elf_t *elf, int i)
+{
+    return elf32_getSectionTable(elf)[i].sh_size;
+}
 
 
 /* Program header functions */
+void *elf32_getProgramSegment(elf_t *elf, uint16_t ph);
+
 static inline uint32_t
-elf32_getProgramHeaderType(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderType(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_type;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderOffset(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderOffset(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_offset;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderVaddr(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderVaddr(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_vaddr;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderPaddr(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderPaddr(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_paddr;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderFileSize(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderFileSize(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_filesz;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderMemorySize(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderMemorySize(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_memsz;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderFlags(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderFlags(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_flags;
 }
 
 static inline uint32_t
-elf32_getProgramHeaderAlign(struct Elf32_Header *file, uint16_t ph)
+elf32_getProgramHeaderAlign(elf_t *file, uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_align;
 }

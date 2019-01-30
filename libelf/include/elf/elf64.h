@@ -81,6 +81,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <elf/elf.h>
 
 /*
  * File header
@@ -147,102 +148,153 @@ struct Elf64_Dyn {
 };
 
 /* ELF header functions */
-int elf64_checkFile(void *elfFile);
+int elf64_checkFile(elf_t *elf);
 
-uint64_t elf64_getEntryPoint (struct Elf64_Header *elfFile);
+int elf64_checkProgramHeaderTable(elf_t *elf);
+
+int elf64_checkSectionTable(elf_t *elf);
+
+static inline bool
+elf_isElf64(elf_t *elf)
+{
+    return elf->elfClass == ELFCLASS64;
+}
+
+static inline struct Elf64_Header
+elf64_getHeader(elf_t *elf)
+{
+    return *(struct Elf64_Header *) elf->elfFile;
+}
+
+static inline uint64_t
+elf64_getEntryPoint(elf_t *file)
+{
+    return elf64_getHeader(file).e_entry;
+}
 
 static inline struct Elf64_Phdr *
-elf64_getProgramHeaderTable(struct Elf64_Header *file)
+elf64_getProgramHeaderTable(elf_t *file)
 {
-    /* Cast hell! */
-    return (struct Elf64_Phdr*) (uintptr_t) (((uintptr_t) file) + file->e_phoff);
+    return file->elfFile + elf64_getHeader(file).e_phoff;
 }
 
 static inline struct Elf64_Shdr *
-elf64_getSectionTable(struct Elf64_Header *file)
+elf64_getSectionTable(elf_t *file)
 {
-    /* Cast heaven! */
-    return (struct Elf64_Shdr*) (uintptr_t) (((uintptr_t) file) + file->e_shoff);
+    return file->elfFile + elf64_getHeader(file).e_shoff;
 }
 
-uint16_t elf64_getNumProgramHeaders(struct Elf64_Header *file);
+static inline uint16_t
+elf64_getNumProgramHeaders(elf_t *file)
+{
+    return elf64_getHeader(file).e_phnum;
+}
 
-unsigned elf64_getNumSections(void *elfFile);
+static inline unsigned
+elf64_getNumSections(elf_t *elf) {
+    return elf64_getHeader(elf).e_shnum;
+}
 
-char *elf64_getStringTable(void *elfFile, int string_segment);
+static inline uint16_t
+elf64_getSectionStringTableIndex(elf_t *elf)
+{
+    return elf64_getHeader(elf).e_shstrndx;
+}
 
-char *elf64_getSegmentStringTable(void *elfFile);
+char *elf64_getStringTable(elf_t *elf, int string_segment);
 
+char *elf64_getSectionStringTable(elf_t *elf);
 
 /* Section header functions */
-void *elf64_getSection(void *elfFile, int i);
+void *elf64_getSection(elf_t *elf, int i);
 
-void *elf64_getSectionNamed(void *elfFile, const char *str, int *i);
+void *elf64_getSectionNamed(elf_t *elf, const char *str, int *i);
 
-char *elf64_getSectionName(void *elfFile, int i);
+char *elf64_getSectionName(elf_t *elf, int i);
 
 static inline uint32_t
-elf64_getSectionType(struct Elf64_Header *file, uint16_t s)
+elf64_getSectionNameOffset(elf_t *elf, uint16_t s)
+{
+    return elf64_getSectionTable(elf)[s].sh_name;
+}
+
+static inline uint32_t
+elf64_getSectionType(elf_t *file, uint16_t s)
 {
     return elf64_getSectionTable(file)[s].sh_type;
 }
 
 static inline uint32_t
-elf64_getSectionFlags(struct Elf64_Header *file, uint16_t s)
+elf64_getSectionFlags(elf_t *file, uint16_t s)
 {
     return elf64_getSectionTable(file)[s].sh_flags;
 }
 
-uint64_t elf64_getSectionAddr(struct Elf64_Header *elfFile, int i);
+static inline uint64_t
+elf64_getSectionAddr(elf_t *elf, int i)
+{
+    return elf64_getSectionTable(elf)[i].sh_addr;
+}
 
-uint64_t elf64_getSectionSize(void *elfFile, int i);
+static inline uint64_t
+elf64_getSectionOffset(elf_t *elf, int i)
+{
+    return elf64_getSectionTable(elf)[i].sh_offset;
+}
 
+static inline uint64_t
+elf64_getSectionSize(void *elf, int i)
+{
+    return elf64_getSectionTable(elf)[i].sh_size;
+}
 
 /* Program header functions */
+void *elf64_getProgramSegment(elf_t *elf, uint16_t ph);
+
 static inline uint32_t
-elf64_getProgramHeaderType(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderType(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_type;
 }
 
 static inline uint64_t
-elf64_getProgramHeaderOffset(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderOffset(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_offset;
 }
 
 static inline uint64_t
-elf64_getProgramHeaderVaddr(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderVaddr(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_vaddr;
 }
 
 static inline uint64_t
-elf64_getProgramHeaderPaddr(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderPaddr(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_paddr;
 }
 
 static inline uint64_t
-elf64_getProgramHeaderFileSize(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderFileSize(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_filesz;
 }
 
 static inline uint64_t
-elf64_getProgramHeaderMemorySize(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderMemorySize(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_memsz;
 }
 
 static inline uint32_t
-elf64_getProgramHeaderFlags(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderFlags(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_flags;
 }
 
 static inline uint32_t
-elf64_getProgramHeaderAlign(struct Elf64_Header *file, uint16_t ph)
+elf64_getProgramHeaderAlign(elf_t *file, uint16_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_align;
 }
