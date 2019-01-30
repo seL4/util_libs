@@ -114,9 +114,9 @@ int cpio_parse_header(struct cpio_header *archive, unsigned long len,
     }
 
     /* Ensure magic header exists. */
-    if (cpio_strncmp(archive->c_magic, CPIO_HEADER_MAGIC,
-                sizeof(archive->c_magic)) != 0)
+    if (cpio_strncmp(archive->c_magic, CPIO_HEADER_MAGIC, sizeof(archive->c_magic)) != 0) {
         return -1;
+    }
 
     /* Get filename and file size. */
     filesize = parse_hex_str(archive->c_filesize, sizeof(archive->c_filesize));
@@ -127,7 +127,7 @@ int cpio_parse_header(struct cpio_header *archive, unsigned long len,
         return -1;
     }
 
-    filename = ((char *)archive) + sizeof(struct cpio_header);
+    filename = (char *) archive + sizeof(struct cpio_header);
     /* Ensure filename is terminated */
     if (filename[filename_length - 1] != 0) {
         return -1;
@@ -135,17 +135,19 @@ int cpio_parse_header(struct cpio_header *archive, unsigned long len,
 
     /* Ensure filename is not the trailer indicating EOF. */
     if (filename_length >= sizeof(CPIO_FOOTER_MAGIC) && cpio_strncmp(filename,
-                CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0)
+                CPIO_FOOTER_MAGIC, sizeof(CPIO_FOOTER_MAGIC)) == 0) {
         return 1;
+    }
 
     /* Find offset to data. */
-    data = (void *)align_up(((unsigned long)archive)
-            + sizeof(struct cpio_header) + filename_length, CPIO_ALIGNMENT);
-    next = (struct cpio_header *)align_up(((unsigned long)data) + filesize, CPIO_ALIGNMENT);
+    data = (void *) align_up((unsigned long) archive + sizeof(struct cpio_header) +
+            filename_length, CPIO_ALIGNMENT);
+    next = (struct cpio_header *) align_up((unsigned long) data + filesize, CPIO_ALIGNMENT);
+
     if (_filename) {
         *_filename = filename;
     }
-    if(_filesize){
+    if (_filesize) {
         *_filesize = filesize;
     }
     if (_data) {
@@ -176,8 +178,9 @@ void *cpio_get_entry(void *archive, unsigned long len, int n, const char **name,
     for (i = 0; i <= n; i++) {
         struct cpio_header *next;
         int error = cpio_parse_header(header, len, name, size, &result, &next);
-        if (error)
+        if (error) {
             return NULL;
+        }
         len = cpio_len_next(len, header, next);
         header = next;
     }
@@ -203,12 +206,13 @@ void *cpio_get_file(void *archive, unsigned long len, const char *name, unsigned
         void *result;
         const char *current_filename;
 
-        int error = cpio_parse_header(header, len, &current_filename,
-                size, &result, &next);
-        if (error)
+        int error = cpio_parse_header(header, len, &current_filename, size, &result, &next);
+        if (error) {
             return NULL;
-        if (cpio_strncmp(current_filename, name, -1) == 0)
+        }
+        if (cpio_strncmp(current_filename, name, -1) == 0) {
             return result;
+        }
         len = cpio_len_next(len, header, next);
         header = next;
     }
@@ -260,7 +264,7 @@ void cpio_ls(void *archive, unsigned long len, char **buf, unsigned long buf_len
         error = cpio_parse_header(header, len, &current_filename, &size, &result, &next);
         // Break on an error or nothing left to read.
         if (error) break;
-        cpio_strcpy(buf[i],  current_filename);
+        cpio_strcpy(buf[i], current_filename);
         len = cpio_len_next(len, header, next);
         header = next;
     }
