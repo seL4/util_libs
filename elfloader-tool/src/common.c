@@ -132,7 +132,8 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
 
     /* Get the binary file that contains the SHA256 Hash */
     unsigned long unused;
-    void *file_hash = cpio_get_file(_archive_start, (const char *)hash, &unused);
+    unsigned long cpio_len = _archive_start_end - _archive_start;
+    void *file_hash = cpio_get_file(_archive_start, cpio_len, (const char *)hash, &unused);
     uint8_t *print_hash_pointer = (uint8_t *)file_hash;
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we cannot confirm the file is what we expect. Abort */
@@ -271,7 +272,8 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     unsigned long unused;
 
     /* Load kernel. */
-    void *kernel_elf = cpio_get_file(_archive_start, "kernel.elf", &unused);
+    unsigned long cpio_len = _archive_start_end - _archive_start;
+    void *kernel_elf = cpio_get_file(_archive_start, cpio_len, "kernel.elf", &unused);
     if (kernel_elf == NULL) {
         printf("No kernel image present in archive!\n");
         abort();
@@ -291,7 +293,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
      * We assume (and check) that the kernel is the first file in the archive,
      * and then load the (n+1)'th file in the archive onto the (n)'th CPU.
      */
-    (void)cpio_get_entry(_archive_start, 0, &elf_filename, &unused);
+    (void)cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
     if (strcmp(elf_filename, "kernel.elf") != 0) {
         printf("Kernel image not first image in archive.\n");
         abort();
@@ -299,7 +301,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     *num_images = 0;
     for (i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
-        void *user_elf = cpio_get_entry(_archive_start, i + 1,
+        void *user_elf = cpio_get_entry(_archive_start, cpio_len, i + 1,
                                         &elf_filename, &unused);
         if (user_elf == NULL) {
             break;

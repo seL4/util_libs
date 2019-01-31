@@ -60,7 +60,7 @@ extern struct image_info user_info;
 extern char _start[];
 extern char _end[];
 extern char _archive_start[];
-extern char _archive_end[];
+extern char _archive_start_end[];
 
 /* Load images. */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
