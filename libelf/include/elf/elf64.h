@@ -137,17 +137,8 @@ elf64_getSectionStringTableIndex(elf_t *elf)
     return elf64_getHeader(elf).e_shstrndx;
 }
 
-char *elf64_getStringTable(elf_t *elf, size_t string_segment);
-
-char *elf64_getSectionStringTable(elf_t *elf);
 
 /* Section header functions */
-void *elf64_getSection(elf_t *elf, size_t i);
-
-void *elf64_getSectionNamed(elf_t *elf, const char *str, size_t *i);
-
-char *elf64_getSectionName(elf_t *elf, size_t i);
-
 static inline size_t
 elf64_getSectionNameOffset(elf_t *elf, size_t s)
 {
@@ -184,9 +175,32 @@ elf64_getSectionSize(elf_t *elf, size_t i)
     return elf64_getSectionTable(elf)[i].sh_size;
 }
 
-/* Program header functions */
-void *elf64_getProgramSegment(elf_t *elf, size_t ph);
+static inline uint32_t
+elf64_getSectionLink(elf_t *elf, size_t i)
+{
+    return elf64_getSectionTable(elf)[i].sh_link;
+}
 
+static inline uint32_t
+elf64_getSectionInfo(elf_t *elf, size_t i)
+{
+    return elf64_getSectionTable(elf)[i].sh_info;
+}
+
+static inline size_t
+elf64_getSectionAddrAlign(elf_t *elf, size_t i)
+{
+    return elf64_getSectionTable(elf)[i].sh_addralign;
+}
+
+static inline size_t
+elf64_getSectionEntrySize(elf_t *elf, size_t i)
+{
+    return elf64_getSectionTable(elf)[i].sh_entsize;
+}
+
+
+/* Program header functions */
 static inline uint32_t
 elf64_getProgramHeaderType(elf_t *file, size_t ph)
 {

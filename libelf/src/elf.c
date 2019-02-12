@@ -195,55 +195,103 @@ elf_getNumSections(elf_t *elfFile)
     }
 }
 
-char *
-elf_getStringTable(elf_t *elfFile, size_t string_segment)
+size_t
+elf_getSectionStringTableIndex(elf_t *elf)
 {
-    if (elf_isElf32(elfFile)) {
-        return elf32_getStringTable(elfFile, string_segment);
+    if (elf_isElf32(elf)) {
+        return elf32_getSectionStringTableIndex(elf);
     } else {
-        return elf64_getStringTable(elfFile, string_segment);
+        return elf64_getSectionStringTableIndex(elf);
     }
 }
 
 char *
-elf_getSectionStringTable(elf_t *elfFile)
+elf_getStringTable(elf_t *elf, size_t string_segment)
 {
-    if (elf_isElf32(elfFile)) {
-        return elf32_getSectionStringTable(elfFile);
-    } else {
-        return elf64_getSectionStringTable(elfFile);
+    char *string_table = elf_getSection(elf, string_segment);
+    if (string_table == NULL) {
+        return NULL; /* no such section */
     }
+
+    if (elf_getSectionType(elf, string_segment) != SHT_STRTAB) {
+        return NULL; /* not a string table */
+    }
+
+    size_t size = elf_getSectionSize(elf, string_segment);
+    if (string_table[size - 1] != 0) {
+        return NULL; /* string table is not null-terminated */
+    }
+
+    return string_table;
+}
+
+char *
+elf_getSectionStringTable(elf_t *elf)
+{
+    size_t index = elf_getSectionStringTableIndex(elf);
+    return elf_getStringTable(elf, index);
 }
 
 
 /* Section header functions */
 void *
-elf_getSection(elf_t *elfFile, size_t i)
+elf_getSection(elf_t *elf, size_t i)
 {
-    if (elf_isElf32(elfFile)) {
-        return elf32_getSection(elfFile, i);
-    } else {
-        return elf64_getSection(elfFile, i);
+    if (i == 0 || i >= elf_getNumSections(elf)) {
+        return NULL; /* no such section */
     }
+
+    size_t section_offset = elf_getSectionOffset(elf, i);
+    size_t section_size = elf_getSectionSize(elf, i);
+    if (section_size == 0) {
+        return NULL; /* section is empty */
+    }
+
+    size_t section_end = section_offset + section_size;
+    /* possible wraparound - check that section end is not before section start */
+    if (section_end > elf->elfSize || section_end < section_offset) {
+        return NULL;
+    }
+
+    return elf->elfFile + section_offset;
 }
 
 void *
-elf_getSectionNamed(elf_t *elfFile, const char *_str, size_t *i)
+elf_getSectionNamed(elf_t *elfFile, const char *str, size_t *id)
 {
-    if (elf_isElf32(elfFile)) {
-        return elf32_getSectionNamed(elfFile, _str, i);
-    } else {
-        return elf64_getSectionNamed(elfFile, _str, i);
+    size_t numSections = elf_getNumSections(elfFile);
+    for (size_t i = 0; i < numSections; i++) {
+        if (strcmp(str, elf_getSectionName(elfFile, i)) == 0) {
+            if (id != NULL) {
+                *id = i;
+            }
+            return elf_getSection(elfFile, i);
+        }
     }
+    return NULL;
 }
 
 char *
-elf_getSectionName(elf_t *elfFile, size_t i)
+elf_getSectionName(elf_t *elf, size_t i)
+{
+    size_t str_table_idx = elf_getSectionStringTableIndex(elf);
+    char *str_table = elf_getStringTable(elf, str_table_idx);
+    size_t offset = elf_getSectionNameOffset(elf, i);
+    size_t size = elf_getSectionSize(elf, str_table_idx);
+
+    if (str_table == NULL || offset > size) {
+        return "<corrupted>";
+    }
+
+    return str_table + offset;
+}
+
+size_t elf_getSectionNameOffset(elf_t *elfFile, size_t i)
 {
     if (elf_isElf32(elfFile)) {
-        return elf32_getSectionName(elfFile, i);
+        return elf32_getSectionNameOffset(elfFile, i);
     } else {
-        return elf64_getSectionName(elfFile, i);
+        return elf64_getSectionNameOffset(elfFile, i);
     }
 }
 
@@ -278,6 +326,16 @@ elf_getSectionAddr(elf_t *elfFile, size_t i)
 }
 
 size_t
+elf_getSectionOffset(elf_t *elfFile, size_t i)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionOffset(elfFile, i);
+    } else {
+        return elf64_getSectionOffset(elfFile, i);
+    }
+}
+
+size_t
 elf_getSectionSize(elf_t *elfFile, size_t i)
 {
     if (elf_isElf32(elfFile)) {
@@ -287,16 +345,60 @@ elf_getSectionSize(elf_t *elfFile, size_t i)
     }
 }
 
+uint32_t
+elf_getSectionLink(elf_t *elfFile, size_t i)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionLink(elfFile, i);
+    } else {
+        return elf64_getSectionLink(elfFile, i);
+    }
+}
+
+uint32_t
+elf_getSectionInfo(elf_t *elfFile, size_t i)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionInfo(elfFile, i);
+    } else {
+        return elf64_getSectionInfo(elfFile, i);
+    }
+}
+
+size_t
+elf_getSectionAddrAlign(elf_t *elfFile, size_t i)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionAddrAlign(elfFile, i);
+    } else {
+        return elf64_getSectionAddrAlign(elfFile, i);
+    }
+}
+
+size_t
+elf_getSectionEntrySize(elf_t *elfFile, size_t i)
+{
+    if (elf_isElf32(elfFile)) {
+        return elf32_getSectionEntrySize(elfFile, i);
+    } else {
+        return elf64_getSectionEntrySize(elfFile, i);
+    }
+}
+
 
 /* Program headers function */
 void *
 elf_getProgramSegment(elf_t *elf, size_t ph)
 {
-    if (elf_isElf32(elf)) {
-        return elf32_getProgramSegment(elf, ph);
-    } else {
-        return elf64_getProgramSegment(elf, ph);
+    size_t offset = elf_getProgramHeaderOffset(elf, ph);
+    size_t file_size = elf_getProgramHeaderFileSize(elf, ph);
+    size_t segment_end = offset + file_size;
+    /* possible wraparound - check that segment end is not before segment start */
+    if (elf->elfSize < segment_end || segment_end < offset) {
+        return NULL;
     }
+
+    return elf->elfFile + offset;
 }
 
 uint32_t

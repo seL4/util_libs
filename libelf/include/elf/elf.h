@@ -209,6 +209,15 @@ size_t elf_getNumProgramHeaders(elf_t *elfFile);
 size_t elf_getNumSections(elf_t *elfFile);
 
 /**
+ * Get the index of the section header string table of an ELF file.
+ *
+ * @param elf Pointer to a valid ELF structure.
+ *
+ * \return The index of the section header string table.
+ */
+size_t elf_getSectionStringTableIndex(elf_t *elf);
+
+/**
  * Get a string table section of an ELF file.
  *
  * @param elfFile Pointer to a valid ELF structure.
@@ -261,6 +270,18 @@ void *elf_getSectionNamed(elf_t *elfFile, const char *str, size_t *i);
 char *elf_getSectionName(elf_t *elfFile, size_t i);
 
 /**
+ * Return the offset to the name of a given section in the section header
+ * string table.
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return The offset to the name of a given section in the section header
+ * string table.
+ */
+size_t elf_getSectionNameOffset(elf_t *elfFile, size_t i);
+
+/**
  * Return the type of a given section
  *
  * @param elfFile Pointer to a valid ELF structure
@@ -291,6 +312,16 @@ size_t elf_getSectionFlags(elf_t *elfFile, size_t i);
 uintptr_t elf_getSectionAddr(elf_t *elfFile, size_t i);
 
 /**
+ * Return the offset of a given section
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return The offset of a given section.
+ */
+size_t elf_getSectionOffset(elf_t *elfFile, size_t i);
+
+/**
  * Return the size of a given section
  *
  * @param elfFile Pointer to a valid ELF structure
@@ -299,6 +330,46 @@ uintptr_t elf_getSectionAddr(elf_t *elfFile, size_t i);
  * \return The size of a given section.
  */
 size_t elf_getSectionSize(elf_t *elfFile, size_t i);
+
+/**
+ * Return the related section index of a given section
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return The related section index of a given section.
+ */
+uint32_t elf_getSectionLink(elf_t *elfFile, size_t i);
+
+/**
+ * Return extra information of a given section
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return Extra information of a given section.
+ */
+uint32_t elf_getSectionInfo(elf_t *elfFile, size_t i);
+
+/**
+ * Return the alignment of a given section
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return The alignment of a given section.
+ */
+size_t elf_getSectionAddrAlign(elf_t *elfFile, size_t i);
+
+/**
+ * Return the entry size of a given section
+ *
+ * @param elfFile Pointer to a valid ELF structure
+ * @param i Index of the section
+ *
+ * \return The entry size of a given section.
+ */
+size_t elf_getSectionEntrySize(elf_t *elfFile, size_t i);
 
 
 /* Program header functions */
