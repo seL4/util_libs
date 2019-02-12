@@ -83,72 +83,6 @@
 #include <stdint.h>
 #include <elf/elf.h>
 
-/*
- * File header
- */
-struct Elf32_Header {
-    unsigned char   e_ident[16];
-    uint16_t    e_type;         /* Relocatable=1, Executable=2 (+ some more ..) */
-    uint16_t    e_machine;      /* Target architecture: MIPS=8 */
-    uint32_t    e_version;      /* Elf version (should be 1) */
-    uint32_t    e_entry;        /* Code entry point */
-    uint32_t    e_phoff;        /* Program header table */
-    uint32_t    e_shoff;        /* Section header table */
-    uint32_t    e_flags;        /* Flags */
-    uint16_t    e_ehsize;       /* ELF header size */
-    uint16_t    e_phentsize;    /* Size of one program segment header */
-    uint16_t    e_phnum;        /* Number of program segment headers */
-    uint16_t    e_shentsize;    /* Size of one section header */
-    uint16_t    e_shnum;        /* Number of section headers */
-    uint16_t    e_shstrndx;     /* Section header index of the string table
-                                   for section header names */
-};
-
-/*
- * Section header
- */
-struct Elf32_Shdr {
-    uint32_t    sh_name;
-    uint32_t    sh_type;
-    uint32_t    sh_flags;
-    uint32_t    sh_addr;
-    uint32_t    sh_offset;
-    uint32_t    sh_size;
-    uint32_t    sh_link;
-    uint32_t    sh_info;
-    uint32_t    sh_addralign;
-    uint32_t    sh_entsize;
-};
-
-/*
- * Program header
- */
-struct Elf32_Phdr {
-    uint32_t p_type;    /* Segment type: Loadable segment = 1 */
-    uint32_t p_offset;  /* Offset of segment in file */
-    uint32_t p_vaddr;   /* Reqd virtual address of segment when loading */
-    uint32_t p_paddr;   /* Reqd physical address of segment (ignore) */
-    uint32_t p_filesz;  /* How many bytes this segment occupies in file */
-    uint32_t p_memsz;   /* How many bytes this segment should occupy in memory
-                           (when loading, expand the segment by concatenating
-                           enough zero bytes to it) */
-    uint32_t p_flags;   /* Flags: logical "or" of PF_* constants below */
-    uint32_t p_align;   /* Reqd alignment of segment in memory */
-};
-
-/*
- * Relocation information
- */
-struct Elf32_Rel {
-    uint32_t r_offset;
-    uint32_t r_info;
-};
-
-struct Elf32_Rela {
-    uint32_t r_offset;
-    uint32_t r_info;
-    uint32_t r_addend;
-};
 
 /* ELF header functions */
 int elf32_checkFile(elf_t *elf);
@@ -163,10 +97,10 @@ elf_isElf32(elf_t *elf)
     return elf->elfClass == ELFCLASS32;
 }
 
-static inline struct Elf32_Header
+static inline Elf32_Ehdr
 elf32_getHeader(elf_t *elf)
 {
-    return *(struct Elf32_Header *) elf->elfFile;
+    return *(Elf32_Ehdr *) elf->elfFile;
 }
 
 static inline uint32_t
@@ -175,13 +109,13 @@ elf32_getEntryPoint(elf_t *elf)
     return elf32_getHeader(elf).e_entry;
 }
 
-static inline struct Elf32_Phdr *
+static inline Elf32_Phdr *
 elf32_getProgramHeaderTable(elf_t *file)
 {
     return file->elfFile + elf32_getHeader(file).e_phoff;
 }
 
-static inline struct Elf32_Shdr *
+static inline Elf32_Shdr *
 elf32_getSectionTable(elf_t *elf)
 {
     return elf->elfFile + elf32_getHeader(elf).e_shoff;

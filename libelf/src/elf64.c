@@ -91,11 +91,11 @@ elf64_checkFile(elf_t *elf)
         return -1; /* not supported on 32-bit architecture */
     }
 
-    if (elf->elfSize < sizeof(struct Elf64_Header)) {
+    if (elf->elfSize < sizeof(Elf64_Ehdr)) {
         return -1; /* file smaller than ELF header */
     }
 
-    struct Elf64_Header *header = elf->elfFile;
+    Elf64_Ehdr *header = elf->elfFile;
     if (header->e_ident[EI_MAG0] != ELFMAG0 ||
             header->e_ident[EI_MAG1] != ELFMAG1 ||
             header->e_ident[EI_MAG2] != ELFMAG2 ||
@@ -107,11 +107,11 @@ elf64_checkFile(elf_t *elf)
         return -1; /* not a 64-bit ELF */
     }
 
-    if (header->e_phentsize != sizeof(struct Elf64_Phdr)) {
+    if (header->e_phentsize != sizeof(Elf64_Phdr)) {
         return -1; /* unexpected program header size */
     }
 
-    if (header->e_shentsize != sizeof(struct Elf64_Shdr)) {
+    if (header->e_shentsize != sizeof(Elf64_Shdr)) {
         return -1; /* unexpected section header size */
     }
 
@@ -126,7 +126,7 @@ elf64_checkFile(elf_t *elf)
 int
 elf64_checkProgramHeaderTable(elf_t *elf)
 {
-    struct Elf64_Header *header = elf->elfFile;
+    Elf64_Ehdr *header = elf->elfFile;
     size_t ph_end = header->e_phoff + header->e_phentsize * header->e_phnum;
     if (elf->elfSize < ph_end || ph_end < header->e_phoff) {
         return -1; /* invalid program header table */
@@ -138,7 +138,7 @@ elf64_checkProgramHeaderTable(elf_t *elf)
 int
 elf64_checkSectionTable(elf_t *elf)
 {
-    struct Elf64_Header *header = elf->elfFile;
+    Elf64_Ehdr *header = elf->elfFile;
     size_t sh_end = header->e_shoff + header->e_shentsize * header->e_shnum;
     if (elf->elfSize < sh_end || sh_end < header->e_shoff) {
         return -1; /* invalid section header table */
@@ -230,7 +230,7 @@ elf64_getSectionName(elf_t *elf, int i)
 void *
 elf64_getProgramSegment(elf_t *elf, uint16_t ph)
 {
-    struct Elf64_Phdr p = elf64_getProgramHeaderTable(elf)[ph];
+    Elf64_Phdr p = elf64_getProgramHeaderTable(elf)[ph];
     size_t segment_end = p.p_offset + p.p_filesz;
     /* possible wraparound - check that segment end is not occur start */
     if (elf->elfSize < segment_end || segment_end < p.p_offset) {

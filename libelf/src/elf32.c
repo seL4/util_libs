@@ -87,11 +87,11 @@
 int
 elf32_checkFile(elf_t *elf)
 {
-    if (elf->elfSize < sizeof(struct Elf32_Header)) {
+    if (elf->elfSize < sizeof(Elf32_Ehdr)) {
         return -1; /* file smaller than ELF header */
     }
 
-    struct Elf32_Header *header = elf->elfFile;
+    Elf32_Ehdr *header = elf->elfFile;
     if (header->e_ident[EI_MAG0] != ELFMAG0 ||
             header->e_ident[EI_MAG1] != ELFMAG1 ||
             header->e_ident[EI_MAG2] != ELFMAG2 ||
@@ -103,11 +103,11 @@ elf32_checkFile(elf_t *elf)
         return -1; /* not a 32-bit ELF */
     }
 
-    if (header->e_phentsize != sizeof(struct Elf32_Phdr)) {
+    if (header->e_phentsize != sizeof(Elf32_Phdr)) {
         return -1; /* unexpected program header size */
     }
 
-    if (header->e_shentsize != sizeof(struct Elf32_Shdr)) {
+    if (header->e_shentsize != sizeof(Elf32_Shdr)) {
         return -1; /* unexpected section header size */
     }
 
@@ -122,7 +122,7 @@ elf32_checkFile(elf_t *elf)
 int
 elf32_checkProgramHeaderTable(elf_t *elf)
 {
-    struct Elf32_Header *header = elf->elfFile;
+    Elf32_Ehdr *header = elf->elfFile;
     size_t ph_end = header->e_phoff + header->e_phentsize * header->e_phnum;
     if (elf->elfSize < ph_end || ph_end < header->e_phoff) {
         return -1; /* invalid program header table */
@@ -134,7 +134,7 @@ elf32_checkProgramHeaderTable(elf_t *elf)
 int
 elf32_checkSectionTable(elf_t *elf)
 {
-    struct Elf32_Header *header = elf->elfFile;
+    Elf32_Ehdr *header = elf->elfFile;
     size_t sh_end = header->e_shoff + header->e_shentsize * header->e_shnum;
     if (elf->elfSize < sh_end || sh_end < header->e_shoff) {
         return -1; /* invalid section header table */
@@ -227,7 +227,7 @@ elf32_getSectionName(elf_t *elf, int i)
 void *
 elf32_getProgramSegment(elf_t *elf, uint16_t ph)
 {
-    struct Elf32_Phdr p = elf32_getProgramHeaderTable(elf)[ph];
+    Elf32_Phdr p = elf32_getProgramHeaderTable(elf)[ph];
     size_t segment_end = p.p_offset + p.p_filesz;
     /* possible wraparound - check that segment end does is not before start */
     if (elf->elfSize < segment_end || segment_end < p.p_offset) {
