@@ -155,6 +155,16 @@ int elf_newFile(void *file, size_t size, elf_t *res);
 int elf_newFile_maybe_unsafe(void *file, size_t size, bool check_pht, bool check_st, elf_t *res);
 
 /**
+ * Checks that file starts with the ELF magic number.
+ * File must be at least 4 bytes (SELFMAG).
+ *
+ * @param file to check
+ *
+ * \return 0 on success, otherwise < 0
+ */
+int elf_check_magic(char *file);
+
+/**
  * Checks that elfFile points to an ELF file with a valid ELF header.
  *
  * @param elfFile Potential ELF file to check

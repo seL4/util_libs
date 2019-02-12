@@ -91,14 +91,11 @@ elf32_checkFile(elf_t *elf)
         return -1; /* file smaller than ELF header */
     }
 
-    Elf32_Ehdr *header = elf->elfFile;
-    if (header->e_ident[EI_MAG0] != ELFMAG0 ||
-            header->e_ident[EI_MAG1] != ELFMAG1 ||
-            header->e_ident[EI_MAG2] != ELFMAG2 ||
-            header->e_ident[EI_MAG3] != ELFMAG3) {
+    if (elf_check_magic(elf->elfFile) < 0) {
         return -1; /* not an ELF file */
     }
 
+    Elf32_Ehdr *header = elf->elfFile;
     if (header->e_ident[EI_CLASS] != ELFCLASS32) {
         return -1; /* not a 32-bit ELF */
     }

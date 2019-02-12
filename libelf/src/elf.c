@@ -125,6 +125,16 @@ elf_newFile_maybe_unsafe(void *file, size_t size, bool check_pht, bool check_st,
     return status;
 }
 
+int
+elf_check_magic(char *file)
+{
+    if (memcmp(file, ELFMAG, SELFMAG) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 /*
  * Checks that elfFile points to a valid elf file. Returns 0 if the elf
  * file is valid, < 0 if invalid.
