@@ -148,7 +148,7 @@ elf64_checkSectionTable(elf_t *elf)
 }
 
 char *
-elf64_getStringTable(elf_t *elf, int string_segment)
+elf64_getStringTable(elf_t *elf, size_t string_segment)
 {
     char *string_table = elf64_getSection(elf, string_segment);
     if (string_table == NULL) {
@@ -159,7 +159,7 @@ elf64_getStringTable(elf_t *elf, int string_segment)
         return NULL; /* not a string table */
     }
 
-    uint64_t size = elf64_getSectionSize(elf, string_segment);
+    size_t size = elf64_getSectionSize(elf, string_segment);
     if (string_table[size - 1] != 0) {
         return NULL; /* string table is not null-terminated */
     }
@@ -170,14 +170,14 @@ elf64_getStringTable(elf_t *elf, int string_segment)
 char *
 elf64_getSectionStringTable(elf_t *elf)
 {
-    uint16_t index = elf64_getSectionStringTableIndex(elf);
+    size_t index = elf64_getSectionStringTableIndex(elf);
     return elf64_getStringTable(elf, index);
 }
 
 
 /* Section header functions */
 void *
-elf64_getSection(elf_t *elf, int i)
+elf64_getSection(elf_t *elf, size_t i)
 {
     if (i == 0 || i >= elf64_getNumSections(elf)) {
         return NULL; /* no such section */
@@ -198,10 +198,10 @@ elf64_getSection(elf_t *elf, int i)
 }
 
 void *
-elf64_getSectionNamed(elf_t *elfFile, const char *str, int *id)
+elf64_getSectionNamed(elf_t *elfFile, const char *str, size_t *id)
 {
-    int numSections = elf64_getNumSections(elfFile);
-    for (int i = 0; i < numSections; i++) {
+    size_t numSections = elf64_getNumSections(elfFile);
+    for (size_t i = 0; i < numSections; i++) {
         if (strcmp(str, elf64_getSectionName(elfFile, i)) == 0) {
             if (id != NULL) {
                 *id = i;
@@ -213,12 +213,12 @@ elf64_getSectionNamed(elf_t *elfFile, const char *str, int *id)
 }
 
 char *
-elf64_getSectionName(elf_t *elf, int i)
+elf64_getSectionName(elf_t *elf, size_t i)
 {
-    uint16_t str_table_idx = elf64_getSectionStringTableIndex(elf);
+    size_t str_table_idx = elf64_getSectionStringTableIndex(elf);
     char *str_table = elf64_getStringTable(elf, str_table_idx);
-    uint32_t offset = elf64_getSectionNameOffset(elf, i);
-    uint64_t size = elf64_getSectionSize(elf, str_table_idx);
+    size_t offset = elf64_getSectionNameOffset(elf, i);
+    size_t size = elf64_getSectionSize(elf, str_table_idx);
 
     if (str_table == NULL || offset > size) {
         return "<corrupted>";
@@ -228,7 +228,7 @@ elf64_getSectionName(elf_t *elf, int i)
 }
 
 void *
-elf64_getProgramSegment(elf_t *elf, uint16_t ph)
+elf64_getProgramSegment(elf_t *elf, size_t ph)
 {
     Elf64_Phdr p = elf64_getProgramHeaderTable(elf)[ph];
     size_t segment_end = p.p_offset + p.p_filesz;

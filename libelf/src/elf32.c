@@ -144,7 +144,7 @@ elf32_checkSectionTable(elf_t *elf)
 }
 
 char *
-elf32_getStringTable(elf_t *elf, int string_segment)
+elf32_getStringTable(elf_t *elf, size_t string_segment)
 {
     char *string_table = elf32_getSection(elf, string_segment);
     if (string_table == NULL) {
@@ -155,7 +155,7 @@ elf32_getStringTable(elf_t *elf, int string_segment)
         return NULL; /* not a string table */
     }
 
-    uint32_t size = elf32_getSectionSize(elf, string_segment);
+    size_t size = elf32_getSectionSize(elf, string_segment);
     if (string_table[size - 1] != 0) {
         return NULL; /* string table is not null-terminated */
     }
@@ -166,14 +166,14 @@ elf32_getStringTable(elf_t *elf, int string_segment)
 char *
 elf32_getSectionStringTable(elf_t *elf)
 {
-    uint16_t index = elf32_getSectionStringTableIndex(elf);
+    size_t index = elf32_getSectionStringTableIndex(elf);
     return elf32_getStringTable(elf, index);
 }
 
 
 /* Section header functions */
 void *
-elf32_getSection(elf_t *elf, int i)
+elf32_getSection(elf_t *elf, size_t i)
 {
     if (i == 0 || i >= elf32_getNumSections(elf)) {
         return NULL; /* no such section */
@@ -195,10 +195,10 @@ elf32_getSection(elf_t *elf, int i)
 }
 
 void *
-elf32_getSectionNamed(elf_t *elfFile, const char *str, int *id)
+elf32_getSectionNamed(elf_t *elfFile, const char *str, size_t *id)
 {
-    int numSections = elf32_getNumSections(elfFile);
-    for (int i = 0; i < numSections; i++) {
+    size_t numSections = elf32_getNumSections(elfFile);
+    for (size_t i = 0; i < numSections; i++) {
         if (strcmp(str, elf32_getSectionName(elfFile, i)) == 0) {
             if (id != NULL) {
                 *id = i;
@@ -210,12 +210,12 @@ elf32_getSectionNamed(elf_t *elfFile, const char *str, int *id)
 }
 
 char *
-elf32_getSectionName(elf_t *elf, int i)
+elf32_getSectionName(elf_t *elf, size_t i)
 {
-    uint16_t str_table_idx = elf32_getSectionStringTableIndex(elf);
+    size_t str_table_idx = elf32_getSectionStringTableIndex(elf);
     char *str_table = elf32_getStringTable(elf, str_table_idx);
-    uint32_t offset = elf32_getSectionNameOffset(elf, i);
-    uint32_t size = elf32_getSectionSize(elf, str_table_idx);
+    size_t offset = elf32_getSectionNameOffset(elf, i);
+    size_t size = elf32_getSectionSize(elf, str_table_idx);
 
     if (str_table == NULL || offset > size) {
         return "<corrupted>";
@@ -225,7 +225,7 @@ elf32_getSectionName(elf_t *elf, int i)
 }
 
 void *
-elf32_getProgramSegment(elf_t *elf, uint16_t ph)
+elf32_getProgramSegment(elf_t *elf, size_t ph)
 {
     Elf32_Phdr p = elf32_getProgramHeaderTable(elf)[ph];
     size_t segment_end = p.p_offset + p.p_filesz;

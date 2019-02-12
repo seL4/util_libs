@@ -102,7 +102,7 @@ elf64_getHeader(elf_t *elf)
     return *(Elf64_Ehdr *) elf->elfFile;
 }
 
-static inline uint64_t
+static inline uintptr_t
 elf64_getEntryPoint(elf_t *file)
 {
     return elf64_getHeader(file).e_entry;
@@ -120,117 +120,117 @@ elf64_getSectionTable(elf_t *file)
     return file->elfFile + elf64_getHeader(file).e_shoff;
 }
 
-static inline uint16_t
+static inline size_t
 elf64_getNumProgramHeaders(elf_t *file)
 {
     return elf64_getHeader(file).e_phnum;
 }
 
-static inline unsigned
+static inline size_t
 elf64_getNumSections(elf_t *elf) {
     return elf64_getHeader(elf).e_shnum;
 }
 
-static inline uint16_t
+static inline size_t
 elf64_getSectionStringTableIndex(elf_t *elf)
 {
     return elf64_getHeader(elf).e_shstrndx;
 }
 
-char *elf64_getStringTable(elf_t *elf, int string_segment);
+char *elf64_getStringTable(elf_t *elf, size_t string_segment);
 
 char *elf64_getSectionStringTable(elf_t *elf);
 
 /* Section header functions */
-void *elf64_getSection(elf_t *elf, int i);
+void *elf64_getSection(elf_t *elf, size_t i);
 
-void *elf64_getSectionNamed(elf_t *elf, const char *str, int *i);
+void *elf64_getSectionNamed(elf_t *elf, const char *str, size_t *i);
 
-char *elf64_getSectionName(elf_t *elf, int i);
+char *elf64_getSectionName(elf_t *elf, size_t i);
 
-static inline uint32_t
-elf64_getSectionNameOffset(elf_t *elf, uint16_t s)
+static inline size_t
+elf64_getSectionNameOffset(elf_t *elf, size_t s)
 {
     return elf64_getSectionTable(elf)[s].sh_name;
 }
 
 static inline uint32_t
-elf64_getSectionType(elf_t *file, uint16_t s)
+elf64_getSectionType(elf_t *file, size_t s)
 {
     return elf64_getSectionTable(file)[s].sh_type;
 }
 
-static inline uint32_t
-elf64_getSectionFlags(elf_t *file, uint16_t s)
+static inline size_t
+elf64_getSectionFlags(elf_t *file, size_t s)
 {
     return elf64_getSectionTable(file)[s].sh_flags;
 }
 
-static inline uint64_t
-elf64_getSectionAddr(elf_t *elf, int i)
+static inline uintptr_t
+elf64_getSectionAddr(elf_t *elf, size_t i)
 {
     return elf64_getSectionTable(elf)[i].sh_addr;
 }
 
-static inline uint64_t
-elf64_getSectionOffset(elf_t *elf, int i)
+static inline size_t
+elf64_getSectionOffset(elf_t *elf, size_t i)
 {
     return elf64_getSectionTable(elf)[i].sh_offset;
 }
 
-static inline uint64_t
-elf64_getSectionSize(void *elf, int i)
+static inline size_t
+elf64_getSectionSize(elf_t *elf, size_t i)
 {
     return elf64_getSectionTable(elf)[i].sh_size;
 }
 
 /* Program header functions */
-void *elf64_getProgramSegment(elf_t *elf, uint16_t ph);
+void *elf64_getProgramSegment(elf_t *elf, size_t ph);
 
 static inline uint32_t
-elf64_getProgramHeaderType(elf_t *file, uint16_t ph)
+elf64_getProgramHeaderType(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_type;
 }
 
-static inline uint64_t
-elf64_getProgramHeaderOffset(elf_t *file, uint16_t ph)
+static inline size_t
+elf64_getProgramHeaderOffset(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_offset;
 }
 
-static inline uint64_t
-elf64_getProgramHeaderVaddr(elf_t *file, uint16_t ph)
+static inline uintptr_t
+elf64_getProgramHeaderVaddr(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_vaddr;
 }
 
-static inline uint64_t
-elf64_getProgramHeaderPaddr(elf_t *file, uint16_t ph)
+static inline uintptr_t
+elf64_getProgramHeaderPaddr(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_paddr;
 }
 
-static inline uint64_t
-elf64_getProgramHeaderFileSize(elf_t *file, uint16_t ph)
+static inline size_t
+elf64_getProgramHeaderFileSize(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_filesz;
 }
 
-static inline uint64_t
-elf64_getProgramHeaderMemorySize(elf_t *file, uint16_t ph)
+static inline size_t
+elf64_getProgramHeaderMemorySize(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_memsz;
 }
 
 static inline uint32_t
-elf64_getProgramHeaderFlags(elf_t *file, uint16_t ph)
+elf64_getProgramHeaderFlags(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_flags;
 }
 
-static inline uint32_t
-elf64_getProgramHeaderAlign(elf_t *file, uint16_t ph)
+static inline size_t
+elf64_getProgramHeaderAlign(elf_t *file, size_t ph)
 {
     return elf64_getProgramHeaderTable(file)[ph].p_align;
 }

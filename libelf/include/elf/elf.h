@@ -114,6 +114,12 @@ struct elf {
 };
 typedef struct elf elf_t;
 
+enum elf_addr_type {
+    VIRTUAL,
+    PHYSICAL
+};
+typedef enum elf_addr_type elf_addr_type_t;
+
 /* ELF header functions */
 /**
  * Initialises an elf_t structure and checks that the ELF file is valid.
@@ -180,9 +186,9 @@ int elf_checkSectionTable(elf_t *elfFile);
  *
  * @param elfFile Pointer to a valid ELF structure
  *
- * \return The entry point address as a 64-bit integer.
+ * \return The entry point address.
  */
-uint64_t elf_getEntryPoint(elf_t *elfFile);
+uintptr_t elf_getEntryPoint(elf_t *elfFile);
 
 /**
  * Determine number of program headers in an ELF file.
@@ -191,7 +197,7 @@ uint64_t elf_getEntryPoint(elf_t *elfFile);
  *
  * \return Number of program headers in the ELF file.
  */
-uint16_t elf_getNumProgramHeaders(elf_t *elfFile);
+size_t elf_getNumProgramHeaders(elf_t *elfFile);
 
 /**
  * Determine number of sections in an ELF file.
@@ -200,7 +206,7 @@ uint16_t elf_getNumProgramHeaders(elf_t *elfFile);
  *
  * \return Number of sections in the ELF file.
  */
-unsigned elf_getNumSections(elf_t *elfFile);
+size_t elf_getNumSections(elf_t *elfFile);
 
 /**
  * Get a string table section of an ELF file.
@@ -210,7 +216,7 @@ unsigned elf_getNumSections(elf_t *elfFile);
  *
  * \return The string table, or NULL if the section is not a string table.
  */
-char *elf_getStringTable(elf_t *elfFile, int string_section);
+char *elf_getStringTable(elf_t *elfFile, size_t string_segment);
 
 /**
  * Get the string table for section header names.
@@ -231,7 +237,7 @@ char *elf_getSectionStringTable(elf_t *elfFile);
  *
  * \return The section, or NULL if there is no section.
  */
-void *elf_getSection(elf_t *elfFile, int i);
+void *elf_getSection(elf_t *elfFile, size_t i);
 
 /**
  * Get the section of an ELF file with a given name.
@@ -242,7 +248,7 @@ void *elf_getSection(elf_t *elfFile, int i);
  *
  * \return The section, or NULL if there is no section.
  */
-void *elf_getSectionNamed(elf_t *elfFile, const char *str, int *i);
+void *elf_getSectionNamed(elf_t *elfFile, const char *str, size_t *i);
 
 /**
  * Return the name of a given section.
@@ -252,7 +258,7 @@ void *elf_getSectionNamed(elf_t *elfFile, const char *str, int *i);
  *
  * \return The name of a given section.
  */
-char *elf_getSectionName(elf_t *elfFile, int i);
+char *elf_getSectionName(elf_t *elfFile, size_t i);
 
 /**
  * Return the type of a given section
@@ -262,7 +268,7 @@ char *elf_getSectionName(elf_t *elfFile, int i);
  *
  * \return The type of a given section.
  */
-uint32_t elf_getSectionType(elf_t *elfFile, int i);
+uint32_t elf_getSectionType(elf_t *elfFile, size_t i);
 
 /**
  * Return the flags of a given section
@@ -272,7 +278,7 @@ uint32_t elf_getSectionType(elf_t *elfFile, int i);
  *
  * \return The flags of a given section.
  */
-uint32_t elf_getSectionFlags(elf_t *elfFile, int i);
+size_t elf_getSectionFlags(elf_t *elfFile, size_t i);
 
 /**
  * Return the address of a given section
@@ -282,7 +288,7 @@ uint32_t elf_getSectionFlags(elf_t *elfFile, int i);
  *
  * \return The address of a given section.
  */
-uint64_t elf_getSectionAddr(elf_t *elfFile, int i);
+uintptr_t elf_getSectionAddr(elf_t *elfFile, size_t i);
 
 /**
  * Return the size of a given section
@@ -292,7 +298,7 @@ uint64_t elf_getSectionAddr(elf_t *elfFile, int i);
  *
  * \return The size of a given section.
  */
-uint64_t elf_getSectionSize(elf_t *elfFile, int i);
+size_t elf_getSectionSize(elf_t *elfFile, size_t i);
 
 
 /* Program header functions */
@@ -305,7 +311,7 @@ uint64_t elf_getSectionSize(elf_t *elfFile, int i);
  *
  * \return Pointer to the segment data
  */
-void *elf_getProgramSegment(elf_t *elf, uint16_t ph);
+void *elf_getProgramSegment(elf_t *elf, size_t ph);
 
 /**
  * Return the type for a given program header.
@@ -315,7 +321,7 @@ void *elf_getProgramSegment(elf_t *elf, uint16_t ph);
  *
  * \return The type of a given program header.
  */
-uint32_t elf_getProgramHeaderType(elf_t *elfFile, uint16_t ph);
+uint32_t elf_getProgramHeaderType(elf_t *elfFile, size_t ph);
 
 /**
  * Return the segment offset for a given program header.
@@ -325,7 +331,7 @@ uint32_t elf_getProgramHeaderType(elf_t *elfFile, uint16_t ph);
  *
  * \return The offset of this program header from the start of the file.
  */
-uint64_t elf_getProgramHeaderOffset(elf_t *elfFile, uint16_t ph);
+size_t elf_getProgramHeaderOffset(elf_t *elfFile, size_t ph);
 
 /**
  * Return the base virtual address of given program header.
@@ -335,7 +341,7 @@ uint64_t elf_getProgramHeaderOffset(elf_t *elfFile, uint16_t ph);
  *
  * \return The memory size of the specified program header.
  */
-uint64_t elf_getProgramHeaderVaddr(elf_t *elfFile, uint16_t ph);
+uintptr_t elf_getProgramHeaderVaddr(elf_t *elfFile, size_t ph);
 
 /**
  * Return the base physical address of given program header.
@@ -345,7 +351,7 @@ uint64_t elf_getProgramHeaderVaddr(elf_t *elfFile, uint16_t ph);
  *
  * \return The memory size of the specified program header.
  */
-uint64_t elf_getProgramHeaderPaddr(elf_t *elfFile, uint16_t ph);
+uintptr_t elf_getProgramHeaderPaddr(elf_t *elfFile, size_t ph);
 
 /**
  * Return the file size of a given program header.
@@ -355,7 +361,7 @@ uint64_t elf_getProgramHeaderPaddr(elf_t *elfFile, uint16_t ph);
  *
  * \return The file size of the specified program header.
  */
-uint64_t elf_getProgramHeaderFileSize(elf_t *elfFile, uint16_t ph);
+size_t elf_getProgramHeaderFileSize(elf_t *elfFile, size_t ph);
 
 /**
  * Return the memory size of a given program header.
@@ -365,7 +371,7 @@ uint64_t elf_getProgramHeaderFileSize(elf_t *elfFile, uint16_t ph);
  *
  * \return The memory size of the specified program header.
  */
-uint64_t elf_getProgramHeaderMemorySize(elf_t *elfFile, uint16_t ph);
+size_t elf_getProgramHeaderMemorySize(elf_t *elfFile, size_t ph);
 
 /**
  * Return the flags for a given program header.
@@ -375,7 +381,7 @@ uint64_t elf_getProgramHeaderMemorySize(elf_t *elfFile, uint16_t ph);
  *
  * \return The flags of a given program header.
  */
-uint32_t elf_getProgramHeaderFlags(elf_t *elfFile, uint16_t ph);
+uint32_t elf_getProgramHeaderFlags(elf_t *elfFile, size_t ph);
 
 /**
  * Return the alignment for a given program header.
@@ -385,7 +391,7 @@ uint32_t elf_getProgramHeaderFlags(elf_t *elfFile, uint16_t ph);
  *
  * \return The alignment of the given program header.
  */
-uint32_t elf_getProgramHeaderAlign(elf_t *elfFile, uint16_t ph);
+size_t elf_getProgramHeaderAlign(elf_t *elfFile, size_t ph);
 
 
 /* Utility functions */
@@ -394,33 +400,34 @@ uint32_t elf_getProgramHeaderAlign(elf_t *elfFile, uint16_t ph);
  * Determine the memory bounds of an ELF file
  *
  * @param elfFile Pointer to a valid ELF structure
- * @param phys If true return bounds of physical memory, otherwise return
- *   bounds of virtual memory
+ * @param addr_type If PHYSICAL return bounds of physical memory, otherwise
+ *                  return bounds of virtual memory
  * @param min Pointer to return value of the minimum
  * @param max Pointer to return value of the maximum
  *
  * \return true on success. false on failure, if for example, it is an invalid ELF file
  */
-int elf_getMemoryBounds(elf_t *elfFile, int phys, uint64_t *min, uint64_t *max);
+int elf_getMemoryBounds(elf_t *elfFile, elf_addr_type_t addr_type, uintptr_t *min, uintptr_t *max);
 
 /**
  *
  * \return true if the address in in this program header
  */
-int elf_vaddrInProgramHeader(elf_t *elfFile, uint16_t ph, uint64_t vaddr);
+int elf_vaddrInProgramHeader(elf_t *elfFile, size_t ph, uintptr_t vaddr);
 
 /**
  * Return the physical translation of a physical address, with respect
  * to a given program header
  *
  */
-uint64_t elf_vtopProgramHeader(elf_t *elfFile, uint16_t ph, uint64_t vaddr);
+uintptr_t elf_vtopProgramHeader(elf_t *elfFile, size_t ph, uintptr_t vaddr);
 
 /**
  * Load an ELF file into memory
  *
  * @param elfFile Pointer to a valid ELF file
- * @param phys If true load using the physical address, otherwise using the virtual addresses
+ * @param addr_type If PHYSICAL load using the physical address, otherwise using the
+ *                  virtual addresses
  *
  * \return true on success, false on failure.
  *
@@ -433,4 +440,4 @@ uint64_t elf_vtopProgramHeader(elf_t *elfFile, uint16_t ph, uint64_t vaddr);
  * platform, we assume that any memory addresses are within the first 4GB.
  *
  */
-int elf_loadFile(elf_t *elfFile, int phys);
+int elf_loadFile(elf_t *elfFile, elf_addr_type_t addr_type);
