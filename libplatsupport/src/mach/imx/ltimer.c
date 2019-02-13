@@ -17,7 +17,6 @@
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
-#include <platsupport/mach/timer.h>
 
 #include <utils/util.h>
 
@@ -26,8 +25,6 @@ typedef struct {
     void *timestamp_vaddr;
     void *timeout_vaddr;
     ps_io_ops_t ops;
-    /* Flag whether the imx_ltimer was initialised statically e.g. via ltimer_static_init */
-    bool is_static;
 } imx_ltimer_t;
 
 static ps_irq_t imx_ltimer_irqs[] = {
@@ -146,13 +143,12 @@ static void destroy(void *data)
 
     imx_ltimer_t *imx_ltimer = data;
 
-    /* Avoid un-mapping the timers if it was statically initialized */
-    if (imx_ltimer->timestamp_vaddr && !imx_ltimer->is_static) {
+    if (imx_ltimer->timestamp_vaddr) {
         imx_stop_timestamp(&imx_ltimer->timers);
         ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timestamp_vaddr, PAGE_SIZE_4K);
     }
 
-    if (imx_ltimer->timeout_vaddr && !imx_ltimer->is_static) {
+    if (imx_ltimer->timeout_vaddr) {
         imx_stop_timeout(&imx_ltimer->timers);
         ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timeout_vaddr, PAGE_SIZE_4K);
     }
@@ -201,37 +197,6 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
-int ltimer_static_init(ltimer_t *ltimer, ps_io_ops_t ops, void *params)
-{
-
-    if (params == NULL) {
-        return -1;
-    }
-
-    static_timer_params_t *timer_params = (static_timer_params_t*) params;
-
-    int error = create_ltimer(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
-    imx_ltimer_t *imx_ltimer = ltimer->data;
-
-    imx_ltimer->ops = ops;
-    imx_ltimer->timestamp_vaddr = timer_params->timestamp_vaddr;
-    imx_ltimer->timeout_vaddr = timer_params->timeout_vaddr;
-
-    error = init_ltimer(ltimer);
-    if (error) {
-        return error;
-    }
-
-    /* Flag the imx timer as being statically initialized */
-    imx_ltimer->is_static = true;
-
-    return 0;
-}
-
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 {
     int error = ltimer_default_describe(ltimer, ops);
@@ -263,8 +228,6 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     if (error) {
         return error;
     }
-
-    imx_ltimer->is_static = false;
 
     /* success! */
     return 0;

@@ -24,7 +24,6 @@
 #define IPG_FREQ   (AHB_FREQ  / 2u)
 #define GPT_FREQ   IPG_FREQ
 
-#include <platsupport/mach/timer.h>
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 

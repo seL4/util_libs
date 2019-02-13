@@ -35,8 +35,6 @@ typedef struct {
     ps_io_ops_t ops;
     /* ns that have passed on the timestamp counter */
     uint64_t time;
-    /* Flag whether the ttc_ltimer was initialised statically e.g. via ltimer_static_init */
-    bool is_static;
 } ttc_ltimer_t;
 
 static size_t get_num_irqs(void *data)
@@ -241,34 +239,6 @@ static int init_ltimer(ltimer_t *ltimer)
     }
 }
 
-int ltimer_static_init(ltimer_t *ltimer, ps_io_ops_t ops, void *params)
-{
-    if (params == NULL) {
-        return -1;
-    }
-
-    static_timer_params_t *timer_params = (static_timer_params_t*) params;
-
-    int error = create_ltimer(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
-    ttc_ltimer_t *ttc_ltimer = ltimer->data;
-    ttc_ltimer->ops = ops;
-    ttc_ltimer->vaddr_timestamp = timer_params->timestamp_vaddr;
-    ttc_ltimer->vaddr_timeout = timer_params->timeout_vaddr;
-
-    error = init_ltimer(ltimer);
-    if (error) {
-        destroy(ttc_ltimer);
-    }
-
-    ttc_ltimer->is_static = true;
-
-    return 0;
-}
-
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 {
     int error = ltimer_default_describe(ltimer, ops);
@@ -306,8 +276,6 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     if (error) {
         destroy(ttc_ltimer);
     }
-
-    ttc_ltimer->is_static = false;
 
     return 0;
 }

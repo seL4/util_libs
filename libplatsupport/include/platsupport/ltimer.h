@@ -330,6 +330,3 @@ int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops);
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/
 int ltimer_default_describe(ltimer_t *timer, ps_io_ops_t ops);
-
-/* static init function -> initialise a static ltimer */
-int ltimer_static_init(ltimer_t *timer, ps_io_ops_t ops, void *params);
