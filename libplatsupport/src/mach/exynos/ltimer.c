@@ -197,8 +197,6 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         return error;
     }
 
-    pwm_ltimer->is_static = false;
-
     /* success! */
     return 0;
 }
