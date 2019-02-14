@@ -22,6 +22,8 @@
 
 BEGIN_FUNC(core_entry_head)
     mov sp, x0
+    mrs x1, mpidr_el1
+    msr tpidr_el0, x1
     b   core_entry
 END_FUNC(core_entry_head)
 
