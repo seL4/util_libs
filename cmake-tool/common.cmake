@@ -321,7 +321,7 @@ function(GenerateSimulateScript)
     if (NOT "${error}" STREQUAL "")
         set(script "#!/bin/sh\\necho ${error} && exit -1")
         add_custom_command(OUTPUT "${sim_path}"
-            COMMAND echo "${script}" > "${sim_path}"
+            COMMAND echo -e "${script}" > "${sim_path}"
             COMMAND chmod u+x "${sim_path}"
             VERBATIM
         )
