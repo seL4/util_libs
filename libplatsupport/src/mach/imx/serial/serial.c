@@ -12,14 +12,12 @@
 
 #include <autoconf.h>
 
-#ifndef CONFIG_PLAT_KZM
-
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
 #include <string.h>
 
-#include "../../chardev.h"
+#include "../../../chardev.h"
 
 #ifndef UART_REF_CLK
 #error "UART_REF_CLK undefined"
@@ -244,5 +242,3 @@ int uart_init(const struct dev_defn* defn,
 
     return 0;
 }
-
-#endif /* end of !CONFIG_PLAT_KZM */
