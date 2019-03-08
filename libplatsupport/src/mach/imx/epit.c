@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <utils/util.h>
 
@@ -111,9 +112,9 @@ int epit_set_timeout_ticks(epit_t *epit, uint64_t counterValue, bool periodic)
     ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
 
     if (counterValue >= (1ULL << 32)) {
-        ZF_LOGW("counterValue too high\n");
         /* Counter too large to be stored in 32 bits. */
-        return EINVAL;
+        ZF_LOGW("counterValue too high, going to be capping it\n");
+        counterValue = UINT32_MAX;
     }
 
     /* configure it and turn it on */
