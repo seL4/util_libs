@@ -34,7 +34,7 @@ struct zynq7000_eth_data {
     volatile struct emac_bd *rx_ring;
     unsigned int rx_size;
     unsigned int tx_size;
-    struct dma_buf_cookie *rx_cookies;
+    void **rx_cookies;
     unsigned int rx_remain;
     unsigned int tx_remain;
     void **tx_cookies;
@@ -92,7 +92,7 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct emac_bd) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct emac_bd) * dev->tx_size);
 
-    dev->rx_cookies = malloc(sizeof(struct dma_buf_cookie) * dev->rx_size);
+    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
     dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
 
@@ -153,8 +153,7 @@ static void fill_rx_bufs(struct eth_driver *driver) {
     while (dev->rx_remain > 0) {
 
         /* request a buffer */
-        struct dma_buf_cookie cookie_bufs;
-        void *cookie = &cookie_bufs;
+        void *cookie = NULL;
         int next_rdt = (dev->rdt + 1) % dev->rx_size;
 
         uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie);
@@ -162,8 +161,7 @@ static void fill_rx_bufs(struct eth_driver *driver) {
             break;
         }
 
-        dev->rx_cookies[dev->rdt].vbuf = cookie_bufs.vbuf;
-        dev->rx_cookies[dev->rdt].pbuf = cookie_bufs.pbuf;
+        dev->rx_cookies[dev->rdt] = cookie;
 
         /* If this is the last descriptor in the ring, set the wrap bit of the address (bit 1)
          *   so the controller knows to loop back around
@@ -203,7 +201,7 @@ static void complete_rx(struct eth_driver *eth_driver) {
         }
 
         // TBD: Need to handle multiple buffers for single frame?
-        void *cookie = &dev->rx_cookies[dev->rdh];
+        void *cookie = dev->rx_cookies[dev->rdh];
         unsigned int len = status & ZYNQ_GEM_RXBUF_LEN_MASK;
 
         /* update rdh */
