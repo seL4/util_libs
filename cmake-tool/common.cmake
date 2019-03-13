@@ -172,7 +172,7 @@ function(DeclareRootserver rootservername)
 
         # TODO: Currently we do not support native RISC-V builds, because there
         # is no native environment to test this. Thus CROSS_COMPILER_PREFIX is
-        # always set and the BBL build below uses it to create the the
+        # always set and the BBL build below uses it to create the
         # "--host=..." parameter. For now, make the build fail if
         # CROSS_COMPILER_PREFIX if not set. It seems that native builds can
         # simply omit the host parameter.
@@ -182,11 +182,18 @@ function(DeclareRootserver rootservername)
 
         # Get host string which is our cross compiler minus the trailing '-'
         string(REGEX REPLACE "^(.*)-$" "\\1" host ${CROSS_COMPILER_PREFIX})
+        get_filename_component(host ${host} NAME)
+        if(KernelSel4ArchRiscV32)
+            set(march rv32imafdc)
+        else()
+            set(march rv64imafdc)
+        endif()
         add_custom_command(OUTPUT "${IMAGE_NAME}"
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
             COMMAND cd ${CMAKE_BINARY_DIR}/bbl &&
                     ${BBL_PATH}/configure --quiet
                     --host=${host}
+                    --with-arch=${march}
                     --with-payload=$<TARGET_FILE:elfloader> &&
                     make -s clean && make -s > /dev/null
             COMMAND cp ${CMAKE_BINARY_DIR}/bbl/bbl ${IMAGE_NAME}
@@ -307,12 +314,13 @@ function(GenerateSimulateScript)
         if (KernelSel4ArchRiscV32)
             set(binary "qemu-system-riscv32")
             SetDefaultMemSize("2000M")
+            set(sim_machine "virt")
         elseif(KernelSel4ArchRiscV64)
             set(binary "qemu-system-riscv64")
             SetDefaultMemSize("4095M")
+            set(sim_machine "spike_v1.10")
         endif()
         set(QemuBinaryMachine "${binary}")
-        set(sim_machine "spike_v1.10")
         set(sim_serial_opt "-s -serial mon:stdio")
     else()
         set(error "Unsupported platform or architecture for simulation")
