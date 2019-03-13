@@ -58,6 +58,7 @@ function(MakeCPIO output_name input_files)
     set(reproducible_flag "--reproducible")
     CheckCPIOArgument(reproducible_flag)
     set(append "")
+    set(commands "")
     foreach(file IN LISTS input_files)
         # Try and generate reproducible cpio meta-data as we do this:
         # - touch -d @0 file sets the modified time to 0
