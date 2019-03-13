@@ -26,9 +26,6 @@
 #include <platsupport/clock.h>
 #include <platsupport/io.h>
 
-#include <sel4utils/page_dma.h>
-#include <sel4platsupport/io.h>
-
 #include <malloc.h>
 #include <errno.h>
 
