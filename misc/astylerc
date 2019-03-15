@@ -14,4 +14,15 @@ max-instatement-indent=120
 style=otbs
 pad-header
 indent=spaces=4
+attach-closing-while
 pad-oper
+pad-comma
+unpad-paren
+align-pointer=name
+add-braces
+attach-return-type
+convert-tabs
+min-conditional-indent=0
+max-code-length=120
+max-continuation-indent=120
+
