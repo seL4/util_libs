@@ -72,9 +72,10 @@ function(MakeCPIO output_name input_files)
     list(APPEND commands "true")
 
     # RiscV doesn't support linking with -r
-    set(relocate "-r")
     if(KernelArchRiscV)
         set(relocate "")
+    else()
+        set(relocate "-r")
     endif()
     add_custom_command(OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
