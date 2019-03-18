@@ -33,3 +33,16 @@ fi
 
 echo "Styling directory: $SOURCE_DIR"
 find "${SOURCE_DIR}" -name '*.[ch]' -type f | xargs astyle --options="$TOOLS_DIR"/astylerc
+
+# pass the cmake format as args such that cmake-format.py can be used
+# to provide definitions for custom function formatting
+CMAKE_FMT="--line-width 100 \
+           --tab-size 4 \
+           --max-subargs-per-line 3 \
+           --separate-ctrl-name-with-space False \
+           --separate-fn-name-with-space False \
+           --dangle-parens True \
+           --command-case lower \
+           --keyword-case unchanged \
+           --enable-markup False"
+find "${SOURCE_DIR}" -name '*.cmake' -o -name 'CMakeLists.txt' -type f | xargs cmake-format -i ${CMAKE_FMT}
