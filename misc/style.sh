@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Copyright 2018, Data61
@@ -32,5 +32,4 @@ if [ -z "$SOURCE_DIR" ]; then
 fi
 
 echo "Styling directory: $SOURCE_DIR"
-
-astyle --options=$TOOLS_DIR/astylerc --recursive "$SOURCE_DIR/*.c" "$SOURCE_DIR/*.h"
+find "${SOURCE_DIR}" -name '*.[ch]' -type f | xargs astyle --options="$TOOLS_DIR"/astylerc
