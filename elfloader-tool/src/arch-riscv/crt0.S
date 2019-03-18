@@ -25,7 +25,6 @@ _start:
   addi  gp, gp, %pcrel_lo(1b)
 .option pop
 
-  /* mhartid value is in a0 */
   la sp, (elfloader_stack_alloc + BIT(12))
 
   la s0, main

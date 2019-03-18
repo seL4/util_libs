@@ -127,9 +127,8 @@ map_kernel_window(struct image_info *kernel_info)
 #endif
 
 int num_apps = 0;
-void main(int hardid, unsigned long dtb)
+void main(void)
 {
-    (void) hardid;
     printf("ELF-loader started on\n");
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
@@ -155,7 +154,7 @@ void main(int hardid, unsigned long dtb)
 
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                             user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry, 0, dtb);
+                                            user_info.virt_entry);
 
   /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
