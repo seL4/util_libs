@@ -21,6 +21,21 @@ void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table)
     __efi_system_table = (efi_system_table_t *)efi_system_table;
 }
 
+void *efi_get_fdt(void)
+{
+    efi_guid_t fdt_guid = make_efi_guid(0xb1b621d5, 0xf19c, 0x41a5,  0x83, 0x0b, 0xd9, 0x15, 0x2c, 0x69, 0xaa, 0xe0);
+    efi_config_table_t *tables = (efi_config_table_t *)__efi_system_table->tables;
+
+    for (uint32_t i = 0; i < __efi_system_table->nr_tables; i++) {
+        if (!efi_guideq(fdt_guid, tables[i].guid))
+            continue;
+
+        return (void *)tables[i].table;
+    }
+
+    return NULL;
+}
+
 /* Before starting the kernel we should notify the UEFI firmware about it
  * otherwise the internal watchdog may reboot us after 5 min.
  *

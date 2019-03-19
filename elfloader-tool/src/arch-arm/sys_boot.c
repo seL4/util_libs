@@ -66,7 +66,7 @@ void main(UNUSED void *arg)
         abort();
     }
 
-	/* TODO: get DTB from EFI like Linux does. */
+    dtb = efi_get_fdt();
 #endif
 
     /* Print welcome message. */

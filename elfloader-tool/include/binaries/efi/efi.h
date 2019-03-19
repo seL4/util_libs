@@ -15,6 +15,43 @@
 #include <printf.h>
 #include <types.h>
 
+typedef union {
+    uint8_t b[16];
+    struct {
+        uint32_t timeLow;
+        uint16_t timeMid;
+        uint16_t timeHigh;
+        uint8_t clockSeqHighAndReserved;
+        uint8_t clockSeqLow;
+        uint8_t node[6];
+    } s;
+} efi_guid_t;
+
+/* See UEFI Spec v2.7 Appendix A "GUID and Time Formats". */
+static inline efi_guid_t make_efi_guid(uint32_t timeLow, uint16_t timeMid, uint16_t timeHighAndVersion,
+        uint8_t clockSeqHighAndReserved, uint8_t clockSeqLow, uint8_t n0,
+        uint8_t n1, uint8_t n2, uint8_t n3, uint8_t n4, uint8_t n5)
+{
+    efi_guid_t u;
+    u.s.timeLow = timeLow;
+    u.s.timeMid = timeMid;
+    u.s.timeHigh = timeHighAndVersion;
+    u.s.clockSeqHighAndReserved = clockSeqHighAndReserved;
+    u.s.clockSeqLow = clockSeqLow;
+    u.s.node[0] = n0;
+    u.s.node[1] = n1;
+    u.s.node[2] = n2;
+    u.s.node[3] = n3;
+    u.s.node[4] = n4;
+    u.s.node[5] = n5;
+    return u;
+}
+
+typedef struct {
+    efi_guid_t guid;
+    uintptr_t table;
+} efi_config_table_t;
+
 typedef struct {
     uint64_t signature;
     uint32_t revision;
@@ -109,10 +146,12 @@ typedef struct {
     uintptr_t padding_2;
 } efi_simple_text_output_protocol_t;
 
+int efi_guideq(efi_guid_t a, efi_guid_t b);
 efi_boot_services_t *get_efi_boot_services(void);
 efi_simple_text_output_protocol_t *get_efi_con_out(void);
 
 void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table);
 unsigned long efi_exit_boot_services(void);
+void *efi_get_fdt(void);
 int efi_fputc(int c, FILE *stream);
 
