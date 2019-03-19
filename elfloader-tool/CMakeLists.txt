@@ -110,10 +110,18 @@ if(ElfloaderImageEFI)
     list(APPEND files "src/binaries/efi/efi_head.S" ${efi_files})
     # We cannot control where EFI loads the image and so we must make it relocatable
     add_compile_options(-fpic)
+    if(KernelSel4ArchAarch32)
+        # on aarch32 building with -fno-pie results in the compiler generating
+        # movt/movw pairs that we can't easily relocate.
+        add_compile_options(-fpie -mno-single-pic-base)
+    else()
+        # on aarch64 building with -fno-pie will just use pc-relative addressing.
+        add_compile_options(-fno-pie)
+    endif()
 else()
     add_compile_options(-fno-pic)
+    add_compile_options(-fno-pie)
 endif()
-add_compile_options(-fno-pie)
 
 # Sort files to make build reproducible
 list(SORT files)

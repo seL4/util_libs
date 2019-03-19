@@ -64,7 +64,7 @@ BEGIN_FUNC(arm_enable_mmu)
     bl      invalidate_icache
 
     /* Set up TTBR0, enable caching of pagetables. */
-    ldr     r0, =_boot_pd
+    bl      get_boot_pd
     orr     r1, r0, #0x19
     mcr     TTBR0(r1)
     mcr     TLBIALL(r1)

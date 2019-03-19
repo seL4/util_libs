@@ -43,12 +43,13 @@ INSERT AFTER .data;
 
 SECTIONS
 {
-    .abort_stack :
-    {
-        _abortstack_bottom = .;
-        . = . + 4K;
-        . = ALIGN(16K);
-        _abortstack_top = .;
-    }
+    .got.plt : { *(.got.plt) }
+    /*
+     * Put the GOT in its own section, with symbols around it
+     * so that ASM code can easily find it and relocate addresses in it.
+     */
+    _got_start = .;
+    .got : { *(.got) }
+    _got_end = .;
 }
-INSERT AFTER .bss;
+INSERT AFTER .rodata;

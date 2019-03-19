@@ -63,7 +63,7 @@ BEGIN_FUNC(arm_enable_hyp_mmu)
     mcr     HMAIR1(r1)
 
     /* Set up the page table */
-    ldr     r0, =_lpae_boot_pgd
+    bl      get_lpae_boot_pgd
     mov     r1, #0
     mov     r2, #(1<<31)
     mcrr    HTTBR(r1,r0)

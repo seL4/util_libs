@@ -9,6 +9,7 @@
  *
  * @TAG(DATA61_GPL)
  */
+#include <autoconf.h>
 
 #include <assembler.h>
 
@@ -44,18 +45,34 @@ pe_header:
     .short  0
 
 coff_header:
+#ifdef CONFIG_ARCH_AARCH64
     .short  0xaa64                          // AArch64
+#else
+    .short  0x01c2                          // AArch32
+#endif
     .short  2                               // Number of sections
     .long   0                               // TimeStamp
     .long   0                               // PointerToSymbolTable
     .long   1                               // NumberOfSymbolTable
     .short  section_table - optional_header // SizeOfOptionalHeader
+#ifdef CONFIG_ARCH_AARCH64
     .short  0x206                           // Characteristics.
                                             // IMAGE_FILE_DEBUG_STRIPPED |
                                             // IMAGE_FILE_EXECUTABLE_IMAGE |
                                             // IMAGE_FILE_LINE_NUMS_STRIPPED
+#else
+    .short  0x306                           // Characteristics.
+                                            // IMAGE_FILE_32BIT_MACHINE |
+                                            // IMAGE_FILE_DEBUG_STRIPPED |
+                                            // IMAGE_FILE_EXECUTABLE_IMAGE |
+                                            // IMAGE_FILE_LINE_NUMS_STRIPPED
+#endif
 optional_header:
+#ifdef CONFIG_ARCH_AARCH64
     .short  0x20b                           // Magic for PE32+ format
+#else
+    .short  0x10b                           // Magic for PE32 format
+#endif
     .byte   0x02                            // MajorLinkerVersion
     .byte   0x14                            // MinorLinkerVersion
     .long   _end - efi_head_end             // SizeOfCode
@@ -63,9 +80,10 @@ optional_header:
     .long   0                               // SizeOfUninitializedData
     .long   efi_stub_entry - efi_head       // AddressOfEntryPoint
     .long   efi_head_end - efi_head         // BaseOfCode
+    .long   0                               // BaseOfData
 
 extra_header_fields:
-    .quad   0                               // Image Base
+    .long  0                                // Image Base
     .long   0x1000                          // Section Alignment
     .long   PECOFF_FILE_ALIGNMENT           // File Alignment (See linker script)
     .short  0                               // MajorOperatingSystemVersion
@@ -80,12 +98,19 @@ extra_header_fields:
     .long   0                               // CheckSum
     .short  0xa                             // Subsystem (EFI application)
     .short  0                               // DllCharacteristics
+#ifdef CONFIG_ARCH_AARCH64
     .quad   0                               // SizeOfStackReserve
     .quad   0                               // SizeOfStackCommit
     .quad   0                               // SizeOfHeapReserve
     .quad   0                               // SizeOfHeapCommit
+#else
+    .long   0                               // SizeOfStackReserve
+    .long   0                               // SizeOfStackCommit
+    .long   0                               // SizeOfHeapReserve
+    .long   0                               // SizeOfHeapCommit
+#endif
     .long   0                               // LoaderFlags
-    .long   0x6                             // NumberOfRvaAndSizes
+    .long   (section_table - .) / 8         // NumberOfRvaAndSizes
     .quad   0                               // ExportTable and SizeOfExportTable
     .quad   0                               // ImportTable and SizeOfImportTable
     .quad   0                               // ResourceTable and SizeOfResourceTable
@@ -127,11 +152,16 @@ efi_head_end:
 /*
  * This function is called by UEFI firmware as entry to efi application.
  * We arrive here from the EFI boot manager with:
- *
+ * On AArch64:
  *      * x0 as current application handler pointer and x1 as system table pointer.
  *      * MMU on with identity-mapped RAM
  *      * I-cache and D-cache on
  *      * EL2 or EL1 based on firmware configuration
+ * On AArch32:
+ *      * r0 as current application handler pointer and r1 as system table pointer.
+ *      * MMU on with identity-mapped RAM
+ *      * I-cache and D-cache on
+ *      * A privileged mode (i.e. hyp or svc)
  *
  * Here we can do any UEFI dependant initialization, e.g. pass command line arguments to main
  */
@@ -139,7 +169,13 @@ efi_head_end:
 .text
 
 BEGIN_FUNC(efi_stub_entry)
+#ifndef CONFIG_ARCH_AARCH64
+    bl      arch_early_relocate             // Fixup GOT on AArch32
+#endif
+
     bl      efi_early_init                  // Early efi driver initialization
                                             // we do not return to firmware so FR/LR are ignored!
     b       _start                          // Jump to elfloader entry point
 END_FUNC(efi_stub_entry)
+
+

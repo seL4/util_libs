@@ -25,20 +25,20 @@ typedef struct {
 
 typedef struct {
     efi_table_hdr_t hdr;
-    uint64_t fw_vendor;
+    void *fw_vendor;
     uint32_t fw_revision;
-    uint32_t padding_1;
-    uint64_t con_in_handle;
-    uint64_t con_in;
-    uint64_t con_out_handle;
-    uint64_t con_out;
-    uint64_t stderr_handle;
-    uint64_t stderr;
-    uint64_t runtime;
-    uint64_t boottime;
+    /* padding on 64-bit */
+    void *con_in_handle;
+    void *con_in;
+    void *con_out_handle;
+    void *con_out;
+    void *stderr_handle;
+    void *stderr;
+    void *runtime;
+    void *boottime;
     uint32_t nr_tables;
-    uint32_t padding_2;
-    uint64_t tables;
+    /* padding on 64-bit */
+    void *tables;
 } efi_system_table_t;
 
 extern void *__application_handle;
