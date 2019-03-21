@@ -250,7 +250,7 @@ else()
         OR KernelPlatformFVP
     )
         set(PlatformEntryAddr 0x82000000)
-    elseif(KernelPlatExynos5 OR KernelPlatformExynos4)
+    elseif(KernelPlatExynos5 OR KernelPlatformExynos4 OR KernelPlatformImx8mq-evk)
         set(PlatformEntryAddr 0x41000000)
     elseif(KernelPlatformHikey OR KernelPlatformTx1)
         if(KernelSel4ArchAarch64)
