@@ -313,3 +313,5 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
         *num_images = i + 1;
     }
 }
+
+void __attribute__((weak)) platform_init(void) {}
