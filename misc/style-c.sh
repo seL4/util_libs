@@ -11,6 +11,5 @@
 #
 # @TAG(DATA61_BSD)
 #
-
-# run style tools over list of files passed as input
-"${0%/*}"/style.py -f .stylefilter "$@"
+# Format (in-place) a list of files as c-code.
+astyle --options="${0%/*}/astylerc" "$@"

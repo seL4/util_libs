@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #
 # Copyright 2019, Data61
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -12,5 +11,5 @@
 # @TAG(DATA61_BSD)
 #
 
-# run style tools over list of files passed as input
-"${0%/*}"/style.py -f .stylefilter "$@"
+# Run the style tools on all changed files in the current repository
+git ls-files -mo | xargs "${0%/*}"/style.sh
