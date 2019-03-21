@@ -14,9 +14,7 @@ cmake_minimum_required(VERSION 3.8.2)
 
 include("${CMAKE_CURRENT_LIST_DIR}/helpers/application_settings.cmake")
 
-file(GLOB result RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    projects/*/settings.cmake
-)
+file(GLOB result RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" projects/*/settings.cmake)
 
 # We sort the results to ensure that builds are deterministic. Whilst build scripts
 # should not be written to need a particular order of globbed results here, it is

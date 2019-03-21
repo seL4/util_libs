@@ -15,10 +15,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/FindPolly.cmake)
 FindPolly()
 include("${POLLY_DIR}/utilities/polly_init.cmake")
 
-polly_init(
-    "Linux / gcc / PIC / c++11 support / 32 bit"
-    "Ninja"
-)
+polly_init("Linux / gcc / PIC / c++11 support / 32 bit" "Ninja")
 
 include("${POLLY_DIR}/utilities/polly_common.cmake")
 
@@ -26,4 +23,3 @@ include("${POLLY_DIR}/compiler/gcc.cmake")
 include("${POLLY_DIR}/flags/cxx11.cmake")
 include("${POLLY_DIR}/flags/fpic.cmake")
 include("${POLLY_DIR}/flags/32bit.cmake")
-

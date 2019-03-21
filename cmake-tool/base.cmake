@@ -17,7 +17,8 @@ enable_language(CXX)
 enable_language(ASM)
 
 # Hide cmake variables that will just confuse the user
-mark_as_advanced(FORCE
+mark_as_advanced(
+    FORCE
     CMAKE_INSTALL_PREFIX
     CROSS_COMPILER_PREFIX
     EXECUTABLE_OUTPUT_PATH

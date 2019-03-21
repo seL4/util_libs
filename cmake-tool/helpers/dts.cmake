@@ -17,7 +17,7 @@ find_path(DTS_PATH "sabre.dts" PATHS ${KERNEL_PATH}/tools/dts CMAKE_FIND_ROOT_PA
 # <platform>_FOUND_DTS
 function(FindDTS var platform)
     find_file(${platform}_FOUND_DTS ${platform}.dts PATHS ${DTS_PATH} CMAKE_FIND_ROOT_PATH_BOTH)
-    if ("${${platform}_FOUND_DTS}}" STREQUAL "${platform}_FOUND_DTS-NOTFOUND")
+    if("${${platform}_FOUND_DTS}}" STREQUAL "${platform}_FOUND_DTS-NOTFOUND")
         message(WARNING "Could not find default dts file ${PLATFORM.dts}")
     endif()
     set(${var} ${${platform}_FOUND_DTS} PARENT_SCOPE)
@@ -27,11 +27,11 @@ endfunction()
 function(GenDTB dts_file var)
     # find the dtc tool
     find_program(DTC_TOOL dtc)
-    if ("${DTC_TOOL}" STREQUAL "DTC_TOOL-NOTFOUND")
+    if("${DTC_TOOL}" STREQUAL "DTC_TOOL-NOTFOUND")
         message(FATAL_ERROR "Cannot find 'dtc' program.")
     endif()
     # check the dts we have been given exists
-    if (NOT EXISTS "${dts_file}")
+    if(NOT EXISTS "${dts_file}")
         message(FATAL_ERROR "Cannot find dts file ${dts_file}")
     endif()
     # put all the files into /dtb in the binary dir
@@ -43,11 +43,12 @@ function(GenDTB dts_file var)
     set(${var} ${filename} PARENT_SCOPE)
     # now add the command to generate the dtb
     execute_process(
-        COMMAND ${DTC_TOOL} -I dts -O dtb -o ${filename} ${dts_file}
+        COMMAND
+            ${DTC_TOOL} -I dts -O dtb -o ${filename} ${dts_file}
         OUTPUT_VARIABLE output
         ERROR_VARIABLE output
     )
-    if (NOT EXISTS "${filename}")
+    if(NOT EXISTS "${filename}")
         message(FATAL_ERROR "${output}
             failed to gen ${filename}")
     endif()

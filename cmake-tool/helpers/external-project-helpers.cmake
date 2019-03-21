@@ -21,12 +21,8 @@ include(ExternalProject)
 # FILES: List of object files that exist in the external project
 function(DeclareExternalProjObjectFiles external_proj_target external_proj_output_dir)
     # Parse the given files object files
-    cmake_parse_arguments(PARSE_ARGV 2 EXT_OBJECT
-        ""
-        ""
-        "FILES"
-    )
-    if (NOT "${EXT_OBJECT_UNPARSED_ARGUMENTS}" STREQUAL "")
+    cmake_parse_arguments(PARSE_ARGV 2 EXT_OBJECT "" "" "FILES")
+    if(NOT "${EXT_OBJECT_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to DeclareExternalProjObjectFiles")
     endif()
     # Necessary for FILES to be passed

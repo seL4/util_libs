@@ -12,13 +12,11 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-file(GLOB result RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    projects/*/CMakeLists.txt
-)
+file(GLOB result RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" projects/*/CMakeLists.txt)
 
 if(KernelArchRiscV)
-	set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
-	mark_as_advanced(FORCE BBL_PATH)
+    set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
+    mark_as_advanced(FORCE BBL_PATH)
 endif()
 # We sort the results to ensure that builds are deterministic. Whilst build scripts
 # should not be written to need a particular order of globbed results here, it is
@@ -26,6 +24,12 @@ endif()
 list(SORT result)
 
 foreach(file ${result})
-    string(REPLACE "CMakeLists.txt" "" file "${file}")
+    string(
+        REPLACE
+            "CMakeLists.txt"
+            ""
+            file
+            "${file}"
+    )
     add_subdirectory("${file}")
 endforeach()
