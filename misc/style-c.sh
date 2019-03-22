@@ -13,3 +13,12 @@
 #
 # Format (in-place) a list of files as c-code.
 astyle --options="${0%/*}/astylerc" "$@"
+REPO=$(git rev-parse --show-toplevel)
+REPO=${REPO##*/}
+if [ "$REPO" != "kernel" ] # we cannot use #pragma once in the kernel
+then
+    for f
+    do
+        python -m guardonce.guard2once -s "$f"
+    done
+fi
