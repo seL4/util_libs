@@ -28,8 +28,9 @@ DEFAULT_FILTERS = ["*.git/*"]
 # if the regex matches, that tool will be applied to that file. Multiple
 # tools can be defined for the same regex.
 STYLE_MAP = {
-    'style-c.sh':r'((\.c)|(\.h))$',
-    'style-cmake.sh':r'((\.cmake)|(CMakeLists.txt))$'
+    'style-c.sh': r'((\.c)|(\.h))$',
+    'style-cmake.sh': r'((\.cmake)|(CMakeLists.txt))$',
+    'style-py.sh': r'\.py$'
 }
 
 # support comments alone and trailing (comment with #)
