@@ -23,7 +23,13 @@ upstream commit with the smallest diff to the downstream files. Sample usage:
               -d https://github.com/seL4/seL4_tools --downstream-subdir kbuild-tool/kconfig
 '''
 
-import argparse, os, shutil, subprocess, sys, tempfile
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
 
 class GitRepo(object):
     def __init__(self, url):
@@ -36,24 +42,25 @@ class GitRepo(object):
     def log(self, subdir):
         # Reverse the commit list to test them chronologically, just for consistency.
         return reversed(subprocess.check_output(['git', 'log', '--pretty=tformat:%H', '.'],
-            cwd=os.path.join(self.tmp, subdir)).split())
+                                                cwd=os.path.join(self.tmp, subdir)).split())
 
     def __del__(self):
         shutil.rmtree(self.tmp)
 
+
 def main(argv):
     parser = argparse.ArgumentParser(description='locate a Git commit in an upstream project from '
-        'which downstream source was derived')
+                                     'which downstream source was derived')
     parser.add_argument('--upstream', '-u', required=True, help='URL of upstream repository to '
-        'search')
+                        'search')
     parser.add_argument('--upstream-subdir', default='', help='subdirectory within upstream '
-        'repository to consider (root by default)')
+                        'repository to consider (root by default)')
     parser.add_argument('--downstream', '-d', required=True, help='URL of downstream repository '
-        'to analyse')
+                        'to analyse')
     parser.add_argument('--downstream-subdir', default='', help='subdirectory within downstream '
-        'repository to analyse (root by default)')
+                        'repository to analyse (root by default)')
     parser.add_argument('--downstream-commit', help='commit in downstream repository to consider '
-        '(HEAD of master by default)')
+                        '(HEAD of master by default)')
     opts = parser.parse_args(argv[1:])
 
     sys.stderr.write('Cloning %s into a temporary directory...\n' % opts.upstream)
@@ -108,6 +115,7 @@ def main(argv):
     sys.stderr.write('The most likely commit is %s\n' % min_commit)
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

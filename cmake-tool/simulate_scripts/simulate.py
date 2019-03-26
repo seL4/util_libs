@@ -14,35 +14,37 @@ import subprocess
 import sys
 import argparse
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--binary', dest="qemu_sim_binary", type=str,
-            help="QEMU binary", default="@QEMU_SIM_BINARY@")
-    parser.add_argument('-M', '--machine', dest="qemu_sim_machine",type=str,
-            help="QEMU Machine", default="@QEMU_SIM_MACHINE@")
+                        help="QEMU binary", default="@QEMU_SIM_BINARY@")
+    parser.add_argument('-M', '--machine', dest="qemu_sim_machine", type=str,
+                        help="QEMU Machine", default="@QEMU_SIM_MACHINE@")
     parser.add_argument('-c', '--cpu', dest='qemu_sim_cpu', type=str,
-            help="QEMU CPU", default="@QEMU_SIM_CPU@")
+                        help="QEMU CPU", default="@QEMU_SIM_CPU@")
     parser.add_argument('-o', '--cpu-opt', dest='qemu_sim_cpu_opt', type=str,
-            help="QEMU CPU Options", default="@QEMU_SIM_CPU_OPT@")
+                        help="QEMU CPU Options", default="@QEMU_SIM_CPU_OPT@")
     parser.add_argument('-g', '--graphic', dest='qemu_sim_graphic_opt', type=str,
-            help="QEMU Graphic Options", default="@QEMU_SIM_GRAPHIC_OPT@")
+                        help="QEMU Graphic Options", default="@QEMU_SIM_GRAPHIC_OPT@")
     parser.add_argument('-s', '--serial', dest='qemu_sim_serial_opt', type=str,
-            help="QEMU Serial Options", default="@QEMU_SIM_SERIAL_OPT@")
+                        help="QEMU Serial Options", default="@QEMU_SIM_SERIAL_OPT@")
     parser.add_argument('-m', '--mem-size', dest='qemu_sim_mem_size', type=str,
-            help="QEMU Memory Size Option", default="@QEMU_SIM_MEM_SIZE_OPT@")
+                        help="QEMU Memory Size Option", default="@QEMU_SIM_MEM_SIZE_OPT@")
     parser.add_argument('-a', '--args', dest='qemu_sim_args', type=str,
-            help="Arguments to pass onto QEMU", default="@QEMU_SIM_ARGS@")
+                        help="Arguments to pass onto QEMU", default="@QEMU_SIM_ARGS@")
     parser.add_argument('-k', '--kernel', dest='qemu_sim_kernel_file', type=str,
-            help="Kernel file to pass onto QEMU", default="@QEMU_SIM_KERNEL_FILE@")
+                        help="Kernel file to pass onto QEMU", default="@QEMU_SIM_KERNEL_FILE@")
     parser.add_argument('-i', '--initrd', dest='qemu_sim_initrd_file', type=str,
-            help="Initrd file to pass onto QEMU", default="@QEMU_SIM_INITRD_FILE@")
+                        help="Initrd file to pass onto QEMU", default="@QEMU_SIM_INITRD_FILE@")
     parser.add_argument('--extra-qemu-args', dest='qemu_sim_extra_args', type=str,
-            help="Additional arguments to pass onto QEMU", default="")
-    parser.add_argument('--extra-cpu-opts', dest='qemu_sim_extra_cpu_opts',type=str,
-            help="Additional cpu options to append onto the existing CPU options",
-            default="")
+                        help="Additional arguments to pass onto QEMU", default="")
+    parser.add_argument('--extra-cpu-opts', dest='qemu_sim_extra_cpu_opts', type=str,
+                        help="Additional cpu options to append onto the existing CPU options",
+                        default="")
     args = parser.parse_args()
     return args
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -54,7 +56,8 @@ if __name__ == "__main__":
 
     qemu_sim_cpu_entry = ""
     if args.qemu_sim_cpu != "":
-        qemu_sim_cpu_entry = "-cpu " + args.qemu_sim_cpu + args.qemu_sim_cpu_opt + ("," + args.qemu_sim_extra_cpu_opts if args.qemu_sim_extra_cpu_opts else "")
+        qemu_sim_cpu_entry = "-cpu " + args.qemu_sim_cpu + args.qemu_sim_cpu_opt + \
+            ("," + args.qemu_sim_extra_cpu_opts if args.qemu_sim_extra_cpu_opts else "")
 
     qemu_sim_machine_entry = ""
     if args.qemu_sim_machine:
@@ -63,7 +66,7 @@ if __name__ == "__main__":
     qemu_sim_mem_size_entry = "-m size=" + args.qemu_sim_mem_size
 
     qemu_simulate_command_opts = [args.qemu_sim_binary, qemu_sim_machine_entry, qemu_sim_cpu_entry, args.qemu_sim_graphic_opt,
-            args.qemu_sim_serial_opt, qemu_sim_mem_size_entry, args.qemu_sim_extra_args, qemu_sim_images_entry]
+                                  args.qemu_sim_serial_opt, qemu_sim_mem_size_entry, args.qemu_sim_extra_args, qemu_sim_images_entry]
     qemu_simulate_command = " ".join(qemu_simulate_command_opts)
 
     print(qemu_simulate_command)

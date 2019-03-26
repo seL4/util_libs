@@ -37,12 +37,14 @@ STYLE_MAP = {
 COMMENT = re.compile(r'^\s*#')
 TRAILING_COMMENT = re.compile(r'\s+#.*$')
 
+
 def parse_filter(line: str):
     """Parse a filter from a line of a filter file"""
     line = line.strip()
     if line and not COMMENT.search(line):
         return TRAILING_COMMENT.sub('', line)
     return None
+
 
 def parse_filters(filters_file: str):
     """Parse the filter file, returning a list of filters"""
@@ -55,6 +57,7 @@ def parse_filters(filters_file: str):
         except IOError as exception:
             logging.warning("Failed to open filter file %s: %s", filters_file, exception)
     return filters
+
 
 def main():
     parser = argparse.ArgumentParser("Run style updates on files.")
@@ -88,6 +91,7 @@ def main():
             if completed.returncode:
                 logging.fatal("%s failed with error code %d\n%s", files,
                               completed.returncode, completed.stderr)
+
 
 if __name__ == '__main__':
     sys.exit(main())
