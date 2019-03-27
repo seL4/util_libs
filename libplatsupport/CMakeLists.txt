@@ -48,8 +48,10 @@ elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
 endif()
 
-if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM)
-    list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
+if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM OR KernelPlatformImx8mq-evk)
+    if(NOT KernelPlatformImx8mq-evk)
+        list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
+    endif()
     if(NOT KernelPlatformKZM)
         list(APPEND deps src/mach/${KernelArmMach}/serial/serial.c)
     endif()
