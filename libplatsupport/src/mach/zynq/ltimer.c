@@ -104,8 +104,10 @@ static int handle_irq(void *data, ps_irq_t *irq)
         ttc_handle_irq(&ttc_ltimer->ttc_timeout);
     } else if (irq->irq.number == ttc_irq(TTC_TIMESTAMP)) {
         update_timestamp(ttc_ltimer);
+    } else {
+        return EINVAL;
     }
-    return EINVAL;
+    return 0;
 }
 
 static uint64_t read_time(ttc_ltimer_t *ttc_ltimer)
