@@ -1,0 +1,46 @@
+#
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+#
+
+[general]
+# By default gitlint will ignore merge commits. Set to 'false' to disable.
+ignore-merge-commits=true
+
+# By default gitlint will ignore fixup commits. Set to 'false' to disable.
+ignore-fixup-commits=false
+
+# By default gitlint will ignore squash commits. Set to 'false' to disable.
+ignore-squash-commits=false
+
+[title-max-length]
+line-length=50
+
+[title-must-not-contain-word]
+# Comma-separated list of words that should not occur in the title. Matching is case
+# insensitive. It's fine if the keyword occurs as part of a larger word (so "WIPING"
+# will not cause a violation, but "WIP: my title" will.
+words=wip,squash,tosquash
+
+[body-max-line-length]
+line-length=72
+
+[body-min-length]
+min-length=0
+
+
+[ignore-by-title]
+# Ignore certain rules for commits of which the title matches a regex
+# E.g. Match commit titles that start with "Release"
+regex=^trivial(.*)
+#
+# Ignore certain rules, you can reference them by their id or by their full name
+# Use 'all' to ignore all rules
+ignore=B6
