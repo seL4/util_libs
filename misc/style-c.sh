@@ -15,7 +15,7 @@
 astyle --options="${0%/*}/astylerc" "$@"
 REPO=$(git rev-parse --show-toplevel)
 REPO=${REPO##*/}
-if [ "$REPO" != "kernel" -o "$REPO" != "seL4" ]
+if [ "$REPO" != "kernel" -a "$REPO" != "seL4" ]
 # we cannot use #pragma once in the kernel
 then
     for f
