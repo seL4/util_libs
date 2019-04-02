@@ -1,0 +1,496 @@
+#!/bin/sh
+#
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the GNU General Public License version 2. Note that NO WARRANTY is provided.
+# See "LICENSE_GPLv2.txt" for details.
+#
+# @TAG(DATA61_GPL)
+
+# Note: This is _not_ a legitimate parser for CMakeLists!  It is quite crude.
+
+# TODO: Rewrite this in Python!
+
+set -eu
+
+SOURCE_ROOT=${0%/*}
+PROGNAME=${0##*/}
+REPO_DIR=.repo
+CMAKELISTS="$SOURCE_ROOT"/CMakeLists.txt
+EASY_KNOBS="$SOURCE_ROOT"/easy-settings.cmake
+CMAKE_ARGS=
+CMAKE_COMPILER_DEFAULT=gcc
+CMAKE_COMPILER=$CMAKE_COMPILER_DEFAULT
+# Set to a non-null string (like "yes") to enable debugging output.
+DEBUG_MATCHER=
+MODE=invoke
+
+# We use the following exit status conventions:
+#   0: normal operation, successful, "true"
+#   1: expected failure, "false"
+#   2: usage error
+#   3: other error
+EXIT_STATUS=3
+
+# Set up terminal capabilities (for displaying in bold and colors).
+#
+# See terminfo(5) for a list of terminal capability strings.
+#
+# tput returns an empty string for unsupported string capabilities, and -1 for
+# unsupported integer capablilities.
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
+NCOLORS=$(tput colors)
+# If the terminal doesn't support color at all, these will remain null.
+RED=
+GREEN=
+
+# We want different foreground color numbers if we have a terminal capable of
+# more than 8, because generally the contrast is bad if we use the low-numbered
+# colors (bold helps, but only so much).  On terminals truly capable of only 8
+# colors, we have to rely on the implementation to provide good contrast.
+if [ -n "$NCOLORS" ]
+then
+    if [ $NCOLORS -gt 8 ]
+    then
+        RED=$(tput setaf 9)
+        GREEN=$(tput setaf 10)
+    # This is an exact equality match on purpose.  tput will report -1 for a
+    # truly monochrome terminal and in that case we don't want to mess with
+    # the setaf capability at all.
+    elif [ $NCOLORS -eq 8 ]
+    then
+        RED=$(tput setaf 1)
+        GREEN=$(tput setaf 2)
+    fi
+fi
+
+# Emit diagnostic message.
+# @params: a set of strings comprising a human-intelligible message
+#
+# Display the diagnostic message itself in bold.
+_print () {
+    echo "${PROGNAME:-(unknown program)}: $BOLD$*$NORMAL"
+}
+
+# Emit debugging message to standard error.
+# @params: a set of strings comprising a human-intelligible message
+debug () {
+    _print "${GREEN}debug: $*" >&2
+}
+
+# Emit error message to standard error.
+fail () {
+    _print "${RED}error: $*" >&2
+}
+
+# Report unrecoverable error and terminate script.
+# @params: a set of strings comprising a human-intelligible message
+#
+# Note: $EXIT_STATUS, if set in the invoking scope, determines the exit status
+# used by this function.
+die () {
+    _print "${RED}fatal error: $*" >&2
+    exit ${EXIT_STATUS:-3}
+}
+
+# [debugging] Report how the input line was classified.
+# @params: a string describing the classification
+describe () {
+    test -n "$DEBUG_MATCHER" && debug "$CMAKE_LINENO: $*" || :
+}
+
+# Break up Set directive and save interesting parts.
+# @params: one or more strings comprising a line from a CMake input file
+unpack_set () {
+    # TODO: Handle a last parameter of "FORCE".
+    MYLINE=$*
+    # Chop off directive.
+    MYLINE=${MYLINE#set(}
+    # Chop off trailing parenthesis.
+    MYLINE=${MYLINE%)}
+    # By turning off globbing and leaving $MYLINE unquoted, we largely get the
+    # word-splitting we want.
+    set -o noglob
+    set -- $MYLINE
+    set +o noglob
+    CONFIG_VAR=$1
+    shift
+    DEFAULT_VALUE=$1
+    shift
+
+    if [ "$1" = "CACHE" ]
+    then
+        CACHED="(cached)"
+    else
+        CACHED="(not cached)"
+    fi
+
+    shift
+    TYPE=$1
+    shift
+    DESCRIPTION=$*
+    # Chop off leading and trailing double quotes.
+    DESCRIPTION=${DESCRIPTION#\"}
+    DESCRIPTION=${DESCRIPTION%\"}
+}
+
+# Set the value of the variable named in $1 to the maximum of $2 and its current
+# value.
+# @params: $1: a variable name; $2: the potential new value
+update_field_width () {
+    VAR=$1
+    # We use eval so we can get the value of the indirectly-referenced variable
+    # in VAR.  E.g., if $VAR is "CV_WIDTH", we set $OLD_WIDTH to the value of
+    # $CV_WIDTH below.
+    eval OLD_WIDTH=\$$VAR
+    shift
+    VALUE=$*
+    NEW_WIDTH=${#VALUE}
+
+    if [ $NEW_WIDTH -gt $OLD_WIDTH ]
+    then
+        # We use eval to assign to the variable named in $VAR.
+        eval $VAR=$NEW_WIDTH
+    fi
+}
+
+# Perform sanity checks on the environment.
+
+# Is a repo dir present in the PWD?
+if [ -d "$REPO_DIR" ]
+then
+    die "run this tool from a build directory (e.g., \"mkdir build; cd build\")"
+fi
+
+# Guard against rookie mistake of running tool in some non-build subdirectory of
+# the repo checkout.
+THIS_DIR=${PWD##*/}
+
+if [ "$THIS_DIR" = kernel ] || [ "$THIS_DIR" = projects ] \
+    || [ "$THIS_DIR" = tools ]
+then
+    die "run this tool from a build directory (e.g., \"mkdir ../build;" \
+        " cd ../build\")"
+fi
+
+# Is a repo dir present in the PWD, but not the CMake lists file?
+if [ -d "$SOURCE_ROOT"/"$REPO_DIR" ]
+then
+    if ! [ -e "$CMAKELISTS" ]
+    then
+        # This should only happen if the checkout is badly damaged or someone
+        # ran "repo init" without "repo sync" and grabbed this script from
+        # someplace else.
+        die "no \"$CMAKELISTS\" file present;" \
+            "${NORMAL}did you forget to run \"repo sync\"?"
+    fi
+else
+    # We are completely in the wilderness.
+    die "cannot find \"$REPO_DIR\" in this directory or its parent;" \
+        "${NORMAL}you need to (1) initialise a repo with \"repo init -u" \
+        "\$GIT_CLONE_URL\", (2) \"repo sync\", (3) create a build directory" \
+        "(e.g., \"cd build\"), (4) change into that directory (e.g." \
+        "\"cd build\"), and (5) try to run this tool again."
+fi
+
+# Is an easy config file available?
+if ! [ -r "$EASY_KNOBS" ]
+then
+    # At this point we know we're probably in a build directory and there is a
+    # CMake lists file, but not an easy settings file.
+    die "\"$EASY_KNOBS\" does not exist or is not readable;" \
+        "${NORMAL}this project may not yet support \"$PROGNAME\""
+fi
+
+CMAKE_LINENO=0
+# Set up some variables to compute pleasant field widths.
+CV_WIDTH=0 # $CONFIG_VAR field with
+TY_WIDTH=0 # $TYPE field width
+DV_WIDTH=0 # $DEFAULT_VALUE field width
+
+while read -r LINE
+do
+    CMAKE_LINENO=$((CMAKE_LINENO + 1))
+
+    # Remove syntactically unimportant leading and trailing white space.
+    LINE=$(echo "$LINE" | sed -e 's/^\s\+//' -e 's/\s\+$//')
+
+    case "$LINE" in
+    ('#'*)
+        describe "comment line"
+        ;;
+    ('')
+        describe "blank line"
+        ;;
+    (set'('*)
+        describe "configuration variable: \"$LINE\""
+        unpack_set "$LINE"
+        update_field_width CV_WIDTH "$CONFIG_VAR"
+        update_field_width TY_WIDTH "$TYPE"
+        update_field_width DV_WIDTH "$DEFAULT_VALUE"
+        # Save the configuration variable name as an acceptable long option
+        # for getopt.
+
+        # If the configuration variable is of boolean type, its parameter is
+        # optional; getopt indicates that with a trailing double colon
+        # instead of a single one.
+        if [ "$TYPE" = BOOL ]
+        then
+            GETOPT_FLAGS=${GETOPT_FLAGS:+$GETOPT_FLAGS,}$CONFIG_VAR::
+        else
+            GETOPT_FLAGS=${GETOPT_FLAGS:+$GETOPT_FLAGS,}$CONFIG_VAR:
+        fi
+
+        # Use eval to interpolate $CONFIG_VAR into a shell variable.  For
+        # instance, the following line might expand to:
+        #   VAR_SIMULATION_TYPE=BOOL
+        eval "VAR_${CONFIG_VAR}_TYPE"="$TYPE"
+
+        # Pack information about the configuration variable (except for
+        # caching information) into a string to be decoded by show_usage().
+        #
+        # The "records" are separated by "@@" and the "fields" by "@:".
+        OPTIONS=${OPTIONS:+$OPTIONS@@}$CONFIG_VAR@:$TYPE@:$DEFAULT_VALUE@:$DESCRIPTION
+        OPTION_REPORT="${OPTION_REPORT:=}
+$CONFIG_VAR is type: $TYPE, default: $DEFAULT_VALUE, $CACHED; $DESCRIPTION"
+        ;;
+    (*)
+        die "$EASY_KNOBS:$CMAKE_LINENO: I don't know how to handle \"$LINE\""
+        ;;
+    esac
+done < "$EASY_KNOBS"
+
+# Now that we've parsed the CMakefile, we know what options we can accept.
+#
+# Append a record separator to the end of $OPTIONS for ease of processing later.
+OPTIONS=${OPTIONS:-}@@
+
+# Display a usage message.
+show_usage () {
+    # We handle the "PLATFORM" configuration variable specially since its valid
+    # values are computed by CMake.
+    DO_PLATFORM_HELP=
+
+    # Make sure our field widths are wide enough for our column headings.
+    update_field_width CV_WIDTH "Option"
+    update_field_width TY_WIDTH "Type"
+    update_field_width DV_WIDTH "Default"
+    # Furthermore make sure the field width for the configuration flag name
+    # itself is wide enough to accommodate the two option dashes we will add.
+    CV_WIDTH=$(( CV_WIDTH + 2 ))
+
+    cat <<EOF
+$PROGNAME: easy cooking with CMake
+
+$PROGNAME eases the setup of seL4-related builds by exposing only the most
+commonly-used configuration variables in the seL4 CMake infrastructure.  These
+differ between projects, but you can always discover them with:
+    $PROGNAME --help
+
+Usage:
+    $PROGNAME [--compiler={gcc|llvm}] [CMAKE-CONFIGURATION-VARIABLE] ...
+    $PROGNAME --help
+
+Options:
+    --compiler={gcc|llvm}   Report "gcc" or "llvm" compiler suite to CMake.
+                            (default: $CMAKE_COMPILER_DEFAULT)
+    --help                  Display this message and exit.
+EOF
+
+    if [ -z "$OPTIONS" ]
+    then
+        cat <<EOF
+
+The file "$EASY_KNOBS" defines no basic configuration options for this project.
+EOF
+        return
+    fi
+
+    if [ -n "$GETOPT_FLAGS" ]
+    then
+        echo
+        FORMAT_STRING="%${CV_WIDTH}s  %${TY_WIDTH}s  %${DV_WIDTH}s  %s\n"
+        printf "$FORMAT_STRING" "Option" "Type" "Default" "Description"
+        echo
+
+        while [ -n "$OPTIONS" ]
+        do
+            # Unpack and display the information condensed into $OPTIONS.
+            #
+            # The "records" are separated by "@@" and the "fields" by "@:".
+            #
+            # Break off one option record at a time for clarity.
+            RECORD=${OPTIONS%%@@*}
+            OPTIONS=${OPTIONS#*@@}
+
+            # We now have one record in $RECORD.  Extract the fields.
+            CONFIG_VAR=${RECORD%%@:*}
+            RECORD=${RECORD#*@:}
+            TYPE=${RECORD%%@:*}
+            RECORD=${RECORD#*@:}
+            DEFAULT_VALUE=${RECORD%%@:*}
+            RECORD=${RECORD#*@:}
+            DESCRIPTION=$RECORD
+
+            if [ "$CONFIG_VAR" = PLATFORM ]
+            then
+                DO_PLATFORM_HELP=yes
+            fi
+
+            printf "$FORMAT_STRING" \
+                "--$CONFIG_VAR" "$TYPE" "$DEFAULT_VALUE" "$DESCRIPTION"
+        done
+    fi
+
+    if [ -n "$DO_PLATFORM_HELP" ]
+    then
+        # We use $0 instead of $PROGNAME here; we want to be literal and
+        # hand-holdy, since we're basically telling the user to provoke a CMake
+        # error to get the list.
+        cat <<EOF
+
+For a list of valid values of --PLATFORM, use "$0 --PLATFORM=help".
+EOF
+    fi
+}
+
+# Check the option given against those extracted from the CMake file.
+# @params: the option name to look up
+# @return: 0 (true) if option recognized; 1 (false) otherwise
+validate_name () {
+    FLAG=$1
+
+    if echo "$GETOPT_FLAGS" | egrep -q "(^|.+:)?$FLAG(:.+|$)?"
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Check the option parameter given against the declared type.
+# @params: an option name and its parameter
+# @return: 0 (true) if parameter type-checks; 1 (false) otherwise
+validate_parameter () {
+    FLAG=$1
+    VALUE=$2
+
+    # Use eval to interpolate $FLAG into a shell variable which should have been
+    # defined in the big case statement above (when the CMake file was parsed).
+    #
+    # Calling validate_name() before this function should prevent any attempt at
+    # expanding an undefined variable name.
+    eval TYPE=\$VAR_${FLAG}_TYPE
+
+    case "$TYPE" in
+    (BOOL)
+        case "$VALUE" in
+        (ON|OFF)
+            die "\"FLAG\" only supports values of \"ON\" or \"OFF\""
+            ;;
+        esac
+        ;;
+    (STRING)
+        # No validation at present.
+        ;;
+    (*)
+        die "unsupported configuration variable type \"$TYPE\" (\"$FLAG\")"
+        ;;
+    esac
+
+    return 0
+}
+
+getopt -T || GETOPT_STATUS=$?
+
+if [ $GETOPT_STATUS -ne 4 ]
+then
+    die "getopt from util-linux required"
+fi
+
+if ! ARGS=$(getopt -o '' --long "$GETOPT_FLAGS",compiler:,help \
+    --name "$PROGNAME" -- "$@")
+then
+    show_usage >&2
+fi
+
+eval set -- "$ARGS"
+unset ARGS
+
+while [ -n "${1:-}" ]
+do
+    case "$1" in
+    (--compiler)
+        if [ "$2" = gcc ] || [ "$2" = llvm ]
+        then
+            CMAKE_COMPILER="$2"
+        else
+            die "unrecognized compiler \"$2\"; expected \"gcc\" or \"llvm\""
+        fi
+
+        break
+        ;;
+    (--help)
+        MODE=help
+        ;;
+    (--)
+        shift
+        break
+        ;;
+    (--*)
+        # Strip off leading dashes.
+        ARG=${1#--}
+
+        if validate_name "$ARG"
+        then
+            MODE=invoke
+        else
+            # getopt should have caught this, but just in case...
+            fail "unrecognized configuration option \"$1\""
+            show_usage >&2
+        fi
+
+        CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$ARG"
+
+        # Handle an option argument, if present.
+        if [ -n "$2" ]
+        then
+            VALUE=$2
+            shift
+
+            if validate_parameter "$ARG" "$VALUE"
+            then
+                CMAKE_ARGS="$CMAKE_ARGS=$VALUE"
+            fi
+        fi
+        ;;
+    (*)
+        die "internal error while processing options"
+        ;;
+    esac
+
+    shift
+done
+
+if [ $MODE = help ]
+then
+    show_usage
+elif [ $MODE = invoke ]
+then
+    # We run cmake multiple times because project-specific mandatory settings
+    # are sometimes buried deep in the tree of cmake files, and might get
+    # dereferenced before they are used.  CMake's caching stabilizes the
+    # situation, at the cost of requiring multiple runs.  Fixing this infelicity
+    # is JIRA SELFOUR-1648.
+    cmake -DCMAKE_TOOLCHAIN_FILE="$SOURCE_ROOT"/kernel/"$CMAKE_COMPILER".cmake \
+        -G Ninja "$@" \
+        "$SOURCE_ROOT" \
+        && cmake "$SOURCE_ROOT" \
+        && cmake "$SOURCE_ROOT"
+else
+    die "internal error; unrecognized operation mode \"$MODE\""
+fi
