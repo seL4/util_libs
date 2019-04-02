@@ -38,20 +38,13 @@
 #define PTE_PPN0_SHIFT 10
 
 #if __riscv_xlen == 32
-#define PTE_LEVEL_BITS PT_LEVEL_2_BITS
 #define PT_INDEX_BITS  10
-#define PPN_HIGH       20
-typedef uint32_t seL4_Word;
 #else
-#define PTE_LEVEL_BITS PT_LEVEL_1_BITS
 #define PT_INDEX_BITS  9
-#define PPN_HIGH       28
-typedef uint64_t seL4_Word;
 #endif
 
 #define PTES_PER_PT BIT(PT_INDEX_BITS)
 
-#define PTE_CREATE(PPN)          (unsigned long)(((uint32_t)PPN) | PTE_TYPE_SRWX | PTE_V)
 #define PTE_CREATE_PPN(PT_BASE)  (unsigned long)(((PT_BASE) >> RISCV_PGSHIFT) << PTE_PPN0_SHIFT)
 #define PTE_CREATE_NEXT(PT_BASE) (unsigned long)(PTE_CREATE_PPN(PT_BASE) | PTE_TYPE_TABLE | PTE_V)
 #define PTE_CREATE_LEAF(PT_BASE) (unsigned long)(PTE_CREATE_PPN(PT_BASE) | PTE_TYPE_SRWX | PTE_V)
@@ -64,50 +57,58 @@ struct image_info kernel_info;
 struct image_info user_info;
 
 unsigned long l1pt[PTES_PER_PT] __attribute__((aligned(4096)));
+#if __riscv_xlen == 64
 unsigned long l2pt[PTES_PER_PT] __attribute__((aligned(4096)));
+unsigned long l2pt_elf[PTES_PER_PT] __attribute__((aligned(4096)));
+#endif
 
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
 void map_kernel_window(struct image_info *kernel_info)
 {
-    uint64_t i;
-    uint32_t l1_index;
+    uint32_t index;
+    unsigned long *lpt;
 
-    // first create a complete set of 1-to-1 mappings for all of memory. this is a brute
-    // force way to ensure this elfloader is mapped into the new address space
-    for (i = 0; i < PTES_PER_PT; i++) {
-        l1pt[i] = PTE_CREATE((uint64_t)(i << PPN_HIGH));
-    }
-    //Now create any neccessary entries for the kernel vaddr->paddr
-    l1_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
+    /* Map the elfloader into the new address space */
+    index = GET_PT_INDEX((uintptr_t)_start, PT_LEVEL_1);
 
-    /* Check if aligned to top level page table. For Sv32, 2MiB. For Sv39, 1GiB */
-    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PTE_LEVEL_BITS)) {
-        for (int page = 0; l1_index < PTES_PER_PT; l1_index++, page++) {
-            l1pt[l1_index] = PTE_CREATE_LEAF((seL4_Word)(kernel_info->phys_region_start + (page << PTE_LEVEL_BITS)));
-        }
-    }
-#if CONFIG_PT_LEVELS == 3
-    else if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
-        uint32_t l2_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_2);
-        l1pt[l1_index] = PTE_CREATE_NEXT((seL4_Word)l2pt);
-
-        for (int page = 0; l2_index < PTES_PER_PT; l2_index++, page++) {
-            l2pt[l2_index] = PTE_CREATE_LEAF(kernel_info->phys_region_start + (page << PT_LEVEL_2_BITS));
-        }
-    }
+#if __riscv_xlen == 32
+    lpt = l1pt;
+#else
+    lpt = l2pt_elf;
+    l1pt[index] = PTE_CREATE_NEXT((uintptr_t)l2pt_elf);
+    index = GET_PT_INDEX((uintptr_t)_start, PT_LEVEL_2);
 #endif
-    else {
+
+    if (IS_ALIGNED((uintptr_t)_start, PT_LEVEL_2_BITS)) {
+        for (int page = 0; index < PTES_PER_PT; index++, page++) {
+            lpt[index] = PTE_CREATE_LEAF((uintptr_t)_start +
+                                         (page << PT_LEVEL_2_BITS));
+        }
+    } else {
+        printf("Elfloader not properly aligned\n");
+        abort();
+    }
+
+    /* Map the kernel into the new address space */
+    index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
+
+#if __riscv_xlen == 64
+    lpt = l2pt;
+    l1pt[index] = PTE_CREATE_NEXT((uintptr_t)l2pt);
+    index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_2);
+#endif
+    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start,
+                          kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
+        for (int page = 0; index < PTES_PER_PT; index++, page++) {
+            lpt[index] = PTE_CREATE_LEAF(kernel_info->phys_region_start +
+                                         (page << PT_LEVEL_2_BITS));
+        }
+    } else {
         printf("Kernel not properly aligned\n");
         abort();
     }
 }
-
-#if __riscv_xlen == 32
-#define LW lw
-#else
-#define LW ld
-#endif
 
 #if CONFIG_PT_LEVELS == 2
 uint64_t vm_mode = 0x1llu << 31;
