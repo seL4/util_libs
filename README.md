@@ -16,6 +16,7 @@ Collection of OS independent utility libs:
 * libethdrivers - a library for ethernet drivers.
 * libpci - a library for PCI drivers.
 * libplatsupport - a library of platform support utilities, interfaces for interacting with drivers, timer drivers, serial drivers and clock drivers.
+* libfdt - a library for flat device tree manipulation [libfdt](https://github.com/torvalds/linux/tree/master/scripts/dtc/libfdt)
 * libutils - a library of generic utilities including:
   * ansi.h - utilities for formatting ansi output.
   * arith.h - utilities for arithmetic, ie MAX, MIN, ROUND_UP etc.
