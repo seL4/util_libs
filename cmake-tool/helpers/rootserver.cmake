@@ -87,15 +87,29 @@ function(DeclareRootserver rootservername)
                 DEPENDS $<TARGET_FILE:elfloader> elfloader
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
+            # If not an elf we construct an intermediate rule to do an objcopy to binary
+            add_custom_command(
+                OUTPUT "${IMAGE_NAME}.bin"
+                COMMAND
+                    ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}.bin"
+                DEPENDS $<TARGET_FILE:elfloader> elfloader
+            )
+
+            if("${KernelArmSel4Arch}" STREQUAL "aarch32")
+                set(UIMAGE_ARCH "arm")
+            else()
+                set(UIMAGE_ARCH "arm64")
+            endif()
+
             # Add custom command for converting to uboot image
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    mkimage -A arm64 -O qnx -T kernel -C none -a
+                    mkimage -A ${UIMAGE_ARCH} -O linux -T kernel -C none -a
                     $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -e
-                    $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -d $<TARGET_FILE:elfloader>
+                    $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -d "${IMAGE_NAME}.bin"
                     "${IMAGE_NAME}"
-                DEPENDS $<TARGET_FILE:elfloader> elfloader
+                DEPENDS "${IMAGE_NAME}.bin"
             )
         else()
             add_custom_command(

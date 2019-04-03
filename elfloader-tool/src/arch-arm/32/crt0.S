@@ -20,7 +20,8 @@
 .section ".text.start"
 
 BEGIN_FUNC(_start)
-    /* If we're not booting under EFI, r0 will contain a pointer to the DTB */
+    /* If we're not booting under EFI, r2 will contain a pointer to the DTB */
+    mov r0, r2
 
     /* Disable Async aborts that might be pending from bootloader */
     cpsid   ifa
