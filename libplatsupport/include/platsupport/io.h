@@ -374,12 +374,23 @@ static inline int ps_free(ps_malloc_ops_t *ops, size_t size, void *ptr)
     return ops->free(ops->cookie, size, ptr);
 }
 
+/*
+ *  Struct to allocate I/O to point a device tree blob
+ *  @param ptr Returning to device tree blob
+*/
+
+typedef struct ps_io_fdt {
+    char *blob;
+} ps_io_fdt_t;
+
+
 /* Struct to collect all the different I/O operations together. This should contain
  * everything a driver needs to function */
 struct ps_io_ops {
     ps_io_mapper_t io_mapper;
     ps_io_port_ops_t io_port_ops;
     ps_dma_man_t dma_manager;
+    ps_io_fdt_t io_fdt;
 #ifdef CONFIG_ARCH_ARM
     clock_sys_t clock_sys;
     mux_sys_t mux_sys;
