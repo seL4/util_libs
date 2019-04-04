@@ -1,0 +1,76 @@
+#!/usr/bin/env -S cmake -P
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+
+message("CMake REPL: Execute cmake commands interactively. (Ctrl-D to exit)")
+
+# If this file was included somewhere else then CMAKE_PARENT_LIST_FILE will be set
+if(NOT "${CMAKE_PARENT_LIST_FILE}" STREQUAL "")
+    message("  Currently included in file: ${CMAKE_PARENT_LIST_FILE}")
+    set(state_dir ${CMAKE_BINARY_DIR}/.repl/)
+    set(history_file ${CMAKE_BINARY_DIR}/.repl/history)
+else()
+    # If not included by anywhere else, then spew data into the user's home directory
+    # Calculate a thread id to allow running multiple instances
+    file(GLOB tids /proc/self/task/*)
+    list(GET tids 0 tid_path)
+    get_filename_component(tid ${tid_path} NAME)
+    set(state_dir "$ENV{HOME}/.cmakerepl/tid/")
+    set(history_file $ENV{HOME}/.cmakerepl/history)
+endif()
+
+file(MAKE_DIRECTORY ${state_dir})
+file(TOUCH ${history_file})
+
+set(prompt "> ")
+
+# Write a python read script out to disk. We use this to for obtaining user input
+# it uses readline to provide history and line editing. Unfortunately it isn't
+# featured enough to support multiline input.
+file(WRITE ${state_dir}/read.py "from __future__ import print_function
+import readline
+f = open(\"${state_dir}/test\", 'w')
+readline.read_history_file(\"${history_file}\")
+try:
+    s = raw_input(\"${prompt}\")
+    print(s, file=f)
+    readline.write_history_file(\"${history_file}\")
+except EOFError:
+    print(\"set(forever OFF)\", file=f)
+")
+
+# Declare a short hand run function for executing something on the shell
+# if this starts name colliding with existing functions in scope it can just be deleted
+function(run)
+    execute_process(
+        COMMAND ${ARGV}
+        INPUT_FILE /dev/stdin
+        OUTPUT_FILE /dev/stdout
+        ERROR_FILE /dev/stderr
+    )
+endfunction()
+
+# Start REPL.
+# This calls the python script that prompts the user for input.
+# The input is then written out to a file which cmake includes into itself
+# Including the file results in its execution.
+# Then we loop back again.
+# Exiting is implemented by setting the loop variable to false when an EOF exception
+# is caught in the python script.
+set(forever ON)
+while(forever)
+    execute_process(
+        COMMAND python ${state_dir}/read.py
+        INPUT_FILE /dev/stdin
+        OUTPUT_FILE /dev/stdout
+        ERROR_FILE /dev/stderr
+    )
+    include(${state_dir}/test)
+endwhile()
