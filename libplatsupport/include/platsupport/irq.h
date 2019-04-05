@@ -35,11 +35,11 @@ typedef struct {
             long vector;
         } ioapic;
         struct {
-           long pci_bus;
-           long pci_dev;
-           long pci_func;
-           long handle;
-           long vector;
+            long pci_bus;
+            long pci_dev;
+            long pci_func;
+            long handle;
+            long vector;
         } msi;
         struct {
             long number;
