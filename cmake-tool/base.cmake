@@ -65,4 +65,7 @@ add_subdirectory("${real_list}/../elfloader-tool" elfloader-tool)
 # Setup the build flags
 include("${CMAKE_CURRENT_LIST_DIR}/flags.cmake")
 
+# Now all platform compilation flags have been set, we can check the compiler against flags
+include("${CMAKE_CURRENT_LIST_DIR}/helpers/check_arch_compiler.cmake")
+
 add_subdirectory("${KERNEL_PATH}/libsel4" libsel4)
