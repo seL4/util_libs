@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #
 # Copyright 2019, Data61
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -11,11 +10,13 @@
 #
 # @TAG(DATA61_BSD)
 #
-# Format (in-place) a list of files as c-code.
+
+# Format (in place) a list of files as C code.
 astyle --options="${0%/*}/astylerc" "$@"
 REPO=$(git rev-parse --show-toplevel)
 REPO=${REPO##*/}
-if [ "$REPO" != "kernel" -a "$REPO" != "seL4" ]
+
+if [ "$REPO" != "kernel" ] && [ "$REPO" != "seL4" ]
 # we cannot use #pragma once in the kernel
 then
     for f

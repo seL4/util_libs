@@ -11,6 +11,7 @@
 #
 # @TAG(DATA61_BSD)
 #
+
 # Style an input list of files as cmake files.
 
 # Pass the cmake format as args such that cmake-format.py can be used

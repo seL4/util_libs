@@ -11,5 +11,5 @@
 # @TAG(DATA61_BSD)
 #
 
-# Run the style tools on all changed files in the current repository
+# Run the style tools on all changed files in the current repository.
 git ls-files -mo | xargs "${0%/*}"/style.sh

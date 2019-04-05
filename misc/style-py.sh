@@ -11,5 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 #
-# Format (in-place) a list of files as python-code.
+
+# Format (in place) a list of files as Python code.
 autopep8 -i --max-line-length 100 "$@"

@@ -14,9 +14,9 @@
 # Run style tools on all dirs passed in, or the current dir.
 if [ -z "$@" ]
 then
-DIRS=$(pwd)
+    DIRS=$(pwd)
 else
-DIRS="$@"
+    DIRS="$@"
 fi
 
 for d in "$DIRS"
