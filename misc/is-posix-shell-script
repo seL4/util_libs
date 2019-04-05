@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+#
+
+# Exit on unhandled error exit statuses; turn off filename expansion
+# ("globbing"); warn on expansion of unset parameters.
+set -efu
+
+PROGNAME=${0##*/}
+
+die () {
+    echo "$PROGNAME: fatal error: $*" >&2
+    exit 3
+}
+
+is_shell_script () {
+    FILE=$1
+    # Use parameter expansion tricks as a poor man's pattern matcher; if the
+    # expansion does not mutate the parameter, then it _didn't_ match the
+    # pattern.
+    if [ "${FILE%.bash}" != "$FILE" ] \
+        || [ "${FILE%.ksh}" != "$FILE" ] \
+        || [ "${FILE%.sh}" != "$FILE" ]
+    then
+        # It's claiming to be a Bourne-based script; believe it.
+        return 0
+    fi
+
+    # If it's executable, let file(1) do the hard work of figuring out what kind
+    # of program it is.
+    if [ -x "$FILE" ]
+    then
+        DESCRIPTION=$(file -b "$FILE")
+
+        case "$DESCRIPTION" in
+            # Catch POSIX, Korn, Bourne-Again, and Z shell scripts.
+            ("* shell script*"|"* zsh script*")
+                return 0
+                ;;
+            # Catch indirections through env.  Mind ksh88 and ksh93.
+            ("*env *sh script*"|"*env ksh88 script*"|"*env ksh93 script*")
+                return 0
+                ;;
+        esac
+    fi
+
+    # All checks failed; report that the argument is not a shell script.
+    return 1
+}
+
+# Amusingly, this script won't validate itself with "command -v"; the
+# "-v" flag was part of the "User Portability Utilities option" in POSIX
+# Issue 6 (2004), but only promoted to full mandatory status in Issue 7
+# (2017).  So instead use "which" (a Debianism, but widely available)
+# until Debian's checkbashisms catches up.
+#
+#if ! command -v checkbashisms > /dev/null
+if ! which checkbashisms > /dev/null
+then
+    die "\"checkbashisms\" command not found; is the \"devscripts\" package" \
+        "installed?"
+fi
+
+if ! which file > /dev/null
+then
+    die "\"file\" command not found; is the \"file\" package installed?"
+fi
+
+for FILE
+do
+    # Is the current file a shell script?  If not, skip it.
+    is_shell_script "$FILE" || continue
+
+    # --force checks for non-POSIX constructs even in scripts that declare bash
+    # as the interpreter (useful because we don't want any bash scripts).
+    #
+    # --posix forces full-POSIX checking, ignoring the couple of exceptions to
+    # POSIX-compliance permitted by Debian policy.
+    #
+    # --extra prints out the offending line after the diagnostic.
+    if ! checkbashisms --force --posix --extra "$FILE"
+    then
+        die "script \"$FILE\" has non-POSIX features"
+    fi
+
+    # Now use the shell's own internal parser to find more subtle problems.
+    # Even this is not perfect because in this mode, the shell fails to perform
+    # many expansions due to possible side effects.  Also, the shell language is
+    # not decidable.  :-|  (See Trienen, Jennerod, "Mining Debian Maintainer
+    # Scripts",
+    # https://debconf18.debconf.org/talks/90-mining-debian-maintainer-scripts/ )
+    #
+    # Here's an example of a construct sh -n doesn't catch that fails when run
+    # for real:
+    #
+    # [[ a =~ a* ]] || echo a does not equal a
+    #
+    # ...and more forgivably, stupid eval tricks like this:
+    #
+    # STRING='${ARRAY_DEREF[1]}'; eval echo $STRING
+    if ! sh -n "$FILE"
+    then
+        die "script \"$FILE\" failed syntax check"
+    fi
+done
