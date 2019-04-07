@@ -68,43 +68,36 @@ unsigned long l2pt[PTES_PER_PT] __attribute__((aligned(4096)));
 
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
-void
-map_kernel_window(struct image_info *kernel_info)
+void map_kernel_window(struct image_info *kernel_info)
 {
     uint64_t i;
     uint32_t l1_index;
 
     // first create a complete set of 1-to-1 mappings for all of memory. this is a brute
     // force way to ensure this elfloader is mapped into the new address space
-    for(i = 0; i < PTES_PER_PT; i++)
-    {
+    for (i = 0; i < PTES_PER_PT; i++) {
         l1pt[i] = PTE_CREATE((uint64_t)(i << PPN_HIGH));
     }
     //Now create any neccessary entries for the kernel vaddr->paddr
     l1_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
 
     /* Check if aligned to top level page table. For Sv32, 2MiB. For Sv39, 1GiB */
-    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PTE_LEVEL_BITS))
-    {
-        for (int page = 0; l1_index < PTES_PER_PT; l1_index++, page++)
-        {
+    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PTE_LEVEL_BITS)) {
+        for (int page = 0; l1_index < PTES_PER_PT; l1_index++, page++) {
             l1pt[l1_index] = PTE_CREATE_LEAF((seL4_Word)(kernel_info->phys_region_start + (page << PTE_LEVEL_BITS)));
         }
     }
 #if CONFIG_PT_LEVELS == 3
-    else if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PT_LEVEL_2_BITS))
-    {
+    else if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start, kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
         uint32_t l2_index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_2);
         l1pt[l1_index] = PTE_CREATE_NEXT((seL4_Word)l2pt);
 
-        for (int page = 0; l2_index < PTES_PER_PT; l2_index++, page++)
-        {
+        for (int page = 0; l2_index < PTES_PER_PT; l2_index++, page++) {
             l2pt[l2_index] = PTE_CREATE_LEAF(kernel_info->phys_region_start + (page << PT_LEVEL_2_BITS));
         }
     }
 #endif
-    else
-    {
+    else {
         printf("Kernel not properly aligned\n");
         abort();
     }
@@ -117,11 +110,11 @@ map_kernel_window(struct image_info *kernel_info)
 #endif
 
 #if CONFIG_PT_LEVELS == 2
-    uint64_t vm_mode = 0x1llu << 31;
+uint64_t vm_mode = 0x1llu << 31;
 #elif CONFIG_PT_LEVELS == 3
-    uint64_t vm_mode = 0x8llu << 60;
+uint64_t vm_mode = 0x8llu << 60;
 #elif CONFIG_PT_LEVELS == 4
-    uint64_t vm_mode = 0x9llu << 60;
+uint64_t vm_mode = 0x9llu << 60;
 #else
 #error "Wrong PT level"
 #endif
@@ -147,15 +140,15 @@ void main(void)
 
     asm volatile(
         "csrw sptbr, %0\n"
-       :
-       : "r" (vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
-       :
-   );
+        :
+        : "r"(vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
+        :
+    );
 
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                            user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry);
+                                                  user_info.phys_region_end, user_info.phys_virt_offset,
+                                                  user_info.virt_entry);
 
-  /* We should never get here. */
+    /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
 }

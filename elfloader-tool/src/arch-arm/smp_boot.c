@@ -44,16 +44,16 @@ void non_boot_main(void)
     }
 #endif
     /* Enable the MMU, and enter the kernel. */
-    if(is_hyp_mode()){
+    if (is_hyp_mode()) {
         arm_enable_hyp_mmu();
-    }else{
+    } else {
         arm_enable_mmu();
     }
 
     /* Jump to the kernel. */
     ((init_arm_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                            user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry);
+                                                user_info.phys_region_end, user_info.phys_virt_offset,
+                                                user_info.virt_entry);
 
     printf("AP Kernel returned back to the elf-loader.\n");
     abort();

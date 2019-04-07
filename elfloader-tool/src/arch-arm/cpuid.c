@@ -41,7 +41,7 @@
  * which isn't handled properly for position independent code (i.e. when booting on EFI).
  */
 #pragma GCC optimize "-O1"
-static const char* cpuid_get_implementer_str(uint32_t cpuid)
+static const char *cpuid_get_implementer_str(uint32_t cpuid)
 {
     switch (CPUID_IMPL(cpuid)) {
     case CPUID_IMPL_ARM:
@@ -61,7 +61,7 @@ static const char* cpuid_get_implementer_str(uint32_t cpuid)
     }
 }
 
-static const char* cpuid_get_arch_str(uint32_t cpuid)
+static const char *cpuid_get_arch_str(uint32_t cpuid)
 {
     switch (CPUID_ARCH(cpuid)) {
     case CPUID_ARCH_ARMv4:
@@ -110,9 +110,9 @@ int get_cortex_a_part(void)
 {
     uint32_t cpuid;
     cpuid = read_cpuid_id();
-    if(CPUID_ARCH(cpuid) == CPUID_ARCH_CPUID && CPUID_IMPL(cpuid) == CPUID_IMPL_ARM){
+    if (CPUID_ARCH(cpuid) == CPUID_ARCH_CPUID && CPUID_IMPL(cpuid) == CPUID_IMPL_ARM) {
         return CPUID_PART(cpuid) & 0xFF;
-    }else{
+    } else {
         return -1;
     }
 }

@@ -67,10 +67,10 @@ void init_hyp_boot_vspace(struct image_info *kernel_info)
     paddr_t first_paddr = kernel_info->phys_region_start;
 
     /* Map in L2 page tables */
-    for(i = 0; i < 4; i++){
+    for (i = 0; i < 4; i++) {
         _lpae_boot_pgd[i] = ((uintptr_t)_lpae_boot_pmd + (i << PAGE_BITS))
-                           | BIT(1)  /* Page table */
-                           | BIT(0); /* Valid */
+                            | BIT(1)  /* Page table */
+                            | BIT(0); /* Valid */
     }
     /* identity mapping below kernel window */
     for (i = 0; i < (first_vaddr >> ARM_2MB_BLOCK_BITS); i++) {

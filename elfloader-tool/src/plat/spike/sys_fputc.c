@@ -17,9 +17,8 @@
 #include <printf.h>
 #include "sbi.h"
 
-int
-__fputc(int c, FILE *stream __attribute__((unused)))
+int __fputc(int c, FILE *stream __attribute__((unused)))
 {
-  sbi_console_putchar(c);
-  return 0;
+    sbi_console_putchar(c);
+    return 0;
 }

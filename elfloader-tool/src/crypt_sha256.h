@@ -21,9 +21,9 @@ extern "C" {
 #endif
 
 typedef struct {
-	uint64_t len;    /* processed message length */
-	uint32_t h[8];   /* hash state */
-	uint8_t buf[64]; /* message block buffer */
+    uint64_t len;    /* processed message length */
+    uint32_t h[8];   /* hash state */
+    uint8_t buf[64]; /* message block buffer */
 } sha256_t;
 
 void sha256_init(sha256_t *s);

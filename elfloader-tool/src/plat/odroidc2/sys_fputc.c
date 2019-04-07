@@ -20,12 +20,11 @@
 #define UART_TX_FULL        BIT(21)
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
 
-   while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
-   *UART_REG(UART_WFIFO) = c;
+    while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
+    *UART_REG(UART_WFIFO) = c;
 
     /* Send '\r' after every '\n'. */
     if (c == '\n') {

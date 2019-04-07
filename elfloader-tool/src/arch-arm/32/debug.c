@@ -24,7 +24,7 @@ void check_data_abort_exception(word_t dfsr, word_t dfar)
     word_t fs = dfsr & DFSR_FS_MASK;
 
     if ((fs == DFSR_FS_ASYNC_EXT_ABORT) ||
-       (fs == DFSR_FS_ASYNC_PARITY_ERR)) {
+        (fs == DFSR_FS_ASYNC_PARITY_ERR)) {
         return;
     }
     abort();

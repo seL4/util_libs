@@ -14,7 +14,7 @@
 #include <printf.h>
 
 #define SMC64_FID_VER           0x84000000
-#define SMC64_FID_CPU_SUSPEND   0xc4000001 
+#define SMC64_FID_CPU_SUSPEND   0xc4000001
 #define SMC64_FID_CPU_OFF       0x84000002
 #define SMC64_FID_CPU_ON        0xc4000003
 #define SMC64_FID_SYSTEM_RESET  0x84000009

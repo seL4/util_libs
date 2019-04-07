@@ -102,7 +102,7 @@ static void vxprintf(write_char_fn write_char, void *payload,
 
         /* Handle the modifier. */
         switch (format[i]) {
-            /* Ignore printf modifiers we don't support. */
+        /* Ignore printf modifiers we don't support. */
         case '0':
         case '1':
         case '2':
@@ -117,28 +117,28 @@ static void vxprintf(write_char_fn write_char, void *payload,
         case '.':
             break;
 
-            /* String. */
+        /* String. */
         case 's':
             s = va_arg(args, char *);
             write_string(write_char, payload, s);
             escape_mode = 0;
             break;
 
-            /* Pointers. */
+        /* Pointers. */
         case 'p':
             p = va_arg(args, unsigned long);
             write_num(write_char, payload, 16, p);
             escape_mode = 0;
             break;
 
-            /* Hex number. */
+        /* Hex number. */
         case 'x':
             d = va_arg(args, int);
             write_num(write_char, payload, 16, d);
             escape_mode = 0;
             break;
 
-            /* Decimal number. */
+        /* Decimal number. */
         case 'd':
         case 'u':
             d = va_arg(args, int);
@@ -146,33 +146,33 @@ static void vxprintf(write_char_fn write_char, void *payload,
             escape_mode = 0;
             break;
 
-            /* Character. */
+        /* Character. */
         case 'c':
             c = va_arg(args, int);
             write_char(payload, c);
             escape_mode = 0;
             break;
 
-            /* Long number. */
+        /* Long number. */
         case 'l':
             switch (format[++i]) {
-                case 'u':
-                    ul = va_arg(args, unsigned long);
-                    write_num(write_char, payload, 10, ul);
-                    break;
+            case 'u':
+                ul = va_arg(args, unsigned long);
+                write_num(write_char, payload, 10, ul);
+                break;
 
-                case 'x':
-                    ul = va_arg(args, unsigned long);
-                    write_num(write_char, payload, 16, ul);
-                    break;
+            case 'x':
+                ul = va_arg(args, unsigned long);
+                write_num(write_char, payload, 16, ul);
+                break;
 
-                default:
-                    write_char(payload, '?');
+            default:
+                write_char(payload, '?');
             }
             escape_mode = 0;
             break;
 
-            /* Unknown. */
+        /* Unknown. */
         default:
             write_char(payload, '?');
             escape_mode = 0;

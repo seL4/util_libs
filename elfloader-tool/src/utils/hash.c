@@ -33,8 +33,7 @@ void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_
         sha256_init(&calculated_hash);
         sha256_update(&calculated_hash, file_to_hash, bytes_to_hash);
         sha256_sum(&calculated_hash, outputted_hash);
-    }
-    else {
+    } else {
         md5_t calculated_hash = hashes.md5_structure;
         md5_init(&calculated_hash);
         md5_update(&calculated_hash, file_to_hash, bytes_to_hash);
@@ -45,8 +44,8 @@ void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_
 /* Function to print the hash */
 void print_hash(uint8_t *hash_to_print, int bytes_to_print)
 {
-    for(int i = 0; i < bytes_to_print; i++) {
-        printf("%02x",*hash_to_print++);
+    for (int i = 0; i < bytes_to_print; i++) {
+        printf("%02x", *hash_to_print++);
     }
     printf("\n");
 }

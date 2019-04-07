@@ -49,8 +49,8 @@ void remap_ram(void)
 {
     /*** 29.4.1 Changing Address Mapping ***/
     /* 1: Complete outstanding transactions */
-    asm volatile ("dsb");
-    asm volatile ("isb");
+    asm volatile("dsb");
+    asm volatile("isb");
     /* 2-4: prime the icache with this function
      *      skipped because icache is disabled and our remapping does not
      *      affect .text section */
@@ -64,7 +64,7 @@ void remap_ram(void)
     /* 10: Enable filtering */
     SCU(CTRL) |= (SCU_CTRL_EN | SCU_CTRL_ADDRFILT_EN);
     /* Ensure completion */
-    asm volatile ("dmb");
+    asm volatile("dmb");
 }
 
 void platform_init(void)

@@ -46,17 +46,19 @@
 /* Find the pointer to a CPIO entry header from a pointer to the entry's data.
  * This essentially reverses the transformation in cpio_get_entry.
  */
-static void *get_header(void *data, const char *filename) {
+static void *get_header(void *data, const char *filename)
+{
     assert((uintptr_t)data % CPIO_ALIGNMENT == 0);
     uintptr_t p = (uintptr_t)data - strlen(filename) - 1
-        - sizeof(struct cpio_header);
-    return (void*)(p - (p % CPIO_ALIGNMENT));
+                  - sizeof(struct cpio_header);
+    return (void *)(p - (p % CPIO_ALIGNMENT));
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc != 2) {
         fprintf(stderr, "Usage: %s file\n"
-                        " Strip meta data from a CPIO file\n", argv[0]);
+                " Strip meta data from a CPIO file\n", argv[0]);
         return -1;
     }
 
@@ -88,7 +90,7 @@ int main(int argc, char **argv) {
     }
 
     /* Mmap the file so we can operate on it with libcpio. */
-    p = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fileno(archive), 0);
+    p = mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archive), 0);
     if (p == MAP_FAILED) {
         perror("failed to mmap archive");
         p = NULL;
@@ -138,7 +140,11 @@ int main(int argc, char **argv) {
     return 0;
 
 fail:
-    if (p != NULL)        munmap(p, len);
-    if (archive != NULL)  fclose(archive);
+    if (p != NULL) {
+        munmap(p, len);
+    }
+    if (archive != NULL) {
+        fclose(archive);
+    }
     return -1;
 }

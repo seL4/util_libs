@@ -58,23 +58,21 @@
 
 static int mon_init_done = 0;
 
-void
-arm_halt(void)
+void arm_halt(void)
 {
     while (1) {
-        asm volatile ("wfe");
+        asm volatile("wfe");
     }
 }
 
-void
-check_mode(void)
+void check_mode(void)
 {
     uint32_t cpsr = 0;
-    asm volatile ("mrs %0, cpsr":"=r"(cpsr));
+    asm volatile("mrs %0, cpsr":"=r"(cpsr));
     printf("CPSR is %x\n", cpsr);
 }
 
-asm (".arch_extension sec\n");
+asm(".arch_extension sec\n");
 
 #ifndef CONFIG_ARM_S_SUPERVISOR_MODE
 __attribute__((unused)) static void
@@ -87,7 +85,7 @@ switch_to_mon_mode(void)
          * in nonsecure world, the instruction fails.
          */
 
-        asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
+        asm volatile("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
 
         if (scr & BIT(SCR_NS)) {
             printf("In nonsecure world, you should never see this!\n");
@@ -97,10 +95,10 @@ switch_to_mon_mode(void)
         check_mode();
 
         /* now switch to secure monitor mode */
-        asm volatile ("mov r8, sp\n\t"
-                      "cps %0\n\t"
-                      "isb\n"
-                      "mov sp, r8\n\t"
+        asm volatile("mov r8, sp\n\t"
+                     "cps %0\n\t"
+                     "isb\n"
+                     "mov sp, r8\n\t"
                      ::"I"(MONITOR_MODE));
         mon_init_done = 1;
         check_mode();
@@ -122,28 +120,26 @@ extern void arm_monitor_vector(void);
 extern void arm_monitor_vector_end(void);
 extern void *memcpy(void *dest, void *src, size_t n);
 
-static void
-install_monitor_hook(void)
+static void install_monitor_hook(void)
 {
     uint32_t size = arm_monitor_vector_end - arm_monitor_vector;
     switch_to_mon_mode();
     printf("Copy monitor mode vector from %x to %x size %x\n", (arm_monitor_vector), MON_VECTOR_START, size);
-        memcpy((void *)MON_VECTOR_START, (void *)(arm_monitor_vector), size);
-        asm volatile ("dmb\n isb\n");
-        asm volatile ("mcr p15, 0, %0, c12, c0, 1"::"r"(MON_VECTOR_START));
+    memcpy((void *)MON_VECTOR_START, (void *)(arm_monitor_vector), size);
+    asm volatile("dmb\n isb\n");
+    asm volatile("mcr p15, 0, %0, c12, c0, 1"::"r"(MON_VECTOR_START));
 }
 #endif /* end of CONFIG_ARM_MONITOR_HOOK */
 
 #ifdef CONFIG_ARM_NS_SUPERVISOR_MODE
-static void
-enable_ns_access_cp(void)
+static void enable_ns_access_cp(void)
 {
     uint32_t nsacr = 0;
-    asm volatile ("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
+    asm volatile("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
 
     /* enable cp10, cp11, TL, and PLE access */
     nsacr |= BIT(10) |  BIT(11) | BIT(17) | BIT(16);
-    asm volatile ("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
+    asm volatile("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
 }
 
 struct gicd_map {
@@ -172,8 +168,7 @@ struct gicc_map {
 volatile struct gicd_map *gicd = (volatile struct gicd_map *)(IMX6_GICD_PADDR);
 volatile struct gicc_map *gicc = (volatile struct gicc_map *)(IMX6_GICC_PADDR);
 
-static void
-route_irqs_to_nonsecure(void)
+static void route_irqs_to_nonsecure(void)
 {
     int i = 0;
     int nirqs = 32 * ((gicd->ic_type & 0x1f) + 1);
@@ -203,15 +198,14 @@ route_irqs_to_nonsecure(void)
 }
 
 /* enable nonsecure access of the I/O devices */
-static void
-set_csu(void)
+static void set_csu(void)
 {
     volatile uint32_t *addr = (volatile uint32_t *)IMX6_CSU_PADDR;
     uint32_t size = 0;
 
     while (size < IMX6_CSU_SIZE / sizeof(uint32_t)) {
         *addr = 0x00ff00ff;
-        asm volatile ("dsb");
+        asm volatile("dsb");
         addr++;
         size++;
     }
@@ -221,25 +215,23 @@ set_csu(void)
      * Manual for i.MX6. */
 }
 
-static void
-set_smp_bit(void)
+static void set_smp_bit(void)
 {
     uint32_t acr = 0;
     uint32_t nsacr = 0;
-    asm volatile ("mrc p15, 0, %0, c1, c0, 1":"=r"(acr));
+    asm volatile("mrc p15, 0, %0, c1, c0, 1":"=r"(acr));
     acr |= BIT(6);
-    asm volatile ("mcr p15, 0, %0, c1, c0, 1"::"r"(acr));
+    asm volatile("mcr p15, 0, %0, c1, c0, 1"::"r"(acr));
 
     /* allow nonsecure to change smp bit */
-    asm volatile ("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
+    asm volatile("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
     nsacr |= BIT(18);
-    asm volatile ("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
+    asm volatile("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
 
 }
 
 /* give access to the SCU registers for all cores in nonsecure world */
-static void
-enable_scu_ns_access(void)
+static void enable_scu_ns_access(void)
 {
     *((volatile uint32_t *)(IMX6_SCU_SACR_PADDR)) = 0xf;
     *((volatile uint32_t *)(IMX6_SCU_NSACR_PADDR)) = 0x1fff;
@@ -248,8 +240,7 @@ enable_scu_ns_access(void)
 #endif /* end of CONFIG_ARM_NS_SUPERVISOR_MODE */
 
 /* the elfloader put us in secure svc mode */
-void
-platform_init(void)
+void platform_init(void)
 {
     mon_init_done = 0;
 
@@ -266,20 +257,20 @@ platform_init(void)
     set_csu();
     route_irqs_to_nonsecure();
     /* ignore the name, we switch to nonsecure supervisor mode */
-    asm volatile ("push {r0, r1}              \n\t"
-                  "mov  r0, sp                \n\t"
-                  "mov  r1, #1                \n\t"
-                  "mcr  p15, 0, r1, c1, c1, 0 \n\t"
-                  "isb                        \n\t"
-                  "ldr  r1, =0x1d3            \n\t"
-                  "msr  spsr_cxfs, r1         \n\t"
-                  "ldr  lr, =mode_switch      \n\t"
-                  "movs pc, lr                \n\t"
-                  "mode_switch:               \n\t"
-                  "isb                        \n\t"
-                  "mov  sp, r0                \n\t"
-                  "pop  {r0, r1}              \n\t"
-            );
+    asm volatile("push {r0, r1}              \n\t"
+                 "mov  r0, sp                \n\t"
+                 "mov  r1, #1                \n\t"
+                 "mcr  p15, 0, r1, c1, c1, 0 \n\t"
+                 "isb                        \n\t"
+                 "ldr  r1, =0x1d3            \n\t"
+                 "msr  spsr_cxfs, r1         \n\t"
+                 "ldr  lr, =mode_switch      \n\t"
+                 "movs pc, lr                \n\t"
+                 "mode_switch:               \n\t"
+                 "isb                        \n\t"
+                 "mov  sp, r0                \n\t"
+                 "pop  {r0, r1}              \n\t"
+                );
 
     return;
 #endif

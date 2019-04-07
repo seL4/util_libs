@@ -17,9 +17,6 @@
  * Approved for Public Release, Distribution Unlimited.
  */
 
-#ifndef _SYS_FPUTC_H_
-#define _SYS_FPUTC_H_
+#pragma once
 
 void enable_uart(void);
-
-#endif /* _SYS_FPUTC_H_ */

@@ -16,13 +16,13 @@
 word_t is_hyp_mode(void)
 {
     uint32_t val;
-    asm volatile("mrs %0, CurrentEL" : "=r" (val) :: "cc");
+    asm volatile("mrs %0, CurrentEL" : "=r"(val) :: "cc");
     return (val == CURRENTEL_EL2);
 }
 
 uint32_t read_cpuid_id(void)
 {
     uint32_t val;
-    asm volatile("mrs %0, midr_el1" : "=r" (val) :: "cc");
+    asm volatile("mrs %0, midr_el1" : "=r"(val) :: "cc");
     return val;
 }

@@ -114,20 +114,20 @@ ELF file into memory.
 /*
  * constants for Elf32_Phdr.p_flags
  */
-#define PF_X		1	/* readable segment */
-#define PF_W		2	/* writeable segment */
-#define PF_R		4	/* executable segment */
+#define PF_X        1   /* readable segment */
+#define PF_W        2   /* writeable segment */
+#define PF_R        4   /* executable segment */
 
 /*
  * constants for indexing into Elf64_Header_t.e_ident
  */
-#define EI_MAG0		0
-#define EI_MAG1		1
-#define EI_MAG2		2
-#define EI_MAG3		3
-#define EI_CLASS	4
-#define EI_DATA		5
-#define EI_VERSION	6
+#define EI_MAG0     0
+#define EI_MAG1     1
+#define EI_MAG2     2
+#define EI_MAG3     3
+#define EI_CLASS    4
+#define EI_DATA     5
+#define EI_VERSION  6
 
 #define ELFMAG0         '\177'
 #define ELFMAG1         'E'
@@ -153,7 +153,7 @@ ELF file into memory.
 /* Section Header type bits */
 #define SHT_PROGBITS 1
 #define SHT_SYMTAB 2
-#define	SHT_NOBITS 8
+#define SHT_NOBITS 8
 #define SHT_REL 9
 
 /* Section Header flag bits */

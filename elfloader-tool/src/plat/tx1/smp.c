@@ -41,12 +41,12 @@ void init_cpus(void)
     int nodes = CONFIG_MAX_NUM_NODES;
     if (nodes > MAX_CORES) {
         printf("CONFIG_MAX_NUM_NODES %d is greater than max number cores %d, will abort\n",
-                CONFIG_MAX_NUM_NODES, MAX_CORES);
+               CONFIG_MAX_NUM_NODES, MAX_CORES);
         abort();
     }
     for (int i = 1; i < nodes; i++) {
         *((unsigned long *)(&core_stacks[0][0])) = (unsigned long)&core_stacks[i][0];
-        asm volatile ("dsb sy":::"memory");
+        asm volatile("dsb sy":::"memory");
         int ret = psci_cpu_on(i, (unsigned long)core_entry_head, 0);
         if (ret != PSCI_SUCCESS) {
             printf("Failed to bring up core %d with error %d\n", i, ret);

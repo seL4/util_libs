@@ -38,14 +38,16 @@
 #define REG(base) *((volatile uint32_t*)(((uint32_t)(base))))
 
 /* See TRM 3.7 Application Processing Unit (APU) Reset */
-static void zynq_stop_core1(void) {
+static void zynq_stop_core1(void)
+{
     REG(A9_CPU_RST_CTRL) |= BIT(A9_RST1_BIT);
     dsb();
     REG(A9_CPU_RST_CTRL) |= BIT(A9_CLKSTOP1_BIT);
     dsb();
 }
 
-static void zynq_start_core1(void) {
+static void zynq_start_core1(void)
+{
     REG(A9_CPU_RST_CTRL) &= ~BIT(A9_RST1_BIT);
     dsb();
     REG(A9_CPU_RST_CTRL) &= ~BIT(A9_CLKSTOP1_BIT);
@@ -57,23 +59,21 @@ extern void non_boot_core(void);
 static void *get_scu_base(void)
 {
     void *scu;
-    asm("mrc p15, 4, %0, c15, c0, 0" : "=r" (scu));
+    asm("mrc p15, 4, %0, c15, c0, 0" : "=r"(scu));
     return scu;
 }
 
-static void
-boot_cpus(void (*entry)(void))
+static void boot_cpus(void (*entry)(void))
 {
     /* Zynq only has 2 cores, we only need to reset core 1 */
     zynq_stop_core1();
-    *((volatile uint32_t*)CPU_JUMP_PTR) = (uint32_t) entry;
+    *((volatile uint32_t *)CPU_JUMP_PTR) = (uint32_t) entry;
     zynq_start_core1();
     dsb();
-    asm volatile ("sev;");
+    asm volatile("sev;");
 }
 
-void
-init_cpus(void)
+void init_cpus(void)
 {
     unsigned int num;
     void *scu = get_scu_base();
@@ -87,12 +87,13 @@ init_cpus(void)
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     } else if (num < CONFIG_MAX_NUM_NODES) {
-        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n", num, CONFIG_MAX_NUM_NODES);
+        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n",
+               num, CONFIG_MAX_NUM_NODES);
         abort();
     }
 
     printf("Bringing up %d other cpus\n", num - 1);
-    if(num != 1){
+    if (num != 1) {
         boot_cpus(&non_boot_core);
     }
 }

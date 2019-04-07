@@ -59,15 +59,15 @@ void main(void)
     }
 
 #if (defined(CONFIG_ARCH_ARM_V7A) || defined(CONFIG_ARCH_ARM_V8A)) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
-    if(is_hyp_mode()){
-    extern void leave_hyp(void);
+    if (is_hyp_mode()) {
+        extern void leave_hyp(void);
         leave_hyp();
     }
 #endif
     /* Setup MMU. */
-    if(is_hyp_mode()){
+    if (is_hyp_mode()) {
 #ifdef CONFIG_ARCH_AARCH64
-    extern void disable_caches_hyp();
+        extern void disable_caches_hyp();
         disable_caches_hyp();
 #endif
         init_hyp_boot_vspace(&kernel_info);
@@ -81,7 +81,7 @@ void main(void)
     smp_boot();
 #endif /* CONFIG_MAX_NUM_NODES */
 
-    if(is_hyp_mode()){
+    if (is_hyp_mode()) {
         printf("Enabling hypervisor MMU and paging\n");
         arm_enable_hyp_mmu();
     } else {
@@ -97,8 +97,8 @@ void main(void)
     }
 
     ((init_arm_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                            user_info.phys_region_end, user_info.phys_virt_offset,
-                                            user_info.virt_entry);
+                                                user_info.phys_region_end, user_info.phys_virt_offset,
+                                                user_info.virt_entry);
 
     /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");

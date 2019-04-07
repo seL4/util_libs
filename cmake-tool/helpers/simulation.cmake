@@ -36,7 +36,10 @@ function(SetSimulationScriptProperty property value)
 endfunction(SetSimulationScriptProperty)
 
 macro(SetDefaultMemSize default)
-    set(QemuMemSize "$<IF:$<BOOL:$<TARGET_PROPERTY:simulation_script_prop_target,MEM_SIZE>>,$<TARGET_PROPERTY:simulation_script_prop_target,MEM_SIZE>,${default}>")
+    set(
+        QemuMemSize
+        "$<IF:$<BOOL:$<TARGET_PROPERTY:simulation_script_prop_target,MEM_SIZE>>,$<TARGET_PROPERTY:simulation_script_prop_target,MEM_SIZE>,${default}>"
+    )
 endmacro(SetDefaultMemSize)
 
 # Helper function that generates targets that will attempt to generate a ./simulate style script
@@ -48,7 +51,10 @@ function(GenerateSimulateScript)
     if(NOT (TARGET simulation_script_prop_target))
         add_custom_target(simulation_script_prop_target)
     endif()
-    set(sim_graphic_opt "$<IF:$<BOOL:$<TARGET_PROPERTY:simulation_script_prop_target,GRAPHIC>>,,-nographic>")
+    set(
+        sim_graphic_opt
+        "$<IF:$<BOOL:$<TARGET_PROPERTY:simulation_script_prop_target,GRAPHIC>>,,-nographic>"
+    )
     set(sim_serial_opt "")
     set(sim_cpu "")
     set(sim_cpu_opt "")
@@ -109,7 +115,7 @@ function(GenerateSimulateScript)
         set(sim_machine "raspi3")
         SetDefaultMemSize("1024M")
     elseif(KernelPlatformSpike)
-        if (KernelSel4ArchRiscV32)
+        if(KernelSel4ArchRiscV32)
             set(binary "qemu-system-riscv32")
             SetDefaultMemSize("2000M")
             set(sim_machine "virt")
@@ -124,23 +130,29 @@ function(GenerateSimulateScript)
         set(error "Unsupported platform or architecture for simulation")
     endif()
     set(sim_path "${CMAKE_BINARY_DIR}/simulate")
-    if (NOT "${error}" STREQUAL "")
+    if(NOT "${error}" STREQUAL "")
         set(script "#!/bin/sh\\necho ${error} && exit -1")
-        add_custom_command(OUTPUT "${sim_path}"
-            COMMAND echo -e "${script}" > "${sim_path}"
+        add_custom_command(
+            OUTPUT "${sim_path}"
+            COMMAND
+                echo -e "${script}" > "${sim_path}"
             COMMAND chmod u+x "${sim_path}"
             VERBATIM
         )
     else()
-        add_custom_command(OUTPUT "${sim_path}"
-            COMMAND ${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=${COMMON_HELPER_DIR}/../simulate_scripts/simulate.py
-            -DCONFIGURE_OUTPUT_FILE=${sim_path} -DQEMU_SIM_BINARY=${QemuBinaryMachine} -DQEMU_SIM_CPU=${sim_cpu}
-            -DQEMU_SIM_MACHINE=${sim_machine} -DQEMU_SIM_CPU_OPT=${sim_cpu_opt} -DQEMU_SIM_GRAPHIC_OPT=${sim_graphic_opt}
-            -DQEMU_SIM_SERIAL_OPT=${sim_serial_opt} -DQEMU_SIM_MEM_SIZE_OPT=${QemuMemSize} -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME}
-            -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME} -P ${COMMON_HELPER_DIR}/configure_file.cmake
+        add_custom_command(
+            OUTPUT "${sim_path}"
+            COMMAND
+                ${CMAKE_COMMAND}
+                -DCONFIGURE_INPUT_FILE=${COMMON_HELPER_DIR}/../simulate_scripts/simulate.py
+                -DCONFIGURE_OUTPUT_FILE=${sim_path} -DQEMU_SIM_BINARY=${QemuBinaryMachine}
+                -DQEMU_SIM_CPU=${sim_cpu} -DQEMU_SIM_MACHINE=${sim_machine}
+                -DQEMU_SIM_CPU_OPT=${sim_cpu_opt} -DQEMU_SIM_GRAPHIC_OPT=${sim_graphic_opt}
+                -DQEMU_SIM_SERIAL_OPT=${sim_serial_opt} -DQEMU_SIM_MEM_SIZE_OPT=${QemuMemSize}
+                -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME} -P
+                ${COMMON_HELPER_DIR}/configure_file.cmake
             COMMAND chmod u+x "${sim_path}"
-            VERBATIM
-            COMMAND_EXPAND_LISTS
+            VERBATIM COMMAND_EXPAND_LISTS
         )
     endif()
     add_custom_target(simulate_gen ALL DEPENDS "${sim_path}")

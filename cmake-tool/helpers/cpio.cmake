@@ -32,11 +32,12 @@ endif()
 # the argument isn't supported then the flag is set to the empty string in the parent scope.
 function(CheckCPIOArgument flag)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile "Testfile contents")
-    execute_process(COMMAND bash -c "echo cpio-testfile | cpio ${${flag}} -o"
+    execute_process(
+        COMMAND bash -c "echo cpio-testfile | cpio ${${flag}} -o"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        OUTPUT_QUIET
-        ERROR_QUIET
-        RESULT_VARIABLE result)
+        OUTPUT_QUIET ERROR_QUIET
+        RESULT_VARIABLE result
+    )
     if(result)
         set(${flag} "" PARENT_SCOPE)
     endif()
@@ -47,11 +48,11 @@ endfunction()
 # into another target
 function(MakeCPIO output_name input_files)
     cmake_parse_arguments(PARSE_ARGV 2 MAKE_CPIO "" "CPIO_SYMBOL" "DEPENDS")
-    if (NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
+    if(NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to MakeCPIO")
     endif()
     set(archive_symbol "_cpio_archive")
-    if (NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
+    if(NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
         set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
     endif()
     # Check that the reproducible flag is available. Don't use it if it isn't.
@@ -64,8 +65,10 @@ function(MakeCPIO output_name input_files)
         # - touch -d @0 file sets the modified time to 0
         # - --owner=root:root sets user and group values to 0:0
         # - --reproducible creates reproducible archives with consistent inodes and device numbering
-        list(APPEND commands
-            "bash;-c;cd `dirname ${file}` && mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} ${reproducible_flag} --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
+        list(
+            APPEND
+                commands
+                "bash;-c;cd `dirname ${file}` && mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} ${reproducible_flag} --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
         )
         set(append "--append")
     endforeach()
@@ -77,13 +80,19 @@ function(MakeCPIO output_name input_files)
     else()
         set(relocate "-r")
     endif()
-    add_custom_command(OUTPUT ${output_name}
+    add_custom_command(
+        OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
-        COMMAND echo "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
+        COMMAND
+            echo
+            "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
             > link.${output_name}.ld
-        COMMAND ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld --oformat ${LinkOFormat} ${relocate} -b binary archive.${output_name}.cpio -o ${output_name}
-        BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
+        COMMAND
+            ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld
+            --oformat
+                ${LinkOFormat} ${relocate} -b binary archive.${output_name}.cpio -o ${output_name}
+                BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
         COMMENT "Generate CPIO archive ${output_name}"

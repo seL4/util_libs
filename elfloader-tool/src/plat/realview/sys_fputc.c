@@ -31,8 +31,7 @@ __fputc(int c, FILE *stream);
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 #define BIT(x) (1U << (x))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait until UART ready for the next character. */
 

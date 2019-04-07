@@ -67,11 +67,10 @@ extern void invalidate_icache(void);
 #define SUPERVISOR_MODE     (0x13)
 #define HYPERVISOR_MODE     (0x1a)
 
-void
-arm_halt(void)
+void arm_halt(void)
 {
     while (1) {
-        asm volatile ("wfe");
+        asm volatile("wfe");
     }
 }
 
@@ -89,8 +88,7 @@ arm_halt(void)
     || defined(CONFIG_ARM_HYPERVISOR_MODE) || defined(CONFIG_ARM_MONITOR_MODE)
 static int mon_init_done = 0;
 
-static void
-switch_to_mon_mode(void)
+static void switch_to_mon_mode(void)
 {
     if (mon_init_done == 0) {
         /* first need to make sure that we are in secure world */
@@ -100,7 +98,7 @@ switch_to_mon_mode(void)
          * in nonsecure world, the instruction fails.
          */
 
-        asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
+        asm volatile("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
 
         if (scr & BIT(SCR_NS)) {
             printf("In nonsecure world, you should never see this!\n");
@@ -110,20 +108,20 @@ switch_to_mon_mode(void)
         /* enable hyper call */
         scr = BIT(SCR_HCE);
 
-        asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
+        asm volatile("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
 
         /* now switch to secure monitor mode. restoring our stack and link register in the process
          * as these two registers are banked. */
         uint32_t sp_temp = 0;
         uint32_t lr_temp = 0;
-        asm volatile ("mov %[SP_TEMP], sp\n"
-                      "mov %[LR_TEMP], lr\n"
-                      "cps %[MON_MODE]\n\t"
-                      "isb\n"
-                      "mov sp, %[SP_TEMP]\n"
-                      "mov lr, %[LR_TEMP]\n"
+        asm volatile("mov %[SP_TEMP], sp\n"
+                     "mov %[LR_TEMP], lr\n"
+                     "cps %[MON_MODE]\n\t"
+                     "isb\n"
+                     "mov sp, %[SP_TEMP]\n"
+                     "mov lr, %[LR_TEMP]\n"
                      : [SP_TEMP]"+r"(sp_temp),
-                       [LR_TEMP]"+r"(lr_temp)
+                     [LR_TEMP]"+r"(lr_temp)
                      : [MON_MODE]"I"(MONITOR_MODE));
         mon_init_done = 1;
         printf("ELF loader: monitor mode init done\n");
@@ -139,8 +137,7 @@ extern void arm_monitor_vector_end(void);
 extern void *memcpy(void *dest, void *src, size_t n);
 extern char _bootstack_top[1];
 
-static void
-install_monitor_hook(void)
+static void install_monitor_hook(void)
 {
     uint32_t size = arm_monitor_vector_end - arm_monitor_vector;
     /* switch monitor mode if not already */
@@ -148,14 +145,13 @@ install_monitor_hook(void)
     printf("Copy monitor mode vector from %x to %x size %x\n", (arm_monitor_vector), MON_VECTOR_START, size);
     memcpy((void *)MON_VECTOR_START, (void *)(arm_monitor_vector), size);
 
-    asm volatile ("mcr p15, 0, %0, c12, c0, 1"::"r"(MON_VECTOR_START));
+    asm volatile("mcr p15, 0, %0, c12, c0, 1"::"r"(MON_VECTOR_START));
 }
 
 #endif
 
 #ifdef CONFIG_ARM_HYPERVISOR_MODE
-static void
-switch_to_hyp_mode(void)
+static void switch_to_hyp_mode(void)
 {
     register uint32_t scr asm("r4") = 0;
     register uint32_t sp asm("r5");
@@ -165,8 +161,8 @@ switch_to_hyp_mode(void)
      * Frame and Stack pointers are banked; save them
      * in current state; restore in final state
      */
-    asm volatile ("mov %0, sp" : "=r"(sp));
-    asm volatile ("mov %0, fp" : "=r"(fp));
+    asm volatile("mov %0, sp" : "=r"(sp));
+    asm volatile("mov %0, fp" : "=r"(fp));
 
     /*
      * Need to make sure anything in the write buffer is
@@ -177,38 +173,37 @@ switch_to_hyp_mode(void)
     flush_dcache();
     invalidate_icache();
 
-    asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
+    asm volatile("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
     scr |= BIT(SCR_HCE);
     scr &= ~BIT(SCR_SCD);
     scr |= BIT(SCR_NS);
     scr &= ~BIT(SCR_SIF);
-    asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
-    asm volatile ("cps %0\n\t"
-                  "isb\n"
-                  ::"I"(HYPERVISOR_MODE));
-    asm volatile ("mov sp, %0" : "+r"(sp));
-    asm volatile ("mov fp, %0" : "+r"(fp));
-    asm volatile ("mrs %0, cpsr":"=r"(scr));
+    asm volatile("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
+    asm volatile("cps %0\n\t"
+                 "isb\n"
+                 ::"I"(HYPERVISOR_MODE));
+    asm volatile("mov sp, %0" : "+r"(sp));
+    asm volatile("mov fp, %0" : "+r"(fp));
+    asm volatile("mrs %0, cpsr":"=r"(scr));
     printf("Load seL4 in nonsecure HYP mode %x", scr);
 }
 #endif
 
 #ifdef CONFIG_ARM_NS_SUPERVISOR_MODE
-static void
-switch_to_ns_svc_mode(void)
+static void switch_to_ns_svc_mode(void)
 {
     uint32_t scr = 0;
 
-    asm volatile ("cps %0\n\t"
-                  "isb\n"
-                  ::"I"(SUPERVISOR_MODE));
+    asm volatile("cps %0\n\t"
+                 "isb\n"
+                 ::"I"(SUPERVISOR_MODE));
 
-    asm volatile ("mov r0, sp");
-    asm volatile ("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
+    asm volatile("mov r0, sp");
+    asm volatile("mrc p15, 0, %0, c1, c1, 0":"=r"(scr));
     scr |= BIT(SCR_NS);
 
-    asm volatile ("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
-    asm volatile ("mov sp, r0");
+    asm volatile("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
+    asm volatile("mov sp, r0");
 
     printf("Load seL4 in nonsecure SVC mode\n");
 }
@@ -244,8 +239,7 @@ struct gicc_map {
 volatile struct gicd_map *gicd = (volatile struct gicd_map *)(TK1_GICD_PADDR);
 volatile struct gicc_map *gicc = (volatile struct gicc_map *)(TK1_GICC_PADDR);
 
-static void
-route_irqs_to_nonsecure(void)
+static void route_irqs_to_nonsecure(void)
 {
     int i = 0;
     int nirqs = 32 * ((gicd->ic_type & 0x1f) + 1);
@@ -275,15 +269,14 @@ route_irqs_to_nonsecure(void)
 }
 #endif
 
-static void
-enable_ns_access_cp(void)
+static void enable_ns_access_cp(void)
 {
     uint32_t nsacr = 0;
-    asm volatile ("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
+    asm volatile("mrc p15, 0, %0, c1, c1, 2":"=r"(nsacr));
 
     /* enable cp10, cp11 */
     nsacr |= BIT(10) |  BIT(11);
-    asm volatile ("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
+    asm volatile("mcr p15, 0, %0, c1, c1, 2"::"r"(nsacr));
 
     asm volatile("isb");
 }

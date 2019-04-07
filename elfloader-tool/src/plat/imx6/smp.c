@@ -33,7 +33,7 @@ void imx_non_boot(void);
 static void *get_scu_base(void)
 {
     void *scu;
-    asm("mrc p15, 4, %0, c15, c0, 0" : "=r" (scu));
+    asm("mrc p15, 4, %0, c15, c0, 0" : "=r"(scu));
     return scu;
 }
 
@@ -74,7 +74,8 @@ void init_cpus(void)
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     } else if (num < CONFIG_MAX_NUM_NODES) {
-        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n", num, CONFIG_MAX_NUM_NODES);
+        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n",
+               num, CONFIG_MAX_NUM_NODES);
         abort();
     }
 

@@ -20,7 +20,7 @@ void platform_init(void)
      * The same operation is performed in smp_head.S as well
      * when SMP is enabled.
      */
-    asm volatile ("mrs x0, mpidr_el1\n"
-                  "msr tpidr_el0, x0\n"
-                  ::: "x0");
+    asm volatile("mrs x0, mpidr_el1\n"
+                 "msr tpidr_el0, x0\n"
+                 ::: "x0");
 }

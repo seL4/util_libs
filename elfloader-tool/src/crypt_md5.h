@@ -21,9 +21,9 @@ extern "C" {
 #endif
 
 typedef struct {
-	uint64_t len;    /* processed message length */
-	uint32_t h[4];   /* hash state */
-	uint8_t buf[64]; /* message block buffer */
+    uint64_t len;    /* processed message length */
+    uint32_t h[4];   /* hash state */
+    uint8_t buf[64]; /* message block buffer */
 } md5_t;
 
 void md5_init(md5_t *s);

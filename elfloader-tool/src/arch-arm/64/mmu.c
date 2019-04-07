@@ -29,7 +29,7 @@ void init_boot_vspace(struct image_info *kernel_info)
 
     _boot_pgd_down[0] = ((uintptr_t)_boot_pud_down) | BIT(1) | BIT(0); /* its a page table */
 
-    for(i = 0; i < BIT(PUD_BITS); i++) {
+    for (i = 0; i < BIT(PUD_BITS); i++) {
         _boot_pud_down[i] = (i << ARM_1GB_BLOCK_BITS)
                             | BIT(10) /* access flag */
                             | (0 << 2) /* strongly ordered memory */
@@ -61,7 +61,7 @@ void init_hyp_boot_vspace(struct image_info *kernel_info)
     paddr_t first_paddr = kernel_info->phys_region_start;
     _boot_pgd_down[0] = ((uintptr_t)_boot_pud_down) | BIT(1) | BIT(0);
 
-    for(i = 0; i < BIT(PUD_BITS); i++) {
+    for (i = 0; i < BIT(PUD_BITS); i++) {
         _boot_pud_down[i] = (i << ARM_1GB_BLOCK_BITS)
                             | BIT(10) /* access flag */
                             | (0 << 2) /* strongly ordered memory */

@@ -34,12 +34,11 @@ __fputc(int c, FILE *stream);
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     (void)stream;
     /* Wait for TX fifo to be empty */
-    while ( !(*UART_REG(USR) & USR_TXEMP) );
+    while (!(*UART_REG(USR) & USR_TXEMP));
     /* Tell the peripheral how many characters to send */
     *UART_REG(UNTX) = 1;
     /* Write the character into the FIFO */

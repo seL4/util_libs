@@ -16,8 +16,7 @@
 
 #include <printf.h>
 
-void
-__attribute__((weak)) abort(void)
+void __attribute__((weak)) abort(void)
 {
     printf("abort() called.\n");
 

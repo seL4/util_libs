@@ -28,7 +28,7 @@
 #define MAX_CLUSTERS            2
 #define CORES_PER_CLUSTER       4
 /* The FVP option cluster0/1_mpidr_layout controls
- * if AFF1  or AFFI0 is used as the cpu id. 
+ * if AFF1  or AFFI0 is used as the cpu id.
  * 1 - AFF1, the default value
  * 0 - AFF0
  * Thus, the cluster id is AFF2 when the default
@@ -44,7 +44,7 @@ void init_cpus(void)
 
     if (nodes > MAX_CORES) {
         printf("CONFIG_MAX_NUM_NODES %d is greater than max number cores %d, will abort\n",
-                CONFIG_MAX_NUM_NODES, MAX_CORES);
+               CONFIG_MAX_NUM_NODES, MAX_CORES);
         abort();
     }
 
@@ -56,7 +56,8 @@ void init_cpus(void)
         cpuid = (cluster_id << CLUSTER_ID_SHIFT) | (core_id << 8);
         int ret = psci_cpu_on(cpuid, (unsigned long)core_entry_head, (unsigned long)&core_stacks[logic_id][0]);
         if (ret != PSCI_SUCCESS) {
-            printf("Failed to bring up core 0x%lx in cluster %d with error %x with entry %lx\n", cpuid, cluster_id, ret, core_entry_head);
+            printf("Failed to bring up core 0x%lx in cluster %d with error %x with entry %lx\n", cpuid, cluster_id, ret,
+                   core_entry_head);
             abort();
         }
         while (!is_core_up(logic_id));

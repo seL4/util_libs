@@ -50,11 +50,10 @@ __fputc(int c, FILE *stream);
 #define TX_EMPTY        (1<<2)
 #define TXBUF_EMPTY     (1<<1)
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait until UART ready for the next character. */
-    while ( !(*UART_REG(UTRSTAT) & TXBUF_EMPTY) );
+    while (!(*UART_REG(UTRSTAT) & TXBUF_EMPTY));
 
     /* Put in the register to be sent*/
     *UART_REG(UTXH) = (c & 0xff);

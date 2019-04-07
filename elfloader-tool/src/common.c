@@ -137,11 +137,10 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
     uint8_t *print_hash_pointer = (uint8_t *)file_hash;
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we cannot confirm the file is what we expect. Abort */
-    if(file_hash == NULL) {
+    if (file_hash == NULL) {
         printf("Cannot compare hashes for %s, expected hash, %s, doesn't exist\n", name, hash);
         abort();
-    }
-    else {
+    } else {
 
         hashes_t hashes;
 
@@ -166,7 +165,7 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
         print_hash(calculated_hash, hash_len);
 
         /* Check to make sure the hashes are the same */
-        if(strncmp((char *)file_hash, (char *)calculated_hash, hash_len) != 0) {
+        if (strncmp((char *)file_hash, (char *)calculated_hash, hash_len) != 0) {
             printf("Hashes are different. Load failure\n");
             abort();
         }
@@ -215,19 +214,19 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
         uint32_t phsize;
         paddr_t source_paddr;
         if (ISELF32(elf)) {
-            phsize = ((struct Elf32_Header*)elf)->e_phentsize;
+            phsize = ((struct Elf32_Header *)elf)->e_phentsize;
             source_paddr = (paddr_t)elf32_getProgramHeaderTable(elf);
         } else {
-            phsize = ((struct Elf64_Header*)elf)->e_phentsize;
+            phsize = ((struct Elf64_Header *)elf)->e_phentsize;
             source_paddr = (paddr_t)elf64_getProgramHeaderTable(elf);
         }
         /* We have no way of sharing definitions with the kernel so we just
          * memcpy to a bunch of magic offsets. Explicit numbers for sizes
          * and offsets are used so that it is clear exactly what the layout
          * is */
-        memcpy((void*)dest_paddr, &phnum, 4);
-        memcpy((void*)(dest_paddr + 4), &phsize, 4);
-        memcpy((void*)(dest_paddr + 8), (void*)source_paddr, phsize * phnum);
+        memcpy((void *)dest_paddr, &phnum, 4);
+        memcpy((void *)(dest_paddr + 4), &phsize, 4);
+        memcpy((void *)(dest_paddr + 8), (void *)source_paddr, phsize * phnum);
         /* return the frame after our headers */
         dest_paddr += BIT(PAGE_BITS);
     }

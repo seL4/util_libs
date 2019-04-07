@@ -16,7 +16,7 @@
 uint32_t read_cpuid_mpidr(void)
 {
     uint32_t val;
-    asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (val) :: "cc");
+    asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r"(val) :: "cc");
     return val;
 }
 
@@ -25,7 +25,7 @@ uint32_t read_cpuid_mpidr(void)
 word_t is_hyp_mode(void)
 {
     uint32_t val;
-    asm volatile("mrs %0, cpsr" : "=r" (val) :: "cc");
+    asm volatile("mrs %0, cpsr" : "=r"(val) :: "cc");
     return ((val & CPSR_MODE_MASK) == CPSR_MODE_HYPERVISOR);
 }
 
@@ -33,6 +33,6 @@ word_t is_hyp_mode(void)
 uint32_t read_cpuid_id(void)
 {
     uint32_t val;
-    asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (val) :: "cc");
+    asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r"(val) :: "cc");
     return val;
 }

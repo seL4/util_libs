@@ -32,8 +32,7 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_STAT2) & TXFE));

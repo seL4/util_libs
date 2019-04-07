@@ -51,11 +51,10 @@ __fputc(int c, FILE *stream);
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait until UART ready for the next character. */
-    while ( !(*UART_REG(MU_LSR) & MU_LSR_TXIDLE) );
+    while (!(*UART_REG(MU_LSR) & MU_LSR_TXIDLE));
 
     /* Put in the register to be sent*/
     *UART_REG(MU_IO) = (c & 0xff);

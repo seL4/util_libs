@@ -27,7 +27,7 @@
 void scu_enable(void *_scu_base)
 {
     uint32_t scu_ctrl;
-    volatile uint32_t *scu_base = (volatile uint32_t*)_scu_base;
+    volatile uint32_t *scu_base = (volatile uint32_t *)_scu_base;
 
 #ifdef CONFIG_ARM_ERRATA_764369
     /* Cortex-A9 only */
@@ -60,7 +60,7 @@ void scu_enable(void *_scu_base)
  */
 unsigned int scu_get_core_count(void *_scu_base)
 {
-    volatile uint32_t *scu_base = (volatile uint32_t*)_scu_base;
+    volatile uint32_t *scu_base = (volatile uint32_t *)_scu_base;
     unsigned int ncores = (unsigned int)scu_base[SCU_CONFIG];
     return (ncores & 0x03) + 1;
 }

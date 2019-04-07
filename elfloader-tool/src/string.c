@@ -18,11 +18,11 @@
  * that has the aliasing properties of a char.
  */
 #ifdef __GNUC__
-  #define HAS_MAY_ALIAS
+#define HAS_MAY_ALIAS
 #elif defined(__clang__)
-  #if __has_attribute(may_alias)
-    #define HAS_MAY_ALIAS
-  #endif
+#if __has_attribute(may_alias)
+#define HAS_MAY_ALIAS
+#endif
 #endif
 
 #ifdef HAS_MAY_ALIAS
@@ -31,9 +31,9 @@ typedef word_t __attribute__((__may_alias__)) u_alias;
 
 size_t strlen(const char *str)
 {
-	const char *s;
-	for (s = str; *s; ++s);
-	return (s - str);
+    const char *s;
+    for (s = str; *s; ++s);
+    return (s - str);
 }
 
 int strcmp(const char *a, const char *b)
@@ -50,13 +50,13 @@ int strcmp(const char *a, const char *b)
     }
 }
 
-int strncmp(const char* s1, const char* s2, size_t n)
+int strncmp(const char *s1, const char *s2, size_t n)
 {
     word_t i;
     int diff;
 
     for (i = 0; i < n; i++) {
-        diff = ((unsigned char*)s1)[i] - ((unsigned char*)s2)[i];
+        diff = ((unsigned char *)s1)[i] - ((unsigned char *)s2)[i];
         if (diff != 0 || s1[i] == '\0') {
             return diff;
         }
@@ -75,7 +75,7 @@ void *memset(void *s, int c, size_t n)
         *mem = c;
     }
     /* construct word filler */
-    u_alias fill = ((u_alias)-1 / 255) * (unsigned char)c;
+    u_alias fill = ((u_alias) - 1 / 255) * (unsigned char)c;
     /* do as many word writes as we can */
     for (; n > BYTE_PER_WORD - 1; n -= BYTE_PER_WORD, mem += BYTE_PER_WORD) {
         *(u_alias *)mem = fill;
@@ -111,8 +111,12 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     while (1) {
         int rs = (uintptr_t)s % copy_unit;
         int rd = (uintptr_t)d % copy_unit;
-        if (rs == rd) break;
-        if (copy_unit == 1) break;
+        if (rs == rd) {
+            break;
+        }
+        if (copy_unit == 1) {
+            break;
+        }
         copy_unit >>= 1;
     }
 
@@ -124,21 +128,21 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     /* copy unit by unit as long as we can */
     for (; n > copy_unit - 1; n -= copy_unit, s += copy_unit, d += copy_unit) {
         switch (copy_unit) {
-            case 8:
-                *(uint64_t *)d = *(const uint64_t *)s;
-                break;
-            case 4:
-                *(uint32_t *)d = *(const uint32_t *)s;
-                break;
-            case 2:
-                *(uint16_t *)d = *(const uint16_t *)s;
-                break;
-            case 1:
-                *(uint8_t *)d = *(const uint8_t *)s;
-                break;
-            default:
-                printf("Invalid copy unit %ld\n", copy_unit);
-                abort();
+        case 8:
+            *(uint64_t *)d = *(const uint64_t *)s;
+            break;
+        case 4:
+            *(uint32_t *)d = *(const uint32_t *)s;
+            break;
+        case 2:
+            *(uint16_t *)d = *(const uint16_t *)s;
+            break;
+        case 1:
+            *(uint8_t *)d = *(const uint8_t *)s;
+            break;
+        default:
+            printf("Invalid copy unit %ld\n", copy_unit);
+            abort();
         }
     }
     /* copy any remainder byte by byte */

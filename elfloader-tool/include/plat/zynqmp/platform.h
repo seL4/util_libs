@@ -17,8 +17,7 @@
  * Approved for Public Release, Distribution Unlimited.
  */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#pragma once
 
 #include <autoconf.h>
 
@@ -32,5 +31,3 @@
 #else
 #define UART_PPTR              ZYNQMP_UART0_BASE
 #endif
-
-#endif /* _PLATFORM_H_ */

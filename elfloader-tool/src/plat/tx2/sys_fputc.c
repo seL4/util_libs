@@ -20,8 +20,7 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait until UART ready for the next character. */
     while ((*UART_REG(ULSR) & ULSR_THRE) == 0);

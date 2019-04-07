@@ -40,8 +40,7 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int
-__fputc(int c, FILE *stream)
+int __fputc(int c, FILE *stream)
 {
     /* Wait to be able to transmit. */
     while (!(*UART_REG(XUARTPS_SR) & XUARTPS_SR_TXEMPTY));
@@ -57,8 +56,7 @@ __fputc(int c, FILE *stream)
     return 0;
 }
 
-void
-enable_uart()
+void enable_uart()
 {
     uint32_t v = *UART_REG(XUARTPS_CR);
     v |= XUARTPS_CR_TX_EN;

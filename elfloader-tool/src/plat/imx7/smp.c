@@ -86,13 +86,14 @@ void init_cpus(void)
     src_init();
 
     /* get core count from L2CTLR */
-    asm volatile ("mrc p15, 1, %0, c9, c0, 2": "=r"(num));
+    asm volatile("mrc p15, 1, %0, c9, c0, 2": "=r"(num));
     num = ((num >> 24) & 0x3) + 1;
 
     if (num > CONFIG_MAX_NUM_NODES) {
         num = CONFIG_MAX_NUM_NODES;
     } else if (num < CONFIG_MAX_NUM_NODES) {
-        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n", num, CONFIG_MAX_NUM_NODES);
+        printf("Error: Unsupported number of CPUs! This platform has %u CPUs, while static configuration provided is %u CPUs\n",
+               num, CONFIG_MAX_NUM_NODES);
         abort();
     }
 

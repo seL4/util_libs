@@ -61,10 +61,10 @@ typedef volatile struct cpu_cfg {
 } cpu_cfg_t;
 
 /* U-Boot control */
-nscode_t *nsscode  = (nscode_t*)EXYNOS5_SYSRAM_NS;
+nscode_t *nsscode  = (nscode_t *)EXYNOS5_SYSRAM_NS;
 
 /* CPU configuration */
-cpu_cfg_t *cpu_cfg = (cpu_cfg_t*)EXYNOS5_POWER_CPU_CFG;
+cpu_cfg_t *cpu_cfg = (cpu_cfg_t *)EXYNOS5_POWER_CPU_CFG;
 
 void boot_cpu(int cpu, uintptr_t entry)
 {
@@ -86,9 +86,9 @@ void platform_init(void)
              * Turn off interrupts before going to
              * sleep --- otherwise they could wake us up.
              */
-            asm volatile (
+            asm volatile(
                 "msr CPSR_cxsf, #0xc" ::
-                );
+            );
             smc(SMC_SHUTDOWN, 0, 0, 0);
         }
     } else {
