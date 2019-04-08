@@ -11,5 +11,17 @@
 # @TAG(DATA61_BSD)
 #
 
+set -efu
+
+# A repo can keep its local style filter in its top-level directory.
+LOCAL_FILTER=.stylefilter
+
+if [ -f $LOCAL_FILTER ]
+then
+    FILTER_ARG="-f $LOCAL_FILTER"
+else
+    FILTER_ARG=
+fi
+
 # Run style tools over list of files passed as input.
-"${0%/*}"/style.py -f .stylefilter "$@"
+"${0%/*}"/style.py $FILTER_ARG "$@"
