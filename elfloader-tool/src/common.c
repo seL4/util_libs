@@ -271,6 +271,7 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     paddr_t next_phys_addr;
     const char *elf_filename;
     unsigned long unused;
+    int has_dtb_cpio = 0;
 
     /* Load kernel. */
     unsigned long cpio_len = _archive_start_end - _archive_start;
@@ -285,6 +286,17 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     }
 
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
+
+    if (dtb && !*dtb) {
+        printf("Looking for DTB in CPIO archive...\n");
+        *dtb = cpio_get_file(_archive_start, cpio_len, "kernel.dtb", &unused);
+        if (*dtb == NULL) {
+            printf("Did not find DTB in CPIO archive.\n");
+        } else {
+            has_dtb_cpio = 1;
+            printf("Found dtb at %p\n", *dtb);
+        }
+    }
 
     /*
      * Move the DTB out of the way, if it's present.
@@ -321,17 +333,27 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
      * Load userspace images.
      *
      * We assume (and check) that the kernel is the first file in the archive,
-     * and then load the (n+1)'th file in the archive onto the (n)'th CPU.
+     * that the DTB is the second if present,
+     * and then load the (n+user_elf_offset)'th file in the archive onto the (n)'th CPU.
      */
+    int user_elf_offset = 2;
     (void)cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
     if (strcmp(elf_filename, "kernel.elf") != 0) {
         printf("Kernel image not first image in archive.\n");
         abort();
     }
+    (void)cpio_get_entry(_archive_start, cpio_len, 1, &elf_filename, &unused);
+    if (strcmp(elf_filename, "kernel.dtb") != 0) {
+        if (has_dtb_cpio) {
+            printf("Kernel DTB not second image in archive.\n");
+            abort();
+        }
+        user_elf_offset = 1;
+    }
     *num_images = 0;
     for (i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
-        void *user_elf = cpio_get_entry(_archive_start, cpio_len, i + 1,
+        void *user_elf = cpio_get_entry(_archive_start, cpio_len, i + user_elf_offset,
                                         &elf_filename, &unused);
         if (user_elf == NULL) {
             break;

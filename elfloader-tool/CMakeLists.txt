@@ -69,6 +69,14 @@ config_choice(
     "hash_md5;ElfloaderHashMD5;HASH_MD5;ElfloaderImageELF"
 )
 
+config_option(
+    ElfloaderIncludeDtb ELFLOADER_INCLUDE_DTB
+    "Include DTB in the CPIO in case bootloader doesn't provide one"
+    DEFAULT ON
+    DEPENDS "KernelArchARM"
+    DEFAULT_DISABLED OFF
+)
+
 add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
@@ -128,6 +136,9 @@ list(SORT files)
 
 set(cpio_files "")
 list(APPEND cpio_files "$<TARGET_FILE:kernel.elf>")
+if(ElfloaderIncludeDtb)
+    list(APPEND cpio_files "${KernelDTBPath}")
+endif()
 list(APPEND cpio_files "$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>")
 if(NOT ${ElfloaderHashInstructions} STREQUAL "hash_none")
     set(hash_command "")
