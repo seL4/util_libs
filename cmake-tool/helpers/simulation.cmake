@@ -131,11 +131,11 @@ function(GenerateSimulateScript)
     endif()
     set(sim_path "${CMAKE_BINARY_DIR}/simulate")
     if(NOT "${error}" STREQUAL "")
-        set(script "#!/bin/sh\\necho ${error} && exit -1")
+        set(script "#!/bin/sh\\necho ${error} && exit 1\\n")
         add_custom_command(
             OUTPUT "${sim_path}"
             COMMAND
-                echo -e "${script}" > "${sim_path}"
+                printf "${script}" > "${sim_path}"
             COMMAND chmod u+x "${sim_path}"
             VERBATIM
         )
