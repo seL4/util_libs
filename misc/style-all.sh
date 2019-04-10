@@ -12,14 +12,12 @@
 #
 
 # Run style tools on all dirs passed in, or the current dir.
-if [ -z "$@" ]
+if [ $# -eq 0 ]
 then
-    DIRS=$(pwd)
-else
-    DIRS="$@"
+    set -- "$(pwd)"
 fi
 
-for d in "$DIRS"
+for DIR
 do
-    find "$d" -type f | xargs "${0%/*}"/style.sh
+    find "$DIR" -type f | xargs "${0%/*}"/style.sh
 done
