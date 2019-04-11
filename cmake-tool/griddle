@@ -19,11 +19,14 @@ set -eu
 SOURCE_ROOT=${0%/*}
 PROGNAME=${0##*/}
 REPO_DIR=.repo
-CMAKELISTS="$SOURCE_ROOT"/CMakeLists.txt
-EASY_KNOBS="$SOURCE_ROOT"/easy-settings.cmake
-CMAKE_ARGS=
 CMAKE_COMPILER_DEFAULT=gcc
 CMAKE_COMPILER=$CMAKE_COMPILER_DEFAULT
+CMAKELISTS="$SOURCE_ROOT"/CMakeLists.txt
+CMAKECACHE=CMakeCache.txt
+CMAKETOOLCHAIN="$SOURCE_ROOT"/kernel/"$CMAKE_COMPILER".cmake
+DO_CMAKE_INITIALIZE=
+EASY_KNOBS="$SOURCE_ROOT"/easy-settings.cmake
+CMAKE_ARGS=
 # Set to a non-null string (like "yes") to enable debugging output.
 DEBUG_MATCHER=
 MODE=invoke
@@ -428,6 +431,8 @@ do
         if [ "$2" = gcc ] || [ "$2" = llvm ]
         then
             CMAKE_COMPILER="$2"
+            # We may be changing compilers; re-init CMake.
+            DO_CMAKE_INITIALIZE=yes
         else
             die "unrecognized compiler \"$2\"; expected \"gcc\" or \"llvm\""
         fi
@@ -476,21 +481,35 @@ do
     shift
 done
 
+if ! [ -e "$CMAKECACHE" ]
+then
+    # If the CMake cache file does not exist, call CMake with initialization
+    # flags.
+    DO_CMAKE_INITIALIZE=yes
+fi
+
 if [ $MODE = help ]
 then
     show_usage
 elif [ $MODE = invoke ]
 then
+    if [ -n "$DO_CMAKE_INITIALIZE" ]
+    then
+        cmake \
+            -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
+            -G Ninja \
+            "$@" \
+            "$SOURCE_ROOT"
+    fi
+
     # We run cmake multiple times because project-specific mandatory settings
     # are sometimes buried deep in the tree of cmake files, and might get
     # dereferenced before they are used.  CMake's caching stabilizes the
     # situation, at the cost of requiring multiple runs.  Fixing this infelicity
     # is JIRA SELFOUR-1648.
-    cmake -DCMAKE_TOOLCHAIN_FILE="$SOURCE_ROOT"/kernel/"$CMAKE_COMPILER".cmake \
-        -G Ninja "$@" \
-        "$SOURCE_ROOT" \
-        && cmake "$SOURCE_ROOT" \
-        && cmake "$SOURCE_ROOT"
+    #
+    cmake "$@" "$SOURCE_ROOT" \
+        && cmake "$@" "$SOURCE_ROOT"
 else
     die "internal error; unrecognized operation mode \"$MODE\""
 fi
