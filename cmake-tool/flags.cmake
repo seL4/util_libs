@@ -116,33 +116,10 @@ if(KernelSel4ArchAarch64)
         add_compile_options(-mgeneral-regs-only)
     endif()
 elseif(KernelArchARM)
-    # Define a helper macro for performing our own compilation tests for floating point
-    function(SimpleCCompilationTest var flags)
-        if(NOT (DEFINED "${var}"))
-            message(STATUS "Performing test ${var} with flags ${flags}")
-            file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void main(void){}")
-            execute_process(
-                COMMAND
-                    "${CMAKE_C_COMPILER}" ${flags} -o test_program test_program.c
-                RESULT_VARIABLE result
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-                OUTPUT_QUIET ERROR_QUIET
-            )
-            file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c")
-            file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program")
-            if("${result}" EQUAL 0)
-                set("${var}" TRUE CACHE INTERNAL "")
-                message(STATUS "Test ${var} PASSED")
-            else()
-                set("${var}" FALSE CACHE INTERNAL "")
-                message(STATUS "Test ${var} FAILED")
-            endif()
-        endif()
-    endfunction(SimpleCCompilationTest)
     if(KernelHaveFPU)
-        SimpleCCompilationTest(HARD_FLOAT "-mfloat-abi=hard")
+        check_c_compiler_flag("-mfloat-abi=hard" HARD_FLOAT)
         if(NOT HARD_FLOAT)
-            SimpleCCompilationTest(SOFTFP_FLOAT "-mfloat-abi=softfp")
+            check_c_compiler_flag("-mfloat-abi=softfp" SOFTFP_FLOAT)
             if(NOT SOFTFP_FLOAT)
                 message(WARNING "Kernel supports hardware floating point but toolchain does not")
                 add_compile_options(-mfloat-abi=soft)
@@ -154,7 +131,7 @@ elseif(KernelArchARM)
         endif()
     else()
         set(CMAKE_REQUIRED_FLAGS "-mfloat-abi=soft")
-        SimpleCCompilationTest(SOFT_FLOAT "-mfloat-abi=soft")
+        check_c_compiler_flag("-mfloat-abi=soft" SOFT_FLOAT)
         if(NOT SOFT_FLOAT)
             message(
                 SEND_ERROR
