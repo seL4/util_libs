@@ -419,6 +419,7 @@ if ! ARGS=$(getopt -o '' --long "$GETOPT_FLAGS",compiler:,help \
     --name "$PROGNAME" -- "$@")
 then
     show_usage >&2
+    exit 2
 fi
 
 eval set -- "$ARGS"
