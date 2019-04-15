@@ -26,7 +26,7 @@ config_option(
     DEPENDS
     LibPicotcp
 )
-
+mark_as_advanced(LibPicotcp LibPicotcpBsd)
 add_config_library(picotcp "${configure_string}")
 
 if(LibPicotcp)

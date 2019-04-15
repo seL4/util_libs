@@ -29,7 +29,7 @@ config_string(
     5
     UNQUOTE
 )
-
+mark_as_advanced(LibUtilsDefaultZfLogLevel)
 add_config_library(utils "${configure_string}")
 
 add_library(utils STATIC EXCLUDE_FROM_ALL ${deps})

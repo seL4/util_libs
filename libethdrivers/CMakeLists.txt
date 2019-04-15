@@ -60,7 +60,13 @@ config_string(
 
 config_option(LibEthdriverPicoTCBAsyncDriver LIB_PICOTCP_ASYNC_DRIVER "Async driver for PicoTcp
     Use an async instead of a polling driver for PicoTCP." DEFAULT ON)
-
+mark_as_advanced(
+    LibEthdriverRXDescCount
+    LibEthdriverTXDescCount
+    LibEthdriverNumPreallocatedBuffers
+    LibEthdriverPreallocatedBufSize
+    LibEthdriverPicoTCBAsyncDriver
+)
 add_config_library(ethdrivers "${configure_string}")
 
 file(
