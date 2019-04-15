@@ -16,7 +16,9 @@ project(libplatsupport C)
 
 set(configure_string "")
 
-config_choice(LibPlatSupportX86ConsoleDevice LIB_PLAT_SUPPORT_X86_CONSOLE_DEVICE
+config_choice(
+    LibPlatSupportX86ConsoleDevice
+    LIB_PLAT_SUPPORT_X86_CONSOLE_DEVICE
     "X86 console device. The serial port that libplatsupport will use for communication \
         com1 -> 0x3f8 \
         com2 -> 0x2f8 \
@@ -30,8 +32,14 @@ config_choice(LibPlatSupportX86ConsoleDevice LIB_PLAT_SUPPORT_X86_CONSOLE_DEVICE
     "ega;LibPlatSupportX86ConsoleDeviceEGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA;KernelPlatPC99"
 )
 
-file(GLOB deps src/mach/${KernelArmMach}/*.c src/plat/${KernelPlatform}/*.c src/arch/${KernelArch}/*.c
-        src/*.c src/plat/${KernelPlatform}/acpi/*.c
+file(
+    GLOB
+        deps
+        src/mach/${KernelArmMach}/*.c
+        src/plat/${KernelPlatform}/*.c
+        src/arch/${KernelArch}/*.c
+        src/*.c
+        src/plat/${KernelPlatform}/acpi/*.c
 )
 
 if(KernelPlatformExynos5422)
@@ -46,7 +54,10 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 target_include_directories(platsupport PRIVATE src/plat_include/${KernelPlatform})
-target_include_directories(platsupport PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch})
+target_include_directories(
+    platsupport
+    PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
+)
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
 endif()

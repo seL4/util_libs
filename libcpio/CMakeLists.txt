@@ -16,7 +16,7 @@ project(libcpio C)
 
 add_library(cpio EXCLUDE_FROM_ALL src/cpio.c)
 if(KernelArchRiscV)
-	target_compile_options(cpio PRIVATE "-mcmodel=medany")
+    target_compile_options(cpio PRIVATE "-mcmodel=medany")
 endif()
 
 target_include_directories(cpio PUBLIC include)

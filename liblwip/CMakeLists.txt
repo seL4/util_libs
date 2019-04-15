@@ -16,20 +16,31 @@ project(liblwip C)
 
 set(configure_string "")
 
-config_option(LibLwip LIB_LWIP
-    "Build LwIP"
-    DEFAULT OFF
-)
+config_option(LibLwip LIB_LWIP "Build LwIP" DEFAULT OFF)
 if(LibLwip)
     add_config_library(lwip "${configure_string}")
 
     add_compile_options(-std=gnu99)
 
-    file(GLOB sources lwip-1.4.1/src/*/*.c lwip-1.4.1/src/core/snmp/*.c lwip-1.4.1/src/core/ipv4/*.c)
+    file(
+        GLOB
+            sources
+            lwip-1.4.1/src/*/*.c
+            lwip-1.4.1/src/core/snmp/*.c
+            lwip-1.4.1/src/core/ipv4/*.c
+    )
 
     add_library(lwip STATIC EXCLUDE_FROM_ALL ${sources})
 
-    target_include_directories(lwip PUBLIC lwip-1.4.1/src/include lwip-1.4.1/src/include/ipv4 lwip-1.4.1/src/include/netif include include/lwip)
+    target_include_directories(
+        lwip
+        PUBLIC
+            lwip-1.4.1/src/include
+            lwip-1.4.1/src/include/ipv4
+            lwip-1.4.1/src/include/netif
+            include
+            include/lwip
+    )
 
     target_link_libraries(lwip Configuration muslc liblwip_config)
 endif()
