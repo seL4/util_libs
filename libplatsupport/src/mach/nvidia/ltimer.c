@@ -24,8 +24,8 @@
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 
-#define NV_TMR_ID TMR0
-#define NV_TMR_ID_OFFSET TMR0_OFFSET
+#define NV_TMR_ID TMR1
+#define NV_TMR_ID_OFFSET TMR1_OFFSET
 
 typedef struct {
     nv_tmr_t nv_tmr;
@@ -197,7 +197,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     nv_tmr_config_t config = {
         .vaddr_base = (uintptr_t) nv_tmr_ltimer->vaddr_base,
         .vaddr_tmr =  (uintptr_t) nv_tmr_ltimer->vaddr_tmr,
-        .id = TMR0
+        .id = TMR1
     };
 
     nv_tmr_init(&nv_tmr_ltimer->nv_tmr, config);
