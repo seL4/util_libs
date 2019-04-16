@@ -105,6 +105,70 @@ LC1:
 .word arm_vector_literals
 .size LC1, . - LC1
 
+/* Move the elf loader out of the kernel's way */
+BEGIN_FUNC(finish_relocation)
+#ifdef CONFIG_IMAGE_EFI
+    // r0 = offset between current base address and new base address
+
+    // figure out relocated address of continue_boot
+    adr r1, LC2
+    ldmia r1, {r2, r3, r4, r5, r6, r7}
+
+    sub r1, r1, r2                  // r1 = current relocation offset
+    sub r1, r1, r0                  // total relocation offset (i.e. to final address)
+    add sp, r3, r1                  // new sp
+    add r4, r4, r1                  // continue_boot address in new stack
+
+    add r5, r5, r1                  // new GOT start
+    add r6, r6, r1                  // new GOT end
+    add r7, r7, r1                  // vector function table
+
+    /*
+     * relocate the vector table's literal pool
+     * to make exception vectors work, and not
+     * just jump to a random location in memory.
+     */
+1:  ldr r3, [r7, #0]
+    cmp r3, #0
+    beq 2f
+    sub r3, r3, r0
+    str r3, [r7], #4
+    b 1b
+2:
+    /*
+     * note that we already relocated the GOT addresses to the
+     * current base address, so we use the offset in r0 (not r1!)
+     * when relocating them again.
+     */
+
+    /* relocate GOT entries - fix up C global variables. */
+1:  ldr r1, [r5, #0]                // load table entry
+    sub r1, r1, r0                  // relocate
+    str r1, [r5], #4                // put back
+    cmp r5, r6
+    blo 1b
+
+    blx r4
+    b abort // should never get here!
+#else
+    /* On non-EFI, the image cannot be relocated.
+     * If you hit this, you probably need to modify the ELF loader
+     * load address.
+     */
+    mov pc, lr
+#endif
+END_FUNC(finish_relocation)
+.align 2
+.type LC2, #object
+LC2:
+.word LC2                       // r2
+.word core_stack_alloc + 0xff0  // r3
+.word continue_boot             // r4
+.word _got_start                // r5
+.word _got_end                  // r6
+.word arm_vector_literals       // r7
+.size LC2, . - LC2
+
 #if CONFIG_MAX_NUM_NODES > 1
 BEGIN_FUNC(non_boot_core)
     /* Disable Async aborts that might be pending from bootloader */

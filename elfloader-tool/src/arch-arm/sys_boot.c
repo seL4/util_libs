@@ -30,6 +30,56 @@ char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
 
 struct image_info kernel_info;
 struct image_info user_info;
+void *dtb;
+uint32_t dtb_size;
+
+extern void finish_relocation(int offset);
+void continue_boot(void);
+
+/*
+ * Make sure the ELF loader is below the kernel's first virtual address
+ * so that when we enable the MMU we can keep executing.
+ */
+void relocate_below_kernel(void)
+{
+    /*
+     * These are the ELF loader's physical addresses,
+     * since we are either running with MMU off or
+     * identity-mapped.
+     */
+    uintptr_t start = (uintptr_t)_start;
+    uintptr_t end = (uintptr_t)_end;
+
+    if (end <= kernel_info.virt_region_start) {
+        /*
+         * If the ELF loader is already below the kernel,
+         * skip relocation.
+         */
+        continue_boot();
+        return;
+    }
+
+    /*
+     * Note: we make the (potentially incorrect) assumption
+     * that there is enough physical RAM below the kernel's first vaddr
+     * to fit the ELF loader.
+     * FIXME: do we need to make sure we don't accidentally wipe out the DTB too?
+     */
+    uintptr_t size = end - start;
+
+    /*
+     * we ROUND_UP size in this calculation so that all page-aligned things
+     * (interrupt vectors, stack, etc.) end up in other page-aligned locations.
+     */
+    uintptr_t new_base = kernel_info.virt_region_start - (ROUND_UP(size, PAGE_BITS)) - (1 << PAGE_BITS);
+    uint32_t offset = start - new_base;
+    printf("relocating from %p-%p to %p-%p... size=%x\n", start, end, new_base, new_base + size, size);
+
+    memmove((void *)new_base, (void *)start, size);
+
+    /* call into assembly to do the finishing touches */
+    finish_relocation(offset);
+}
 
 /*
  * Entry point.
@@ -39,8 +89,6 @@ struct image_info user_info;
 void main(UNUSED void *arg)
 {
     int num_apps;
-    uint32_t dtb_size;
-    void *dtb;
 
 #ifdef CONFIG_IMAGE_UIMAGE
     if (arg) {
@@ -92,6 +140,22 @@ void main(UNUSED void *arg)
         printf("No user images loaded!\n");
         abort();
     }
+
+    /*
+     * We don't really know where we've been loaded.
+     * It's possible that EFI loaded us in a place
+     * that will become part of the 'kernel window'
+     * once we switch to the boot page tables.
+     * Make sure this is not the case.
+     */
+    relocate_below_kernel();
+    printf("Relocation failed, aborting.\n");
+    abort();
+}
+
+void continue_boot()
+{
+    printf("ELF loader relocated, continuing boot...\n");
 
 #if (defined(CONFIG_ARCH_ARM_V7A) || defined(CONFIG_ARCH_ARM_V8A)) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
     if (is_hyp_mode()) {
