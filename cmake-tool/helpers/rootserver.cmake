@@ -48,8 +48,7 @@ function(DeclareRootserver rootservername)
             add_custom_command(
                 OUTPUT "${KERNEL_IMAGE_NAME}"
                 COMMAND
-                    ${CROSS_COMPILER_PREFIX}objcopy -O elf32-i386 $<TARGET_FILE:kernel.elf>
-                    "${KERNEL_IMAGE_NAME}"
+                    ${CMAKE_OBJCOPY} -O elf32-i386 $<TARGET_FILE:kernel.elf> "${KERNEL_IMAGE_NAME}"
                 VERBATIM
                 DEPENDS kernel.elf
                 COMMENT "objcopy kernel into bootable elf"
@@ -84,8 +83,7 @@ function(DeclareRootserver rootservername)
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    ${CROSS_COMPILER_PREFIX}objcopy -O binary $<TARGET_FILE:elfloader>
-                    "${IMAGE_NAME}"
+                    ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
                 DEPENDS $<TARGET_FILE:elfloader> elfloader
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
