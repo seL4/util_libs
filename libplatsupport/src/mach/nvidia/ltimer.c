@@ -39,8 +39,7 @@ typedef struct {
     uint64_t period;
 } nv_tmr_ltimer_t;
 
-static pmem_region_t pmem =
-{
+static pmem_region_t pmem = {
     .type = PMEM_TYPE_DEVICE,
     .base_addr = NV_TMR_PADDR,
     .length =  PAGE_SIZE_4K
@@ -122,8 +121,8 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns - time);
     }
     case TIMEOUT_PERIODIC:
-        nv_tmr_ltimer->period = ns;
         /* fall through */
+        nv_tmr_ltimer->period = ns;
     case TIMEOUT_RELATIVE:
         return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns);
     }
@@ -196,7 +195,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     /* setup nv_tmr */
     nv_tmr_config_t config = {
         .vaddr_base = (uintptr_t) nv_tmr_ltimer->vaddr_base,
-        .vaddr_tmr =  (uintptr_t) nv_tmr_ltimer->vaddr_tmr,
+        .vaddr_tmr = (uintptr_t) nv_tmr_ltimer->vaddr_tmr,
         .id = TMR1
     };
 
