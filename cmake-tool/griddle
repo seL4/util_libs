@@ -313,7 +313,7 @@ EOF
         return
     fi
 
-    if [ -n "$GETOPT_FLAGS" ]
+    if [ -n "${GETOPT_FLAGS:+flags}" ]
     then
         echo
         FORMAT_STRING="%${CV_WIDTH}s  %${TY_WIDTH}s  %${DV_WIDTH}s  %s\n"
@@ -415,7 +415,8 @@ then
     die "getopt from util-linux required"
 fi
 
-if ! ARGS=$(getopt -o '' --long "$GETOPT_FLAGS",compiler:,help \
+if ! ARGS=$(getopt -o '' \
+    --long "${GETOPT_FLAGS:+$GETOPT_FLAGS,}"compiler:,help \
     --name "$PROGNAME" -- "$@")
 then
     show_usage >&2
