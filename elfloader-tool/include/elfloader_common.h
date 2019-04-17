@@ -27,6 +27,7 @@ typedef uintptr_t vaddr_t;
 
 #define ALIGN(n)            __attribute__((__aligned__(n)))
 #define VISIBLE             __attribute__((externally_visible))
+#define UNUSED              __attribute__((unused))
 
 /*
  * Information about an image we are loading.

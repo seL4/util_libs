@@ -11,13 +11,14 @@
  */
 
 #include <abort.h>
+#include <elfloader_common.h>
 #include <types.h>
 
 #define DFSR_FS_MASK                0x40f
 #define DFSR_FS_ASYNC_EXT_ABORT     0x406
 #define DFSR_FS_ASYNC_PARITY_ERR    0x408
 
-void check_data_abort_exception(word_t dfsr, word_t dfar)
+void check_data_abort_exception(word_t dfsr, UNUSED word_t dfar)
 {
     //* Check if the data exception is asynchronous external abort or
     //* asynchronous parity error on memory access */
@@ -28,7 +29,6 @@ void check_data_abort_exception(word_t dfsr, word_t dfar)
         return;
     }
     abort();
-    (void) dfar;
 }
 
 void valid_exception(void)

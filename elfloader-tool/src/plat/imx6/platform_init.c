@@ -75,8 +75,7 @@ void check_mode(void)
 asm(".arch_extension sec\n");
 
 #ifndef CONFIG_ARM_S_SUPERVISOR_MODE
-__attribute__((unused)) static void
-switch_to_mon_mode(void)
+UNUSED static void switch_to_mon_mode(void)
 {
     if (mon_init_done == 0) {
         /* first need to make sure that we are in secure world */

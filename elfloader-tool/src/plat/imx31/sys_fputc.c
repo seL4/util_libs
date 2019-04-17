@@ -14,6 +14,7 @@
  * Platform-specific putchar implementation.
  */
 
+#include <elfloader_common.h>
 #include <printf.h>
 #include <types.h>
 #include <platform.h>
@@ -38,7 +39,7 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream __attribute__((unused)))
+int __fputc(int c, UNUSED FILE *stream)
 {
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_STAT2) & TXFE));

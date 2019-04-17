@@ -11,11 +11,11 @@
  */
 
 #include <binaries/efi/efi.h>
+#include <elfloader_common.h>
 #include <printf.h>
 
-int efi_fputc(int c, FILE *stream)
+int efi_fputc(int c, UNUSED FILE *stream)
 {
-    (void) stream;
     /* obtain a pointer to EFI output console */
     efi_simple_text_output_protocol_t * efi_console_out = get_efi_con_out();
 
