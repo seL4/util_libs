@@ -10,8 +10,6 @@
 # @TAG(DATA61_BSD)
 #
 cmake_minimum_required(VERSION 3.7.2)
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 project(sel4-application NONE)
 
 # This is a default file that can be copied/symlinked into the top level of a project
