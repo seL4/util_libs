@@ -106,6 +106,8 @@ function(GenerateSimulateScript)
         SetDefaultMemSize("128M")
     elseif(KernelPlatformSabre)
         set(QemuBinaryMachine "qemu-system-arm")
+        # '-serial null -serial mon:stdio' means connect second UART to
+        # the terminal and ignore the first UART
         set(sim_serial_opt "-serial null -serial mon:stdio")
         set(sim_machine "sabrelite")
         SetDefaultMemSize("1024M")
