@@ -500,7 +500,7 @@ then
         cmake \
             -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
             -G Ninja \
-            "$@" \
+            "$CMAKE_ARGS" \
             "$SOURCE_ROOT"
     fi
 
@@ -510,8 +510,8 @@ then
     # situation, at the cost of requiring multiple runs.  Fixing this infelicity
     # is JIRA SELFOUR-1648.
     #
-    cmake "$@" "$SOURCE_ROOT" \
-        && cmake "$@" "$SOURCE_ROOT"
+    cmake "$CMAKE_ARGS" "$SOURCE_ROOT" \
+        && cmake "$CMAKE_ARGS" "$SOURCE_ROOT"
 else
     die "internal error; unrecognized operation mode \"$MODE\""
 fi
