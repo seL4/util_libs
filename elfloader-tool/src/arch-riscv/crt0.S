@@ -9,6 +9,8 @@
  *
  * @TAG(DATA61_GPL)
  */
+
+#include <autoconf.h>
 .extern main
 .global _start
 .extern __global_pointer$
@@ -18,6 +20,12 @@
 .section ".text.start"
 
 _start:
+
+/* BBL starts all HARTs and sends them to this entry point.
+ * While we only support 1 core, we send remaining HARTs to a WFI loop.
+ */
+  li s0, CONFIG_FIRST_HART_ID
+  bne  a0, s0, spin_hart
 
 .option push
 .option norelax
@@ -29,6 +37,10 @@ _start:
 
   la s0, main
   jr s0
+spin_hart:
+  wfi
+  j spin_hart
+
 
 .align 8
 .space 4096
