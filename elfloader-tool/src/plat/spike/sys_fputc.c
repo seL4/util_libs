@@ -19,6 +19,9 @@
 
 int __fputc(int c, UNUSED FILE *stream)
 {
+    if (c == '\n') {
+        sbi_console_putchar('\r');
+    }
     sbi_console_putchar(c);
     return 0;
 }
