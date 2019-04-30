@@ -15,7 +15,9 @@
 #define SIZE_BITS_TO_BYTES(size_bits) (BIT(size_bits))
 #define BYTES_TO_SIZE_BITS(bytes) (LOG_BASE_2(bytes))
 
+#define PAGE_BITS_1G 30
 #define PAGE_BITS_4M 22
+#define PAGE_BITS_2M 21
 #define PAGE_BITS_4K 12
 #define PAGE_SIZE_4K (SIZE_BITS_TO_BYTES(PAGE_BITS_4K))
 #define PAGE_MASK_4K (PAGE_SIZE_4K - 1)
