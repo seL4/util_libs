@@ -82,3 +82,32 @@ macro(execute_process_with_stale_check invoc_file deps_file outfile extra_depend
     )
 
 endmacro(execute_process_with_stale_check)
+
+# For custom commands that invoke other build systems, we can create a depfile
+# based on a find traversal of the directory.  This saves using CMake to glob it
+# which is much slower
+macro(create_depfile_by_find ret outfile depfile dir)
+    file(RELATIVE_PATH path ${CMAKE_BINARY_DIR} ${outfile})
+    list(
+        APPEND
+            ${ret}
+            COMMAND
+            echo
+            "${path}: \\\\"
+            >
+            ${depfile}
+    )
+    list(
+        APPEND ${ret} COMMAND
+        find
+            -L
+            ${dir}
+            -type
+            f
+            -printf
+            "%p "
+            >>
+            ${depfile}
+    )
+    list(APPEND ${ret} DEPFILE ${depfile})
+endmacro()
