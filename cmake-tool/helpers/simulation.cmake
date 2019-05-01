@@ -12,8 +12,18 @@
 
 # This module provides a function GenerateSimulateScript which will place a `simulate`
 # script in the build directory for running produced images in Qemu.
+include_guard(GLOBAL)
 
-set(COMMON_HELPER_DIR "${CMAKE_CURRENT_LIST_DIR}")
+find_file(
+    SIMULATE_SCRIPT simulate.py
+    PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/"
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
+find_file(
+    CONFIGURE_FILE_SCRIPT configure_file.cmake
+    PATHS "${CMAKE_CURRENT_LIST_DIR}"
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
 macro(TestQemuCPUFeature config feature string)
@@ -143,14 +153,13 @@ function(GenerateSimulateScript)
         add_custom_command(
             OUTPUT "${sim_path}"
             COMMAND
-                ${CMAKE_COMMAND}
-                -DCONFIGURE_INPUT_FILE=${COMMON_HELPER_DIR}/../simulate_scripts/simulate.py
+                ${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=${SIMULATE_SCRIPT}
                 -DCONFIGURE_OUTPUT_FILE=${sim_path} -DQEMU_SIM_BINARY=${QemuBinaryMachine}
                 -DQEMU_SIM_CPU=${sim_cpu} -DQEMU_SIM_MACHINE=${sim_machine}
                 -DQEMU_SIM_CPU_OPT=${sim_cpu_opt} -DQEMU_SIM_GRAPHIC_OPT=${sim_graphic_opt}
                 -DQEMU_SIM_SERIAL_OPT=${sim_serial_opt} -DQEMU_SIM_MEM_SIZE_OPT=${QemuMemSize}
                 -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME} -P
-                ${COMMON_HELPER_DIR}/configure_file.cmake
+                ${CONFIGURE_FILE_SCRIPT}
             COMMAND chmod u+x "${sim_path}"
             VERBATIM COMMAND_EXPAND_LISTS
         )

@@ -11,11 +11,17 @@
 #
 
 cmake_minimum_required(VERSION 3.8.2)
+include_guard(GLOBAL)
 
-set(rust_target_dir ${CMAKE_CURRENT_LIST_DIR}/../rust_targets)
+find_path(
+    RUST_TARGET_PATH "x86_64-sel4-none.json"
+    PATHS ${CMAKE_CURRENT_LIST_DIR}/../rust_targets
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
+
 # Return absoulute filepath of the rust custom target directory
 function(RustGetCustomTargetPath return)
-    set(${return} ${rust_target_dir} PARENT_SCOPE)
+    set(${return} "${RUST_TARGET_PATH}" PARENT_SCOPE)
 endfunction()
 
 # add_library but for rust libraries. Invokes cargo in the SOURCE_DIR that is provided,

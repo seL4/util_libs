@@ -11,6 +11,7 @@
 #
 
 cmake_minimum_required(VERSION 3.8.2)
+include_guard(GLOBAL)
 
 find_program(HOLMAKE_BIN NAMES "Holmake")
 find_program(CAKEML_BIN NAMES "cake")

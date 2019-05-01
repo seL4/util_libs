@@ -10,6 +10,7 @@
 # @TAG(DATA61_BSD)
 #
 cmake_minimum_required(VERSION 3.8.2)
+include_guard(GLOBAL)
 
 # This path is guaranteed to exist
 find_path(DTS_PATH "sabre.dts" PATHS ${KERNEL_PATH}/tools/dts CMAKE_FIND_ROOT_PATH_BOTH)

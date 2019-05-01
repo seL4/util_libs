@@ -13,6 +13,7 @@
 # This module provides `DeclareRootserver` for making an executable target a rootserver
 # and bundling it with a kernel.elf and any required loaders into an `images` directory
 # in the top level build directory.
+include_guard(GLOBAL)
 
 # Helper function for modifying the linker flags of a target to set the entry point as _sel4_start
 function(SetSeL4Start target)
@@ -25,14 +26,24 @@ endfunction(SetSeL4Start)
 
 # We need to the real non symlinked list path in order to find the linker script that is in
 # the common-tool directory
-set(current_list "${CMAKE_CURRENT_LIST_DIR}")
+find_file(
+    TLS_ROOTSERVER tls_rootserver.lds
+    PATHS "${CMAKE_CURRENT_LIST_DIR}"
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
+mark_as_advanced(TLS_ROOTSERVER)
+
+if(KernelArchRiscV)
+    set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
+    mark_as_advanced(FORCE BBL_PATH)
+endif()
 
 function(DeclareRootserver rootservername)
     SetSeL4Start(${rootservername})
     set_property(
         TARGET ${rootservername}
         APPEND_STRING
-        PROPERTY LINK_FLAGS " -T ${current_list}/tls_rootserver.lds "
+        PROPERTY LINK_FLAGS " -T ${TLS_ROOTSERVER} "
     )
     if("${KernelArch}" STREQUAL "x86")
         set(

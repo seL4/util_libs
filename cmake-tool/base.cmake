@@ -49,6 +49,8 @@ add_subdirectory("${KERNEL_PATH}" kernel)
 include(${KERNEL_HELPERS_PATH})
 
 # Include our common helpers
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/)
+
 include("${CMAKE_CURRENT_LIST_DIR}/common.cmake")
 
 # Due to some symlink madness in some project manifests we first get the realpath

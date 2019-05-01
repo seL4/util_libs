@@ -13,8 +13,6 @@
 # This module declares a macro for debugging purposes.
 # Simply place a call to set_break() in your build files and you will get a prompt
 
-set(debug_list_dir "${CMAKE_CURRENT_LIST_DIR}")
-
 macro(set_break)
-    include(${debug_list_dir}/cmakerepl)
+    include(cmakerepl)
 endmacro()

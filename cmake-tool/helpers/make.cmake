@@ -11,6 +11,7 @@
 #
 
 cmake_minimum_required(VERSION 3.7.2)
+include_guard(GLOBAL)
 
 # This takes a camkes produced dependency file (this means we can assume one dependency
 # per line) and produces a cmake list of dependencies

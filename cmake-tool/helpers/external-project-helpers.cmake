@@ -12,7 +12,7 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-include(ExternalProject)
+include_guard(GLOBAL)
 
 # Function for declaring target object files that are produced by an external project. This adds a custom_command
 # that forces a stale check on the object file after the External projects install step.

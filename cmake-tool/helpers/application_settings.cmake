@@ -11,6 +11,7 @@
 #
 
 cmake_minimum_required(VERSION 3.8.2)
+include_guard(GLOBAL)
 
 function(ApplyData61ElfLoaderSettings kernel_arm_platform kernel_arm_sel4_arch)
     set(binary_list "tx1;hikey;am335x;odroidc2")
