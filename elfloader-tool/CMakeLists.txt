@@ -15,6 +15,7 @@ cmake_minimum_required(VERSION 3.7.2)
 project(elfloader C ASM)
 
 include(${KERNEL_FLAGS_PATH})
+include(cpio)
 
 set(configure_string "")
 
