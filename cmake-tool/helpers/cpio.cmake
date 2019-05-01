@@ -18,18 +18,24 @@ include_guard(GLOBAL)
 # Checks the existence of an argument to cpio -o.
 # flag refers to a variable in the parent scope that contains the argument, if
 # the argument isn't supported then the flag is set to the empty string in the parent scope.
-function(CheckCPIOArgument flag)
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile "Testfile contents")
-    execute_process(
-        COMMAND bash -c "echo cpio-testfile | cpio ${${flag}} -o"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE result
-    )
-    if(result)
-        set(${flag} "" PARENT_SCOPE)
+function(CheckCPIOArgument var flag)
+    if(NOT (DEFINED ${var}))
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile "Testfile contents")
+        execute_process(
+            COMMAND bash -c "echo cpio-testfile | cpio ${flag} -o"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            OUTPUT_QUIET ERROR_QUIET
+            RESULT_VARIABLE result
+        )
+        if(result)
+            set(${var} "" CACHE INTERNAL "")
+            message(STATUS "CPIO test ${var} FAILED")
+        else()
+            set(${var} "${flag}" CACHE INTERNAL "")
+            message(STATUS "CPIO test ${var} PASSED")
+        endif()
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile)
     endif()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/cpio-testfile)
 endfunction()
 
 # Function for declaring rules to build a cpio archive that can be linked
@@ -57,8 +63,7 @@ function(MakeCPIO output_name input_files)
         set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
     endif()
     # Check that the reproducible flag is available. Don't use it if it isn't.
-    set(reproducible_flag "--reproducible")
-    CheckCPIOArgument(reproducible_flag)
+    CheckCPIOArgument(cpio_reproducible_flag "--reproducible")
     set(append "")
     set(commands "")
     foreach(file IN LISTS input_files)
@@ -69,7 +74,7 @@ function(MakeCPIO output_name input_files)
         list(
             APPEND
                 commands
-                "bash;-c;cd `dirname ${file}` && mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} ${reproducible_flag} --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
+                "bash;-c;cd `dirname ${file}` && mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio ${append} ${cpio_reproducible_flag} --owner=root:root --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
         )
         set(append "--append")
     endforeach()
