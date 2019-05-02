@@ -1,0 +1,129 @@
+#!/bin/sh
+#
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the GNU General Public License version 2. Note that NO WARRANTY is provided.
+# See "LICENSE_GPLv2.txt" for details.
+#
+# @TAG(DATA61_GPL)
+
+set -eu
+
+PROGNAME=${0##*/}
+
+# We use the following exit status conventions:
+#   0: normal operation, successful, "true"
+#   1: expected failure, "false"
+#   2: usage error
+#   3: other error
+EXIT_STATUS=3
+
+# Emit diagnostic message.
+# @params: a set of strings comprising a human-intelligible message
+_print () {
+    echo "${PROGNAME:-(unknown program)}: $*"
+}
+
+# Emit error message to standard error.
+# @params: a set of strings comprising a human-intelligible message
+fail () {
+    _print "error: $*" >&2
+}
+
+# Report unrecoverable error and terminate script.
+# @params: a set of strings comprising a human-intelligible message
+#
+# Note: $EXIT_STATUS, if set in the invoking scope, determines the exit status
+# used by this function.
+die () {
+    _print "fatal error: $*" >&2
+    exit ${EXIT_STATUS:-3}
+}
+
+# Display a usage message.
+show_usage () {
+    cat <<EOF
+$PROGNAME: generate U-Boot payload for ARM platform
+
+Usage:
+    $PROGNAME OBJCOPY-TOOL ELF-FILE ARCHITECTURE OUTPUT-FILE
+
+$PROGNAME uses objcopy, readelf (both from GNU binutils), and mkimage
+(from the U-Boot tools) to extract the entry point (start symbol) of an
+ELF executable and wrap the object in a chain-loadable payload for use
+by the U-Boot boot loader.
+
+OBJCOPY-TOOL should be the path to a version of GNU objcopy appropriate
+for the (cross-)built ELF-FILE.  ELF-FILE should be an ELF executable
+object.  ARCHITECTURE must be either "arm" or "arm64".  The image is
+written to OUTPUT-FILE.
+EOF
+}
+
+# Clean up temporary file.  $TEMPFILE is defined before this function is called.
+cleanup () {
+    rm -f $TEMPFILE
+}
+
+# Output the start symbol from given ELF object.
+#
+# Note: This function is sensitive to the output format of "readelf".
+get_start_symbol() {
+    ELF_FILE=$1
+
+    if ! readelf -h "$ELF_FILE" > /dev/null
+    then
+        die "\"$ELF_FILE\" does not appear to be an ELF file"
+    fi
+
+    set -- $(readelf -s $ELF_FILE | grep -w _start)
+    echo $2
+}
+
+if [ $# -ne 4 ]
+then
+    fail "expected 4 arguments, got $#: \"$*\""
+    show_usage >&2
+    exit 2
+fi
+
+OBJCOPY=$1
+ELF_FILE=$2
+ARCHITECTURE=$3
+OUTPUT=$4
+
+# Validate arguments.  $ELF_FILE is validated by get_start_symbol().  We'll let
+# mkimage fail if $OUTPUT is not writable.
+
+if ! [ -x "$OBJCOPY" ]
+then
+    die "\"$OBJCOPY\" does not exist or is not executable"
+fi
+
+case "$ARCHITECTURE" in
+    (arm|arm64)
+        ;;
+    (*)
+        EXIT_STATUS=2
+        die "unrecognized (ARM) architecture \"$ARCHITECTURE\""
+        ;;
+esac
+
+# $ARCHITECTURE is now known to be a safe string and no longer requires
+# quotation.
+
+TEMPFILE=$(mktemp)
+trap cleanup HUP INT QUIT TERM EXIT
+
+# Note: Because we are using a temporary file, the appending redirection is
+# important!  Do not degenerate it to ">", which will unlink the destination
+# first and reintroduce the race that mktemp avoids.
+"$OBJCOPY" -O binary "$ELF_FILE" /dev/stdout >> $TEMPFILE
+START=$(get_start_symbol "$ELF_FILE")
+mkimage -A $ARCHITECTURE -O linux -T kernel -C none \
+    -a $START -e $START -d $TEMPFILE "$OUTPUT"
+
+exit 0

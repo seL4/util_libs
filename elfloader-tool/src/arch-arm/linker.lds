@@ -13,6 +13,8 @@
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
 
+#include "image_start_addr.h"
+
 PECOFF_FILE_ALIGNMENT = 0x200;
 
 SECTIONS
@@ -27,6 +29,7 @@ INSERT BEFORE .hash;
 
 SECTIONS
 {
+    . = IMAGE_START_ADDR;
     .start :
     {
         *(.text.start)

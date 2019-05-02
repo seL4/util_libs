@@ -147,13 +147,9 @@ function(DeclareRootserver rootservername)
                 DEPENDS ${elf_target_file} elfloader
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
-            # If not an elf we construct an intermediate rule to do an objcopy to binary
-            add_custom_command(
-                OUTPUT "${IMAGE_NAME}.bin"
-                COMMAND
-                    ${CMAKE_OBJCOPY} -O binary ${elf_target_file} "${IMAGE_NAME}.bin"
-                DEPENDS ${elf_target_file} elfloader
-            )
+            # Construct payload for U-Boot.
+            set(UIMAGE_TOOL "${CMAKE_SOURCE_DIR}/tools/seL4/cmake-tool/helpers/make-uimage")
+
             if("${KernelArmSel4Arch}" STREQUAL "aarch32")
                 set(UIMAGE_ARCH "arm")
             elseif(KernelSel4ArchAarch64)
@@ -162,15 +158,11 @@ function(DeclareRootserver rootservername)
                 message(FATAL_ERROR "uimage: Unsupported architecture: ${KernelArch}")
             endif()
 
-            # Add custom command for converting to uboot image
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    mkimage -A ${UIMAGE_ARCH} -O linux -T kernel -C none -a
-                    $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -e
-                    $<TARGET_PROPERTY:elfloader,PlatformEntryAddr> -d "${IMAGE_NAME}.bin"
-                    "${IMAGE_NAME}"
-                DEPENDS "${IMAGE_NAME}.bin"
+                    ${UIMAGE_TOOL} ${CMAKE_OBJCOPY} ${elf_target_file} ${UIMAGE_ARCH} ${IMAGE_NAME}
+                DEPENDS ${elf_target_file} elfloader
             )
         else()
             add_custom_command(

@@ -229,20 +229,55 @@ if(NOT ${ElfloaderHashInstructions} STREQUAL "hash_none")
     list(APPEND cpio_files "${CMAKE_CURRENT_BINARY_DIR}/app.bin")
 endif()
 
+# Construct the ELF loader's payload.
 MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 
 # If our platform has a YAML description, create a C header file to include
 # information about the platform that is of interest to the ELF-loader, such as
 # a physical memory map.
+#
+# We also need to put the ELF-loader's payload in memory at a place that will be
+# out of the way of the kernel and user images that the elfloader extracts.  In
+# other words, we don't want the ELF-loader (with its payload) to clobber
+# itself.
+#
+# Formerly there was a complex set of conditionals driving a table of
+# hard-coded addresses.
+#
+# Now, instead, we compute a reasonable image start address, using a tool called
+# `shoehorn`, based on knowledge of how where and how big the extracted payloads
+# will be, obtained by a tool called `elf_sift`.
 if(DEFINED platform_yaml)
+    set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/")
     set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
-    set(PLATFORM_INFO_H "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/platform_info.h")
+    set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
     add_custom_command(
         OUTPUT ${PLATFORM_INFO_H}
         COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${PLATFORM_INFO_H}
         VERBATIM
-        DEPENDS ${platform_yaml}
+        DEPENDS ${platform_yaml} ${PLATFORM_SIFT}
     )
+
+    # Construct the `shoehorn` command line.  Convert the semicolon-delimited
+    # CMake list of CPIO archive members to a whitespace-separated list so we
+    # can pass it via the shell to `shoehorn`.
+    string(REPLACE ";" " " cpio_files_ws "${cpio_files}")
+    set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o ")
+    # `shoehorn` calls `elf_sift`.
+    set(ELF_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/elf_sift.py")
+    set(SHOEHORN "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/shoehorn.py")
+    set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
+    set(SHOEHORN_COMMAND "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} ${cpio_files_ws} > ${IMAGE_START_ADDR_H}")
+
+    add_custom_command(
+        OUTPUT ${IMAGE_START_ADDR_H}
+        COMMAND sh -c "${SHOEHORN_COMMAND}"
+        VERBATIM
+        DEPENDS archive.o
+        DEPENDS ${cpio_files} ${ELF_SIFT} ${SHOEHORN}
+    )
+else()
+    message(FATAL_ERROR "no image start address computed for platform; use platform YAML file ${platform_yaml} or replace this diagnostic with a CMake custom command to generate a file \"${IMAGE_START_ADDR_H}\" that hard-codes it; the same goes for \"${PLATFORM_INFO_H}\"")
 endif()
 
 # Generate linker script
@@ -251,6 +286,7 @@ add_custom_command(
     OUTPUT "linker.lds_pp"
     COMMAND
         ${CMAKE_C_COMPILER} "${c_arguments}"
+        "-I${PLATFORM_HEADER_DIR}"
         "-I$<JOIN:$<TARGET_PROPERTY:sel4_autoconf,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
         "-I$<JOIN:$<TARGET_PROPERTY:elfloader_Config,INTERFACE_INCLUDE_DIRECTORIES>,;-I>" -P -E -o
         linker.lds_pp -x c ${linkerScript}
@@ -258,7 +294,7 @@ add_custom_command(
         sel4_autoconf
         ${linkerScript}
         elfloader_Config
-        ${PLATFORM_INFO_H}
+        ${IMAGE_START_ADDR_H}
     VERBATIM COMMAND_EXPAND_LISTS
 )
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
@@ -302,53 +338,4 @@ set_property(
 
 if(ElfloaderImageEFI)
     set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
-else()
-    if(KernelPlatImx6 OR KernelPlatformRpi3 OR KernelPlatformOdroidc2 OR KernelPlatformRockpro64)
-        set(PlatformEntryAddr 0x20000000)
-    elseif(
-        KernelPlatformKZM
-        OR KernelPlatformOMAP3
-        OR KernelPlatformAM335X
-        OR KernelPlatformImx7Sabre
-        OR KernelPlatformTx2
-        OR KernelPlatformFVP
-    )
-        set(PlatformEntryAddr 0x82000000)
-    elseif(
-        KernelPlatExynos5
-        OR KernelPlatformExynos4
-        OR KernelPlatformImx8mq-evk
-        OR KernelPlatformImx8mm-evk
-    )
-        set(PlatformEntryAddr 0x41000000)
-    elseif(KernelPlatformHikey OR KernelPlatformTx1)
-        if(KernelSel4ArchAarch64)
-            set(PlatformEntryAddr 0)
-        else()
-            set(PlatformEntryAddr 0x1000)
-        endif()
-    elseif(KernelPlatformAPQ8064)
-        set(PlatformEntryAddr 0x82008000)
-    elseif(KernelPlatformTK1)
-        set(PlatformEntryAddr 0x90000000)
-    elseif(KernelPlatformZynq7000 OR KernelPlatformZynqmp)
-        set(PlatformEntryAddr 0x10000000)
-    elseif(
-        KernelPlatformSpike
-        OR KernelPlatformHifive
-        OR KernelPlatformAriane
-        OR KernelPlatformRocketChip
-    )
-        set(PlatformEntryAddr 0x80400000)
-    else()
-        if(KernelArchARM OR KernelArchRiscV)
-            message(FATAL_ERROR "Unknown platform when generating image")
-        endif()
-    endif()
-    set_property(TARGET elfloader PROPERTY PlatformEntryAddr ${PlatformEntryAddr})
-    set_property(
-        TARGET elfloader
-        APPEND_STRING
-        PROPERTY LINK_FLAGS " -Xlinker --section-start -Xlinker .start=${PlatformEntryAddr} "
-    )
 endif()
