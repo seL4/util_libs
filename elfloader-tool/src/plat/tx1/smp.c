@@ -45,7 +45,8 @@ void init_cpus(void)
         abort();
     }
     for (int i = 1; i < nodes; i++) {
-        *((unsigned long *)(&core_stacks[0][0])) = (unsigned long)&core_stacks[i][0];
+        /* all cores read the stack pointer from the same place */
+        core_stacks[0][0] = (unsigned long) &core_stacks[i][0];
         asm volatile("dsb sy":::"memory");
         int ret = psci_cpu_on(i, (unsigned long)core_entry_head, 0);
         if (ret != PSCI_SUCCESS) {

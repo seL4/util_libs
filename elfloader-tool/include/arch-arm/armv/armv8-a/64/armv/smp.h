@@ -18,7 +18,7 @@
 
 #define STACK_SIZE  4096
 
-extern char core_stacks[CONFIG_MAX_NUM_NODES][STACK_SIZE] ALIGN(BIT(12));
+extern unsigned long core_stacks[CONFIG_MAX_NUM_NODES][STACK_SIZE / sizeof(unsigned long)] ALIGN(BIT(12));
 void core_entry(uint64_t sp);
 int  is_core_up(int id);
 

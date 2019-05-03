@@ -18,7 +18,7 @@
 #include <armv/machine.h>
 #include <armv/smp.h>
 
-char core_stacks[CONFIG_MAX_NUM_NODES][STACK_SIZE] ALIGN(BIT(12));
+unsigned long core_stacks[CONFIG_MAX_NUM_NODES][STACK_SIZE / sizeof(unsigned long)] ALIGN(BIT(12));
 volatile int core_up[CONFIG_MAX_NUM_NODES];
 
 extern void core_entry_head(void);
