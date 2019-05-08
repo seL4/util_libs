@@ -50,6 +50,7 @@ NCOLORS=$(tput colors)
 # If the terminal doesn't support color at all, these will remain null.
 RED=
 GREEN=
+YELLOW=
 
 # We want different foreground color numbers if we have a terminal capable of
 # more than 8, because generally the contrast is bad if we use the low-numbered
@@ -61,6 +62,7 @@ then
     then
         RED=$(tput setaf 9)
         GREEN=$(tput setaf 10)
+        YELLOW=$(tput setaf 11)
     # This is an exact equality match on purpose.  tput will report -1 for a
     # truly monochrome terminal and in that case we don't want to mess with
     # the setaf capability at all.
@@ -68,6 +70,7 @@ then
     then
         RED=$(tput setaf 1)
         GREEN=$(tput setaf 2)
+        YELLOW=$(tput setaf 3)
     fi
 fi
 
@@ -83,6 +86,11 @@ _print () {
 # @params: a set of strings comprising a human-intelligible message
 debug () {
     _print "${GREEN}debug: $*" >&2
+}
+
+# Emit warning message to standard error.
+warn () {
+    _print "${YELLOW}warning: $*" >&2
 }
 
 # Emit error message to standard error.
@@ -104,6 +112,26 @@ die () {
 # @params: a string describing the classification
 describe () {
     test -n "$DEBUG_MATCHER" && debug "$CMAKE_LINENO: $*" || :
+}
+
+# Back up the CMake cache file, re-run CMake, and see if the new cache file
+# differs from the backup.  If it does, the configuration is not stable and we
+# will warn about it (see end of script).
+#
+# Returns 0 (success) if the files are the same; 1 if they differ; other if
+# trouble.
+is_configuration_stable () {
+    if ! [ -e $CMAKECACHE ]
+    then
+        die "CMake cache file \"$CMAKECACHE\" unexpectedly does not exist!"
+    fi
+
+    cp $CMAKECACHE $CMAKECACHE.griddle.bak
+    cmake "$CMAKE_ARGS" "$SOURCE_ROOT"
+    cmp -s $CMAKECACHE $CMAKECACHE.griddle.bak
+    # `return` with no arguments returns the exit status of the last "simple
+    # command" executed, so don't insert anything between `cmp` and `return`.
+    return
 }
 
 # Break up Set directive and save interesting parts.
@@ -509,9 +537,11 @@ then
     # dereferenced before they are used.  CMake's caching stabilizes the
     # situation, at the cost of requiring multiple runs.  Fixing this infelicity
     # is JIRA SELFOUR-1648.
-    #
-    cmake "$CMAKE_ARGS" "$SOURCE_ROOT" \
-        && cmake "$CMAKE_ARGS" "$SOURCE_ROOT"
+    while ! is_configuration_stable
+    do
+        warn "configuration not stable"
+    done
+
 else
     die "internal error; unrecognized operation mode \"$MODE\""
 fi
