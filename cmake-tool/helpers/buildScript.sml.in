@@ -1,0 +1,23 @@
+(*
+ * Copyright 2018, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(DATA61_BSD)
+ *)
+
+open preamble basis @PARSE_CML_LIB_TRANSLATION_THEORY@Theory;
+
+val _ = new_theory "build";
+val _ = translation_extends "@PARSE_CML_LIB_TRANSLATION_THEORY@";
+val st = ml_translatorLib.get_ml_prog_state();
+val maincall =
+  ``Dlet unknown_loc (Pcon NONE []) (App Opapp [Var (Short "@PARSE_CML_LIB_CAKEML_ENTRY@"); Con NONE []])``;
+val prog = ``SNOC ^maincall ^(get_thm st |> concl |> rator |> rator |> rator |> rand)``
+           |> EVAL |> concl |> rhs;
+val _ = astToSexprLib.write_ast_to_file "@SEXP_FILE@" prog;
+val _ = export_theory ();

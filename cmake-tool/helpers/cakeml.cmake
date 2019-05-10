@@ -16,6 +16,13 @@ include_guard(GLOBAL)
 find_program(HOLMAKE_BIN NAMES "Holmake")
 find_program(CAKEML_BIN NAMES "cake")
 
+find_file(
+    BUILD_SCRIPT_IN buildScript.sml.in
+    PATHS ${CMAKE_CURRENT_LIST_DIR}
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
+find_file(HOLMAKEFILE_IN Holmakefile.in PATHS ${CMAKE_CURRENT_LIST_DIR} CMAKE_FIND_ROOT_PATH_BOTH)
+
 # Turns a selection of CakeML HOL scripts (Script.sml files) into a library that can
 # be linked against. Note that the library *only* contains the output of the CakeML
 # compiler, and it may have hanging symbols to ffi functions that need to be fullfilled
@@ -132,30 +139,10 @@ function(DeclareCakeMLLib library_name)
         ${library_name}cakeml_symlink_theory_files
         DEPENDS ${library_name}cakeml_copy.stamp
     )
-    # Write out a build script. We don't bother with bracket arguments here as there aren't too many
-    # things to escape and we need to expand several variables throughout
-    set(BUILD_SCRIPT_TEMP "${CMAKE_CURRENT_BINARY_DIR}/buildScript.sml.temp")
-    file(
-        WRITE
-            "${BUILD_SCRIPT_TEMP}"
-            "open preamble basis ${PARSE_CML_LIB_TRANSLATION_THEORY}Theory;
+    # Write out a build script.
+    configure_file(${BUILD_SCRIPT_IN} ${BUILD_SCRIPT} @ONLY)
 
-val _ = new_theory \"build\";
-val _ = translation_extends \"${PARSE_CML_LIB_TRANSLATION_THEORY}\";
-val st = ml_translatorLib.get_ml_prog_state();
-val maincall =
-  ``Dlet unknown_loc (Pcon NONE []) (App Opapp [Var (Short \"${PARSE_CML_LIB_CAKEML_ENTRY}\"); Con NONE []])``;
-val prog = ``SNOC ^maincall ^(get_thm st |> concl |> rator |> rator |> rator |> rand)``
-           |> EVAL |> concl |> rhs;
-val _ = astToSexprLib.write_ast_to_file \"${SEXP_FILE}\" prog;
-val _ = export_theory ();
-"
-    )
     # Write out a Holmakefile
-    # We use a mixture of bracket arguments, in order to avoid excessive escape sequences, and
-    # regular strings in order to expand variables. This allows us to create a super crappy templating
-    # system that is just good enough for what we need.
-    set(HOLMAKEFILE_TEMP "${CMAKE_CURRENT_BINARY_DIR}/Holmakefile.temp")
     string(
         REPLACE
             ";"
@@ -163,70 +150,8 @@ val _ = export_theory ();
             CAKEML_INCLUDES_SPACE_SEP
             "${PARSE_CML_LIB_INCLUDES}"
     )
-    file(
-        WRITE
-            "${HOLMAKEFILE_TEMP}" "CAKEML_DIR = ${CAKEMLDIR}
-"
-            [==[
-INCLUDES = $(CAKEML_DIR)/characteristic $(CAKEML_DIR)/basis $(CAKEML_DIR)/misc $(CAKEML_DIR)/translator \
-           $(CAKEML_DIR)/semantics $(CAKEML_DIR)/unverified/sexpr-bootstrap $(CAKEML_DIR)/compiler/parsing \
-           ]==] "${CAKEML_INCLUDES_SPACE_SEP}
-"
-[==[
-OPTIONS = QUIT_ON_FAILURE
+    configure_file(${HOLMAKEFILE_IN} ${HOLMAKEFILE} @ONLY)
 
-THYFILES = $(patsubst %Script.sml,%Theory.uo,$(wildcard *.sml))
-TARGETS0 = $(patsubst %Theory.sml,,$(THYFILES))
-TARGETS = $(patsubst %.sml,%.uo,$(TARGETS0))
-all: $(TARGETS)
-.PHONY: all
-
-ifdef POLY
-HOLHEAP = heap
-PARENT_HOLHEAP = $(CAKEML_DIR)/characteristic/heap
-EXTRA_CLEANS = $(HOLHEAP) $(HOLHEAP).o
-all: $(HOLHEAP)
-
-PRE_BARE_THYS1 = basisProgTheory
-PRE_BARE_THYS2 = fromSexpTheory
-PRE_BARE_THYS3 = cfTacticsBaseLib cfTacticsLib
-PRE_BARE_THYS4 = astToSexprLib
-PRE_BARE_THYS5 = ml_translatorLib
-
-BARE_THYS1 =  $(patsubst %,$(CAKEML_DIR)/basis/%,$(PRE_BARE_THYS1))
-BARE_THYS2 =  $(patsubst %,$(CAKEML_DIR)/compiler/parsing/%,$(PRE_BARE_THYS2))
-BARE_THYS3 =  $(patsubst %,$(CAKEML_DIR)/characteristic/%,$(PRE_BARE_THYS3))
-BARE_THYS4 =  $(patsubst %,$(CAKEML_DIR)/unverified/sexpr-bootstrap/%,$(PRE_BARE_THYS4))
-BARE_THYS4 =  $(patsubst %,$(CAKEML_DIR)/translator/%,$(PRE_BARE_THYS5))
-
-DEPS = $(patsubst %,%.uo,$(BARE_THYS1)) $(patsubst %,%.uo,$(BARE_THYS2)) $(patsubst %,%.uo,$(BARE_THYS3)) \
-       $(patsubst %,%.uo,$(BARE_THYS4)) $(patsubst %,%.uo,$(BARE_THYS4)) $(PARENTHEAP)
-
-$(HOLHEAP): $(DEPS)
-	$(protect buildheap) -b $(PARENT_HOLHEAP) -o $(HOLHEAP) $(BARE_THYS1) $(BARE_THYS2) $(BARE_THYS3) $(BARE_THYS4) $(BARE_THYS5)
-endif
-]==]
-    )
-    # Use a command/target for putting the final BUILD_SCRIPT and HOLMAKEFILE in place. The
-    # indirection instead of doing file(WRITE) directly into location is so that if the build script
-    # or the holmakefile does not change, then in the worst case we will run the following command,
-    # not copy, and then as our outputs will not update we will not rerun the holmake+cake process
-    # below. The file(WRITE) above *has* to happen everytime cmake reruns, and so ultimately this is
-    # a small optimization around not rerunning cake (holmake does not fairly fast) if we file(WRITE)
-    # the same contents back out
-    add_custom_command(
-        OUTPUT "${BUILD_SCRIPT}" "${HOLMAKEFILE}"
-        COMMAND
-            ${CMAKE_COMMAND} -E copy_if_different ${BUILD_SCRIPT_TEMP} ${BUILD_SCRIPT}
-        COMMAND
-            ${CMAKE_COMMAND} -E copy_if_different ${HOLMAKEFILE_TEMP} ${HOLMAKEFILE}
-        DEPENDS "${BUILD_SCRIPT_TEMP}" "${HOLMAKEFILE_TEMP}"
-        WORKING_DIRECTORY "${CML_DIR}"
-    )
-    add_custom_target(
-        ${library_name}cakeml_copy_build_script
-        DEPENDS "${BUILD_SCRIPT}" "${HOLMAKEFILE}"
-    )
     # Extra options for Holmake, provide them to init-build.sh with -DHOL_EXTRA_OPTS="--arg1;--arg2"
     set(
         HOL_EXTRA_OPTS "$ENV{HOL_EXTRA_OPTS}"
@@ -256,7 +181,6 @@ endif
             "${stampfile}"
             "${BUILD_SCRIPT}"
             "${HOLMAKEFILE}"
-            ${library_name}cakeml_copy_build_script
             ${PARSE_CML_LIB_DEPENDS}
         WORKING_DIRECTORY "${CML_DIR}"
         VERBATIM
