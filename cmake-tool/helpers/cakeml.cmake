@@ -187,5 +187,15 @@ function(DeclareCakeMLLib library_name)
     )
     add_custom_target(${library_name}cakeml_asm_theory_target DEPENDS "${ASM_FILE}")
     add_library(${library_name} STATIC EXCLUDE_FROM_ALL "${ASM_FILE}")
+
+    # Holmake doesn't support concurrent builds and so we need to serialise any Cakeml
+    # libraries that we build. We do this by adding a dependency on the previously defined
+    # library for each library we define.
+    get_property(cmake_serialise GLOBAL PROPERTY CAKEML_PREVIOUS_LIBRARY)
+    if(NOT "${cmake_serialise}" STREQUAL "")
+        add_dependencies(${library_name} ${cmake_serialise})
+    endif()
+    set_property(GLOBAL PROPERTY CAKEML_PREVIOUS_LIBRARY ${library_name})
+
     add_dependencies(${library_name} ${library_name}cakeml_asm_theory_target)
 endfunction(DeclareCakeMLLib)
