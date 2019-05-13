@@ -16,7 +16,6 @@
 #include <types.h>
 #include <binaries/elf/elf.h>
 #include <elfloader.h>
-#include <platform.h>
 #include <abort.h>
 #include <cpio/cpio.h>
 
