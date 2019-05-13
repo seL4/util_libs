@@ -239,7 +239,12 @@ else()
         set(PlatformEntryAddr 0x90000000)
     elseif(KernelPlatformZynq7000 OR KernelPlatformZynqmp)
         set(PlatformEntryAddr 0x10000000)
-    elseif(KernelPlatformSpike)
+    elseif(
+        KernelPlatformSpike
+        OR KernelPlatformSifive
+        OR KernelPlatformAriane
+        OR KernelPlatformRocketChip
+    )
         set(PlatformEntryAddr 0x80400000)
     else()
         if(KernelArchARM OR KernelArchRiscV)
