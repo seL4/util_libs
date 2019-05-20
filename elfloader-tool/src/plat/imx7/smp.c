@@ -10,6 +10,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #include <printf.h>
 #include <armv/machine.h>

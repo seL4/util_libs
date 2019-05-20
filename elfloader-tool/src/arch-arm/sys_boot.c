@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #include <printf.h>
 #include <types.h>

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 
 #define ZYNQMP_UART0_BASE        0xFF000000

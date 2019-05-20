@@ -19,6 +19,7 @@
 
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
 #error "SMP not implemented for zynqmp"

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 /*
  * UART Hardware Constants

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
 

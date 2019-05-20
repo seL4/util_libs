@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 .extern main
 .global _start
 .extern __global_pointer$

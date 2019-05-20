@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 #include <assembler.h>
 #include <mode/assembler.h>
 

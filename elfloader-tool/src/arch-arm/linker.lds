@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 PECOFF_FILE_ALIGNMENT = 0x200;
 

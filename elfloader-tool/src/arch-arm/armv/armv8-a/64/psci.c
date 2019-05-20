@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 #include <printf.h>
 
 #define SMC64_FID_VER           0x84000000

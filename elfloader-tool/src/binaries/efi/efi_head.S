@@ -10,6 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #include <assembler.h>
 

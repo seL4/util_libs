@@ -12,6 +12,7 @@
  * @TAG(DATA61_DORNERWORKS_GPL)
  */
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #include <types.h>
 #include <binaries/elf/elf.h>

@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <elfloader/gen_config.h>
 
 #define VECTOR_BASE     0x10000000
 #define STACK_TOP       (VECTOR_BASE + (1 << 12) - 0x10)
