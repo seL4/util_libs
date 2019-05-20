@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <ethdrivers/gen_config.h>
 
 #ifdef CONFIG_LIB_PICOTCP
 

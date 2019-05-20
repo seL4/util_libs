@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <picotcp/gen_config.h>
 #ifdef CONFIG_LIB_PICOTCP
 
 #include <platsupport/io.h>

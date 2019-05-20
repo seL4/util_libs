@@ -15,6 +15,7 @@
 #include <platsupport/sel4_arch/util.h>
 #include <platsupport/timer.h>
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 #define GENERIC_TIMER_ENABLE BIT(0)
 #define GENERIC_TIMER_IMASK  BIT(1)

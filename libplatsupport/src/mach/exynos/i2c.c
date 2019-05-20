@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <platsupport/i2c.h>
 #include <platsupport/mux.h>
 #include <utils/util.h>

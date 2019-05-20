@@ -13,6 +13,7 @@
 /* SPI driver */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <platsupport/spi.h>

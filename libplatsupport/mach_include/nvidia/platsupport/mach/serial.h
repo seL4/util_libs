@@ -11,6 +11,7 @@
  */
 #pragma once
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 /* Official device IDs, as recognized by ps_cdev_init().
  *

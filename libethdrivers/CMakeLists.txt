@@ -82,9 +82,12 @@ add_library(ethdrivers STATIC EXCLUDE_FROM_ALL ${sources})
 target_include_directories(ethdrivers PRIVATE src/plat/${KernelPlatform}/cpsw)
 target_include_directories(
     ethdrivers
-    PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
+    PUBLIC
+        include
+        plat_include/${KernelPlatform}
+        arch_include/${KernelArch}
 )
-target_link_libraries(ethdrivers Configuration muslc platsupport)
+target_link_libraries(ethdrivers muslc platsupport ethdrivers_Config lwip_Config picotcp_Config)
 if(LibLwip)
     target_link_libraries(ethdrivers lwip)
 endif()

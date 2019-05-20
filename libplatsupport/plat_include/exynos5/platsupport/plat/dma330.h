@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 #define PL330_MDMA0_PADDR 0x10800000
 #define PL330_MDMA1_PADDR 0x11C10000

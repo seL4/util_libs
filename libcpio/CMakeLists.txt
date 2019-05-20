@@ -22,4 +22,4 @@ endif()
 target_compile_options(cpio PRIVATE "-fpic")
 
 target_include_directories(cpio PUBLIC include)
-target_link_libraries(cpio Configuration)
+target_link_libraries(cpio)

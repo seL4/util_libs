@@ -10,6 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 #define EXYNOS_UART0_PADDR  0x12C00000
 #define EXYNOS_UART1_PADDR  0x12C10000

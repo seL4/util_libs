@@ -14,6 +14,7 @@
 
 #include <assert.h>
 #include <autoconf.h>
+#include <utils/gen_config.h>
 #include <stdbool.h>
 
 #include <utils/ansi.h>

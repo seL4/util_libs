@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <utils/attribute.h>
 #include "regions.h"
 

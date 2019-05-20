@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 /* This is core ARM IP, but we will limit the compile to EXYNOS5 for now */
 #ifdef CONFIG_PLAT_EXYNOS5

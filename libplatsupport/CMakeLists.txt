@@ -77,7 +77,10 @@ add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 target_include_directories(platsupport PRIVATE src/plat_include/${KernelPlatform})
 target_include_directories(
     platsupport
-    PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
+    PUBLIC
+        include
+        plat_include/${KernelPlatform}
+        arch_include/${KernelArch}
 )
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
@@ -89,4 +92,4 @@ if("${KernelArch}" STREQUAL "arm")
     endif()
     target_include_directories(platsupport PUBLIC sel4_arch_include/${sel4_arch})
 endif()
-target_link_libraries(platsupport Configuration muslc utils)
+target_link_libraries(platsupport muslc utils platsupport_Config)

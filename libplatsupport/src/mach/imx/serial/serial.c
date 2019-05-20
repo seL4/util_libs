@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 #include <stdlib.h>
 #include <platsupport/serial.h>

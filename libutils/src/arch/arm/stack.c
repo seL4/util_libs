@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <utils/gen_config.h>
 #include <utils/stack.h>
 
 void *

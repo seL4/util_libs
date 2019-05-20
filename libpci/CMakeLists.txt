@@ -25,4 +25,4 @@ add_library(
     src/virtual_pci.c
 )
 target_include_directories(pci PUBLIC include)
-target_link_libraries(pci Configuration muslc platsupport)
+target_link_libraries(pci muslc platsupport)

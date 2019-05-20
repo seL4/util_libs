@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <platsupport/mach/serial.h>
 
 #define UART1_PADDR  0x02020000

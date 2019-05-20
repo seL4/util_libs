@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <stdint.h>
 #include <platsupport/mux.h>
 #include <platsupport/gpio.h>

@@ -130,7 +130,11 @@ if(LibPicotcp)
     add_library(picotcp INTERFACE)
     add_dependencies(picotcp picotcp_sources)
     set_property(TARGET picotcp PROPERTY INTERFACE_LINK_LIBRARIES picotcp_sources)
-    target_include_directories(picotcp INTERFACE "${BUILD_DIR}/include")
+    target_include_directories(picotcp
+        INTERFACE
+            "${BUILD_DIR}/include"
+            "$<TARGET_PROPERTY:picotcp_Config,INTERFACE_INCLUDE_DIRECTORIES>"
+)
 endif()
 if(LibPicotcpBsd)
     # find pico tcp location

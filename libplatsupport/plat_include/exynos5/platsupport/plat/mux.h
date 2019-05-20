@@ -12,6 +12,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 
 #if defined(CONFIG_PLAT_EXYNOS5250)
 /* These are for the arndale */

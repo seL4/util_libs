@@ -12,6 +12,7 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
+include_directories("$<TARGET_PROPERTY:kernel_autoconf,INTERFACE_INCLUDE_DIRECTORIES>")
 add_subdirectory(libutils)
 add_subdirectory(libplatsupport)
 add_subdirectory(libelf)

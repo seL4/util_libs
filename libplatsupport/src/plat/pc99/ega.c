@@ -20,6 +20,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <assert.h>
 #include <string.h>
 #include <platsupport/plat/serial.h>

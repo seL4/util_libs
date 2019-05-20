@@ -13,6 +13,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <utils/gen_config.h>
 
 #define COLOR_ERROR "\033[1;31m"
 #define COLOR_NORMAL "\033[0m"

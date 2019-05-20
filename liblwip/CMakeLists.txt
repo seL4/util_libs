@@ -43,5 +43,5 @@ if(LibLwip)
             include/lwip
     )
 
-    target_link_libraries(lwip Configuration muslc liblwip_config)
+    target_link_libraries(lwip muslc liblwip_config lwip_Config)
 endif()

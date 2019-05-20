@@ -2,6 +2,7 @@
 #define __ASM_ARM_SYSTEM_H
 
 #include <autoconf.h>
+#include <ethdrivers/gen_config.h>
 
 #ifdef CONFIG_ARM64
 

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 

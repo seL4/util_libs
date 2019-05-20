@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <platsupport/gen_config.h>
 #include <platsupport/arch/tsc.h>
 #include <platsupport/delay.h>
 #include <stdint.h>
