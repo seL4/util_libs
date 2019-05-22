@@ -10,6 +10,7 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <ethdrivers/gen_config.h>
 #include <ethdrivers/intel.h>
 #include <assert.h>
 #include <ethdrivers/helpers.h>

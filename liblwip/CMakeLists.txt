@@ -18,9 +18,8 @@ set(configure_string "")
 
 config_option(LibLwip LIB_LWIP "Build LwIP" DEFAULT OFF)
 mark_as_advanced(LibLwip)
+add_config_library(lwip "${configure_string}")
 if(LibLwip)
-    add_config_library(lwip "${configure_string}")
-
     add_compile_options(-std=gnu99)
 
     file(
