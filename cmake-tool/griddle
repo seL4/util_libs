@@ -134,7 +134,7 @@ is_configuration_stable () {
     fi
 
     cp $CMAKECACHE $CMAKECACHE.griddle.bak
-    cmake "$CMAKE_ARGS" "$SOURCE_ROOT"
+    cmake "$CMAKE_ARGS" "$SOURCE_ROOT" || die "cmake failed"
     cmp -s $CMAKECACHE $CMAKECACHE.griddle.bak
     # `return` with no arguments returns the exit status of the last "simple
     # command" executed, so don't insert anything between `cmp` and `return`.
@@ -413,6 +413,8 @@ validate_name () {
 # Check the option parameter given against the declared type.
 # @params: an option name and its parameter
 # @return: 0 (true) if parameter type-checks; 1 (false) otherwise
+#
+# When returning 1, be certain to issue a `fail` diagnostic.
 validate_parameter () {
     FLAG=$1
     VALUE=$2
@@ -428,7 +430,10 @@ validate_parameter () {
     (BOOL)
         case "$VALUE" in
         (ON|OFF)
-            die "\"FLAG\" only supports values of \"ON\" or \"OFF\""
+            ;;
+        (*)
+            fail "\"$FLAG\" only supports values of \"ON\" or \"OFF\""
+            return 1
             ;;
         esac
         ;;
@@ -436,6 +441,8 @@ validate_parameter () {
         # No validation at present.
         ;;
     (*)
+        # This is a fatal error because it indicates a limitation of the script,
+        # not invalid user input.
         die "unsupported configuration variable type \"$TYPE\" (\"$FLAG\")"
         ;;
     esac
@@ -478,14 +485,18 @@ do
         ;;
     (--help)
         MODE=help
+        shift
         ;;
     (--)
         shift
         break
         ;;
     (--*)
-        # Strip off leading dashes.
+        # Strip off the argument's leading dashes.
         ARG=${1#--}
+        # Reset variables set by previous iterations.
+        FLAG=
+        VALUE=
 
         if validate_name "$ARG"
         then
@@ -494,9 +505,8 @@ do
             # getopt should have caught this, but just in case...
             fail "unrecognized configuration option \"$1\""
             show_usage >&2
+            exit 2
         fi
-
-        CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$ARG"
 
         # Handle an option argument, if present.
         if [ -n "$2" ]
@@ -504,10 +514,17 @@ do
             VALUE=$2
             shift
 
-            if validate_parameter "$ARG" "$VALUE"
+            if validate_parameter "$FLAG" "$VALUE"
             then
-                CMAKE_ARGS="$CMAKE_ARGS=$VALUE"
+                CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$FLAG=$VALUE"
+            else
+                # validate_parameter() should have issued an error message.
+                exit 2
             fi
+        else
+            fail "configuration option \"$FLAG\" must be given a value"
+            show_usage >&2
+            exit 2
         fi
         ;;
     (*)
@@ -518,7 +535,7 @@ do
     shift
 done
 
-if ! [ -e "$CMAKECACHE" ]
+if ! [ -e $CMAKECACHE ]
 then
     # If the CMake cache file does not exist, call CMake with initialization
     # flags.
@@ -532,10 +549,14 @@ elif [ $MODE = invoke ]
 then
     if [ -n "$DO_CMAKE_INITIALIZE" ]
     then
+        # The $CMAKE_ARGS argument is unquoted because cmake needs
+        # word-splitting to be done on it.  Furthermore, there should be no
+        # configuration variables with whitespace embedded in their flag names
+        # or values.  (Well, certainly not the names...)
         cmake \
             -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
             -G Ninja \
-            "$CMAKE_ARGS" \
+            $CMAKE_ARGS \
             "$SOURCE_ROOT"
     fi
 
