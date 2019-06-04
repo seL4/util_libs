@@ -546,9 +546,10 @@ then
     # is JIRA SELFOUR-1648.
     while ! is_configuration_stable
     do
-        warn "configuration not stable"
+        warn "configuration not stable; regenerating"
     done
 
+    notice "configuration is stable"
 else
     die "internal error; unrecognized operation mode \"$MODE\""
 fi
