@@ -16,6 +16,7 @@
 set -efu
 
 PROGNAME=${0##*/}
+DIRNAME=${0%/*}
 
 die () {
     echo "$PROGNAME: fatal error: $*" >&2
@@ -73,6 +74,16 @@ fi
 if ! which file > /dev/null
 then
     die "\"file\" command not found; is the \"file\" package installed?"
+fi
+
+if ! which python3 > /dev/null
+then
+    die "\"python3\" command not found; is the \"python3\" package installed?"
+fi
+
+if [ -f .stylefilter ]
+then
+    set -- $(python3 "$DIRNAME"/filter.py -f .stylefilter "$@")
 fi
 
 for FILE
