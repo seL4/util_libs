@@ -526,6 +526,23 @@ do
             show_usage >&2
             exit 2
         fi
+
+        # XXX: temporary hack until SELFOUR-1648 is resolved -- GBR
+        if [ "$FLAG" = "PLATFORM" ]
+        then
+            case "$VALUE" in
+                (sabre)
+                    EXTRA_ARGS="-DAARCH32=1"
+                    ;;
+                (tk1)
+                    # cmake will give a spurious warning about AARCH32HF being
+                    # unused.  But just try and cmake without it (the HARD_FLOAT
+                    # test will fail).
+                    EXTRA_ARGS="-DAARCH32HF=1"
+                    ;;
+            esac
+        fi
+        # XXX: end of hack -- GBR
         ;;
     (*)
         die "internal error while processing options"
@@ -549,13 +566,15 @@ elif [ $MODE = invoke ]
 then
     if [ -n "$DO_CMAKE_INITIALIZE" ]
     then
-        # The $CMAKE_ARGS argument is unquoted because cmake needs
+        # The $CMAKE_ARGS argument is unquoted because cmake needs shell
         # word-splitting to be done on it.  Furthermore, there should be no
         # configuration variables with whitespace embedded in their flag names
-        # or values.  (Well, certainly not the names...)
+        # or values.  (Well, certainly not the names...)  Similarly, $EXTRA_ARGS
+        # needs to be word-split and it is under this script's control.
         cmake \
             -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
             -G Ninja \
+            $EXTRA_ARGS \
             $CMAKE_ARGS \
             "$SOURCE_ROOT"
     fi
