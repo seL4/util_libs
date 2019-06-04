@@ -22,8 +22,8 @@ import re
 import subprocess
 import sys
 
-# never run the tools on anything git
-DEFAULT_FILTERS = ["*.git/*"]
+from filter import parse_filters
+
 # dict of style-tools to regex. The regex should match any full file path.
 # if the regex matches, that tool will be applied to that file. Multiple
 # tools can be defined for the same regex.
@@ -32,32 +32,6 @@ STYLE_MAP = {
     'style-cmake.sh': r'((\.cmake)|(CMakeLists.txt))$',
     'style-py.sh': r'\.py$'
 }
-
-# support comments alone and trailing (comment with #)
-COMMENT = re.compile(r'^\s*#')
-TRAILING_COMMENT = re.compile(r'\s+#.*$')
-
-
-def parse_filter(line: str):
-    """Parse a filter from a line of a filter file"""
-    line = line.strip()
-    if line and not COMMENT.search(line):
-        return TRAILING_COMMENT.sub('', line)
-    return None
-
-
-def parse_filters(filters_file: str):
-    """Parse the filter file, returning a list of filters"""
-    filters = DEFAULT_FILTERS
-    if filters_file:
-        try:
-            with open(filters_file, 'r') as outfile:
-                lines = outfile.readlines()
-                filters += [parse_filter(l) for l in lines if parse_filter(l)]
-        except IOError as exception:
-            logging.warning("Failed to open filter file %s: %s", filters_file, exception)
-    return filters
-
 
 def main():
     parser = argparse.ArgumentParser("Run style updates on files.")
