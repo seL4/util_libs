@@ -14,7 +14,6 @@
 
 #include <inttypes.h>
 #include <stdint.h>
-#include <platsupport/io.h>
 
 typedef enum irq_type {
     PS_NONE,
