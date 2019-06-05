@@ -21,7 +21,8 @@ typedef enum irq_type {
     PS_MSI,
     PS_IOAPIC,
     PS_INTERRUPT,
-    PS_TRIGGER
+    PS_TRIGGER,
+    PS_OTHER
 } irq_type_t;
 
 typedef struct {
@@ -48,5 +49,6 @@ typedef struct {
             long number;
             long trigger;
         } trigger;
+        void *other; /* Implementation-specific information. */
     };
 } ps_irq_t;
