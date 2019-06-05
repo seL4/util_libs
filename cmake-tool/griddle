@@ -42,10 +42,11 @@ EXIT_STATUS=3
 #
 # See terminfo(5) for a list of terminal capability strings.
 #
-# tput returns an empty string for unsupported string capabilities, and -1 for
-# unsupported integer capablilities.
-BOLD=$(tput bold)
-NORMAL=$(tput sgr0)
+# tput returns an empty string (and exits with a nonzero status) for
+# unsupported string capabilities, and -1 for unsupported integer
+# capablilities.
+BOLD=$(tput bold) || BOLD=
+NORMAL=$(tput sgr0) || NORMAL=
 NCOLORS=$(tput colors)
 # If the terminal doesn't support color at all, these will remain null.
 RED=
