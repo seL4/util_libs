@@ -469,6 +469,8 @@ fi
 eval set -- "$ARGS"
 unset ARGS
 
+HAD_ARGUMENT_PROBLEMS=
+
 while [ -n "${1:-}" ]
 do
     case "$1" in
@@ -494,39 +496,43 @@ do
         ;;
     (--*)
         # Strip off the argument's leading dashes.
-        ARG=${1#--}
+        OPT=${1#--}
         # Reset variables set by previous iterations.
         FLAG=
         VALUE=
 
-        if validate_name "$ARG"
+        if validate_name "$OPT"
         then
             MODE=invoke
         else
             # getopt should have caught this, but just in case...
             fail "unrecognized configuration option \"$1\""
-            show_usage >&2
-            exit 2
+            HAD_ARGUMENT_PROBLEMS=yes
         fi
 
-        # Handle an option argument, if present.
-        if [ -n "$2" ]
-        then
-            VALUE=$2
-            shift
+                VALUE=$2
 
-            if validate_parameter "$FLAG" "$VALUE"
-            then
-                CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$FLAG=$VALUE"
-            else
-                # validate_parameter() should have issued an error message.
-                exit 2
-            fi
-        else
-            fail "configuration option \"$FLAG\" must be given a value"
-            show_usage >&2
-            exit 2
-        fi
+        # Handle the option argument.
+        case "${2:-}" in
+            # GNU getopt synthesises a single space as an option argument if one
+            # was not specified.
+            (" ")
+                fail "configuration option \"$FLAG\" must be given a value"
+                HAD_ARGUMENT_PROBLEMS=yes
+                ;;
+            (*)
+                if validate_parameter "$FLAG" "$VALUE"
+                then
+                    CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$FLAG=$VALUE"
+                else
+                    # validate_parameter() should have issued an error message.
+                    HAD_ARGUMENT_PROBLEMS=yes
+                fi
+                ;;
+        esac
+
+        # Dispose of the option and option-argument pair.
+        shift 2
 
         # XXX: temporary hack until SELFOUR-1648 is resolved -- GBR
         if [ "$FLAG" = "PLATFORM" ]
@@ -549,9 +555,13 @@ do
         die "internal error while processing options"
         ;;
     esac
-
-    shift
 done
+
+if [ -n "$HAD_ARGUMENT_PROBLEMS" ]
+then
+    notice "try \"$PROGNAME --help\" for option usage"
+    exit 2
+fi
 
 if ! [ -e $CMAKECACHE ]
 then
