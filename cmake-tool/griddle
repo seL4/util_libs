@@ -128,14 +128,15 @@ describe () {
 # Returns 0 (success) if the files are the same; 1 if they differ; other if
 # trouble.
 is_configuration_stable () {
+    CMAKECACHE_BACKUP=$CMAKECACHE.griddle.bak
     if ! [ -e $CMAKECACHE ]
     then
         die "CMake cache file \"$CMAKECACHE\" unexpectedly does not exist!"
     fi
 
-    cp $CMAKECACHE $CMAKECACHE.griddle.bak
+    cp $CMAKECACHE $CMAKECACHE_BACKUP
     cmake "$CMAKE_ARGS" "$SOURCE_ROOT" || die "cmake failed"
-    cmp -s $CMAKECACHE $CMAKECACHE.griddle.bak
+    cmp -s $CMAKECACHE $CMAKECACHE_BACKUP
     # `return` with no arguments returns the exit status of the last "simple
     # command" executed, so don't insert anything between `cmp` and `return`.
     return
@@ -590,6 +591,7 @@ then
     done
 
     notice "configuration is stable"
+    rm $CMAKECACHE_BACKUP
 else
     die "internal error; unrecognized operation mode \"$MODE\""
 fi
