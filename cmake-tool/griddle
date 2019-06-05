@@ -63,6 +63,7 @@ then
         RED=$(tput setaf 9)
         GREEN=$(tput setaf 10)
         YELLOW=$(tput setaf 11)
+        CYAN=$(tput setaf 14)
     # This is an exact equality match on purpose.  tput will report -1 for a
     # truly monochrome terminal and in that case we don't want to mess with
     # the setaf capability at all.
@@ -71,6 +72,7 @@ then
         RED=$(tput setaf 1)
         GREEN=$(tput setaf 2)
         YELLOW=$(tput setaf 3)
+        CYAN=$(tput setaf 6)
     fi
 fi
 
@@ -85,7 +87,12 @@ _print () {
 # Emit debugging message to standard error.
 # @params: a set of strings comprising a human-intelligible message
 debug () {
-    _print "${GREEN}debug: $*" >&2
+    _print "${CYAN}debug: $*" >&2
+}
+
+# Emit informational message to standard error.
+notice () {
+    _print "${GREEN}notice: $*" >&2
 }
 
 # Emit warning message to standard error.
