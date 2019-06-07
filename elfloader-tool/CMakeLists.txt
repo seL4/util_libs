@@ -266,7 +266,7 @@ else()
         set(PlatformEntryAddr 0x10000000)
     elseif(
         KernelPlatformSpike
-        OR KernelPlatformSifive
+        OR KernelPlatformHifive
         OR KernelPlatformAriane
         OR KernelPlatformRocketChip
     )
