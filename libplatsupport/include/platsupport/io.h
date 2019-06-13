@@ -375,14 +375,33 @@ static inline int ps_free(ps_malloc_ops_t *ops, size_t size, void *ptr)
 }
 
 /*
- *  Struct to allocate I/O to point a device tree blob
- *  @param ptr Returning to device tree blob
-*/
+ * Retrieves a copy of the FDT.
+ *
+ * @param cookie     Cookie for the FDT interface.
+ *
+ * @return A pointer to a FDT object, NULL on error.
+ */
+typedef char *(*ps_io_fdt_get_fn_t)(void *cookie);
 
-typedef struct ps_io_fdt {
-    char *blob;
+typedef struct ps_fdt {
+    void *cookie;
+    ps_io_fdt_get_fn_t get_fn;
 } ps_io_fdt_t;
 
+static inline char *ps_io_fdt_get(ps_io_fdt_t *io_fdt)
+{
+    if (io_fdt == NULL) {
+        ZF_LOGE("fdt cannot be NULL");
+        return NULL;
+    }
+
+    if (io_fdt->get_fn == NULL) {
+        ZF_LOGE("not implemented");
+        return NULL;
+    }
+
+    return io_fdt->get_fn(io_fdt->cookie);
+}
 
 /* Struct to collect all the different I/O operations together. This should contain
  * everything a driver needs to function */
