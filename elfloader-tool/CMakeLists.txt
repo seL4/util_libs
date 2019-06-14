@@ -170,6 +170,21 @@ endif()
 
 MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 
+# Create a C header file to include information about the platform that is of
+# interest to the ELF-loader, such as a physical memory map.
+set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
+set(
+    PLATFORM_YAML
+    "${CMAKE_CURRENT_BINARY_DIR}/../kernel/gen_headers/plat/machine/platform_gen.yaml"
+)
+set(PLATFORM_INFO_H "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/platform_info.h")
+add_custom_command(
+    OUTPUT ${PLATFORM_INFO_H}
+    COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${PLATFORM_YAML} > ${PLATFORM_INFO_H}
+    VERBATIM
+    DEPENDS ${PLATFORM_YAML}
+)
+
 # Generate linker script
 separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 add_custom_command(
@@ -178,7 +193,7 @@ add_custom_command(
         ${CMAKE_C_COMPILER} "${c_arguments}"
         "-I$<JOIN:$<TARGET_PROPERTY:Configuration,INTERFACE_INCLUDE_DIRECTORIES>,;-I>" -P -E -o
         linker.lds_pp -x c ${linkerScript}
-    DEPENDS Configuration ${linkerScript}
+    DEPENDS Configuration ${linkerScript} ${PLATFORM_INFO_H}
     VERBATIM COMMAND_EXPAND_LISTS
 )
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
@@ -191,6 +206,7 @@ target_include_directories(
         "include/plat/${KernelPlatform}"
         "include/arch-${KernelArch}"
         "include/arch-${KernelArch}/${KernelWordSize}"
+        "${CMAKE_CURRENT_BINARY_DIR}/gen_headers"
 )
 if(KernelArchARM)
     target_include_directories(
