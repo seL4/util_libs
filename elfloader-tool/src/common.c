@@ -100,6 +100,13 @@ static void unpack_elf_to_paddr(void *elf, paddr_t dest_paddr)
     }
 }
 
+static size_t rounded_image_size(void *elf, uint64_t *min_vaddr, uint64_t *max_vaddr)
+{
+    elf_getMemoryBounds(elf, 0, min_vaddr, max_vaddr);
+    *max_vaddr = ROUND_UP(*max_vaddr, PAGE_BITS);
+    return (size_t)(*max_vaddr - *min_vaddr);
+}
+
 /*
  * Load an ELF file into physical memory at the given physical address.
  *
@@ -111,12 +118,8 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
                         __attribute__((unused)) const char *hash)
 {
     uint64_t min_vaddr, max_vaddr;
-    size_t image_size;
-
     /* Fetch image info. */
-    elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
-    max_vaddr = ROUND_UP(max_vaddr, PAGE_BITS);
-    image_size = (size_t)(max_vaddr - min_vaddr);
+    size_t image_size = rounded_image_size(elf, &min_vaddr, &max_vaddr);
 
     /* Ensure our starting physical address is aligned. */
     if (!IS_ALIGNED(dest_paddr, PAGE_BITS)) {
