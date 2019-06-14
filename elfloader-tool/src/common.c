@@ -30,6 +30,8 @@
 
 #include "hash.h"
 
+#define KEEP_HEADERS_SIZE BIT(PAGE_BITS)
+
 /* Determine if two intervals overlap. */
 static int regions_overlap(uintptr_t startA, uintptr_t endA,
                            uintptr_t startB, uintptr_t endB)
@@ -229,7 +231,7 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
         memcpy((void *)(dest_paddr + 4), &phsize, 4);
         memcpy((void *)(dest_paddr + 8), (void *)source_paddr, phsize * phnum);
         /* return the frame after our headers */
-        dest_paddr += BIT(PAGE_BITS);
+        dest_paddr += KEEP_HEADERS_SIZE;
     }
     return dest_paddr;
 }
