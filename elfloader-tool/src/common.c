@@ -337,12 +337,12 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
      * and then load the (n+user_elf_offset)'th file in the archive onto the (n)'th CPU.
      */
     int user_elf_offset = 2;
-    (void)cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
+    cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
     if (strcmp(elf_filename, "kernel.elf") != 0) {
         printf("Kernel image not first image in archive.\n");
         abort();
     }
-    (void)cpio_get_entry(_archive_start, cpio_len, 1, &elf_filename, &unused);
+    cpio_get_entry(_archive_start, cpio_len, 1, &elf_filename, &unused);
     if (strcmp(elf_filename, "kernel.dtb") != 0) {
         if (has_dtb_cpio) {
             printf("Kernel DTB not second image in archive.\n");
