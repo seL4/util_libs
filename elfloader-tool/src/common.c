@@ -355,6 +355,26 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
         }
         user_elf_offset = 1;
     }
+
+#ifdef CONFIG_ELFLOADER_ROOTSERVERS_LAST
+#include <platform_info.h> // this provides memory_region
+    /* work out the size of the user images - this corresponds to how much memory
+     * load_elf uses */
+    int total_user_image_size = 0;
+    for (i = 0; i < max_user_images; i++) {
+        void *user_elf = cpio_get_entry(_archive_start, cpio_len, i + user_elf_offset,
+                                        &elf_filename, &unused);
+        uint64_t min_vaddr, max_vaddr;
+        total_user_image_size += rounded_image_size(user_elf, &min_vaddr, &max_vaddr);
+
+        total_user_image_size += KEEP_HEADERS_SIZE;
+    }
+
+    /* work out where to place the user image */
+
+    next_phys_addr = ROUND_DOWN(memory_region[0].end, PAGE_BITS) - ROUND_UP(total_user_image_size, PAGE_BITS);
+#endif /* CONFIG_ELFLOADER_ROOTSERVERS_LAST */
+
     *num_images = 0;
     for (i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */

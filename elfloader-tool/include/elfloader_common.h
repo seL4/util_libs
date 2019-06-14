@@ -24,7 +24,7 @@ typedef uintptr_t vaddr_t;
 #define MIN(a, b)           (((a) < (b)) ? (a) : (b))
 #define IS_ALIGNED(n, b)    (!((n) & MASK(b)))
 #define ROUND_UP(n, b)      (((((n) - 1) >> (b)) + 1) << (b))
-
+#define ROUND_DOWN(n, b) (((n) >> (b)) << (b))
 #define ALIGN(n)            __attribute__((__aligned__(n)))
 #define VISIBLE             __attribute__((externally_visible))
 #define UNUSED              __attribute__((unused))
