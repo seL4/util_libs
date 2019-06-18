@@ -33,6 +33,7 @@ STYLE_MAP = {
     'style-py.sh': r'\.py$'
 }
 
+
 def main():
     parser = argparse.ArgumentParser("Run style updates on files.")
     parser.add_argument('-f', '--filters', type=str,
@@ -58,6 +59,7 @@ def main():
     # now spawn processes to style all the files
     # this is currently done sequentially to collect output.
     # if this becomes a bottle neck we can consider spawning more processes
+    return_code = 0
     for k, files in filemap.items():
         if files:
             script = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), k)
@@ -65,6 +67,8 @@ def main():
             if completed.returncode:
                 logging.fatal("%s failed with error code %d\n%s", files,
                               completed.returncode, completed.stderr)
+                return_code = completed.returncode
+    return return_code
 
 
 if __name__ == '__main__':
