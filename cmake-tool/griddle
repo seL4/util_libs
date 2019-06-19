@@ -586,7 +586,7 @@ then
         cmake \
             -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
             -G Ninja \
-            $EXTRA_ARGS \
+            ${EXTRA_ARGS:-} \
             $CMAKE_ARGS \
             "$SOURCE_ROOT"
     fi
