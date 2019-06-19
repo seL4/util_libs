@@ -548,6 +548,9 @@ do
                     # test will fail).
                     EXTRA_ARGS="-DAARCH32HF=1"
                     ;;
+                (tx[12])
+                    EXTRA_ARGS="-DAARCH64=1"
+                    ;;
             esac
         fi
         # XXX: end of hack -- GBR
