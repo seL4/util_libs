@@ -170,20 +170,19 @@ endif()
 
 MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 
-# Create a C header file to include information about the platform that is of
-# interest to the ELF-loader, such as a physical memory map.
-set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
-set(
-    PLATFORM_YAML
-    "${CMAKE_CURRENT_BINARY_DIR}/../kernel/gen_headers/plat/machine/platform_gen.yaml"
-)
-set(PLATFORM_INFO_H "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/platform_info.h")
-add_custom_command(
-    OUTPUT ${PLATFORM_INFO_H}
-    COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${PLATFORM_YAML} > ${PLATFORM_INFO_H}
-    VERBATIM
-    DEPENDS ${PLATFORM_YAML}
-)
+# If our platform has a YAML description, create a C header file to include
+# information about the platform that is of interest to the ELF-loader, such as
+# a physical memory map.
+if(DEFINED platform_yaml)
+    set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
+    set(PLATFORM_INFO_H "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/platform_info.h")
+    add_custom_command(
+        OUTPUT ${PLATFORM_INFO_H}
+        COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${PLATFORM_INFO_H}
+        VERBATIM
+        DEPENDS ${platform_yaml}
+    )
+endif()
 
 # Generate linker script
 separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
