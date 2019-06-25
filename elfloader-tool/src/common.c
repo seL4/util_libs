@@ -30,6 +30,10 @@
 
 #include "hash.h"
 
+#ifdef CONFIG_ELFLOADER_ROOTSERVERS_LAST
+#include <platform_info.h> // this provides memory_region
+#endif
+
 #define KEEP_HEADERS_SIZE BIT(PAGE_BITS)
 
 /* Determine if two intervals overlap. */
@@ -357,7 +361,6 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     }
 
 #ifdef CONFIG_ELFLOADER_ROOTSERVERS_LAST
-#include <platform_info.h> // this provides memory_region
     /* work out the size of the user images - this corresponds to how much memory
      * load_elf uses */
     int total_user_image_size = 0;
