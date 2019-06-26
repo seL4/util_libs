@@ -46,6 +46,7 @@ def main():
     regexmap = {k: re.compile(v) for k, v in STYLE_MAP.items()}
     filemap = {k: [] for k, v in STYLE_MAP.items()}
 
+    args.files = filter(os.path.isfile, args.files)
     # construct a list of files to pass to each tool
     for fname in args.files:
         def matches(pattern, fname=fname):
