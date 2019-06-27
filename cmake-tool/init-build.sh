@@ -38,10 +38,5 @@ then
 fi
 
 # Initialize CMake.
-#
-# We run cmake multiple times because project-specific mandatory settings are
-# sometimes buried deep in the tree of cmake files, and might get dereferenced
-# before they are used.  CMake's caching stabilizes the situation, at the cost
-# of requiring multiple runs.  Fixing this infelicity is JIRA SELFOUR-1648.
 cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
-    "$SCRIPT_PATH" && cmake "$SCRIPT_PATH" && cmake "$SCRIPT_PATH"
+    "$SCRIPT_PATH"
