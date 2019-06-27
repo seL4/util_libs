@@ -591,6 +591,7 @@ then
             -G Ninja \
             ${EXTRA_ARGS:-} \
             $CMAKE_ARGS \
+            -C "$SOURCE_ROOT/settings.cmake" \
             "$SOURCE_ROOT"
     fi
 

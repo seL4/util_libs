@@ -12,6 +12,8 @@
 cmake_minimum_required(VERSION 3.7.2)
 project(sel4-application NONE)
 
+include(settings.cmake)
+
 # This is a default file that can be copied/symlinked into the top level of a project
 # if you have the expected directory layout and you want no customizations beyond
 # the defaults provided in the all.cmake

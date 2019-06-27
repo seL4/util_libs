@@ -39,4 +39,4 @@ fi
 
 # Initialize CMake.
 cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
-    "$SCRIPT_PATH"
+    -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
