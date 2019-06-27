@@ -24,3 +24,5 @@ list(SORT result)
 foreach(file ${result})
     include("${file}")
 endforeach()
+
+correct_platform_strings()

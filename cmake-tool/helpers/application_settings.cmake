@@ -74,6 +74,15 @@ endfunction()
 #  - Any previous value taken by KernelARMPlatform
 #  - Any value accepted by KernelPlatform
 #  - x86_64 and ia32 map to pc99
+# 
+# Additionally use the following boolean configs to indicate which seL4 arch
+# to select: 
+#  - aarch32: ARM, AARCH32, AARCH32HF
+#  - arm_hyp: ARM_HYP
+#  - aarch64: AARCH64
+#  - riscv64: RISCV64
+#  - riscv32: RISCV32
+#
 # Calling this function will result in forced updates to the cache.
 function(correct_platform_strings)
     set(_REWRITE ON)
@@ -128,7 +137,7 @@ function(correct_platform_strings)
     set(_REWRITE ON)
 
     if (ARM OR AARCH32 OR AARCH32HF)
-        if(ARM_HYP)
+        if(ARM_HYP OR ("${KernelSel4Arch}" STREQUAL arm_hyp) OR ("${KernelArmSel4Arch}" STREQUAL arm_hyp))
             set(KernelSel4Arch arm_hyp CACHE STRING "" FORCE)
         else()
             set(KernelSel4Arch aarch32 CACHE STRING "" FORCE)
@@ -144,6 +153,13 @@ function(correct_platform_strings)
     endif()
     if(_REWRITE)
         message("correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}")
+    endif()
+
+    # This is a common mechanism for how x86 architectures were selected
+    if ("${KernelX86Sel4Arch}" STREQUAL ia32)
+        set(KernelSel4Arch ia32 CACHE STRING "" FORCE)
+    elseif ("${KernelX86Sel4Arch}" STREQUAL x86_64)
+        set(KernelSel4Arch x86_64 CACHE STRING "" FORCE)
     endif()
 
 endfunction()
