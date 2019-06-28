@@ -41,8 +41,8 @@ case "$CF_VERSION" in
         # Good version; proceed.
         ;;
     (*)
-        echo "$PROGNAME: fatal error: need version $DESIRED_VERSION of"
-            \ "cmake-format; $CF_VERSION is installed"
+        echo "$PROGNAME: fatal error: need version $DESIRED_VERSION of" \
+            "cmake-format; $CF_VERSION is installed"
         exit 2
         ;;
 esac
