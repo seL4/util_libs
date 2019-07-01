@@ -123,7 +123,7 @@ function(correct_platform_strings)
     else()
         set(_REWRITE OFF)
     endif()
-    if(_REWRITE)
+    if(_REWRITE AND (NOT correct_platform_strings_no_print))
         message("correct_platform_strings: Attempting to correct PLATFORM: ${PLATFORM}
             to new valid KernelPlatform: ${KernelPlatform}")
         if("${KernelPlatform}" STREQUAL pc99)
@@ -151,7 +151,7 @@ function(correct_platform_strings)
     else()
         set(_REWRITE OFF)
     endif()
-    if(_REWRITE)
+    if(_REWRITE AND (NOT correct_platform_strings_no_print))
         message("correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}")
     endif()
 
@@ -162,4 +162,9 @@ function(correct_platform_strings)
         set(KernelSel4Arch x86_64 CACHE STRING "" FORCE)
     endif()
 
+    # Only print out these info messages on first initialisation
+    # otherwise the ccache gets interrupted with output everytime it is used.
+    # The ccache also has a mechanism for showing what config options get chagned
+    # after a configuration anyway so the user will still be informed.
+    set(correct_platform_strings_no_print ON CACHE INTERNAL "")
 endfunction()
