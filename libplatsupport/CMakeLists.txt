@@ -60,14 +60,18 @@ elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
 endif()
 
-if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM OR KernelPlatformImx8mq-evk)
-    if(NOT KernelPlatformImx8mq-evk)
+if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM OR KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+    if(NOT (KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk))
         list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
     endif()
     if(NOT KernelPlatformKZM)
         list(APPEND deps src/mach/${KernelArmMach}/serial/serial.c)
     endif()
 endif()
+if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+    list(APPEND deps src/plat/imx8m/chardev.c)
+endif()
+
 
 list(SORT deps)
 
@@ -75,6 +79,10 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 target_include_directories(platsupport PRIVATE src/plat_include/${KernelPlatform})
+
+if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+    target_include_directories(platsupport PUBLIC plat_include/imx8m)
+endif()
 target_include_directories(
     platsupport
     PUBLIC
