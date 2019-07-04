@@ -74,9 +74,9 @@ endfunction()
 #  - Any previous value taken by KernelARMPlatform
 #  - Any value accepted by KernelPlatform
 #  - x86_64 and ia32 map to pc99
-# 
+#
 # Additionally use the following boolean configs to indicate which seL4 arch
-# to select: 
+# to select:
 #  - aarch32: ARM, AARCH32, AARCH32HF
 #  - arm_hyp: ARM_HYP
 #  - aarch64: AARCH64
@@ -127,17 +127,19 @@ function(correct_platform_strings)
         message("correct_platform_strings: Attempting to correct PLATFORM: ${PLATFORM}
             to new valid KernelPlatform: ${KernelPlatform}")
         if("${KernelPlatform}" STREQUAL pc99)
-            message(
-"                         KernelSel4Arch: ${KernelSel4Arch}")
+            message("                         KernelSel4Arch: ${KernelSel4Arch}")
         else()
-            message(
-"                      KernelARMPlatform: ${KernelARMPlatform}")
+            message("                      KernelARMPlatform: ${KernelARMPlatform}")
         endif()
     endif()
     set(_REWRITE ON)
 
-    if (ARM OR AARCH32 OR AARCH32HF)
-        if(ARM_HYP OR ("${KernelSel4Arch}" STREQUAL arm_hyp) OR ("${KernelArmSel4Arch}" STREQUAL arm_hyp))
+    if(ARM OR AARCH32 OR AARCH32HF)
+        if(
+            ARM_HYP
+            OR ("${KernelSel4Arch}" STREQUAL arm_hyp)
+            OR ("${KernelArmSel4Arch}" STREQUAL arm_hyp)
+        )
             set(KernelSel4Arch arm_hyp CACHE STRING "" FORCE)
         else()
             set(KernelSel4Arch aarch32 CACHE STRING "" FORCE)
@@ -152,13 +154,15 @@ function(correct_platform_strings)
         set(_REWRITE OFF)
     endif()
     if(_REWRITE AND (NOT correct_platform_strings_no_print))
-        message("correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}")
+        message(
+            "correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}"
+        )
     endif()
 
     # This is a common mechanism for how x86 architectures were selected
-    if ("${KernelX86Sel4Arch}" STREQUAL ia32)
+    if("${KernelX86Sel4Arch}" STREQUAL ia32)
         set(KernelSel4Arch ia32 CACHE STRING "" FORCE)
-    elseif ("${KernelX86Sel4Arch}" STREQUAL x86_64)
+    elseif("${KernelX86Sel4Arch}" STREQUAL x86_64)
         set(KernelSel4Arch x86_64 CACHE STRING "" FORCE)
     endif()
 
