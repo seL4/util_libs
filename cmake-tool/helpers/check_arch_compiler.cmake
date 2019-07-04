@@ -15,12 +15,12 @@ if("${KernelSel4Arch}" STREQUAL "ia32")
 elseif("${KernelSel4Arch}" STREQUAL "x86_64")
     set(compiler_variable "defined(__x86_64)")
 elseif("${KernelSel4Arch}" STREQUAL "aarch32" OR "${KernelSel4Arch}" STREQUAL "arm_hyp")
-    if(KernelArchArmV7ve)
-        set(compiler_variable "defined(__ARM_ARCH_7VE__)")
-    elseif(KernelArchArmV7a)
+    if(KernelArchArmV7a OR KernelArchArmV7ve)
         set(compiler_variable "defined(__ARM_ARCH_7A__)")
     elseif(KernelArchArmV6)
         set(compiler_variable "defined(__ARM_ARCH_6__)")
+    elseif(KernelArchArmV8a)
+        set(compiler_variable "defined(__ARM_ARCH_8A__)")
     endif()
 elseif("${KernelSel4Arch}" STREQUAL "aarch64")
     set(compiler_variable "defined(__aarch64__)")
@@ -31,7 +31,7 @@ elseif("${KernelSel4Arch}" STREQUAL "riscv64")
 else()
     message(SEND_ERROR "KernelSel4Arch is not set to a valid arch")
 endif()
-message("${KernelSel4Arch}")
+
 set(arch_test "
 #if ${compiler_variable}
     int main() {return 0;}
@@ -39,7 +39,7 @@ set(arch_test "
 #error Invalid arch
 #endif
 ")
-unset(compiler_arch_test CACHE)
+
 check_c_source_compiles("${arch_test}" compiler_arch_test)
 
 if(NOT compiler_arch_test)
