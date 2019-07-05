@@ -524,7 +524,7 @@ do
             (*)
                 if validate_parameter "$FLAG" "$VALUE"
                 then
-                    CMAKE_ARGS="${CMAKE_ARGS:+$CMAKE_ARGS }-D$FLAG=$VALUE"
+                    CMAKE_ARGS=$CMAKE_ARGS" -D$FLAG=$VALUE"
                 else
                     # validate_parameter() should have issued an error message.
                     HAD_ARGUMENT_PROBLEMS=yes
@@ -543,9 +543,6 @@ do
                     EXTRA_ARGS="-DAARCH32=1"
                     ;;
                 (tk1)
-                    # cmake will give a spurious warning about AARCH32HF being
-                    # unused.  But just try and cmake without it (the HARD_FLOAT
-                    # test will fail).
                     EXTRA_ARGS="-DAARCH32HF=1"
                     ;;
                 (tx[12])
@@ -581,11 +578,12 @@ elif [ $MODE = invoke ]
 then
     if [ -n "$DO_CMAKE_INITIALIZE" ]
     then
-        # The $CMAKE_ARGS argument is unquoted because cmake needs shell
-        # word-splitting to be done on it.  Furthermore, there should be no
-        # configuration variables with whitespace embedded in their flag names
-        # or values.  (Well, certainly not the names...)  Similarly, $EXTRA_ARGS
-        # needs to be word-split and it is under this script's control.
+        # Some of these variables are unquoted because because cmake needs shell
+        # word-splitting to be done on its parameters.  Furthermore, there
+        # should be no configuration variables with whitespace embedded in their
+        # flag names or values.  (Well, certainly not the _names_...)
+        # $SOURCE_ROOT, however, could be anywhere in the user's file system and
+        # its value may have embedded whitespace.
         cmake \
             -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
             -G Ninja \
