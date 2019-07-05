@@ -595,17 +595,22 @@ then
             "$SOURCE_ROOT"
     fi
 
-    # We run cmake multiple times because project-specific mandatory settings
-    # are sometimes buried deep in the tree of cmake files, and might get
-    # dereferenced before they are used.  CMake's caching stabilizes the
-    # situation, at the cost of requiring multiple runs.  Fixing this infelicity
-    # is JIRA SELFOUR-1648.
+    # If this tool is re-run over an existing build with new parameters, the
+    # CMake cache file may mutate.  Warn about it if it does, and re-run CMake
+    # until it stabilizes.
+    THREW_STABILITY_DIAGNOSTIC=
+
     while ! is_configuration_stable
     do
         warn "configuration not stable; regenerating"
+        THREW_STABILITY_DIAGNOSTIC=yes
     done
 
-    notice "configuration is stable"
+    if [ -n "$THREW_STABILITY_DIAGNOSTIC" ]
+    then
+        notice "configuration is stable"
+    fi
+
     rm $CMAKECACHE_BACKUP
 else
     die "internal error; unrecognized operation mode \"$MODE\""
