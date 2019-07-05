@@ -131,7 +131,7 @@ void main(UNUSED void *arg)
     if (dtb) {
         printf("  dtb=%p\n", dtb);
     } else {
-        printf("No DTB found!\n");
+        printf("No DTB passed in from boot loader.\n");
     }
 
     /* Unpack ELF images into memory. */

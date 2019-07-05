@@ -55,11 +55,15 @@ static int regions_overlap(uintptr_t startA, uintptr_t endA,
  * We abort if the destination physical range overlaps us, or if it
  * goes outside the bounds of memory.
  */
-static void ensure_phys_range_valid(paddr_t paddr_min, paddr_t paddr_max)
+static void ensure_phys_range_valid(char const * const name, paddr_t paddr_min,
+                                    paddr_t paddr_max)
 {
-    /* Ensure that the kernel physical load address doesn't overwrite us. */
+    /*
+     * Ensure that the physical load address of the object we're loading (called
+     * `name`) doesn't overwrite us.
+     */
     if (regions_overlap(paddr_min, paddr_max - 1, (word_t)_start, (word_t)_end - 1)) {
-        printf("Kernel load address would overlap ELF-loader!\n");
+        printf("%s load address would overlap ELF-loader!\n", name);
         abort();
     }
 }
@@ -202,7 +206,7 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
     }
 
     /* Ensure that we region we want to write to is sane. */
-    ensure_phys_range_valid(dest_paddr, dest_paddr + image_size);
+    ensure_phys_range_valid(name, dest_paddr, dest_paddr + image_size);
 
     /* Copy the data. */
     unpack_elf_to_paddr(elf, dest_paddr);
@@ -297,13 +301,20 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
 
     if (dtb && !*dtb) {
-        printf("Looking for DTB in CPIO archive...\n");
+        printf("Looking for DTB in CPIO archive...");
+        /*
+         * Note the lack of newline in the above printf().  Normally one would
+         * have an fflush(stdout) here to ensure that the message shows up on a
+         * line-buffered stream (which is the POSIX default on terminal
+         * devices).  But we are freestanding (on the "bare metal"), and using
+         * our own unbuffered printf() implementation.
+         */
         *dtb = cpio_get_file(_archive_start, cpio_len, "kernel.dtb", &unused);
         if (*dtb == NULL) {
-            printf("Did not find DTB in CPIO archive.\n");
+            printf("not found.\n");
         } else {
             has_dtb_cpio = 1;
-            printf("Found dtb at %p\n", *dtb);
+            printf("found at %p.\n", *dtb);
         }
     }
 
@@ -321,14 +332,15 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
         }
 
         /* Make sure this is a sane thing to do */
-        ensure_phys_range_valid(next_phys_addr, next_phys_addr + *dtb_size);
+        ensure_phys_range_valid("DTB", next_phys_addr,
+                                next_phys_addr + *dtb_size);
 
         memmove((void *)next_phys_addr, *dtb, *dtb_size);
         next_phys_addr += *dtb_size;
         next_phys_addr = ROUND_UP(next_phys_addr, PAGE_BITS);
         dtb_phys_end = next_phys_addr;
 
-        printf("Loaded dtb from %p\n", *dtb);
+        printf("Loaded DTB from %p.\n", *dtb);
         printf("   paddr=[%lx..%lx]\n", dtb_phys_start, dtb_phys_end - 1);
         *dtb = (void *)dtb_phys_start;
     } else {
