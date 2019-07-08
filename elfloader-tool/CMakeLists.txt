@@ -239,7 +239,7 @@ set_property(
 if(ElfloaderImageEFI)
     set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
 else()
-    if(KernelPlatImx6 OR KernelPlatformRpi3 OR KernelPlatformOdroidc2)
+    if(KernelPlatImx6 OR KernelPlatformRpi3 OR KernelPlatformOdroidc2 OR KernelPlatformRockpro64)
         set(PlatformEntryAddr 0x20000000)
     elseif(
         KernelPlatformKZM
