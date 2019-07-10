@@ -375,8 +375,14 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     }
     /* Apply the changes */
     regs->mr = mr;
+#ifndef CONFIG_PLAT_ZYNQMP
+    /* TODO: We don't have a correct reference clock on zynqmp and
+     * therefore rely on the board having been initialised by earlier
+     * loaders.
+     */
     /* Now set the board rate */
     zynq_uart_set_baud(d, bps);
+#endif
     return 0;
 }
 
