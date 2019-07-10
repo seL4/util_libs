@@ -81,9 +81,10 @@ config_option(
 config_option(
     ElfloaderRootserversLast ELFLOADER_ROOTSERVERS_LAST
     "Place the rootserver images at the end of memory"
-    DEFAULT OFF
-    # This setting does not work on EFI as paging structures are not
-    # enabled to write to high memory
+    DEFAULT
+        OFF
+        # This setting does not work on EFI as paging structures are not
+        # enabled to write to high memory
     DEPENDS "NOT ElfloaderImageEFI;"
     DEFAULT_DISABLED OFF
 )
