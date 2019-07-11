@@ -285,11 +285,12 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     paddr_t next_phys_addr;
     const char *elf_filename;
     unsigned long unused;
+    unsigned long kernel_filesize;
     int has_dtb_cpio = 0;
 
     /* Load kernel. */
     unsigned long cpio_len = _archive_start_end - _archive_start;
-    void *kernel_elf = cpio_get_file(_archive_start, cpio_len, "kernel.elf", &unused);
+    void *kernel_elf = cpio_get_file(_archive_start, cpio_len, "kernel.elf", &kernel_filesize);
     if (kernel_elf == NULL) {
         printf("No kernel image present in archive!\n");
         abort();
@@ -347,9 +348,8 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
     } else {
         next_phys_addr = ROUND_UP(kernel_phys_end, PAGE_BITS);
     }
-
     load_elf("kernel", kernel_elf,
-             (paddr_t)kernel_phys_start, kernel_info, 0, unused, "kernel.bin");
+             (paddr_t)kernel_phys_start, kernel_info, 0, kernel_filesize, "kernel.bin");
 
     /*
      * Load userspace images.

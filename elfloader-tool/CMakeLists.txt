@@ -66,8 +66,8 @@ config_choice(
     HASH_INSTRUCTIONS
     "Perform a SHA256/MD5 Hash of the of each elf file that the elfloader checks on load"
     "hash_none;ElfloaderHashNone;HASH_NONE"
-    "hash_sha;ElfloaderHashSHA;HASH_SHA;ElfloaderImageELF"
-    "hash_md5;ElfloaderHashMD5;HASH_MD5;ElfloaderImageELF"
+    "hash_sha;ElfloaderHashSHA;HASH_SHA"
+    "hash_md5;ElfloaderHashMD5;HASH_MD5"
 )
 
 config_option(
