@@ -24,6 +24,7 @@
 #define PSR_MODE_EL1h     0x00000005
 #define PSR_MODE_EL2t     0x00000008
 #define PSR_MODE_EL2h     0x00000009
+#define PSR_MODE_SVC_32   0x00000013
 
 #define TCR_T0SZ(x)       ((64 - (x)))
 #define TCR_T1SZ(x)       ((64 - (x)) << 16)

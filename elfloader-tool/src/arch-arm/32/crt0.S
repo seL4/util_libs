@@ -21,6 +21,12 @@
 .section ".text.start"
 
 BEGIN_FUNC(_start)
+#ifdef CONFIG_ELFLOADER_ARMV8_LEAVE_AARCH64
+    /* Include an Aarch64 preamble that switches to aarch32 */
+    .incbin "crt0_64.bin"
+BEGIN_FUNC(_start32)
+#endif // CONFIG_ELFLOADER_ARMV8_LEAVE_AARCH64
+
     /* If we're not booting under EFI, r2 will contain a pointer to the DTB */
     mov r0, r2
 

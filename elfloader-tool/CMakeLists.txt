@@ -89,12 +89,59 @@ config_option(
     DEFAULT_DISABLED OFF
 )
 
+config_option(
+    ElfloaderArmV8LeaveAarch64 ELFLOADER_ARMV8_LEAVE_AARCH64
+    "Insert aarch64 code to switch to aarch32. Requires the elfloader to be in EL2"
+    DEFAULT OFF
+    DEPENDS KernelArchArmV8a
+)
+
 add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
 set(linkerScript "${CMAKE_CURRENT_LIST_DIR}/src/arch-${KernelArch}/linker.lds")
 if(KernelArchRiscV)
     add_compile_options(-mcmodel=medany)
+endif()
+
+if(ElfloaderArmV8LeaveAarch64)
+    # We need to build a aarch64 assembly file during an aarch32 build. We have
+    # to write custom rules to do this as CMake doesn't support multiple compilers
+    # within a single build config.
+    find_program(AARCH64_COMPILER aarch64-linux-gnu-gcc)
+    if("${AARCH64_COMPILER}" STREQUAL "AARCH64_COMPILER-NOTFOUND")
+        message(
+            FATAL_ERROR
+                "Cannot find 'aarch64-linux-gnu-gcc' program. Use -DAARCH64_COMPILER=compiler"
+        )
+    endif()
+    find_program(AARCH64_OBJCOPY aarch64-linux-gnu-objcopy)
+    if("${AARCH64_OBJCOPY}" STREQUAL "AARCH64_OBJCOPY-NOTFOUND")
+        message(
+            FATAL_ERROR
+                "Cannot find 'aarch64-linux-gnu-objcopy' program. Use -DAARCH64_OBJCOPY=objcopy"
+        )
+    endif()
+    # Compile crt0_64.S and convert to a binary. This way the actual crt0.S can use
+    # the .incbin directive and insert the aarch64 instructions before its own.
+    add_custom_command(
+        OUTPUT crt0_64.bin crt0_64.o
+        COMMAND
+            ${AARCH64_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include/
+            -I${CMAKE_CURRENT_SOURCE_DIR}/include/arch-arm/64/
+            -I${CMAKE_CURRENT_SOURCE_DIR}/include/arch-arm/armv/armv8-a/64/ -c
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/arch-arm/32/crt0_64.S -o
+            ${CMAKE_CURRENT_BINARY_DIR}/crt0_64.o
+        COMMAND
+            ${AARCH64_OBJCOPY} -O binary ${CMAKE_CURRENT_BINARY_DIR}/crt0_64.o crt0_64.bin
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/arch-arm/32/crt0_64.S
+    )
+
+    # We set the OBJECT_DEPENDS property on the crt0.S source file that tells CMake
+    # any object files created from crt0.S also depend on crt0_64.bin. This causes
+    # our builds to be rerun correctly.
+    set(armv8_leave_arch_bin ${CMAKE_CURRENT_BINARY_DIR}/crt0_64.bin)
+    set_property(SOURCE src/arch-arm/32/crt0.S PROPERTY OBJECT_DEPENDS ${armv8_leave_arch_bin})
 endif()
 
 if(KernelSel4ArchAarch64)
@@ -115,6 +162,9 @@ file(
         src/plat/${KernelPlatform}/*.S
         src/arch-${KernelArch}/${KernelWordSize}/*.S
 )
+
+# We never want to give crt0_64.S to add_executable
+list(FILTER files EXCLUDE REGEX src/arch-arm/32/crt0_64.S)
 
 if(KernelArchARM)
     file(
@@ -222,6 +272,7 @@ target_include_directories(
         "include/arch-${KernelArch}"
         "include/arch-${KernelArch}/${KernelWordSize}"
         "${CMAKE_CURRENT_BINARY_DIR}/gen_headers"
+        "${CMAKE_CURRENT_BINARY_DIR}"
 )
 if(KernelArchARM)
     target_include_directories(
