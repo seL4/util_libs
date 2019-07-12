@@ -19,8 +19,6 @@
 
 #include <platsupport/arch/generic_timer.h>
 
-#ifdef CONFIG_EXPORT_PCNT_USER
-
 /*
  * This timer will only work if the kernel has configured
  * CNTPCT to be read from user-level. This is done by writing 1 to CNTKCTL.
@@ -61,6 +59,10 @@ int generic_timer_get_init(generic_timer_t *timer)
     }
 
     timer->freq = 0;
+    if (!config_set(CONFIG_EXPORT_PCNT_USER)) {
+        ZF_LOGE("Generic timer not exported!");
+        return ENXIO;
+    }
 
     /* try to read the frequency */
     MRC(CNTFRQ, timer->freq);
@@ -79,4 +81,3 @@ int generic_timer_get_init(generic_timer_t *timer)
 
     return 0;
 }
-#endif /* CONFIG_EXPORT_PCNT_USER */

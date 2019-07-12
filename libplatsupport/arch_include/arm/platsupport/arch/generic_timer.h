@@ -16,7 +16,6 @@
 #include <autoconf.h>
 
 
-#ifdef CONFIG_EXPORT_PCNT_USER
 typedef struct {
     uint32_t freq;
 } generic_timer_t;
@@ -31,5 +30,3 @@ get_generic_timer_properties(void) {
 
 int generic_timer_init(generic_timer_t *timer);
 uint64_t generic_timer_get_time(generic_timer_t *timer);
-
-#endif /* CONFIG_EXPORT_PCNT_USER */
