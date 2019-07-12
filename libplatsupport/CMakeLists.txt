@@ -37,10 +37,22 @@ file(
         deps
         src/mach/${KernelArmMach}/*.c
         src/plat/${KernelPlatform}/*.c
-        src/arch/${KernelArch}/*.c
         src/*.c
         src/plat/${KernelPlatform}/acpi/*.c
 )
+
+if(${KernelArch} STREQUAL "arm")
+    list(APPEND deps src/arch/arm/clock.c)
+    list(APPEND deps src/arch/arm/delay.c)
+    list(APPEND deps src/arch/arm/dma330.c)
+    list(APPEND deps src/arch/arm/i2c.c)
+    list(APPEND deps src/arch/arm/i2c_bitbang.c)
+    list(APPEND deps src/arch/arm/mux.c)
+    list(APPEND deps src/arch/arm/generic_timer.c)
+elseif(${KernelArch} STREQUAL "x86")
+    list(APPEND deps src/arch/x86/delay.c)
+    list(APPEND deps src/arch/x86/tsc.c)
+endif()
 
 if(KernelPlatformExynos5422)
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_5422_clock.c)
