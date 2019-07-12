@@ -19,26 +19,9 @@
 
 #include <platsupport/arch/generic_timer.h>
 
-#define MCR(cpreg, v)                               \
-    do {                                            \
-        uint32_t _v = v;                            \
-        asm volatile("mcr  " cpreg :: "r" (_v));    \
-    }while(0)
-#define MRRC(cpreg, v)  asm volatile("mrrc  " cpreg :  "=r"(v))
-#define MRC(cpreg, v)  asm volatile("mrc  " cpreg :  "=r"(v))
-
-#define CNTFRQ     " p15, 0,  %0, c14,  c0, 0" /* 32-bit RW Counter Frequency register */
-#define CNTPCT     " p15, 0, %Q0, %R0, c14" /* 64-bit RO Physical Count register */
-#define CNTKCTL    " p15, 0,  %0, c14,  c1, 0" /* 32-bit RW Timer PL1 Control register */
-
 uint64_t generic_timer_get_time(generic_timer_t *timer)
 {
-    uint64_t time;
-
-    MRRC(CNTPCT, time);
-
-    /* convert to ns */
-    return time / (uint64_t) timer->freq * NS_IN_US;
+    return freq_cycles_and_hz_to_ns(generic_timer_get_ticks(), timer->freq);
 }
 
 int generic_timer_get_init(generic_timer_t *timer)
@@ -49,14 +32,13 @@ int generic_timer_get_init(generic_timer_t *timer)
         return EINVAL;
     }
 
-    timer->freq = 0;
     if (!config_set(CONFIG_EXPORT_PCNT_USER)) {
         ZF_LOGE("Generic timer not exported!");
         return ENXIO;
     }
 
     /* try to read the frequency */
-    MRC(CNTFRQ, timer->freq);
+    timer->freq = generic_timer_get_freq();
 
 #ifdef PCT_TICKS_PER_US
     if (timer->freq == 0) {

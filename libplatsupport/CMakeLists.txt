@@ -71,4 +71,7 @@ target_include_directories(
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
 endif()
+if("${KernelArch}" STREQUAL "arm")
+    target_include_directories(platsupport PUBLIC sel4_arch_include/${KernelSel4Arch})
+endif()
 target_link_libraries(platsupport Configuration muslc utils)
