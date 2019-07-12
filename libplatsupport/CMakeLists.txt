@@ -69,7 +69,6 @@ if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM OR KernelPlatf
     endif()
 endif()
 
-
 list(SORT deps)
 
 add_config_library(platsupport "${configure_string}")
