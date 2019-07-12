@@ -16,6 +16,15 @@
 #include <autoconf.h>
 
 
+/*
+ * This timer will only work if the kernel has configured
+ * CNTPCT to be read from user-level. This is done by writing 1 to CNTKCTL.
+ * If CONFIG_DANGEROUS_CODE_INJECTION is available, we'll try that,
+ * otherwise we will use a default frequency.
+ *
+ * If all else fails the timer will fail to initialise.
+ *
+ */
 typedef struct {
     uint32_t freq;
 } generic_timer_t;
