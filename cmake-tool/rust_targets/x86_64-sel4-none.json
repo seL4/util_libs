@@ -8,12 +8,12 @@
     "cpu" : "westmere",
     "target-endian": "little",
     "env": "none",
-    "pre-link-args" : [
-      "-m64", "-ffreestanding", "-nodefaultlibs", "-nostdlib", "-fno-stack-protector"
-    ],
-    "post-link-args" : [
-        "-lgcc", "-lgcc_eh", "-lnosys", "-lm"
-    ],
+    "pre-link-args" : {
+      "gcc": ["-m64", "-ffreestanding", "-nodefaultlibs", "-nostdlib", "-fno-stack-protector"]
+    },
+    "post-link-args" : {
+      "gcc": ["-lgcc", "-lgcc_eh", "-lnosys", "-lm"]
+    },
     "disable-redzone": false,
     "executables": true,
     "relocation-model": "pic",
