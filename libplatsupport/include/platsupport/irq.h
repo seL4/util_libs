@@ -75,6 +75,12 @@ typedef int (*ps_irq_acknowledge_fn_t)(void *ack_data);
  * callback is responsible for acknowledging the interrupt via the supplied
  * acknowledge function.
  *
+ * Note that the acknowledge function pointer and its token, 'ack_data' can be
+ * saved and called later. This might be useful in some contexts where you need
+ * to perform some maintenance before acknowledging the IRQ. The lifetime of
+ * the 'ack_data' token lasts until the acknowledge function is called. Thus
+ * you cannot call the acknowledge function again.
+ *
  * @param data Pointer to data which is passed into the callback function
  * @param acknowledge_fn Function pointer to an function used to acknowledge an interrupt
  * @param ack_data Data to be passed to 'acknowledge_fn'
