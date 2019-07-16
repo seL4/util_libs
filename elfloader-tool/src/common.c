@@ -56,7 +56,7 @@ static int regions_overlap(uintptr_t startA, uintptr_t endA,
  * We abort if the destination physical range overlaps us, or if it
  * goes outside the bounds of memory.
  */
-static void ensure_phys_range_valid(char const * const name, paddr_t paddr_min,
+static void ensure_phys_range_valid(char const *const name, paddr_t paddr_min,
                                     paddr_t paddr_max)
 {
     /*

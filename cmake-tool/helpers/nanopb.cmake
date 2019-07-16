@@ -19,12 +19,14 @@ set(GENERATOR_CORE_DIR ${GENERATOR_PATH}/proto)
 set(GENERATOR_CORE_SRC ${GENERATOR_CORE_DIR}/nanopb.proto)
 
 # figure out where nanopb is
-if (NOT DEFINED NANOPB_SRC_ROOT_FOLDER)
+if(NOT DEFINED NANOPB_SRC_ROOT_FOLDER)
     find_file(NANOPB_SRC_ROOT_FOLDER nanopb PATHS ${CMAKE_SOURCE_DIR} NO_CMAKE_FIND_ROOT_PATH)
 endif()
 mark_as_advanced(FORCE NANOPB_SRC_ROOT_FOLDER)
-if ("${NANOPB_SRC_ROOT_FOLDER}" STREQUAL "NANOPB_SRC_ROOT_FOLDER-NOTFOUND")
-    message(FATAL_ERROR "Failed to find nanopb. Consider cmake -DNANOPB_SRC_ROOT_FOLDER=/path/to/nanopb")
+if("${NANOPB_SRC_ROOT_FOLDER}" STREQUAL "NANOPB_SRC_ROOT_FOLDER-NOTFOUND")
+    message(
+        FATAL_ERROR "Failed to find nanopb. Consider cmake -DNANOPB_SRC_ROOT_FOLDER=/path/to/nanopb"
+    )
 endif()
 
 # include the nanopb cmake stuff - portions of it have been forked to this file,
@@ -46,15 +48,15 @@ target_link_libraries(nanopb muslc)
 add_custom_command(
     TARGET nanopb
     COMMAND
-    ${CMAKE_COMMAND} -E copy_directory
-    ARGS
-    ${NANOPB_GENERATOR_SOURCE_DIR}
-    ${GENERATOR_PATH}
-    BYPRODUCTS
-    ${NANOPB_GENERATOR_EXECUTABLE}
-    ${GENERATOR_CORE_SRC}
+        ${CMAKE_COMMAND} -E copy_directory
+        ARGS
+            ${NANOPB_GENERATOR_SOURCE_DIR}
+            ${GENERATOR_PATH}
+            BYPRODUCTS
+            ${NANOPB_GENERATOR_EXECUTABLE}
+            ${GENERATOR_CORE_SRC}
     VERBATIM
-    )
+)
 
 # This is a fork of nanopb's NANOPB_GENERATE_CPP function
 # for seL4
@@ -201,4 +203,3 @@ function(SEL4_GENERATE_PROTOBUF SRCS HDRS)
     set(${SRCS} ${${SRCS}} ${NANOPB_SRCS} PARENT_SCOPE)
     set(${HDRS} ${${HDRS}} ${NANOPB_HDRS} PARENT_SCOPE)
 endfunction()
-

@@ -202,10 +202,13 @@ add_custom_command(
     COMMAND
         ${CMAKE_C_COMPILER} "${c_arguments}"
         "-I$<JOIN:$<TARGET_PROPERTY:kernel_autoconf,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
-        "-I$<JOIN:$<TARGET_PROPERTY:elfloader_Config,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
-        -P -E -o
+        "-I$<JOIN:$<TARGET_PROPERTY:elfloader_Config,INTERFACE_INCLUDE_DIRECTORIES>,;-I>" -P -E -o
         linker.lds_pp -x c ${linkerScript}
-    DEPENDS kernel_autoconf ${linkerScript} elfloader_Config ${PLATFORM_INFO_H}
+    DEPENDS
+        kernel_autoconf
+        ${linkerScript}
+        elfloader_Config
+        ${PLATFORM_INFO_H}
     VERBATIM COMMAND_EXPAND_LISTS
 )
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
@@ -229,7 +232,14 @@ if(KernelArchARM)
     )
 endif()
 
-target_link_libraries(elfloader PRIVATE cpio gcc elfloader_Config kernel_autoconf)
+target_link_libraries(
+    elfloader
+    PRIVATE
+        cpio
+        gcc
+        elfloader_Config
+        kernel_autoconf
+)
 add_dependencies(elfloader elfloader_linker)
 set_property(
     TARGET elfloader

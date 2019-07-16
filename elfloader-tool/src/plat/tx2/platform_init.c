@@ -47,25 +47,25 @@ struct mce_regs {
 static __attribute__((noinline)) int send_smc(uint8_t func, struct mce_regs *regs)
 {
     uint32_t ret = SMC_SIP_INVOKE_MCE | (func & MCE_SMC_ENUM_MAX);
-    asm volatile (
-            "mov    x0, %x0\n"
-            "ldp    x1, x2, [%1, #16 * 0] \n"
-            "ldp    x3, x4, [%1, #16 * 1] \n"
-            "ldp    x5, x6, [%1, #16 * 2] \n"
-            "isb\n"
-            "smc #0\n"
-            "mov %0, x0\n"
-            "stp x0, x1, [%1, #16 * 0]\n"
-            "stp x2, x3, [%1, #16 * 1]\n"
-            : "+r"(ret)
-            : "r"(regs)
-            : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8",
-              "x9", "x10", "x11", "x12", "x13", "x14", "x15", "x16", "x17");
+    asm volatile(
+        "mov    x0, %x0\n"
+        "ldp    x1, x2, [%1, #16 * 0] \n"
+        "ldp    x3, x4, [%1, #16 * 1] \n"
+        "ldp    x5, x6, [%1, #16 * 2] \n"
+        "isb\n"
+        "smc #0\n"
+        "mov %0, x0\n"
+        "stp x0, x1, [%1, #16 * 0]\n"
+        "stp x2, x3, [%1, #16 * 1]\n"
+        : "+r"(ret)
+        : "r"(regs)
+        : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8",
+        "x9", "x10", "x11", "x12", "x13", "x14", "x15", "x16", "x17");
     return ret;
 }
 
 
-static void tegra_mce_write_uncore_mca(mca_cmd_t cmd, uint64_t data, uint32_t *err) 
+static void tegra_mce_write_uncore_mca(mca_cmd_t cmd, uint64_t data, uint32_t *err)
 {
     struct mce_regs regs;
     regs.args[0] = cmd.data;
