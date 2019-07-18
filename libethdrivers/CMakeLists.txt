@@ -87,7 +87,7 @@ target_include_directories(
         plat_include/${KernelPlatform}
         arch_include/${KernelArch}
 )
-target_link_libraries(ethdrivers muslc platsupport ethdrivers_Config lwip_Config picotcp_Config)
+target_link_libraries(ethdrivers muslc platsupport ethdrivers_Config lwip_Config picotcp_Config sel4_autoconf)
 if(LibLwip)
     target_link_libraries(ethdrivers lwip)
 endif()

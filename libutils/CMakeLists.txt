@@ -38,4 +38,4 @@ target_include_directories(utils
         include
         arch_include/${KernelArch}
 )
-target_link_libraries(utils muslc utils_Config)
+target_link_libraries(utils muslc utils_Config sel4_autoconf)

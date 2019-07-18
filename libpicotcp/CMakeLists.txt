@@ -134,6 +134,7 @@ if(LibPicotcp)
         INTERFACE
             "${BUILD_DIR}/include"
             "$<TARGET_PROPERTY:picotcp_Config,INTERFACE_INCLUDE_DIRECTORIES>"
+            "$<TARGET_PROPERTY:sel4_autoconf,INTERFACE_INCLUDE_DIRECTORIES>"
 )
 endif()
 if(LibPicotcpBsd)
@@ -164,5 +165,5 @@ if(LibPicotcpBsd)
         ${PICOTCP_BSD_PATH}/pico_osal_noos.c
     )
     target_include_directories(picotcp_bsd PUBLIC ${PICOTCP_BSD_PATH})
-    target_link_libraries(picotcp_bsd muslc picotcp)
+    target_link_libraries(picotcp_bsd muslc picotcp picotcp_Config sel4_autoconf)
 endif()
