@@ -139,6 +139,7 @@ void main(UNUSED int hardid, void *dtb)
     printf("Jumping to kernel-image entry point...\n\n");
 
     asm volatile("sfence.vma");
+    asm volatile("fence.i");
 
     asm volatile(
         "csrw sptbr, %0\n"
