@@ -10,8 +10,15 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <autoconf.h>
 #include <assembler.h>
 #include <armv/assembler.h>
+
+#ifdef CONFIG_ARM_PA_SIZE_BITS_40
+#define TCR_PS TCR_PS_1T
+#else
+#define TCR_PS TCR_PS_16T
+#endif
 
 .text
 
@@ -92,7 +99,7 @@ BEGIN_FUNC(arm_enable_hyp_mmu)
                  MAIR(0x44, MT_NORMAL_NC) | \
                  MAIR(0xff, MT_NORMAL)
     msr     mair_el2, x5
-    ldr     x8, =TCR_T0SZ(48) | TCR_IRGN0_WBWC | TCR_ORGN0_WBWC | TCR_SH0_ISH | TCR_TG0_4K | TCR_PS_16T | TCR_EL2_RES1
+    ldr     x8, =TCR_T0SZ(48) | TCR_IRGN0_WBWC | TCR_ORGN0_WBWC | TCR_SH0_ISH | TCR_TG0_4K | TCR_PS | TCR_EL2_RES1
     msr     tcr_el2, x8
     isb
 
