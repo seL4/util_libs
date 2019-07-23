@@ -16,7 +16,7 @@ include_guard(GLOBAL)
 function(ApplyData61ElfLoaderSettings kernel_arm_platform kernel_arm_sel4_arch)
     set(
         binary_list
-        "tx1;hikey;am335x-boneblack;am335x-boneblue;odroidc2;imx8mq-evk;rockpro64;zynqmp;imx8mm-evk"
+        "tx1;hikey;am335x-boneblack;am335x-boneblue;odroidc2;imx8mq-evk;rockpro64;zynqmp;imx8mm-evk;hifive"
     )
     set(efi_list "tk1")
     set(uimage_list "tx2")
