@@ -86,30 +86,80 @@ function(DeclareRootserver rootservername)
                 $<TARGET_FILE:${rootservername}>
                 ${rootservername}
         )
-    elseif("${KernelArch}" STREQUAL "arm")
-        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-arm-${KernelPlatform}")
+    elseif(KernelArchARM OR KernelArchRiscV)
+        set(
+            IMAGE_NAME
+            "${CMAKE_BINARY_DIR}/images/${rootservername}-image-${KernelArch}-${KernelPlatform}"
+        )
+        set(elf_target_file $<TARGET_FILE:elfloader>)
+        if(KernelArchRiscV)
+
+            # On RISC-V we need to package up our final elf image into the Berkeley boot loader
+            # which is what the following custom command is achieving
+
+            # TODO: Currently we do not support native RISC-V builds, because there
+            # is no native environment to test this. Thus CROSS_COMPILER_PREFIX is
+            # always set and the BBL build below uses it to create the
+            # "--host=..." parameter. For now, make the build fail if
+            # CROSS_COMPILER_PREFIX if not set. It seems that native builds can
+            # simply omit the host parameter.
+            if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
+                message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
+            endif()
+
+            # Get host string which is our cross compiler minus the trailing '-'
+            string(
+                REGEX
+                REPLACE
+                    "^(.*)-$"
+                    "\\1"
+                    host
+                    ${CROSS_COMPILER_PREFIX}
+            )
+            get_filename_component(host ${host} NAME)
+            if(KernelSel4ArchRiscV32)
+                set(march rv32imafdc)
+            else()
+                set(march rv64imafdc)
+            endif()
+            file(GLOB_RECURSE deps)
+            add_custom_command(
+                OUTPUT "${CMAKE_BINARY_DIR}/bbl/bbl"
+                COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
+                COMMAND
+                    cd ${CMAKE_BINARY_DIR}/bbl && ${BBL_PATH}/configure
+                    --quiet
+                    --host=${host}
+                    --with-arch=${march}
+                    --with-payload=${elf_target_file}
+                        && make -s clean && make -s > /dev/null
+                DEPENDS ${elf_target_file} elfloader
+            )
+            set(elf_target_file "${CMAKE_BINARY_DIR}/bbl/bbl")
+        endif()
         set(binary_efi_list "binary;efi")
         if(${ElfloaderImage} IN_LIST binary_efi_list)
             # If not an elf we construct an intermediate rule to do an objcopy to binary
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
-                DEPENDS $<TARGET_FILE:elfloader> elfloader
+                    ${CMAKE_OBJCOPY} -O binary ${elf_target_file} "${IMAGE_NAME}"
+                DEPENDS ${elf_target_file} elfloader
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
             # If not an elf we construct an intermediate rule to do an objcopy to binary
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}.bin"
                 COMMAND
-                    ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:elfloader> "${IMAGE_NAME}.bin"
-                DEPENDS $<TARGET_FILE:elfloader> elfloader
+                    ${CMAKE_OBJCOPY} -O binary ${elf_target_file} "${IMAGE_NAME}.bin"
+                DEPENDS ${elf_target_file} elfloader
             )
-
             if("${KernelArmSel4Arch}" STREQUAL "aarch32")
                 set(UIMAGE_ARCH "arm")
-            else()
+            elseif(KernelSel4ArchAarch64)
                 set(UIMAGE_ARCH "arm64")
+            else()
+                message(FATAL_ERROR "uimage: Unsupported architecture: ${KernelArch}")
             endif()
 
             # Add custom command for converting to uboot image
@@ -126,8 +176,8 @@ function(DeclareRootserver rootservername)
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:elfloader> "${IMAGE_NAME}"
-                DEPENDS $<TARGET_FILE:elfloader> elfloader
+                    ${CMAKE_COMMAND} -E copy ${elf_target_file} "${IMAGE_NAME}"
+                DEPENDS ${elf_target_file} elfloader
             )
         endif()
         add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" elfloader ${rootservername})
@@ -137,54 +187,6 @@ function(DeclareRootserver rootservername)
         # nest (i.e. in the expansion of $<TARGET_FILE:tgt> 'tgt' cannot itself be a generator
         # expression. Nor can a generator expression expand to another generator expression and
         # get expanded again. As a result we just fix the output name and location of the rootserver
-        set_property(TARGET "${rootservername}" PROPERTY OUTPUT_NAME "${rootservername}")
-        get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
-        get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
-        set_property(TARGET rootserver_image PROPERTY ROOTSERVER_IMAGE "${dir}/${rootimage}")
-    elseif(KernelArchRiscV)
-        set(IMAGE_NAME "${CMAKE_BINARY_DIR}/images/${rootservername}-image-riscv-${KernelPlatform}")
-        # On RISC-V we need to package up our final elf image into the Berkeley boot loader
-        # which is what the following custom command is achieving
-
-        # TODO: Currently we do not support native RISC-V builds, because there
-        # is no native environment to test this. Thus CROSS_COMPILER_PREFIX is
-        # always set and the BBL build below uses it to create the
-        # "--host=..." parameter. For now, make the build fail if
-        # CROSS_COMPILER_PREFIX if not set. It seems that native builds can
-        # simply omit the host parameter.
-        if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
-            message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
-        endif()
-
-        # Get host string which is our cross compiler minus the trailing '-'
-        string(
-            REGEX
-            REPLACE
-                "^(.*)-$"
-                "\\1"
-                host
-                ${CROSS_COMPILER_PREFIX}
-        )
-        get_filename_component(host ${host} NAME)
-        if(KernelSel4ArchRiscV32)
-            set(march rv32imafdc)
-        else()
-            set(march rv64imafdc)
-        endif()
-        add_custom_command(
-            OUTPUT "${IMAGE_NAME}"
-            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
-            COMMAND
-                cd ${CMAKE_BINARY_DIR}/bbl && ${BBL_PATH}/configure
-                --quiet
-                --host=${host}
-                --with-arch=${march}
-                --with-payload=$<TARGET_FILE:elfloader>
-                    && make -s clean && make -s > /dev/null
-            COMMAND cp ${CMAKE_BINARY_DIR}/bbl/bbl ${IMAGE_NAME}
-            DEPENDS $<TARGET_FILE:elfloader> elfloader
-        )
-        add_custom_target(rootserver_image ALL DEPENDS "${IMAGE_NAME}" elfloader ${rootservername})
         set_property(TARGET "${rootservername}" PROPERTY OUTPUT_NAME "${rootservername}")
         get_property(rootimage TARGET "${rootservername}" PROPERTY OUTPUT_NAME)
         get_property(dir TARGET "${rootservername}" PROPERTY BINARY_DIR)
