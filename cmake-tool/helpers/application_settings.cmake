@@ -13,27 +13,27 @@
 cmake_minimum_required(VERSION 3.8.2)
 include_guard(GLOBAL)
 
-function(ApplyData61ElfLoaderSettings kernel_arm_platform kernel_arm_sel4_arch)
+function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     set(
         binary_list
-        "tx1;hikey;am335x-boneblack;am335x-boneblue;odroidc2;imx8mq-evk;rockpro64;zynqmp;imx8mm-evk;hifive"
+        "tx1;hikey;am335x;odroidc2;imx8mq-evk;rockpro64;zynqmp;imx8mm-evk;hifive"
     )
     set(efi_list "tk1")
     set(uimage_list "tx2")
     if(
-        ${kernel_arm_platform} IN_LIST efi_list
-        OR (${kernel_arm_platform} STREQUAL "hikey" AND ${kernel_arm_sel4_arch} STREQUAL "aarch64")
+        ${kernel_platform} IN_LIST efi_list
+        OR (${kernel_platform} STREQUAL "hikey" AND ${kernel_sel4_arch} STREQUAL "aarch64")
     )
         set(ElfloaderImage "efi" CACHE STRING "" FORCE)
-    elseif(${kernel_arm_platform} IN_LIST uimage_list)
+    elseif(${kernel_platform} IN_LIST uimage_list)
         set(ElfloaderImage "uimage" CACHE STRING "" FORCE)
-    elseif(${kernel_arm_platform} STREQUAL "rpi3" AND ${kernel_arm_sel4_arch} STREQUAL "aarch64")
+    elseif(${kernel_platform} STREQUAL "rpi3" AND ${kernel_sel4_arch} STREQUAL "aarch64")
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
-    elseif(${kernel_arm_platform} IN_LIST binary_list)
+    elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     endif()
 
-    if(${kernel_arm_platform} STREQUAL "tk1" AND ${kernel_arm_sel4_arch} STREQUAL "arm_hyp")
+    if(${kernel_platform} STREQUAL "tk1" AND ${kernel_sel4_arch} STREQUAL "arm_hyp")
         set(ElfloaderMode "hypervisor" CACHE STRING "" FORCE)
         set(ElfloaderMonitorHook ON CACHE BOOL "" FORCE)
     endif()
