@@ -13,8 +13,6 @@
 #include <utils/attribute.h>
 #include <utils/zf_log.h>
 
-#define PCI_DISPLAY_FOUND_DEVICES
-
 libpci_device_t libpci_device_list[PCI_MAX_DEVICES];
 uint32_t libpci_num_devices = 0;
 static ps_io_port_ops_t global_port_ops;
@@ -87,7 +85,10 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     uint16_t device_id = libpci_read_reg16(bus, dev, fun, PCI_DEVICE_ID);
     ZF_LOGD("    deviceID = %s [0x%x]\n", libpci_deviceID_str(vendor_id, device_id), device_id);
 
-    assert(libpci_num_devices + 1<= PCI_MAX_DEVICES);
+    if(libpci_num_devices + 1 > PCI_MAX_DEVICES) {
+        return 0;
+    }
+
     libpci_device_list[libpci_num_devices].bus = bus;
     libpci_device_list[libpci_num_devices].dev = dev;
     libpci_device_list[libpci_num_devices].fun = fun;
@@ -104,7 +105,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, false);
 #endif
 
-    #ifdef PCI_DISPLAY_FOUND_DEVICES
+#ifdef CONFIG_PCI_DISPLAY_FOUND_DEVICES
     printf("PCI :: %.2x.%.2x.%.2x : %s %s (vid 0x%x did 0x%x) line%d pin%d\n", bus, dev, fun,
         libpci_vendorID_str(vendor_id), libpci_deviceID_str(vendor_id, device_id),
         vendor_id, device_id,
@@ -112,7 +113,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
         libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_PIN)
     );
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, true);
-    #endif
+#endif
 
     libpci_num_devices++;
 
@@ -125,7 +126,7 @@ static void lib_pci_scan_fun(int bus, int dev, int fun) {
     libpci_add_fun(bus, dev, fun);
     if ( libpci_read_reg16(bus, dev, fun, PCI_CLASS_DEVICE) == 0x0604) {
         int new_bus = libpci_read_reg8(bus, dev, fun, PCI_SECONDARY_BUS);
-        printf("%s found additional bus %d from %d %d %d\n", __FUNCTION__, new_bus, bus, dev, fun);
+        ZF_LOGD("%s found additional bus %d from %d %d %d\n", __FUNCTION__, new_bus, bus, dev, fun);
         lib_pci_scan_bus(new_bus);
     }
 }
@@ -135,10 +136,10 @@ static void lib_pci_scan_dev(int bus, int dev) {
     if (vendor_id == PCI_VENDOR_ID_INVALID) {
         return;
     }
-    printf("%s found pci device %d %d\n", __FUNCTION__, bus, dev);
+    ZF_LOGD("%s found pci device %d %d\n", __FUNCTION__, bus, dev);
     lib_pci_scan_fun(bus, dev, 0);
     if ( (libpci_read_reg8(bus, dev, 0, PCI_HEADER_TYPE) & 0x80) != 0) {
-        printf("%s found multi function device %d %d\n", __FUNCTION__, bus, dev);
+        ZF_LOGD("%s found multi function device %d %d\n", __FUNCTION__, bus, dev);
         for (int function = 1; function < 8; function++) {
             if (libpci_read_reg16(bus, dev, function, PCI_VENDOR_ID) != PCI_VENDOR_ID_INVALID) {
                 lib_pci_scan_fun(bus, dev, function);
@@ -157,12 +158,12 @@ void libpci_scan(ps_io_port_ops_t port_ops) {
     global_port_ops = port_ops;
     ZF_LOGD("PCI :: Scanning...\n");
     if ( (libpci_read_reg8(0, 0, 0, PCI_HEADER_TYPE) & 0x80) == 0) {
-        printf("Single bus detected\n");
+        ZF_LOGD("Single bus detected\n");
         lib_pci_scan_bus(0);
     } else {
         for (int function = 0; function < 8; function++) {
             if (libpci_read_reg16(0, 0, function, PCI_VENDOR_ID) != PCI_VENDOR_ID_INVALID) {
-                printf("%s detected bus %d\n", __FUNCTION__, function);
+                ZF_LOGD("%s detected bus %d\n", __FUNCTION__, function);
                 lib_pci_scan_bus(function);
             }
         }
