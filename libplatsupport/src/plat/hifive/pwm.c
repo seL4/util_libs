@@ -45,7 +45,9 @@ int pwm_start(pwm_t *pwm)
 int pwm_stop(pwm_t *pwm)
 {
     /* Disable timer. */
-    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS|PWMENONESHOT);
+    pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
+    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS|PWMENONESHOT|PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
+    pwm->pwm_map->pwmcount = 0;
 
     return 0;
 }
@@ -101,6 +103,8 @@ void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
     if(pwm->mode == UPCOUNTER) {
         pwm->time_h++;
     }
+
+    pwm->pwm_map->pwmcfg &= ~(PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
 }
 
 uint64_t pwm_get_time(pwm_t *pwm)
@@ -116,15 +120,13 @@ int pwm_init(pwm_t *pwm, pwm_config_t config)
     pwm->pwm_map = (volatile struct pwm_map*) config.vaddr;
     uint8_t scale = 0;
     if (config.mode == UPCOUNTER) {
-        pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
         scale = PWMSCALE_MASK;
-    } else {
-        pwm->pwm_map->pwmcmp0 = 0;
     }
     pwm->mode = config.mode;
-    pwm->pwm_map->pwmcmp1 = 0;
-    pwm->pwm_map->pwmcmp2 = 0;
-    pwm->pwm_map->pwmcmp3 = 0;
+    pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
+    pwm->pwm_map->pwmcmp1 = PWMCMP_MASK;
+    pwm->pwm_map->pwmcmp2 = PWMCMP_MASK;
+    pwm->pwm_map->pwmcmp3 = PWMCMP_MASK;
     pwm->pwm_map->pwmcfg =  (scale & PWMSCALE_MASK) | PWMZEROCMP;
 
     return 0;
