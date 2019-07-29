@@ -22,6 +22,7 @@
 
 
 #define PWMSCALE_MASK MASK(4)
+#define PWMSTICKY BIT(8)
 #define PWMZEROCMP BIT(9)
 #define PWMENALWAYS  BIT(12)
 #define PWMENONESHOT BIT(13)
@@ -96,10 +97,6 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 
 void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 {
-    /* FIXME: There doesn't seem to be a way to explicitly clear an interrupt flag.
-     * This means that if an interrupt is pending but hasn't been handled, then
-     * calls to pwm_get_time will return an incorrect result.
-     */
     if(pwm->mode == UPCOUNTER) {
         pwm->time_h++;
     }
@@ -109,6 +106,11 @@ void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 
 uint64_t pwm_get_time(pwm_t *pwm)
 {
+    /* Include unhandled interrupt. */
+    if (pwm->pwm_map->pwmcfg & PWMCMP0IP) {
+        pwm->time_h++;
+        pwm->pwm_map->pwmcfg &= ~PWMCMP0IP;
+    }
 
     uint64_t num_ticks = (pwm->time_h * (PWMCMP_MASK << PWMSCALE_MASK) + pwm->pwm_map->pwmcount);
     uint64_t time = num_ticks * (NS_IN_S / PWM_INPUT_FREQ);
@@ -127,7 +129,7 @@ int pwm_init(pwm_t *pwm, pwm_config_t config)
     pwm->pwm_map->pwmcmp1 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp2 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp3 = PWMCMP_MASK;
-    pwm->pwm_map->pwmcfg =  (scale & PWMSCALE_MASK) | PWMZEROCMP;
+    pwm->pwm_map->pwmcfg =  (scale & PWMSCALE_MASK) | PWMZEROCMP | PWMSTICKY;
 
     return 0;
 }
