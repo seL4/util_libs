@@ -96,9 +96,9 @@ int handle_irq(void *data, ps_irq_t *irq)
 
     generic_ltimer_t *ltimer = data;
     if (ltimer->period) {
-        set_timeout(data, ltimer->period, TIMEOUT_RELATIVE);
+        set_timeout(data, ltimer->period, TIMEOUT_PERIODIC);
     } else {
-        generic_timer_set_compare(0);
+        generic_timer_set_compare(UINT64_MAX);
     }
     return 0;
 }
@@ -112,7 +112,7 @@ static int reset(void *data)
 {
     generic_ltimer_t *generic_ltimer = data;
     generic_ltimer->period = 0;
-    generic_timer_set_compare(0);
+    generic_timer_set_compare(UINT64_MAX);
     return 0;
 }
 
@@ -157,6 +157,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
         error = ENXIO;
     } else {
         generic_ltimer->ops = ops;
+        generic_timer_set_compare(UINT64_MAX);
         generic_timer_enable();
     }
 
