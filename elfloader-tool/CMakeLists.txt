@@ -267,13 +267,22 @@ if(DEFINED platform_yaml)
     # Construct the `shoehorn` command line.  Convert the semicolon-delimited
     # CMake list of CPIO archive members to a whitespace-separated list so we
     # can pass it via the shell to `shoehorn`.
-    string(REPLACE ";" " " cpio_files_ws "${cpio_files}")
+    string(
+        REPLACE
+            ";"
+            " "
+            cpio_files_ws
+            "${cpio_files}"
+    )
     set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o ")
     # `shoehorn` calls `elf_sift`.
     set(ELF_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/elf_sift.py")
     set(SHOEHORN "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/shoehorn.py")
     set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
-    set(SHOEHORN_COMMAND "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} ${cpio_files_ws} > ${IMAGE_START_ADDR_H}")
+    set(
+        SHOEHORN_COMMAND
+        "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} ${cpio_files_ws} > ${IMAGE_START_ADDR_H}"
+    )
 
     add_custom_command(
         OUTPUT ${IMAGE_START_ADDR_H}
@@ -283,7 +292,10 @@ if(DEFINED platform_yaml)
         DEPENDS ${cpio_files} ${ELF_SIFT} ${SHOEHORN}
     )
 else()
-    message(FATAL_ERROR "no image start address computed for platform; use platform YAML file ${platform_yaml} or replace this diagnostic with a CMake custom command to generate a file \"${IMAGE_START_ADDR_H}\" that hard-codes it; the same goes for \"${PLATFORM_INFO_H}\"")
+    message(
+        FATAL_ERROR
+            "no image start address computed for platform; use platform YAML file ${platform_yaml} or replace this diagnostic with a CMake custom command to generate a file \"${IMAGE_START_ADDR_H}\" that hard-codes it; the same goes for \"${PLATFORM_INFO_H}\""
+    )
 endif()
 
 # Generate linker script
@@ -291,8 +303,7 @@ separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 add_custom_command(
     OUTPUT "linker.lds_pp"
     COMMAND
-        ${CMAKE_C_COMPILER} "${c_arguments}"
-        "-I${PLATFORM_HEADER_DIR}"
+        ${CMAKE_C_COMPILER} "${c_arguments}" "-I${PLATFORM_HEADER_DIR}"
         "-I$<JOIN:$<TARGET_PROPERTY:sel4_autoconf,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
         "-I$<JOIN:$<TARGET_PROPERTY:elfloader_Config,INTERFACE_INCLUDE_DIRECTORIES>,;-I>" -P -E -o
         linker.lds_pp -x c ${linkerScript}
