@@ -29,7 +29,9 @@ INSERT BEFORE .hash;
 
 SECTIONS
 {
+#ifndef CONFIG_IMAGE_EFI
     . = IMAGE_START_ADDR;
+#endif
     .start :
     {
         *(.text.start)
