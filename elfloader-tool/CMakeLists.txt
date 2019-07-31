@@ -262,6 +262,7 @@ if(DEFINED platform_yaml)
         VERBATIM
         DEPENDS ${platform_yaml} ${PLATFORM_SIFT}
     )
+    set_property(SOURCE src/common.c PROPERTY OBJECT_DEPENDS ${PLATFORM_INFO_H})
 
     # Construct the `shoehorn` command line.  Convert the semicolon-delimited
     # CMake list of CPIO archive members to a whitespace-separated list so we
