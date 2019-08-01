@@ -33,6 +33,13 @@ find_file(
 )
 mark_as_advanced(TLS_ROOTSERVER)
 
+find_file(
+    UIMAGE_TOOL make-uimage
+    PATHS "${CMAKE_CURRENT_LIST_DIR}"
+    CMAKE_FIND_ROOT_PATH_BOTH
+)
+mark_as_advanced(UIMAGE_TOOL)
+
 if(KernelArchRiscV)
     set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
     mark_as_advanced(FORCE BBL_PATH)
@@ -148,7 +155,6 @@ function(DeclareRootserver rootservername)
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
             # Construct payload for U-Boot.
-            set(UIMAGE_TOOL "${CMAKE_SOURCE_DIR}/tools/seL4/cmake-tool/helpers/make-uimage")
 
             if("${KernelArmSel4Arch}" STREQUAL "aarch32")
                 set(UIMAGE_ARCH "arm")
