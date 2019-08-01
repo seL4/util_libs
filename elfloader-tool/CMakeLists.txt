@@ -321,6 +321,7 @@ add_custom_command(
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
 
 add_executable(elfloader EXCLUDE_FROM_ALL ${files} archive.o)
+set_target_properties(elfloader PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp)
 target_include_directories(
     elfloader
     PRIVATE
