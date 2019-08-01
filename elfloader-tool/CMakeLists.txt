@@ -284,13 +284,17 @@ if(DEFINED platform_yaml)
         "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} ${cpio_files_ws} > ${IMAGE_START_ADDR_H}"
     )
 
-    add_custom_command(
-        OUTPUT ${IMAGE_START_ADDR_H}
-        COMMAND sh -c "${SHOEHORN_COMMAND}"
-        VERBATIM
-        DEPENDS archive.o
-        DEPENDS ${cpio_files} ${ELF_SIFT} ${SHOEHORN}
-    )
+    if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
+        file(WRITE ${IMAGE_START_ADDR_H} "#define IMAGE_START_ADDR ${IMAGE_START_ADDR}")
+    else()
+        add_custom_command(
+            OUTPUT ${IMAGE_START_ADDR_H}
+            COMMAND sh -c "${SHOEHORN_COMMAND}"
+            VERBATIM
+            DEPENDS archive.o
+            DEPENDS ${cpio_files} ${ELF_SIFT} ${SHOEHORN}
+        )
+    endif()
 else()
     message(
         FATAL_ERROR
