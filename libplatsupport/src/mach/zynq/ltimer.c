@@ -101,8 +101,13 @@ static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
 static void update_timestamp(ttc_ltimer_t *ttc_ltimer)
 {
     if (ttc_handle_irq(&ttc_ltimer->ttcs[TIMESTAMP_IDX])) {
+#ifdef CONFIG_PLAT_ZYNQMP
+        /* if handle irq returns a high value, we have an overflow irq unhandled */
+        ttc_ltimer->time += ttc_ticks_to_ns(&ttc_ltimer->ttcs[TIMESTAMP_IDX], UINT32_MAX);
+#else
         /* if handle irq returns a high value, we have an overflow irq unhandled */
         ttc_ltimer->time += ttc_ticks_to_ns(&ttc_ltimer->ttcs[TIMESTAMP_IDX], UINT16_MAX);
+#endif
     }
 }
 

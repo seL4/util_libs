@@ -174,4 +174,4 @@ void ttc_freerun(ttc_t *tcc);
 int ttc_handle_irq(ttc_t *ttc);
 uint64_t ttc_get_time(ttc_t *ttc);
 /* convert from a ticks value to ns for a configured ttc */
-uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint16_t ticks);
+uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks);

@@ -345,7 +345,7 @@ int ttc_handle_irq(ttc_t *ttc)
     return res;
 }
 
-uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint16_t ticks) {
+uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
     if (!ttc) {
         return 0;
     }
