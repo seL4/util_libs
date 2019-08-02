@@ -30,8 +30,9 @@
 typedef struct {
     sp804_t sp804s[NUM_SP804_TIMERS];
     /* fvp sp804 have 2 timers per frame, we just use one */
-    void *sp804_timer0_vaddr;
-    void *sp804_timer1_vaddr;
+    void *timer_vaddrs[NUM_SP804_TIMERS];
+    irq_id_t timer_irq_ids[NUM_SP804_TIMERS];
+    timer_callback_data_t callback_datas[NUM_SP804_TIMERS];
     ps_io_ops_t ops;
     uint32_t high_bits;
 } fvp_ltimer_t;
@@ -131,19 +132,23 @@ static void destroy(void *data)
     UNUSED int error;
     fvp_ltimer_t *fvp_ltimer = data;
 
-    if (fvp_ltimer->sp804_timer0_vaddr) {
-        sp804_stop(&fvp_ltimer->sp804s[TIMEOUT_SP804]);
-        error = get_nth_pmem(data, 0,  &region);
-        assert(!error);
-        ps_pmem_unmap(&fvp_ltimer->ops, region, fvp_ltimer->sp804_timer0_vaddr);
+    for (int i = 0; i < NUM_SP804_TIMERS; i++) {
+        if (fvp_ltimer->timer_vaddrs[i]) {
+            sp804_stop(&fvp_ltimer->sp804s[i]);
+            error = get_nth_pmem(data, i, &region);
+            assert(!error);
+            ps_pmem_unmap(&fvp_ltimer->ops, region, fvp_ltimer->timer_vaddrs[i]);
+        }
+
+        if (fvp_ltimer->callback_datas[i].irq) {
+            ps_free(&fvp_ltimer->ops.malloc_ops, sizeof(ps_irq_t), fvp_ltimer->callback_datas[i].irq);
+        }
+
+        if (fvp_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            error = ps_irq_unregister(&fvp_ltimer->ops.irq_ops, fvp_ltimer->timer_irq_ids[i]);
+        }
     }
 
-    if (fvp_ltimer->sp804_timer1_vaddr) {
-        sp804_stop(&fvp_ltimer->sp804s[TIMESTAMP_SP804]);
-        error = get_nth_pmem(data, 1,  &region);
-        assert(!error);
-        ps_pmem_unmap(&fvp_ltimer->ops, region, fvp_ltimer->sp804_timer1_vaddr);
-    }
     ps_free(&fvp_ltimer->ops.malloc_ops, sizeof(fvp_ltimer), fvp_ltimer);
 }
 
@@ -169,55 +174,65 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     fvp_ltimer_t *fvp_ltimer = ltimer->data;
     fvp_ltimer->ops = ops;
-
-    /* map the frame for the sp804 timers */
-    pmem_region_t region;
-    error = get_nth_pmem(NULL, 0, &region);
-    assert(error == 0);
-    fvp_ltimer->sp804_timer0_vaddr = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
-    if (fvp_ltimer->sp804_timer0_vaddr == NULL) {
-        error = ENOMEM;
+    for (int i = 0; i < NUM_SP804_TIMERS; i++) {
+        fvp_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }
 
-    /* set up an SP804 for timeouts */
-    sp804_config_t sp804_config = {
-        .vaddr = fvp_ltimer->sp804_timer0_vaddr,
-        .id = SP804_ID
-    };
+    for (int i = 0; i < NUM_SP804_TIMERS; i++) {
+        /* map the 'frames' for the sp804 timers, (really only uses one for both) */
+        pmem_region_t region;
+        error = get_nth_pmem(NULL, i, &region);
+        assert(error == 0);
+        fvp_ltimer->timer_vaddrs[i] = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
+        if (fvp_ltimer->timer_vaddrs[i] == NULL) {
+            error = ENOMEM;
+            break;
+        }
 
-    if (!error) {
-        error = sp804_init(&fvp_ltimer->sp804s[TIMEOUT_SP804], sp804_config);
-    }
-    if (!error) {
-        sp804_start(&fvp_ltimer->sp804s[TIMEOUT_SP804]);
-    }
+        /* register the IRQs we need */
+        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &fvp_ltimer->callback_datas[i].irq);
+        if (error) {
+            break;
+        }
+        fvp_ltimer->callback_datas[i].ltimer = ltimer;
+        error = get_nth_irq(ltimer->data, i, fvp_ltimer->callback_datas[i].irq);
+        assert(error == 0);
+        fvp_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *fvp_ltimer->callback_datas[i].irq,
+                                                       handle_irq_wrapper, &fvp_ltimer->callback_datas[i]);
+        if (fvp_ltimer->timer_irq_ids[i] < 0) {
+            error = EIO;
+            break;
+        }
 
-    /* set up a SP804_TIMER for timestamps */
-    sp804_config.id++;
-    error = get_nth_pmem(NULL, 1, &region);
-    assert(error == 0);
+        /* set up an SP804 for timeouts */
+        sp804_config_t sp804_config = {
+            .vaddr = fvp_ltimer->timer_vaddrs[i],
+            .id = SP804_ID + i
+        };
 
-    fvp_ltimer->sp804_timer1_vaddr = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
-    if (fvp_ltimer->sp804_timer1_vaddr == NULL) {
-        error = ENOMEM;
-    }
+        error = sp804_init(&fvp_ltimer->sp804s[i], sp804_config);
+        if (error) {
+            break;
+        }
 
-    sp804_config.vaddr = fvp_ltimer->sp804_timer1_vaddr;
+        error = sp804_start(&fvp_ltimer->sp804s[i]);
+        if (error) {
+            break;
+        }
 
-    if (!error) {
-        error = sp804_init(&fvp_ltimer->sp804s[TIMESTAMP_SP804], sp804_config);
-    }
-    if (!error) {
-        sp804_start(&fvp_ltimer->sp804s[TIMESTAMP_SP804]);
-    }
-    if (!error) {
-        error = sp804_set_timeout_ticks(&fvp_ltimer->sp804s[TIMESTAMP_SP804], UINT32_MAX, true, true);
+        if (i == TIMESTAMP_SP804) {
+            error = sp804_set_timeout_ticks(&fvp_ltimer->sp804s[i], UINT32_MAX, true, true);
+            if (error) {
+                break;
+            }
+        }
     }
 
     /* if there was an error, clean up */
     if (error) {
         destroy(ltimer);
     }
+
     return error;
 }
 

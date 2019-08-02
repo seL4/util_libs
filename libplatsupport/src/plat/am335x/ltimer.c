@@ -20,6 +20,8 @@
 
 #include <utils/util.h>
 
+#include "../../ltimer.h"
+
 #define TICK_DMT 0
 #define TIMEOUT_DMT 1
 #define NUM_DMTS 2
@@ -29,6 +31,8 @@
 typedef struct {
     dmt_t dmts[NUM_DMTS];
     void *vaddrs[NUM_DMTS];
+    irq_id_t timer_irq_ids[NUM_DMTS];
+    timer_callback_data_t callback_datas[NUM_DMTS];
     ps_io_ops_t ops;
     uint64_t ms;
 } dmt_ltimer_t;
@@ -140,6 +144,15 @@ static void destroy(void *data)
             dmt_stop(&dmt_ltimer->dmts[i]);
             ps_io_unmap(&dmt_ltimer->ops.io_mapper, dmt_ltimer->vaddrs[i], PAGE_SIZE_4K);
         }
+
+        if (dmt_ltimer->callback_datas[i].irq) {
+            ps_free(&dmt_ltimer->ops.malloc_ops, sizeof(ps_irq_t), dmt_ltimer->callback_datas[i].irq);
+        }
+
+        if (dmt_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            int error = ps_irq_unregister(&dmt_ltimer->ops.irq_ops, dmt_ltimer->timer_irq_ids[i]);
+            ZF_LOGF_IF(error, "Failed to unregister timer IRQ");
+        }
     }
 
     ps_free(&dmt_ltimer->ops.malloc_ops, sizeof(dmt_ltimer), dmt_ltimer);
@@ -167,9 +180,12 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     dmt_ltimer_t *dmt_ltimer = ltimer->data;
     dmt_ltimer->ops = ops;
+    for (int i = 0; i < NUM_DMTS; i++) {
+        dmt_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
+    }
 
     /* map the frames we need */
-    for (int i = 0; i < NUM_DMTS && error == 0; i++) {
+    for (int i = 0; i < NUM_DMTS; i++) {
         pmem_region_t region;
         error = get_nth_pmem(ltimer->data, i, &region);
         assert(error == 0);
@@ -184,6 +200,23 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
             .id = DMT_ID + i
         };
         error = dmt_init(&dmt_ltimer->dmts[i], config);
+        if (error) {
+            break;
+        }
+
+        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &dmt_ltimer->callback_datas[i].irq);
+        if (error) {
+            break;
+        }
+        dmt_ltimer->callback_datas[i].ltimer = ltimer;
+        error = get_nth_irq(ltimer->data, i, dmt_ltimer->callback_datas[i].irq);
+        assert(error == 0);
+        dmt_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *dmt_ltimer->callback_datas[i].irq,
+                                                       handle_irq_wrapper, &dmt_ltimer->callback_datas[i]);
+        if (dmt_ltimer->timer_irq_ids[i] < 0) {
+            error = EIO;
+            break;
+        }
     }
 
     /* start the timeout dmt */

@@ -15,6 +15,8 @@
 #include <utils/io.h>
 #include <platsupport/plat/meson_timer.h>
 
+#include "../../ltimer.h"
+
 enum {
     MESON_TIMER = 0,
     NUM_TIMERS = 1
@@ -23,6 +25,8 @@ enum {
 typedef struct {
     meson_timer_t meson_timer;
     void *meson_timer_vaddr;
+    irq_id_t timer_irq_id;
+    timer_callback_data_t callback_data;
     ps_io_ops_t ops;
 } odroidc2_ltimer_t;
 
@@ -155,6 +159,11 @@ static void destroy(void *data)
         ps_pmem_unmap(&odroidc2_timer->ops, pmems[0], odroidc2_timer->meson_timer_vaddr);
     }
 
+    if (odroidc2_timer->timer_irq_id > PS_INVALID_IRQ_ID) {
+        int error = ps_irq_unregister(&odroidc2_timer->ops.irq_ops, odroidc2_timer->timer_irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister IRQ");
+    }
+
     ps_free(&odroidc2_timer->ops.malloc_ops, sizeof(odroidc2_ltimer_t), odroidc2_timer);
     return;
 }
@@ -185,13 +194,25 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
 
     odroidc2_ltimer_t *odroidc2_timer = ltimer->data;
+
+    odroidc2_timer->ops = ops;
+    odroidc2_timer->timer_irq_id = PS_INVALID_IRQ_ID;
+
     odroidc2_timer->meson_timer_vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);
     if (odroidc2_timer->meson_timer_vaddr == NULL) {
         destroy(ltimer->data);
         return EINVAL;
     }
 
-    odroidc2_timer->ops = ops;
+    odroidc2_timer->callback_data.ltimer = ltimer;
+    odroidc2_timer->callback_data.irq = &irqs[0];
+
+    odroidc2_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, irqs[0], handle_irq_wrapper,
+                                                   &odroidc2_timer->callback_data);
+    if (odroidc2_timer->timer_irq_id < 0) {
+        destroy(ltimer->data);
+        return EIO;
+    }
 
     meson_timer_config_t meson_config = {
         .vaddr = odroidc2_timer->meson_timer_vaddr

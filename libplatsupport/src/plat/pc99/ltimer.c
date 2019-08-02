@@ -20,6 +20,8 @@
 #include <platsupport/plat/acpi/acpi.h>
 #include <platsupport/plat/hpet.h>
 
+#include "../../ltimer.h"
+
 /* This is duplicated from constants.h in libsel4 for the moment. Interrupt allocation
    shouldn't be happening here in this driver, until that is fixed this hack is needed */
 #define IRQ_OFFSET (0x20 + 16)
@@ -49,6 +51,8 @@ typedef struct {
     };
     ps_irq_t irq;
     ps_io_ops_t ops;
+    irq_id_t irq_id;
+    timer_callback_data_t callback_data;
 } pc99_ltimer_t;
 
 static size_t get_num_irqs(void *data)
@@ -255,26 +259,47 @@ static void destroy(void *data)
         pit_cancel_timeout(&pc99_ltimer->pit.device);
     }
 
+    if (pc99_ltimer->irq_id > PS_INVALID_IRQ_ID) {
+        ZF_LOGF_IF(ps_irq_unregister(&pc99_ltimer->ops.irq_ops, pc99_ltimer->irq_id),
+                   "Failed to clean-up the IRQ ID!");
+    }
+
     ps_free(&pc99_ltimer->ops.malloc_ops, sizeof(pc99_ltimer), pc99_ltimer);
 }
 
-static inline void
+static inline int
 ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops)
 {
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->ops = ops;
     ltimer->destroy = destroy;
+
+    /* setup the interrupts */
+    pc99_ltimer->callback_data.ltimer = ltimer;
+    pc99_ltimer->callback_data.irq = &pc99_ltimer->irq;
+    pc99_ltimer->irq_id = ps_irq_register(&ops.irq_ops, pc99_ltimer->irq, handle_irq_wrapper,
+                                          &pc99_ltimer->callback_data);
+    if (pc99_ltimer->irq_id < 0) {
+        return EIO;
+    }
+
+    return 0;
 }
 
 static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-    int error;
-    ltimer_init_common(ltimer, ops);
+    pc99_ltimer_t *pc99_ltimer = ltimer->data;
+
+    int error = ltimer_init_common(ltimer, ops);
+    if (error) {
+        destroy(pc99_ltimer);
+        return -1;
+    }
 
     /* map in the paddr */
-    pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->hpet.config.vaddr = ps_pmem_map(&ops, pc99_ltimer->hpet.region, false, PS_MEM_NORMAL);
     if (pc99_ltimer->hpet.config.vaddr == NULL) {
+        destroy(pc99_ltimer);
         return -1;
     }
 
@@ -350,8 +375,13 @@ int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq)
         return error;
     }
 
-    ltimer_init_common(ltimer, ops);
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
+
+    error = ltimer_init_common(ltimer, ops);
+    if (error) {
+        destroy(pc99_ltimer);
+        return error;
+    }
 
     ltimer->handle_irq = pit_ltimer_handle_irq;
     ltimer->get_time = pit_ltimer_get_time;
@@ -456,8 +486,16 @@ int ltimer_pit_describe(ltimer_t *ltimer, ps_io_ops_t ops)
 
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->type = PIT;
-    pc99_ltimer->irq.irq.number = PIT_INTERRUPT;
-    pc99_ltimer->irq.type = PS_INTERRUPT;
+    if (config_set(CONFIG_IRQ_IOAPIC)) {
+        /* Use the IOAPIC if we can */
+        pc99_ltimer->irq = (ps_irq_t) { .type = PS_IOAPIC, .ioapic = { .ioapic = 0, .pin = PIT_INTERRUPT,
+                                                                       .level = 0, .polarity = 0,
+                                                                       .vector = PIT_INTERRUPT }};
+    } else {
+        /* Default to the PIC */
+        pc99_ltimer->irq = (ps_irq_t) { .type = PS_INTERRUPT, .irq = { .number = PIT_INTERRUPT }};
+    }
+    pc99_ltimer->irq_id = PS_INVALID_IRQ_ID;
     ltimer->get_num_irqs = get_num_irqs;
     ltimer->get_num_pmems = get_num_pmems;
     ltimer->get_nth_irq = get_nth_irq;
@@ -473,6 +511,7 @@ int ltimer_hpet_describe(ltimer_t *ltimer, ps_io_ops_t ops, ps_irq_t irq, pmem_r
 
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->type = HPET;
+    pc99_ltimer->irq_id = PS_INVALID_IRQ_ID;
     ltimer->get_num_irqs = get_num_irqs;
     ltimer->get_nth_irq = get_nth_irq;
     ltimer->get_num_pmems = get_num_pmems;

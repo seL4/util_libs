@@ -20,11 +20,7 @@
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 
-typedef struct {
-    pwm_t pwm;
-    void *vaddr;
-    ps_io_ops_t ops;
-} pwm_ltimer_t;
+#include "../../ltimer.h"
 
 static ps_irq_t irqs[] = {
     {
@@ -47,6 +43,14 @@ static pmem_region_t pmems[] = {
 
 #define N_IRQS ARRAY_SIZE(irqs)
 #define N_PMEMS ARRAY_SIZE(pmems)
+
+typedef struct {
+    pwm_t pwm;
+    void *vaddr;
+    irq_id_t timer_irq_ids[N_IRQS];
+    timer_callback_data_t callback_datas[N_IRQS];
+    ps_io_ops_t ops;
+} pwm_ltimer_t;
 
  size_t get_num_irqs(void *data)
 {
@@ -135,6 +139,14 @@ static void destroy(void *data)
         pwm_stop(&pwm_ltimer->pwm);
         ps_pmem_unmap(&pwm_ltimer->ops, pmems[0], pwm_ltimer->vaddr);
     }
+
+    for (int i = 0; i < N_IRQS; i++) {
+        if (pwm_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            int error = ps_irq_unregister(&pwm_ltimer->ops.irq_ops, pwm_ltimer->timer_irq_ids[i]);
+            ZF_LOGF_IF(error, "Failed to unregister IRQ");
+        }
+    }
+
     ps_free(&pwm_ltimer->ops.malloc_ops, sizeof(pwm_ltimer), pwm_ltimer);
 }
 
@@ -153,6 +165,12 @@ static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
         return error;
     }
     assert(ltimer->data != NULL);
+
+    /* initialise the IRQ IDs */
+    pwm_ltimer_t *pwm_ltimer = ltimer->data;
+    for (int i = 0; i < N_IRQS; i++) {
+        pwm_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
+    }
 
     return 0;
 }
@@ -190,10 +208,24 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     pwm_ltimer->vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);
     if (pwm_ltimer->vaddr == NULL) {
         destroy(ltimer->data);
+        return ENOMEM;
+    }
+
+    /* register the IRQs that we need */
+    for (int i = 0; i < N_IRQS; i++) {
+        pwm_ltimer->callback_datas[i].ltimer = ltimer;
+        pwm_ltimer->callback_datas[i].irq = &irqs[i];
+        pwm_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irqs[i], handle_irq_wrapper,
+                                                       &pwm_ltimer->callback_datas[i]);
+        if (pwm_ltimer->timer_irq_ids[i] < 0) {
+            destroy(ltimer->data);
+            return EIO;
+        }
     }
 
     init_ltimer(ltimer);
     if (error) {
+        destroy(ltimer->data);
         return error;
     }
 

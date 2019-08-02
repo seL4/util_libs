@@ -24,6 +24,8 @@
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 
+#include "../../ltimer.h"
+
 #define NV_TMR_ID TMR1
 #define NV_TMR_ID_OFFSET TMR1_OFFSET
 
@@ -35,6 +37,8 @@ typedef struct {
      * if timers are on single page, then this is same as vaddr_base.
      */
     void *vaddr_tmr;
+    irq_id_t irq_id;
+    timer_callback_data_t callback_data;
     ps_io_ops_t ops;
     uint64_t period;
 } nv_tmr_ltimer_t;
@@ -154,6 +158,12 @@ static void destroy(void *data)
             ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem_tmr, nv_tmr_ltimer->vaddr_tmr);
         }
     }
+
+    if (nv_tmr_ltimer->irq_id > PS_INVALID_IRQ_ID) {
+        int error = ps_irq_unregister(&nv_tmr_ltimer->ops.irq_ops, nv_tmr_ltimer->irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister an IRQ");
+    }
+
     ps_free(&nv_tmr_ltimer->ops.malloc_ops, sizeof(nv_tmr_ltimer), nv_tmr_ltimer);
 }
 
@@ -190,6 +200,17 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     }
     if (nv_tmr_ltimer->vaddr_base == NULL || nv_tmr_ltimer->vaddr_tmr == NULL) {
         destroy(ltimer->data);
+        return ENOMEM;
+    }
+
+    /* register the IRQ */
+    ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = nv_tmr_get_irq(NV_TMR_ID) }};
+    /* only set the ltimer, 'handle_irq' for the NV ltimers don't actually use the 'irq' argument */
+    nv_tmr_ltimer->callback_data.ltimer = ltimer;
+    nv_tmr_ltimer->irq_id = ps_irq_register(&ops.irq_ops, irq, handle_irq_wrapper, &nv_tmr_ltimer->callback_data);
+    if (nv_tmr_ltimer->irq_id < 0) {
+        destroy(ltimer->data);
+        return EIO;
     }
 
     /* setup nv_tmr */

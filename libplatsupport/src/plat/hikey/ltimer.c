@@ -20,6 +20,8 @@
 #include <platsupport/plat/dmt.h>
 #include <platsupport/io.h>
 
+#include "../../ltimer.h"
+
 /*
  * We use two dm timers: one to keep track of an absolute time, the other for timeouts.
  */
@@ -32,6 +34,8 @@ typedef struct {
     dmt_t dmts[NUM_DMTS];
     /* hikey dualtimers have 2 timers per frame, we just use one */
     void *dmt_vaddr;
+    irq_id_t timer_irq_ids[NUM_DMTS];
+    timer_callback_data_t callback_datas[NUM_DMTS];
     ps_io_ops_t ops;
     uint32_t high_bits;
 } hikey_ltimer_t;
@@ -135,9 +139,20 @@ static void destroy(void *data)
     if (hikey_ltimer->dmt_vaddr) {
         dmt_stop(&hikey_ltimer->dmts[TIMEOUT_DMT]);
         dmt_stop(&hikey_ltimer->dmts[TIMESTAMP_DMT]);
-        error = get_nth_pmem(data, 0,  &region);
+        error = get_nth_pmem(data, 0, &region);
         assert(!error);
         ps_pmem_unmap(&hikey_ltimer->ops, region, hikey_ltimer->dmt_vaddr);
+    }
+
+    for (int i = 0; i < NUM_DMTS; i++) {
+        if (hikey_ltimer->callback_datas[i].irq) {
+            ps_free(&hikey_ltimer->ops.malloc_ops, sizeof(ps_irq_t), hikey_ltimer->callback_datas[i].irq);
+        }
+
+        if (hikey_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            error = ps_irq_unregister(&hikey_ltimer->ops.irq_ops, hikey_ltimer->timer_irq_ids[i]);
+            ZF_LOGF_IF(error, "Failed to unregister IRQ");
+        }
     }
 
     ps_free(&hikey_ltimer->ops.malloc_ops, sizeof(hikey_ltimer), hikey_ltimer);
@@ -165,6 +180,9 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     hikey_ltimer_t *hikey_ltimer = ltimer->data;
     hikey_ltimer->ops = ops;
+    for (int i = 0; i < NUM_DMTS; i++) {
+        hikey_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
+    }
 
     /* map the frame for the dm timers */
     pmem_region_t region;
@@ -197,6 +215,25 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     }
     if (!error) {
         error = dmt_set_timeout_ticks(&hikey_ltimer->dmts[TIMESTAMP_DMT], UINT32_MAX, true, true);
+    }
+
+    /* register IRQs for the timers */
+    for (int i = 0; i < NUM_DMTS; i++) {
+        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &hikey_ltimer->callback_datas[i].irq);
+        if (error) {
+            break;
+        }
+        hikey_ltimer->callback_datas[i].ltimer = ltimer;
+        error = get_nth_irq(hikey_ltimer, i, hikey_ltimer->callback_datas[i].irq);
+        if (error) {
+            break;
+        }
+        hikey_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *hikey_ltimer->callback_datas[i].irq,
+                                                         handle_irq_wrapper, &hikey_ltimer->callback_datas[i]);
+        if (hikey_ltimer->timer_irq_ids[i] < 0) {
+            error = EIO;
+            break;
+        }
     }
 
     /* if there was an error, clean up */

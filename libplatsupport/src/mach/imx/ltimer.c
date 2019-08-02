@@ -17,15 +17,14 @@
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
+#include <platsupport/irq.h>
 
 #include <utils/util.h>
 
-typedef struct {
-    imx_timers_t timers;
-    void *timestamp_vaddr;
-    void *timeout_vaddr;
-    ps_io_ops_t ops;
-} imx_ltimer_t;
+#include "../../ltimer.h"
+
+#define TIMESTAMP_IDX 0
+#define TIMEOUT_IDX 1
 
 static ps_irq_t imx_ltimer_irqs[] = {
     {
@@ -53,6 +52,14 @@ static pmem_region_t imx_ltimer_paddrs[] = {
 
 #define N_IRQS ARRAY_SIZE(imx_ltimer_irqs)
 #define N_PADDRS ARRAY_SIZE(imx_ltimer_paddrs)
+
+typedef struct {
+    imx_timers_t timers;
+    void *timer_vaddrs[N_PADDRS];
+    irq_id_t timer_irq_ids[N_IRQS];
+    timer_callback_data_t callback_datas[N_IRQS];
+    ps_io_ops_t ops;
+} imx_ltimer_t;
 
 static size_t get_num_irqs(void *data)
 {
@@ -143,14 +150,24 @@ static void destroy(void *data)
 
     imx_ltimer_t *imx_ltimer = data;
 
-    if (imx_ltimer->timestamp_vaddr) {
-        imx_stop_timestamp(&imx_ltimer->timers);
-        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timestamp_vaddr, PAGE_SIZE_4K);
+    int error = 0;
+
+    for (int i = 0; i < N_IRQS; i++) {
+        if (imx_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            error = ps_irq_unregister(&imx_ltimer->ops.irq_ops, imx_ltimer->timer_irq_ids[i]);
+            ZF_LOGF_IF(error, "Failed to unregister IRQ!");
+        }
     }
 
-    if (imx_ltimer->timeout_vaddr) {
-        imx_stop_timeout(&imx_ltimer->timers);
-        ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timeout_vaddr, PAGE_SIZE_4K);
+    for (int i = 0; i < N_PADDRS; i++) {
+        if (imx_ltimer->timer_vaddrs[i]) {
+            if (i == TIMESTAMP_IDX) {
+                imx_stop_timestamp(&imx_ltimer->timers);
+            } else {
+                imx_stop_timeout(&imx_ltimer->timers);
+            }
+            ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timer_vaddrs[i], PAGE_SIZE_4K);
+        }
     }
 
     ps_free(&imx_ltimer->ops.malloc_ops, sizeof(imx_ltimer), imx_ltimer);
@@ -171,6 +188,13 @@ static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
         return error;
     }
     assert(ltimer->data != NULL);
+
+    /* Initialise the IRQ IDs */
+    imx_ltimer_t *imx_ltimer = ltimer->data;
+    for (int i = 0; i < N_IRQS; i++) {
+        imx_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
+    }
+
     return 0;
 }
 
@@ -179,7 +203,7 @@ static int init_ltimer(ltimer_t *ltimer)
     assert(ltimer != NULL);
     imx_ltimer_t *imx_ltimer = ltimer->data;
 
-    int error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timestamp_vaddr);
+    int error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timer_vaddrs[TIMESTAMP_IDX]);
     if (error) {
         ZF_LOGE("Failed to init timestamp timer");
         ltimer_destroy(ltimer);
@@ -188,7 +212,7 @@ static int init_ltimer(ltimer_t *ltimer)
 
     imx_start_timestamp(&imx_ltimer->timers);
 
-    error = imx_init_timeout(&imx_ltimer->timers, imx_ltimer->timeout_vaddr);
+    error = imx_init_timeout(&imx_ltimer->timers, imx_ltimer->timer_vaddrs[TIMEOUT_IDX]);
     if (error) {
         ZF_LOGE("Failed to init timeout timer");
         ltimer_destroy(ltimer);
@@ -211,21 +235,32 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     imx_ltimer_t *imx_ltimer = ltimer->data;
 
-    /* map the frames we need */
     imx_ltimer->ops = ops;
-    imx_ltimer->timestamp_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[0], false, PS_MEM_NORMAL);
-    if (imx_ltimer->timestamp_vaddr == NULL) {
-        return -1;
+
+    /* register the interrupts that we need */
+    for (int i = 0; i < N_IRQS; i++) {
+        imx_ltimer->callback_datas[i] = (timer_callback_data_t) { .ltimer = ltimer,
+                                                                  .irq = &imx_ltimer_irqs[i]};
+        imx_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, imx_ltimer_irqs[i],
+                                                       handle_irq_wrapper, &imx_ltimer->callback_datas[i]);
+        if (imx_ltimer->timer_irq_ids[i] < 0) {
+            ltimer_destroy(ltimer);
+            return EIO;
+        }
     }
 
-    imx_ltimer->timeout_vaddr = ps_pmem_map(&ops, imx_ltimer_paddrs[1], false, PS_MEM_NORMAL);
-    if (!imx_ltimer->timeout_vaddr) {
-        ltimer_destroy(ltimer);
-        return -1;
+    /* map the frames we need */
+    for (int i = 0; i < N_PADDRS; i++) {
+        imx_ltimer->timer_vaddrs[i] = ps_pmem_map(&ops, imx_ltimer_paddrs[i], false, PS_MEM_NORMAL);
+        if (imx_ltimer->timer_vaddrs[i] == NULL) {
+            ltimer_destroy(ltimer);
+            return ENOMEM;
+        }
     }
 
     init_ltimer(ltimer);
     if (error) {
+        ltimer_destroy(ltimer);
         return error;
     }
 

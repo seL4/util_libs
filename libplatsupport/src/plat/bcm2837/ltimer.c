@@ -21,6 +21,8 @@
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 
+#include "../../ltimer.h"
+
 #define NV_TMR_ID TMR0
 
 enum {
@@ -31,9 +33,10 @@ enum {
 
 typedef struct {
     spt_t spt;
-    void *spt_vaddr;
     system_timer_t system;
-    void *system_vaddr;
+    void *timer_vaddrs[NUM_TIMERS];
+    irq_id_t timer_irq_ids[NUM_TIMERS];
+    timer_callback_data_t callback_datas[NUM_TIMERS];
     ps_io_ops_t ops;
     uint64_t period;
 } spt_ltimer_t;
@@ -153,20 +156,19 @@ static void destroy(void *data)
 {
     assert(data);
     spt_ltimer_t *spt_ltimer = data;
-    if (spt_ltimer->spt_vaddr) {
-        spt_stop(&spt_ltimer->spt);
-        ps_pmem_unmap(
-            &spt_ltimer->ops,
-            pmems[SP804_TIMER],
-            spt_ltimer->spt_vaddr
-        );
-    }
-    if (spt_ltimer->system_vaddr) {
-        ps_pmem_unmap(
-            &spt_ltimer->ops,
-            pmems[SYSTEM_TIMER],
-            spt_ltimer->system_vaddr
-        );
+    for (int i = 0; i < NUM_TIMERS; i++) {
+        if (i == SP804_TIMER) {
+            spt_stop(&spt_ltimer->spt);
+        }
+        ps_pmem_unmap(&spt_ltimer->ops, pmems[i], spt_ltimer->timer_vaddrs[i]);
+
+        if (spt_ltimer->callback_datas[i].irq) {
+            ps_free(&spt_ltimer->ops.malloc_ops, sizeof(ps_irq_t), spt_ltimer->callback_datas[i].irq);
+        }
+
+        if (spt_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            ps_irq_unregister(&spt_ltimer->ops.irq_ops, spt_ltimer->timer_irq_ids[i]);
+        }
     }
     ps_free(&spt_ltimer->ops.malloc_ops, sizeof(spt_ltimer), spt_ltimer);
 }
@@ -193,18 +195,41 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     spt_ltimer_t *spt_ltimer = ltimer->data;
     spt_ltimer->ops = ops;
-    spt_ltimer->spt_vaddr = ps_pmem_map(&ops, pmems[SP804_TIMER], false, PS_MEM_NORMAL);
-    if (spt_ltimer->spt_vaddr == NULL) {
-        destroy(ltimer->data);
+    for (int i = 0; i < NUM_TIMERS; i++) {
+        spt_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }
-    spt_ltimer->system_vaddr = ps_pmem_map(&ops, pmems[SYSTEM_TIMER], false, PS_MEM_NORMAL);
-    if (spt_ltimer->system_vaddr == NULL) {
-        destroy(ltimer->data);
+
+    for (int i = 0; i < NUM_TIMERS; i++) {
+        /* map the registers we need */
+        spt_ltimer->timer_vaddrs[i] = ps_pmem_map(&ops, pmems[i], false, PS_MEM_NORMAL);
+        if (spt_ltimer->timer_vaddrs[i] == NULL) {
+            destroy(ltimer->data);
+            return ENOMEM;
+        }
+
+        /* register the IRQs we need */
+        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &spt_ltimer->callback_datas[i].irq);
+        if (error) {
+            destroy(ltimer->data);
+            return error;
+        }
+        spt_ltimer->callback_datas[i].ltimer = ltimer;
+        error = get_nth_irq(ltimer->data, i, spt_ltimer->callback_datas[i].irq);
+        if (error) {
+            destroy(ltimer->data);
+            return error;
+        }
+        spt_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *spt_ltimer->callback_datas[i].irq,
+                                                       handle_irq_wrapper, &spt_ltimer->callback_datas[i]);
+        if (spt_ltimer->timer_irq_ids[i] < 0) {
+            destroy(ltimer->data);
+            return EIO;
+        }
     }
 
     /* setup spt */
     spt_config_t spt_config = {
-        .vaddr = spt_ltimer->spt_vaddr,
+        .vaddr = spt_ltimer->timer_vaddrs[SP804_TIMER],
     };
 
     spt_init(&spt_ltimer->spt, spt_config);
@@ -212,7 +237,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     /* Setup system timer */
     system_timer_config_t system_config = {
-        .vaddr = spt_ltimer->system_vaddr,
+        .vaddr = spt_ltimer->timer_vaddrs[SYSTEM_TIMER],
     };
 
     system_timer_init(&spt_ltimer->system, system_config);

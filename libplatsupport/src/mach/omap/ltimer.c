@@ -20,6 +20,8 @@
 #include <platsupport/pmem.h>
 #include <utils/util.h>
 
+#include "../../ltimer.h"
+
 #define ABS_GPT 0
 #define REL_GPT 1
 #define NUM_GPTS 2
@@ -27,6 +29,8 @@
 typedef struct {
     gpt_t gpts[NUM_GPTS];
     void *vaddrs[NUM_GPTS];
+    irq_id_t timer_irq_ids[NUM_GPTS];
+    timer_callback_data_t callback_datas[NUM_GPTS];
     ps_io_ops_t ops;
 } omap_ltimer_t;
 
@@ -139,7 +143,16 @@ static void destroy(void *data)
         gpt_stop(&omap_ltimer->gpts[i]);
         pmem_region_t region;
         get_nth_pmem(data, i, &region);
-        ps_pmem_unmap(&omap_ltimer->ops, region, omap_ltimer->vaddrs[i]);
+        if (omap_ltimer->vaddrs[i]) {
+            ps_pmem_unmap(&omap_ltimer->ops, region, omap_ltimer->vaddrs[i]);
+        }
+        if (omap_ltimer->callback_datas[i].irq) {
+            ps_free(&omap_ltimer->ops.malloc_ops, sizeof(ps_irq_t), omap_ltimer->callback_datas[i].irq);
+        }
+        if (omap_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
+            int error = ps_irq_unregister(&omap_ltimer->ops.irq_ops, omap_ltimer->timer_irq_ids[i]);
+            ZF_LOGF_IF(error, "Failed to unregister IRQ");
+        }
     }
     ps_free(&omap_ltimer->ops.malloc_ops, sizeof(omap_ltimer), omap_ltimer);
 }
@@ -166,16 +179,35 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     omap_ltimer_t *omap_ltimer = ltimer->data;
     omap_ltimer->ops = ops;
-
-    /* map the frames we need */
     for (int i = 0; i < NUM_GPTS; i++) {
+        omap_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
+    }
+
+    for (int i = 0; i < NUM_GPTS; i++) {
+        /* map the frames we need */
         pmem_region_t region;
-        int error = get_nth_pmem(ltimer->data, i, &region);
+        error = get_nth_pmem(ltimer->data, i, &region);
         assert(error == 0);
         omap_ltimer->vaddrs[i] = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
         if (omap_ltimer->vaddrs[i] == NULL) {
             destroy(ltimer->data);
-            return -1;
+            return ENOMEM;
+        }
+
+        /* register the IRQs we need */
+        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &omap_ltimer->callback_datas[i].irq);
+        if (error) {
+            destroy(ltimer->data);
+            return error;
+        }
+        omap_ltimer->callback_datas[i].ltimer = ltimer;
+        error = get_nth_irq(ltimer->data, i, omap_ltimer->callback_datas[i].irq);
+        assert(error == 0);
+        omap_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *omap_ltimer->callback_datas[i].irq,
+                                                        handle_irq_wrapper, &omap_ltimer->callback_datas[i]);
+        if (omap_ltimer->timer_irq_ids[i] < 0) {
+            destroy(ltimer->data);
+            return EIO;
         }
     }
 

@@ -22,9 +22,13 @@
 #include <platsupport/io.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../ltimer.h"
+
 typedef struct {
     uint32_t freq; // frequency of the generic timer
     uint64_t period; // period of a current periodic timeout, in ns
+    irq_id_t timer_irq_id;
+    timer_callback_data_t callback_data;
     ps_io_ops_t ops;
 } generic_ltimer_t;
 
@@ -118,10 +122,17 @@ static int reset(void *data)
 
 static void destroy(void *data)
 {
-    UNUSED int error;
+    int error;
     generic_ltimer_t *generic_ltimer = data;
     generic_timer_disable();
-    ps_free(&generic_ltimer->ops.malloc_ops, sizeof(generic_ltimer), generic_ltimer);
+    if (generic_ltimer->callback_data.irq) {
+        ps_free(&generic_ltimer->ops.malloc_ops, sizeof(ps_irq_t), generic_ltimer->callback_data.irq);
+    }
+    if (generic_ltimer->timer_irq_id > PS_INVALID_IRQ_ID) {
+        error = ps_irq_unregister(&ops.irq_ops, generic_ltimer->timer_irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister IRQ ID");
+    }
+    ps_free(&generic_ltimer->ops.malloc_ops, sizeof(generic_ltimer_t), generic_ltimer);
 }
 
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
@@ -151,22 +162,37 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     generic_ltimer_t *generic_ltimer = ltimer->data;
 
+    generic_ltimer->ops = ops;
+
     generic_ltimer->freq = generic_timer_get_freq();
     if (generic_ltimer->freq == 0) {
         ZF_LOGE("Couldn't read timer frequency");
-        error = ENXIO;
-    } else {
-        generic_ltimer->ops = ops;
-        generic_timer_set_compare(UINT64_MAX);
-        generic_timer_enable();
+        return ENXIO;
     }
 
-    /* if there was an error, clean up */
+    generic_timer_set_compare(UINT64_MAX);
+    generic_timer_enable();
+
+    /* register the IRQ we need */
+    error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &generic_timer->callback_data.irq);
     if (error) {
-        ZF_LOGE("Failed to initialise generic timer");
         destroy(ltimer->data);
+        return error;
     }
-    return error;
+    generic_timer->callback_data.ltimer = ltimer;
+    error = get_nth_irq(ltimer->data, 0, generic_timer->callback_data.irq);
+    if (error) {
+        destroy(ltimer->data);
+        return error;
+    }
+    generic_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, *generic_timer->callback_data.irq,
+                                                  handle_irq_wrapper, &generic_timer->callback_data);
+    if (generic_timer->timer_irq_id < 0) {
+        destroy(ltimer->data);
+        return EIO;
+    }
+
+    return 0;
 }
 
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
