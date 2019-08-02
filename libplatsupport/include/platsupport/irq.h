@@ -22,6 +22,8 @@
     if (!irq_ops->FUN) return -ENOSYS;\
 } while(0)
 
+#define PS_INVALID_IRQ_ID -1
+
 typedef enum irq_type {
     PS_NONE,
     PS_MSI,
