@@ -180,17 +180,17 @@ def load_data(yaml_filename: str) -> Dict[str, Any]:
     containing what was found there.
     """
     with open(yaml_filename, 'r') as f:
-        data = yaml.load(f)
+        data = yaml.safe_load(f)
 
     return data
 
 
-def _process_operand(yaml_file: str, c_symbols: Dict[str, str],
+def _process_operand(yaml_filename: str, c_symbols: Dict[str, str],
                      use_c: bool) -> bool:
     """
     Handle one non-optional command-line argument; called by `main()`.
     """
-    data = load_data(yaml_file)
+    data = load_data(yaml_filename)
     (is_good_data, problems) = is_valid(data)
 
     if is_good_data:
@@ -200,7 +200,8 @@ def _process_operand(yaml_file: str, c_symbols: Dict[str, str],
         # identify who is talking (`program_name`) and if operating on a file,
         # should name the file in which trouble is encountered.  Both of these
         # make grep more effective.
-        prefix = "{pn}: file \"{fn}\":".format(pn=program_name, fn=yaml_file)
+        prefix = "{pn}: file \"{fn}\":".format(pn=program_name,
+                                               fn=yaml_filename)
 
         if len(problems) == 1:
             sys.stderr.write("{} {}\n".format(prefix, problems[0]))
@@ -247,7 +248,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 """)
-    parser.add_argument('platform_file', nargs='+', type=str,
+    parser.add_argument('platform_filename', nargs='+', type=str,
                         help='YAML description of platform parameters')
     parser.add_argument('--emit-c-syntax', action='store_true',
                         help='emit C syntax instead of human-readable output')
@@ -269,8 +270,9 @@ int main(int argc, char *argv[]) {
         'structure_tag_symbol': args.structure_tag_symbol,
     }
 
-    for yaml_file in args.platform_file:
-        if not _process_operand(yaml_file, c_symbols, use_c=args.emit_c_syntax):
+    for yaml_filename in args.platform_filename:
+        if not _process_operand(yaml_filename, c_symbols,
+                                use_c=args.emit_c_syntax):
             there_was_any_trouble = True
 
     return 1 if there_was_any_trouble else 0
