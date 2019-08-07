@@ -240,7 +240,8 @@ int uart_putchar(ps_chardevice_t* d, int c)
 static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
-    /* TODO */
+    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    regs->isr = UART_IER_RTRIG;
 }
 
 /*
