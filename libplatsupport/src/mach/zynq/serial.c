@@ -189,6 +189,9 @@ int uart_getchar(ps_chardevice_t *d)
     zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
     int c = -1;
 
+    uint32_t imr = regs->imr;
+    regs->idr = imr;
+
     if (!(regs->sr & UART_SR_REMPTY)) {
         c = regs->fifo;
 
@@ -197,12 +200,19 @@ int uart_getchar(ps_chardevice_t *d)
             regs->isr &= ~UART_ISR_TIMEOUT;
         }
     }
+
+    regs->ier = imr;
+
     return c;
 }
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
+    int ret = -1;
     zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+
+    uint32_t imr = regs->imr;
+    regs->idr = imr;
 
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         /* check if 2 bytes are free - tx trigger level is 63 and
@@ -213,14 +223,18 @@ int uart_putchar(ps_chardevice_t* d, int c)
             regs->fifo = '\r';
             regs->fifo = '\n';
 
-            return '\n';
+            ret = '\n';
         }
     } else if (!(regs->sr & UART_SR_TFUL)) {
         regs->fifo = c;
-        return c;
+        ret = c;
     }
 
-    return -1;
+    while ((regs->sr & (UART_SR_TEMPTY | UART_SR_TACTIVE)) != UART_SR_TEMPTY);
+
+    regs->ier = imr;
+
+    return ret;
 }
 
 static void
