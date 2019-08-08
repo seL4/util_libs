@@ -322,12 +322,50 @@ OPTIONS=${OPTIONS:-}@@
 #
 # This function relies on the current working directory being the build
 # directory, but this is true by the time it is called.
+show_platform_help () {
+    # This is uglier than it should be because CMake insists on its input being
+    # seekable.  So we have to set up a temporary file, ensure we write to it
+    # only by appending, and make sure it gets cleaned up by setting up a signal
+    # handler.  Note also that message() writes to standard error.
+    #
+    # We quote $TEMP when dereferencing it because mktemp uses $TMPDIR, and the
+    # user might have set that to a whitespace-containing pathname.
+    #
+    # We give `rm` the `-f` option in the trap handler in the event we end up
+    # racing against the ordinary cleanup scenario.  Consider:
+    #   # Clean up the temporary file and deregister the signal handler.
+    #   rm "$TEMP"
+    #   <CTRL-C>
+    #   trap - HUP INT QUIT TERM
+    # When the user interrupts the script, the temporary file has been removed
+    # but the signal handler has not yet been deregistered.
+    TEMP=$(mktemp)
+    trap 'rm -f "$TEMP"' HUP INT QUIT TERM
+
+    cat >> "$TEMP" <<EOF
+include(configs/seL4Config.cmake)
+
+foreach(val IN LISTS kernel_platforms)
+    message("\${val}")
+endforeach()
+EOF
+
+    (cd ../kernel && cmake -P "$TEMP" 2>&1 | cut -d';' -f1)
+    # Clean up the temporary file and deregister the signal handler.
+    rm "$TEMP"
+    trap - HUP INT QUIT TERM
+}
+
+# List supported target platforms.
+#
+# This function relies on the current working directory being the build
+# directory, but this is true by the time it is called.
 #
 # It also relies on use of the declare_platform() cmake macro remaining
 # consistent: retaining that name, remaining exclusively in files named
 # "config.cmake", its first parameter remaining the name of the platform, and
 # the line not being broken before the platform name.
-show_platform_help () {
+show_platform_help_old () {
     # Search all files called "config.cmake" in the tree for non-comment lines
     # starting with "declare_platform(" (with optional leading whitespace);
     # strip leading whitespace, macro call, opening parenthesis, and everything
