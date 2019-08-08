@@ -326,7 +326,7 @@ show_platform_help () {
     # This is uglier than it should be because CMake insists on its input being
     # seekable.  So we have to set up a temporary file, ensure we write to it
     # only by appending, and make sure it gets cleaned up by setting up a signal
-    # handler.  Note also that message() writes to standard error.
+    # handler.  Note also that CMake's message() writes to standard error.
     #
     # We quote $TEMP when dereferencing it because mktemp uses $TMPDIR, and the
     # user might have set that to a whitespace-containing pathname.
