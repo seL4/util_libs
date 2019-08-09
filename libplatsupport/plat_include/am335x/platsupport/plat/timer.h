@@ -11,6 +11,8 @@
  */
 #pragma once
 
+#include <platsupport/timer.h>
+
 /* Memory maps */
 #define DMTIMER2_PADDR 0x48040000
 #define DMTIMER3_PADDR 0x48042000
