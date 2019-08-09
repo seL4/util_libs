@@ -36,6 +36,8 @@ typedef struct {
     void *dmt_vaddr;
     irq_id_t timer_irq_ids[NUM_DMTS];
     timer_callback_data_t callback_datas[NUM_DMTS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
     uint32_t high_bits;
 } hikey_ltimer_t;
@@ -158,7 +160,7 @@ static void destroy(void *data)
     ps_free(&hikey_ltimer->ops.malloc_ops, sizeof(hikey_ltimer), hikey_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     if (ltimer == NULL) {
         ZF_LOGE("ltimer cannot be NULL");
@@ -180,6 +182,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     hikey_ltimer_t *hikey_ltimer = ltimer->data;
     hikey_ltimer->ops = ops;
+    hikey_ltimer->user_callback = callback;
+    hikey_ltimer->user_callback_token = callback_token;
     for (int i = 0; i < NUM_DMTS; i++) {
         hikey_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }

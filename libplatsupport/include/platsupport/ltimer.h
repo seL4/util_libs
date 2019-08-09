@@ -28,6 +28,23 @@ typedef enum {
     TIMEOUT_RELATIVE
 } timeout_type_t;
 
+typedef enum {
+    LTIMER_TIMEOUT_EVENT,
+    LTIMER_OVERFLOW_EVENT
+} ltimer_event_t;
+
+/*
+ * Type signature of the callback function that can be accepted by the ltimer.
+ * The callbacks are invoked when an event occurs. These events are described
+ * by the ltimer_event_t type.
+ *
+ * The callbacks are expected to be reentrant with regards to the ltimer state.
+ * More specifically, the ltimer interface cannot guarantee that the internal
+ * state will be race-safe if two different callbacks invoke the ltimer API
+ * functions concurrently.
+ */
+typedef void (*ltimer_callback_fn_t)(void *token, ltimer_event_t event);
+
 /* logical timers are the interface used by the timer manager to multiplex
  * timer requests from clients - only one timeout can be registered at a time.
  * logical timers may be backed by several timer drivers to implement the
@@ -324,8 +341,16 @@ static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds) {
     ltimer_ns_delay(timer, microseconds * NS_IN_US);
 }
 
-/* default init function -> platforms may provide multiple ltimers, but each must have a default */
-int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops);
+/*
+ * default init function -> platforms may provide multiple ltimers, but each
+ * must have a default
+ *
+ * The callback functions will be invoked every single time an event described
+ * by the 'ltimer_event_t' type occurs. A reminder that care should be taken
+ * with calling the ltimer functions inside the callback, the ltimer interface
+ * functions are not reentrant.
+ */
+int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token);
 /* initialise the subset of functions required to get
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/

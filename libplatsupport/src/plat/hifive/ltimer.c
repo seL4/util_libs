@@ -36,6 +36,8 @@ typedef struct {
     pwm_ltimer_t pwm_ltimers[NUM_TIMERS];
     irq_id_t timer_irq_ids[NUM_TIMERS];
     timer_callback_data_t callback_datas[NUM_TIMERS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } hifive_timers_t;
 
@@ -212,7 +214,7 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
 
     int error = ltimer_default_describe(ltimer, ops);
@@ -227,6 +229,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     hifive_timers_t *timers = ltimer->data;
     timers->ops = ops;
+    timers->user_callback = callback;
+    timers->user_callback_token = callback_token;
     for (int i = 0; i < NUM_TIMERS; i++) {
         timers->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }

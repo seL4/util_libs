@@ -53,6 +53,8 @@ typedef struct {
     ps_io_ops_t ops;
     irq_id_t irq_id;
     timer_callback_data_t callback_data;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
 } pc99_ltimer_t;
 
 static size_t get_num_irqs(void *data)
@@ -268,10 +270,12 @@ static void destroy(void *data)
 }
 
 static inline int
-ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops)
+ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->ops = ops;
+    pc99_ltimer->user_callback = callback;
+    pc99_ltimer->user_callback_token = callback_token;
     ltimer->destroy = destroy;
 
     /* setup the interrupts */
@@ -286,11 +290,12 @@ ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops)
     return 0;
 }
 
-static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
+static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback,
+                                     void *callback_token)
 {
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
 
-    int error = ltimer_init_common(ltimer, ops);
+    int error = ltimer_init_common(ltimer, ops, callback, callback_token);
     if (error) {
         destroy(pc99_ltimer);
         return -1;
@@ -342,7 +347,7 @@ static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops)
     return error;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     int error = ltimer_default_describe(ltimer, ops);
     if (error) {
@@ -351,24 +356,26 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     if (pc99_ltimer->type == PIT) {
-        return ltimer_pit_init(ltimer, ops);
+        return ltimer_pit_init(ltimer, ops, callback, callback_token);
     } else {
         assert(pc99_ltimer->type == HPET);
-        return ltimer_hpet_init_internal(ltimer, ops);
+        return ltimer_hpet_init_internal(ltimer, ops, callback, callback_token);
     }
 }
 
-int ltimer_hpet_init(ltimer_t *ltimer, ps_io_ops_t ops, ps_irq_t irq, pmem_region_t region)
+int ltimer_hpet_init(ltimer_t *ltimer, ps_io_ops_t ops, ps_irq_t irq, pmem_region_t region,
+                     ltimer_callback_fn_t callback, void *callback_token)
 {
     int error = ltimer_hpet_describe(ltimer, ops, irq, region);
     if (error) {
         return error;
     }
 
-    return ltimer_hpet_init_internal(ltimer, ops);
+    return ltimer_hpet_init_internal(ltimer, ops, callback, callback_token);
 }
 
-int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq)
+int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq, ltimer_callback_fn_t callback,
+                         void *callback_token)
 {
     int error = ltimer_pit_describe(ltimer, ops);
     if (error) {
@@ -377,7 +384,7 @@ int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq)
 
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
 
-    error = ltimer_init_common(ltimer, ops);
+    error = ltimer_init_common(ltimer, ops, callback, callback_token);
     if (error) {
         destroy(pc99_ltimer);
         return error;
@@ -392,9 +399,9 @@ int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq)
     return pit_init(&pc99_ltimer->pit.device, ops.io_port_ops);
 }
 
-int ltimer_pit_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_pit_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
-    int error = ltimer_pit_init_freq(ltimer, ops, 0);
+    int error = ltimer_pit_init_freq(ltimer, ops, 0, callback, callback_token);
     if (error) {
         return error;
     }

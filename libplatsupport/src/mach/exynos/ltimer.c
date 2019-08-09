@@ -49,6 +49,8 @@ typedef struct {
     void *vaddr;
     irq_id_t timer_irq_ids[N_IRQS];
     timer_callback_data_t callback_datas[N_IRQS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } pwm_ltimer_t;
 
@@ -190,7 +192,7 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
 
     int error = ltimer_default_describe(ltimer, ops);
@@ -205,6 +207,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     pwm_ltimer_t *pwm_ltimer = ltimer->data;
     pwm_ltimer->ops = ops;
+    pwm_ltimer->user_callback = callback;
+    pwm_ltimer->user_callback_token = callback_token;
     pwm_ltimer->vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);
     if (pwm_ltimer->vaddr == NULL) {
         destroy(ltimer->data);

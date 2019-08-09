@@ -27,6 +27,8 @@ typedef struct {
     void *meson_timer_vaddr;
     irq_id_t timer_irq_id;
     timer_callback_data_t callback_data;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } odroidc2_ltimer_t;
 
@@ -168,7 +170,7 @@ static void destroy(void *data)
     return;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     if (ltimer == NULL) {
         ZF_LOGE("ltimer cannot be NULL");
@@ -196,6 +198,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     odroidc2_ltimer_t *odroidc2_timer = ltimer->data;
 
     odroidc2_timer->ops = ops;
+    odroidc2_timer->user_callback = callback;
+    odroidc2_timer->user_callback_token = callback_token;
     odroidc2_timer->timer_irq_id = PS_INVALID_IRQ_ID;
 
     odroidc2_timer->meson_timer_vaddr = ps_pmem_map(&ops, pmems[0], false, PS_MEM_NORMAL);

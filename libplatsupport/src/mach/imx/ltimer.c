@@ -58,6 +58,8 @@ typedef struct {
     void *timer_vaddrs[N_PADDRS];
     irq_id_t timer_irq_ids[N_IRQS];
     timer_callback_data_t callback_datas[N_IRQS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } imx_ltimer_t;
 
@@ -221,7 +223,7 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     int error = ltimer_default_describe(ltimer, ops);
     if (error) {
@@ -236,6 +238,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     imx_ltimer_t *imx_ltimer = ltimer->data;
 
     imx_ltimer->ops = ops;
+    imx_ltimer->user_callback = callback;
+    imx_ltimer->user_callback_token = callback_token;
 
     /* register the interrupts that we need */
     for (int i = 0; i < N_IRQS; i++) {

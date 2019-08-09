@@ -40,6 +40,9 @@ typedef struct {
     irq_id_t timer_irq_ids[N_IRQS];
     timer_callback_data_t callback_datas[N_IRQS];
 
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
+
     ps_io_ops_t ops;
     /* ns that have passed on the timestamp counter */
     uint64_t time;
@@ -272,7 +275,7 @@ static int init_ltimer(ltimer_t *ltimer)
     return 0;
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     int error = ltimer_default_describe(ltimer, ops);
     if (error) {
@@ -286,6 +289,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
 
     ttc_ltimer_t *ttc_ltimer = ltimer->data;
     ttc_ltimer->ops = ops;
+    ttc_ltimer->user_callback = callback;
+    ttc_ltimer->user_callback_token = callback_token;
 
     /* Map the registers */
     for (int i = 0; i < N_PADDRS; i++) {

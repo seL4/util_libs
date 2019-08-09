@@ -33,6 +33,8 @@ typedef struct {
     void *timer_vaddrs[NUM_SP804_TIMERS];
     irq_id_t timer_irq_ids[NUM_SP804_TIMERS];
     timer_callback_data_t callback_datas[NUM_SP804_TIMERS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
     uint32_t high_bits;
 } fvp_ltimer_t;
@@ -152,7 +154,7 @@ static void destroy(void *data)
     ps_free(&fvp_ltimer->ops.malloc_ops, sizeof(fvp_ltimer), fvp_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     if (ltimer == NULL) {
         ZF_LOGE("ltimer cannot be NULL");
@@ -174,6 +176,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     fvp_ltimer_t *fvp_ltimer = ltimer->data;
     fvp_ltimer->ops = ops;
+    fvp_ltimer->user_callback = callback;
+    fvp_ltimer->user_callback_token = callback_token;
     for (int i = 0; i < NUM_SP804_TIMERS; i++) {
         fvp_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }

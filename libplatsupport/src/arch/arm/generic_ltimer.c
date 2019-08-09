@@ -29,6 +29,8 @@ typedef struct {
     uint64_t period; // period of a current periodic timeout, in ns
     irq_id_t timer_irq_id;
     timer_callback_data_t callback_data;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } generic_ltimer_t;
 
@@ -135,7 +137,7 @@ static void destroy(void *data)
     ps_free(&generic_ltimer->ops.malloc_ops, sizeof(generic_ltimer_t), generic_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_data)
 {
     if (ltimer == NULL) {
         ZF_LOGE("ltimer cannot be NULL");
@@ -163,6 +165,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     generic_ltimer_t *generic_ltimer = ltimer->data;
 
     generic_ltimer->ops = ops;
+    generic_ltimer->user_callback = callback;
+    generic_ltimer->user_callback_token = callback_token;
 
     generic_ltimer->freq = generic_timer_get_freq();
     if (generic_ltimer->freq == 0) {

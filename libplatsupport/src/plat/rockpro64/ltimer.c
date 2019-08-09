@@ -31,6 +31,8 @@ typedef struct {
     void *base;
     irq_id_t timer_irq_ids[NUM_RK];
     timer_callback_data_t callback_datas[NUM_RK];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } rk_ltimer_t;
 
@@ -145,7 +147,7 @@ static void destroy(void *data)
     ps_free(&rk_ltimer->ops.malloc_ops, sizeof(rk_ltimer), rk_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
 
     int error = ltimer_default_describe(ltimer, ops);
@@ -167,6 +169,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     rk_ltimer_t *rk_ltimer = ltimer->data;
     rk_ltimer->ops = ops;
+    rk_ltimer->user_callback = callback;
+    rk_ltimer->user_callback_token = callback_token;
 
     /* map the frame we need */
     pmem_region_t region;

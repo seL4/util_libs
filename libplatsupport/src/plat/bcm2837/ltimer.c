@@ -37,6 +37,8 @@ typedef struct {
     void *timer_vaddrs[NUM_TIMERS];
     irq_id_t timer_irq_ids[NUM_TIMERS];
     timer_callback_data_t callback_datas[NUM_TIMERS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
     uint64_t period;
 } spt_ltimer_t;
@@ -173,7 +175,7 @@ static void destroy(void *data)
     ps_free(&spt_ltimer->ops.malloc_ops, sizeof(spt_ltimer), spt_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
 
     int error = ltimer_default_describe(ltimer, ops);
@@ -195,6 +197,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     spt_ltimer_t *spt_ltimer = ltimer->data;
     spt_ltimer->ops = ops;
+    spt_ltimer->user_callback = callback;
+    spt_ltimer->user_callback_token = callback_token;
     for (int i = 0; i < NUM_TIMERS; i++) {
         spt_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }

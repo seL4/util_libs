@@ -31,6 +31,8 @@ typedef struct {
     void *vaddrs[NUM_GPTS];
     irq_id_t timer_irq_ids[NUM_GPTS];
     timer_callback_data_t callback_datas[NUM_GPTS];
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
     ps_io_ops_t ops;
 } omap_ltimer_t;
 
@@ -157,7 +159,7 @@ static void destroy(void *data)
     ps_free(&omap_ltimer->ops.malloc_ops, sizeof(omap_ltimer), omap_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
 
     int error = ltimer_default_describe(ltimer, ops);
@@ -179,6 +181,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     omap_ltimer_t *omap_ltimer = ltimer->data;
     omap_ltimer->ops = ops;
+    omap_ltimer->user_callback = callback;
+    omap_ltimer->user_callback_token = callback_token;
     for (int i = 0; i < NUM_GPTS; i++) {
         omap_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
     }

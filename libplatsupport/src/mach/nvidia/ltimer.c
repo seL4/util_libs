@@ -41,6 +41,8 @@ typedef struct {
     timer_callback_data_t callback_data;
     ps_io_ops_t ops;
     uint64_t period;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
 } nv_tmr_ltimer_t;
 
 static pmem_region_t pmem = {
@@ -167,7 +169,7 @@ static void destroy(void *data)
     ps_free(&nv_tmr_ltimer->ops.malloc_ops, sizeof(nv_tmr_ltimer), nv_tmr_ltimer);
 }
 
-int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
+int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
     int error = ltimer_default_describe(ltimer, ops);
     if (error) {
@@ -188,6 +190,10 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops)
     assert(ltimer->data != NULL);
     nv_tmr_ltimer_t *nv_tmr_ltimer = ltimer->data;
     nv_tmr_ltimer->ops = ops;
+    /* register the user supplied callbacks */
+    nv_tmr_ltimer->user_callback = callback;
+    nv_tmr_ltimer->user_callback_token = callback_token;
+
     nv_tmr_ltimer->vaddr_base = ps_pmem_map(&ops, pmem, false, PS_MEM_NORMAL);
     if (NV_TMR_ID_OFFSET >= PAGE_SIZE_4K) {
         /* If the timer offset is greater than a 4k page, we require a second mapping */
