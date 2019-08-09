@@ -67,15 +67,22 @@ static int handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     omap_ltimer_t *omap_ltimer = data;
+    ltimer_event_t event;
 
     int i = 0;
-    if (irq->irq.number == omap_get_gpt_irq(0)) {
-        i = 0;
-    } else if (irq->irq.number == omap_get_gpt_irq(1)) {
-        i = 1;
+    if (irq->irq.number == omap_get_gpt_irq(ABS_GPT)) {
+        i = ABS_GPT;
+        event = LTIMER_OVERFLOW_EVENT;
+    } else if (irq->irq.number == omap_get_gpt_irq(REL_GPT)) {
+        i = REL_GPT;
+        event = LTIMER_TIMEOUT_EVENT;
     } else {
         ZF_LOGE("Unknown irq");
         return EINVAL;
+    }
+
+    if (omap_ltimer->user_callback) {
+        omap_ltimer->user_callback(omap_ltimer->user_callback_token, event);
     }
 
     gpt_handle_irq(&omap_ltimer->gpts[i]);
@@ -204,6 +211,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             return error;
         }
         omap_ltimer->callback_datas[i].ltimer = ltimer;
+        omap_ltimer->callback_datas[i].irq_handler = handle_irq;
         error = get_nth_irq(ltimer->data, i, omap_ltimer->callback_datas[i].irq);
         assert(error == 0);
         omap_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *omap_ltimer->callback_datas[i].irq,

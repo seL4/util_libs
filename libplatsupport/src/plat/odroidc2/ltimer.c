@@ -82,6 +82,11 @@ static int handle_irq(void *data, ps_irq_t *irq)
         return EINVAL;
     }
 
+    if (odroidc2_timer->user_callback) {
+        /* The only interrupt event that we'll get is a timeout event */
+        odroidc2_timer->user_callback(odroidc2_timer->user_callback_token, LTIMER_TIMEOUT_EVENT);
+    }
+
     return 0;
 }
 
@@ -208,6 +213,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     }
 
     odroidc2_timer->callback_data.ltimer = ltimer;
+    odroidc2_timer->callback_data.irq_handler = handle_irq;
     odroidc2_timer->callback_data.irq = &irqs[0];
 
     odroidc2_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, irqs[0], handle_irq_wrapper,

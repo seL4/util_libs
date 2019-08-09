@@ -94,6 +94,11 @@ static int handle_irq(void *data, ps_irq_t *irq)
     if (nv_tmr_ltimer->period > 0) {
         nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, nv_tmr_ltimer->period);
     }
+    /* invoke the user supplied callback, note that on these boards,
+     * we will only get interrupts for timeout events */
+    if (nv_tmr_ltimer->user_callback) {
+        nv_tmr_ltimer->user_callback(nv_tmr_ltimer->user_callback_token, LTIMER_TIMEOUT_EVENT);
+    }
     return 0;
 }
 
@@ -210,8 +215,10 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     /* register the IRQ */
     ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = nv_tmr_get_irq(NV_TMR_ID) }};
-    /* only set the ltimer, 'handle_irq' for the NV ltimers don't actually use the 'irq' argument */
+    /* only set the ltimer and the handler, 'handle_irq' for the NV ltimers don't actually use the 
+     * 'irq' argument */
     nv_tmr_ltimer->callback_data.ltimer = ltimer;
+    nv_tmr_ltimer->callback_data.irq_handler = handle_irq;
     nv_tmr_ltimer->irq_id = ps_irq_register(&ops.irq_ops, irq, handle_irq_wrapper, &nv_tmr_ltimer->callback_data);
     if (nv_tmr_ltimer->irq_id < 0) {
         destroy(ltimer->data);

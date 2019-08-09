@@ -80,18 +80,26 @@ static int get_time(void *data, uint64_t *time)
     return 0;
 }
 
-int handle_irq(void *data, ps_irq_t *irq)
+static int handle_irq(void *data, ps_irq_t *irq)
 {
     fvp_ltimer_t *fvp_ltimer = data;
+    ltimer_event_t event;
     if (irq->irq.number == sp804_get_irq(SP804_ID + TIMEOUT_SP804)) {
         sp804_handle_irq(&fvp_ltimer->sp804s[TIMEOUT_SP804]);
+        event = LTIMER_TIMEOUT_EVENT;
     } else if (irq->irq.number == sp804_get_irq(SP804_ID + TIMESTAMP_SP804)) {
         sp804_handle_irq(&fvp_ltimer->sp804s[TIMESTAMP_SP804]);
+        event = LTIMER_OVERFLOW_EVENT;
         fvp_ltimer->high_bits++;
     } else {
         ZF_LOGE("unknown irq");
         return EINVAL;
     }
+
+    if (fvp_ltimer->user_callback) {
+        fvp_ltimer->user_callback(fvp_ltimer->user_callback_token, event);
+    }
+
     return 0;
 }
 
@@ -198,6 +206,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             break;
         }
         fvp_ltimer->callback_datas[i].ltimer = ltimer;
+        fvp_ltimer->callback_datas[i].irq_handler = handle_irq;
         error = get_nth_irq(ltimer->data, i, fvp_ltimer->callback_datas[i].irq);
         assert(error == 0);
         fvp_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *fvp_ltimer->callback_datas[i].irq,

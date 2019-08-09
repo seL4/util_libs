@@ -66,22 +66,29 @@ static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
     return 0;
 }
 
-static int handle_irq(void *data, ps_irq_t *irq)
+static int ltimer_handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     dmt_ltimer_t *dmt_ltimer = data;
-    for (int i = 0; i < NUM_DMTS; i++) {
-        if (irq->irq.number == dmt_irq(i + DMT_ID)) {
-            if (i == TICK_DMT) {
-                dmt_ltimer->ms++;
-            }
-            dmt_handle_irq(&dmt_ltimer->dmts[i]);
-            return 0;
-        }
+
+    ltimer_event_t event;
+    if (irq->irq.number == dmt_irq(DMT_ID + TICK_DMT)) {
+        dmt_ltimer->ms++;
+        dmt_handle_irq(&dmt_ltimer->dmts[TICK_DMT]);
+        event = LTIMER_OVERFLOW_EVENT;
+    } else if (irq->irq.number == dmt_irq(DMT_ID + TIMEOUT_DMT)) {
+        dmt_handle_irq(&dmt_ltimer->dmts[TIMEOUT_DMT]);
+        event = LTIMER_TIMEOUT_EVENT;
+    } else {
+        ZF_LOGE("Unknown irq");
+        return EINVAL;
     }
 
-    ZF_LOGE("Unknown irq");
-    return EINVAL;
+    if (dmt_ltimer->user_callback) {
+        dmt_ltimer->user_callback(dmt_ltimer->user_callback_token, event);
+    }
+
+    return 0;
 }
 
 static int get_time(void *data, uint64_t *time)
@@ -212,6 +219,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             break;
         }
         dmt_ltimer->callback_datas[i].ltimer = ltimer;
+        dmt_ltimer->callback_datas[i].irq_handler = ltimer_handle_irq;
         error = get_nth_irq(ltimer->data, i, dmt_ltimer->callback_datas[i].irq);
         assert(error == 0);
         dmt_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *dmt_ltimer->callback_datas[i].irq,

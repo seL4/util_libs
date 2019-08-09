@@ -94,18 +94,26 @@ static int get_nth_pmem(void *data, size_t n, pmem_region_t *paddr)
     return 0;
 }
 
-static int handle_irq(void *data, ps_irq_t *irq)
+static int ltimer_handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     hifive_timers_t *timers = data;
     long irq_number = irq->irq.number;
+    ltimer_event_t event;
     if (irq_number == PWM0_INTERRUPT0) {
         pwm_handle_irq(&timers->pwm_ltimers[COUNTER_TIMER].pwm, irq->irq.number);
+        event = LTIMER_OVERFLOW_EVENT;
     } else if (irq_number == PWM1_INTERRUPT0) {
         pwm_handle_irq(&timers->pwm_ltimers[TIMEOUT_TIMER].pwm, irq->irq.number);
+        event = LTIMER_TIMEOUT_EVENT;
     } else {
         ZF_LOGE("Invalid IRQ number: %d received.\n", irq_number);
     }
+
+    if (timers->user_callback) {
+        timers->user_callback(timers->user_callback_token, event);
+    }
+
     return 0;
 }
 
@@ -245,6 +253,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         /* register the IRQs we need */
         timers->callback_datas[i].ltimer = ltimer;
         timers->callback_datas[i].irq = &irqs[i];
+        timers->callback_datas[i].irq_handler = ltimer_handle_irq;
         timers->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irqs[i], handle_irq_wrapper,
                                                    &timers->callback_datas[i]);
         if (timers->timer_irq_ids[i] < 0) {

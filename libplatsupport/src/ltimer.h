@@ -13,13 +13,17 @@
 #include <platsupport/ltimer.h>
 #include <platsupport/irq.h>
 
+/* Per-platform ltimer IRQ handling function type */
+typedef int (*ltimer_handle_irq_fn_t)(void *data, ps_irq_t *irq);
+
 typedef struct {
     ltimer_t *ltimer;
     ps_irq_t *irq;
+    ltimer_handle_irq_fn_t irq_handler;
 } timer_callback_data_t;
 
 /*
- * This is a simple wrapper around each platform's handle_irq.
+ * This is a simple wrapper around the per-platform ltimer IRQ handling function.
  *
  * This is called as a callback function from the IRQ interface when the user asks it to handle IRQs.
  */
@@ -31,8 +35,9 @@ static inline void handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknow
 
     ltimer_t *ltimer = callback_data->ltimer;
     ps_irq_t *irq = callback_data->irq;
+    ltimer_handle_irq_fn_t irq_handler = callback_data->irq_handler;
 
-    int error = ltimer->handle_irq(ltimer->data, irq);
+    int error = irq_handler(ltimer->data, irq);
     assert(!error);
 
     error = acknowledge_fn(ack_data);

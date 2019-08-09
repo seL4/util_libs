@@ -107,6 +107,14 @@ static int handle_irq(void *data, ps_irq_t *irq)
         default:
             return EINVAL;
     }
+
+    /* Both IRQs correspond to timeouts, the timestamp is not expected to roll over
+     * in any reasonable timeframe */
+    ltimer_event_t event = LTIMER_TIMEOUT_EVENT;
+    if (spt_ltimer->user_callback) {
+        spt_ltimer->user_callback(spt_ltimer->user_callback_token, event);
+    }
+
     return 0;
 }
 
@@ -217,6 +225,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             return error;
         }
         spt_ltimer->callback_datas[i].ltimer = ltimer;
+        spt_ltimer->callback_datas[i].irq_handler = handle_irq;
         error = get_nth_irq(ltimer->data, i, spt_ltimer->callback_datas[i].irq);
         if (error) {
             destroy(ltimer->data);

@@ -110,14 +110,22 @@ static int handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     ttc_ltimer_t *ttc_ltimer = data;
+    ltimer_event_t event;
 
     if (irq->irq.number == ttc_irq(TTC_TIMEOUT)) {
         ttc_handle_irq(&ttc_ltimer->ttcs[TIMEOUT_IDX]);
+        event = LTIMER_TIMEOUT_EVENT;
     } else if (irq->irq.number == ttc_irq(TTC_TIMESTAMP)) {
         update_timestamp(ttc_ltimer);
+        event = LTIMER_OVERFLOW_EVENT;
     } else {
         return EINVAL;
     }
+
+    if (ttc_ltimer->user_callback) {
+        ttc_ltimer->user_callback(ttc_ltimer->user_callback_token, event);
+    }
+
     return 0;
 }
 
@@ -320,6 +328,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         }
         ttc_ltimer->callback_datas[i].ltimer = ltimer;
         *ttc_ltimer->callback_datas[i].irq = irq;
+        ttc_ltimer->callback_datas[i].irq_handler = handle_irq;
 
         ttc_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irq, handle_irq_wrapper,
                                                        &ttc_ltimer->callback_datas[i]);

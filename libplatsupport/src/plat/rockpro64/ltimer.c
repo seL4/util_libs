@@ -67,18 +67,23 @@ static int handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     rk_ltimer_t *rk_ltimer = data;
+    ltimer_event_t event;
     if (irq->irq.number == RKTIMER1_INTERRUPT) {
         rk_handle_irq(&rk_ltimer->rks[TIMEOUT_RK]);
-        return 0;
-    }
-
-    if (irq->irq.number == RKTIMER0_INTERRUPT) {
+        event = LTIMER_TIMEOUT_EVENT;
+    } else if (irq->irq.number == RKTIMER0_INTERRUPT) {
         rk_handle_irq(&rk_ltimer->rks[TIMER_RK]);
-        return 0;
+        event = LTIMER_OVERFLOW_EVENT;
+    } else {
+        ZF_LOGE("Unknown irq");
+        return EINVAL;
     }
 
-    ZF_LOGE("Unknown irq");
-    return EINVAL;
+    if (rk_ltimer->user_callback) {
+        rk_ltimer->user_callback(rk_ltimer->user_callback_token, event);
+    }
+
+    return 0;
 }
 
 static int get_time(void *data, uint64_t *time)
@@ -190,6 +195,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             return error;
         }
         rk_ltimer->callback_datas[i].ltimer = ltimer;
+        rk_ltimer->callback_datas[i].irq_handler = handle_irq;
         error = get_nth_irq(ltimer->data, i, rk_ltimer->callback_datas[i].irq);
         assert(error == 0);
         rk_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *rk_ltimer->callback_datas[i].irq,

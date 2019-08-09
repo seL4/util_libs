@@ -84,6 +84,12 @@ static int handle_irq(void *data, ps_irq_t *irq)
     assert(data != NULL);
     pwm_ltimer_t *pwm_ltimer = data;
     pwm_handle_irq(&pwm_ltimer->pwm, irq->irq.number);
+    /* This assumes that the T0 is for keeping track of the timestamp, and T4 is used for timeouts
+     * TODO Refactor pwm_handle_irq and remove this assumption */
+    ltimer_event_t event = irq->irq.number == PWM_T0_INTERRUPT ? LTIMER_OVERFLOW_EVENT : LTIMER_TIMEOUT_EVENT;
+    if (pwm_ltimer->user_callback) {
+        pwm_ltimer->user_callback(pwm_ltimer->user_callback_token, event);
+    }
     return 0;
 }
 
@@ -218,6 +224,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     for (int i = 0; i < N_IRQS; i++) {
         pwm_ltimer->callback_datas[i].ltimer = ltimer;
         pwm_ltimer->callback_datas[i].irq = &irqs[i];
+        pwm_ltimer->callback_datas[i].irq_handler = handle_irq;
         pwm_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irqs[i], handle_irq_wrapper,
                                                        &pwm_ltimer->callback_datas[i]);
         if (pwm_ltimer->timer_irq_ids[i] < 0) {

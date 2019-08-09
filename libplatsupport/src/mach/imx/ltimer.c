@@ -90,16 +90,23 @@ static int handle_irq(void *data, ps_irq_t *irq)
 {
     assert(data != NULL);
     imx_ltimer_t *imx_ltimer = data;
+    ltimer_event_t event;
     switch (irq->irq.number) {
         case TIMESTAMP_INTERRUPT:
             handle_irq_timestamp(&imx_ltimer->timers);
+            event = LTIMER_OVERFLOW_EVENT;
             break;
         case TIMEOUT_INTERRUPT:
             handle_irq_timeout(&imx_ltimer->timers);
+            event = LTIMER_TIMEOUT_EVENT;
             break;
         default:
             ZF_LOGE("Unknown irq");
             return EINVAL;
+    }
+
+    if (imx_ltimer->user_callback) {
+        imx_ltimer->user_callback(imx_ltimer->user_callback_token, event);
     }
 
     return 0;
@@ -243,7 +250,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     /* register the interrupts that we need */
     for (int i = 0; i < N_IRQS; i++) {
         imx_ltimer->callback_datas[i] = (timer_callback_data_t) { .ltimer = ltimer,
-                                                                  .irq = &imx_ltimer_irqs[i]};
+                                                                  .irq = &imx_ltimer_irqs[i],
+                                                                  .irq_handler = handle_irq };
         imx_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, imx_ltimer_irqs[i],
                                                        handle_irq_wrapper, &imx_ltimer->callback_datas[i]);
         if (imx_ltimer->timer_irq_ids[i] < 0) {

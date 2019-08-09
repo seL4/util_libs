@@ -84,18 +84,27 @@ static int get_time(void *data, uint64_t *time)
     return 0;
 }
 
-int handle_irq(void *data, ps_irq_t *irq)
+static int handle_irq(void *data, ps_irq_t *irq)
 {
     hikey_ltimer_t *hikey_ltimer = data;
+    ltimer_event_t event;
+
     if (irq->irq.number == dmt_get_irq(DMT_ID + TIMEOUT_DMT)) {
         dmt_handle_irq(&hikey_ltimer->dmts[TIMEOUT_DMT]);
+        event = LTIMER_TIMEOUT_EVENT;
     } else if (irq->irq.number == dmt_get_irq(DMT_ID + TIMESTAMP_DMT)) {
         dmt_handle_irq(&hikey_ltimer->dmts[TIMESTAMP_DMT]);
+        event = LTIMER_OVERFLOW_EVENT;
         hikey_ltimer->high_bits++;
     } else {
         ZF_LOGE("unknown irq");
         return EINVAL;
     }
+
+    if (hikey_ltimer->user_callback) {
+        hikey_ltimer->user_callback(hikey_ltimer->user_callback_token, event);
+    }
+
     return 0;
 }
 
@@ -227,6 +236,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
             break;
         }
         hikey_ltimer->callback_datas[i].ltimer = ltimer;
+        hikey_ltimer->callback_datas[i].irq_handler = handle_irq;
         error = get_nth_irq(hikey_ltimer, i, hikey_ltimer->callback_datas[i].irq);
         if (error) {
             break;

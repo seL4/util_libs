@@ -96,11 +96,8 @@ static int hpet_ltimer_get_nth_pmem(void *data, size_t n, pmem_region_t *pmem)
     return 0;
 }
 
-static int pit_ltimer_handle_irq(void *data, ps_irq_t *irq)
+static int pit_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
 {
-    assert(data != NULL);
-    pc99_ltimer_t *pc99_ltimer = data;
-
     if (!pc99_ltimer->pit.abs_time) {
         /* nothing to do */
         return 0;
@@ -118,10 +115,9 @@ static int pit_ltimer_handle_irq(void *data, ps_irq_t *irq)
     return pit_set_timeout(&pc99_ltimer->pit.device, ns, false);
 }
 
-static int hpet_ltimer_handle_irq(void *data, ps_irq_t *irq)
+static int hpet_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
 {
     /* our hpet driver doesn't do periodic timeouts, so emulate them here */
-    pc99_ltimer_t *pc99_ltimer = data;
     if (pc99_ltimer->hpet.period > 0) {
         // try a few times to set a timeout. If we continuously get ETIME then we have
         // no choice but to panic as there is no meaningful error we can return here
@@ -144,6 +140,23 @@ static int hpet_ltimer_handle_irq(void *data, ps_irq_t *irq)
         }
     }
     return 0;
+}
+
+static int handle_irq(void *data, ps_irq_t *irq)
+{
+    assert(data != NULL);
+    pc99_ltimer_t *pc99_ltimer = data;
+
+    int error = pc99_ltimer->type == PIT ? pit_ltimer_handle_irq(pc99_ltimer, irq)
+                                         : hpet_ltimer_handle_irq(pc99_ltimer, irq);
+    if (error) {
+        return error;
+    }
+
+    /* the only interrupts we get are from timeout interrupts */
+    if (pc99_ltimer->user_callback) {
+        pc99_ltimer->user_callback(pc99_ltimer->user_callback_token, LTIMER_TIMEOUT_EVENT);
+    }
 }
 
 static int hpet_ltimer_get_time(void *data, uint64_t *time)
@@ -281,6 +294,7 @@ ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callb
     /* setup the interrupts */
     pc99_ltimer->callback_data.ltimer = ltimer;
     pc99_ltimer->callback_data.irq = &pc99_ltimer->irq;
+    pc99_ltimer->callback_data.irq_handler = handle_irq;
     pc99_ltimer->irq_id = ps_irq_register(&ops.irq_ops, pc99_ltimer->irq, handle_irq_wrapper,
                                           &pc99_ltimer->callback_data);
     if (pc99_ltimer->irq_id < 0) {
