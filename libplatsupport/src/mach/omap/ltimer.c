@@ -167,7 +167,6 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         return error;
     }
 
-    ltimer->handle_irq = handle_irq;
     ltimer->get_time = get_time;
     ltimer->get_resolution = get_resolution;
     ltimer->set_timeout = set_timeout;

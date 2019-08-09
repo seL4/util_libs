@@ -86,15 +86,6 @@ typedef struct ltimer {
     int (*get_nth_pmem)(void *data, size_t n, pmem_region_t *region);
 
     /*
-     * Handle an interrupt.
-     *
-     * @param data     for the logical timer to use
-     * @param irq      the irq number to check
-     * @return         0 on success, errno on error.
-     */
-    int (*handle_irq)(void *data, ps_irq_t *irq);
-
-    /*
      * Read the current time in nanoseconds. Precision depends on the implementation, but
      * the value is guaranteed to be monotonically increasing and at least millisecond accurate.
      *
@@ -118,8 +109,6 @@ typedef struct ltimer {
      * Set an irq to come in at a specific time.
      *
      * IRQs may come in earlier than requested due to implementation details.
-     * Users of this interface should pass all irqs for this ltimer to `handle_irq` for correct
-     * behavior.
      *
      * @param data     for the logical timer to use
      * @param ns       ns value (depends on timer type)
@@ -251,21 +240,6 @@ static inline int ltimer_get_nth_pmem(ltimer_t *timer, size_t n, pmem_region_t *
     }
 
     return timer->get_nth_pmem(timer->data, n, pmem);
-}
-
-static inline int ltimer_handle_irq(ltimer_t *timer, ps_irq_t *irq)
-{
-    if (!timer) {
-        ZF_LOGE("Logical timer invalid!");
-        return EINVAL;
-    }
-
-    if (timer->handle_irq == NULL) {
-        ZF_LOGE("handle_interrupt not implemented");
-        return ENOSYS;
-    }
-
-    return timer->handle_irq(timer->data, irq);
 }
 
 static inline int ltimer_get_time(ltimer_t *timer, uint64_t *time)

@@ -308,7 +308,6 @@ static int ltimer_hpet_init_internal(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_c
         return -1;
     }
 
-    ltimer->handle_irq = hpet_ltimer_handle_irq;
     ltimer->get_time = hpet_ltimer_get_time;
     ltimer->get_resolution = get_resolution;
     ltimer->set_timeout = hpet_ltimer_set_timeout;
@@ -390,7 +389,6 @@ int ltimer_pit_init_freq(ltimer_t *ltimer, ps_io_ops_t ops, uint64_t freq, ltime
         return error;
     }
 
-    ltimer->handle_irq = pit_ltimer_handle_irq;
     ltimer->get_time = pit_ltimer_get_time;
     ltimer->get_resolution = get_resolution;
     ltimer->set_timeout = pit_ltimer_set_timeout;

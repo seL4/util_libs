@@ -178,7 +178,6 @@ static void destroy(void *data)
 static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
 {
     assert(ltimer != NULL);
-    ltimer->handle_irq = handle_irq;
     ltimer->get_time = get_time;
     ltimer->get_resolution = get_resolution;
     ltimer->set_timeout = set_timeout;
