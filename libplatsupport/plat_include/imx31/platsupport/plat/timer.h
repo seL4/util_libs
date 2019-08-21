@@ -19,7 +19,7 @@
 #define IPG_FREQ (532/16) /*x10^5 */
 #define GPT_FREQ IPG_FREQ
 
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
 /* for RT, we use the EPIT as timestamp timer as the kernel is using the GPT */
 #define TIMESTAMP_INTERRUPT EPIT1_INTERRUPT
 #define TIMESTAMP_DEVICE_PADDR EPIT1_DEVICE_PADDR
