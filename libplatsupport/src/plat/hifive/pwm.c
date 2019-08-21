@@ -86,6 +86,8 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
     pwm->pwm_map->pwmcmp0 = (num_ticks >> base_2) +1;
     /* assert we didn't overflow... */
     assert((num_ticks >> base_2) +1);
+    /* Reset the counter mode and prescaler, for some reason this doesn't work in pwm_stop */
+    pwm->pwm_map->pwmcfg &= ~(PWMSCALE_MASK);
     if (periodic) {
         pwm->pwm_map->pwmcfg |= PWMENALWAYS | (base_2 & PWMSCALE_MASK);
     } else {
