@@ -309,12 +309,50 @@ done < "$EASY_KNOBS"
 # Append a record separator to the end of $OPTIONS for ease of processing later.
 OPTIONS=${OPTIONS:-}@@
 
+# List supported target platforms.
+#
+# This function relies on the current working directory being the build
+# directory, but this is true by the time it is called.
+show_platform_help () {
+    # This is uglier than it should be because CMake insists on its input being
+    # seekable.  So we have to set up a temporary file, ensure we write to it
+    # only by appending, and make sure it gets cleaned up by setting up a signal
+    # handler.  Note also that CMake's message() writes to standard error.
+    #
+    # We quote $TEMP when dereferencing it because mktemp uses $TMPDIR, and the
+    # user might have set that to a whitespace-containing pathname.
+    #
+    # We give `rm` the `-f` option in the trap handler in the event we end up
+    # racing against the ordinary cleanup scenario.  Consider:
+    #   # Clean up the temporary file and deregister the signal handler.
+    #   rm "$TEMP"
+    #   <CTRL-C>
+    #   trap - HUP INT QUIT TERM
+    # When the user interrupts the script, the temporary file has been removed
+    # but the signal handler has not yet been deregistered.
+    #
+    # This function can be greatly simplified once JIRA SELFOUR-2369 is fixed.
+    TEMP=$(mktemp)
+    trap 'rm -f "$TEMP"' HUP INT QUIT TERM
+
+    cat >> "$TEMP" <<EOF
+include(configs/seL4Config.cmake)
+
+foreach(val IN LISTS kernel_platforms)
+    message("\${val}")
+endforeach()
+EOF
+
+    (cd ../kernel && cmake -P "$TEMP" 2>&1 | cut -d';' -f1)
+    # Clean up the temporary file and deregister the signal handler.
+    rm "$TEMP"
+    trap - HUP INT QUIT TERM
+    notice "not all seL4 projects (e.g., \"camkes\", \"sel4bench\") support" \
+        "all platforms"
+}
+
 # Display a usage message.
 show_usage () {
-    # We handle the "PLATFORM" configuration variable specially since its valid
-    # values are computed by CMake.
-    DO_PLATFORM_HELP=
-
     # Make sure our field widths are wide enough for our column headings.
     update_field_width CV_WIDTH "Option"
     update_field_width TY_WIDTH "Type"
@@ -334,11 +372,13 @@ differ between projects, but you can always discover them with:
 Usage:
     $PROGNAME [--compiler={gcc|llvm}] [CMAKE-CONFIGURATION-VARIABLE] ...
     $PROGNAME --help
+    $PROGNAME --platform-help
 
 Options:
     --compiler={gcc|llvm}   Report "gcc" or "llvm" compiler suite to CMake.
                             (default: $CMAKE_COMPILER_DEFAULT)
     --help                  Display this message and exit.
+    --platform-help         List supported target platforms and exit.
 EOF
 
     if [ -z "$OPTIONS" ]
@@ -376,25 +416,9 @@ EOF
             RECORD=${RECORD#*@:}
             DESCRIPTION=$RECORD
 
-            if [ "$CONFIG_VAR" = PLATFORM ]
-            then
-                DO_PLATFORM_HELP=yes
-            fi
-
             printf "$FORMAT_STRING" \
                 "--$CONFIG_VAR" "$TYPE" "$DEFAULT_VALUE" "$DESCRIPTION"
         done
-    fi
-
-    if [ -n "$DO_PLATFORM_HELP" ]
-    then
-        # We use $0 instead of $PROGNAME here; we want to be literal and
-        # hand-holdy, since we're basically telling the user to provoke a CMake
-        # error to get the list.
-        cat <<EOF
-
-For a list of valid values of --PLATFORM, use "$0 --PLATFORM=help".
-EOF
     fi
 }
 
@@ -460,7 +484,7 @@ then
 fi
 
 if ! ARGS=$(getopt -o '' \
-    --long "${GETOPT_FLAGS:+$GETOPT_FLAGS,}"compiler:,help \
+    --long "${GETOPT_FLAGS:+$GETOPT_FLAGS,}"compiler:,help,platform-help \
     --name "$PROGNAME" -- "$@")
 then
     show_usage >&2
@@ -489,6 +513,10 @@ do
         ;;
     (--help)
         MODE=help
+        shift
+        ;;
+    (--platform-help)
+        MODE=platform-help
         shift
         ;;
     (--)
@@ -574,6 +602,9 @@ fi
 if [ $MODE = help ]
 then
     show_usage
+elif [ $MODE = platform-help ]
+then
+    show_platform_help
 elif [ $MODE = invoke ]
 then
     if [ -n "$DO_CMAKE_INITIALIZE" ]
