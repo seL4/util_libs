@@ -354,8 +354,6 @@ EOF
     # Clean up the temporary file and deregister the signal handler.
     rm "$TEMP"
     trap - HUP INT QUIT TERM
-    notice "not all seL4 projects (e.g., \"camkes\", \"sel4bench\") support" \
-        "all platforms"
 }
 
 # List supported target platforms.
