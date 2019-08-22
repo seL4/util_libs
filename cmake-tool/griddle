@@ -85,15 +85,6 @@ _print () {
     echo "${PROGNAME:-(unknown program)}: $BOLD$*$NORMAL"
 }
 
-# Emit continuation of diagnostic message.
-# @params: a set of strings comprising a human-intelligible message
-#
-# Display the diagnostic message itself in bold.
-extend_diagnostic () {
-    printf "%s: \t%s%s%s\n" "${PROGNAME:-(unknown program)}" "$BOLD" "$*" \
-        "$NORMAL"
-}
-
 # Emit debugging message to standard error.
 # @params: a set of strings comprising a human-intelligible message
 debug () {
@@ -333,27 +324,9 @@ show_platform_help () {
     # strip leading whitespace, macro call, opening parenthesis, and everything
     # on the line after the first parameter, then lexically sort what remains.
     find .. -name config.cmake \
-        | xargs grep --no-filename '^\s*declare_platform(\S' \
+        | xargs grep --no-filename --recursive '^\s*declare_platform(' \
         | sed 's/\s*declare_platform(//;s/ .*//' \
         | sort
-
-    # Warn about any "declare_platform()" lines that suffered violence at the
-    # hands of the styler.
-    WRAPPED_DECLARATION_FILES=$(find .. -name config.cmake \
-        | xargs grep --files-with-matches '^\s*declare_platform(\s*$' \
-        | sort)
-
-    if [ -n "$WRAPPED_DECLARATION_FILES" ]
-    then
-        warn "some platforms not reported due to multi-line" \
-            "\"declare_platform()\" calls in the following files; please fix" \
-            "them:"
-
-        for F in $WRAPPED_DECLARATION_FILES
-        do
-            extend_diagnostic "$F" >&2
-        done
-    fi
 }
 
 # Display a usage message.
