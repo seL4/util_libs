@@ -9,7 +9,7 @@
 
   @TAG(DATA61_BSD)
 -->
-# seL4_tools
+# seL4\_tools
 Provides tools used to build seL4 projects
 
 * kbuild-tool: kbuild from Linux, for managing configurations.
