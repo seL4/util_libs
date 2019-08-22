@@ -85,6 +85,15 @@ _print () {
     echo "${PROGNAME:-(unknown program)}: $BOLD$*$NORMAL"
 }
 
+# Emit continuation of diagnostic message.
+# @params: a set of strings comprising a human-intelligible message
+#
+# Display the diagnostic message itself in bold.
+extend_diagnostic () {
+    printf "%s: \t%s%s%s\n" "${PROGNAME:-(unknown program)}" "$BOLD" "$*" \
+        "$NORMAL"
+}
+
 # Emit debugging message to standard error.
 # @params: a set of strings comprising a human-intelligible message
 debug () {
@@ -330,8 +339,6 @@ show_platform_help () {
     #   trap - HUP INT QUIT TERM
     # When the user interrupts the script, the temporary file has been removed
     # but the signal handler has not yet been deregistered.
-    #
-    # This function can be greatly simplified once JIRA SELFOUR-2369 is fixed.
     TEMP=$(mktemp)
     trap 'rm -f "$TEMP"' HUP INT QUIT TERM
 
@@ -349,6 +356,44 @@ EOF
     trap - HUP INT QUIT TERM
     notice "not all seL4 projects (e.g., \"camkes\", \"sel4bench\") support" \
         "all platforms"
+}
+
+# List supported target platforms.
+#
+# This function relies on the current working directory being the build
+# directory, but this is true by the time it is called.
+#
+# It also relies on use of the declare_platform() cmake macro remaining
+# consistent: retaining that name, remaining exclusively in files named
+# "config.cmake", its first parameter remaining the name of the platform, and
+# the line not being broken before the platform name.
+show_platform_help_old () {
+    # Search all files called "config.cmake" in the tree for non-comment lines
+    # starting with "declare_platform(" (with optional leading whitespace);
+    # strip leading whitespace, macro call, opening parenthesis, and everything
+    # on the line after the first parameter, then lexically sort what remains.
+    find .. -name config.cmake \
+        | xargs grep --no-filename '^\s*declare_platform(\S' \
+        | sed 's/\s*declare_platform(//;s/ .*//' \
+        | sort
+
+    # Warn about any "declare_platform()" lines that suffered violence at the
+    # hands of the styler.
+    WRAPPED_DECLARATION_FILES=$(find .. -name config.cmake \
+        | xargs grep --files-with-matches '^\s*declare_platform(\s*$' \
+        | sort)
+
+    if [ -n "$WRAPPED_DECLARATION_FILES" ]
+    then
+        warn "some platforms not reported due to multi-line" \
+            "\"declare_platform()\" calls in the following files; please fix" \
+            "them:"
+
+        for F in $WRAPPED_DECLARATION_FILES
+        do
+            extend_diagnostic "$F" >&2
+        done
+    fi
 }
 
 # Display a usage message.
