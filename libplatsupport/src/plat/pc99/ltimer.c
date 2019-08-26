@@ -52,7 +52,6 @@ typedef struct {
     ps_irq_t irq;
     ps_io_ops_t ops;
     irq_id_t irq_id;
-    timer_callback_data_t callback_data;
     ltimer_callback_fn_t user_callback;
     void *user_callback_token;
 } pc99_ltimer_t;
@@ -96,7 +95,7 @@ static int hpet_ltimer_get_nth_pmem(void *data, size_t n, pmem_region_t *pmem)
     return 0;
 }
 
-static int pit_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
+static int pit_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer)
 {
     if (!pc99_ltimer->pit.abs_time) {
         /* nothing to do */
@@ -115,7 +114,7 @@ static int pit_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
     return pit_set_timeout(&pc99_ltimer->pit.device, ns, false);
 }
 
-static int hpet_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
+static int hpet_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer)
 {
     /* our hpet driver doesn't do periodic timeouts, so emulate them here */
     if (pc99_ltimer->hpet.period > 0) {
@@ -142,16 +141,18 @@ static int hpet_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer, ps_irq_t *irq)
     return 0;
 }
 
-static int handle_irq(void *data, ps_irq_t *irq)
+static void handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
     assert(data != NULL);
     pc99_ltimer_t *pc99_ltimer = data;
 
-    int error = pc99_ltimer->type == PIT ? pit_ltimer_handle_irq(pc99_ltimer, irq)
-                                         : hpet_ltimer_handle_irq(pc99_ltimer, irq);
-    if (error) {
-        return error;
-    }
+    /* pc99 timer interrupts are edge triggered so acknowledge now */
+    int error = acknowledge_fn(ack_data);
+    assert(!error);
+
+    error = pc99_ltimer->type == PIT ? pit_ltimer_handle_irq(pc99_ltimer)
+                                     : hpet_ltimer_handle_irq(pc99_ltimer);
+    assert(!error);
 
     /* the only interrupts we get are from timeout interrupts */
     if (pc99_ltimer->user_callback) {
@@ -292,11 +293,8 @@ ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callb
     ltimer->destroy = destroy;
 
     /* setup the interrupts */
-    pc99_ltimer->callback_data.ltimer = ltimer;
-    pc99_ltimer->callback_data.irq = &pc99_ltimer->irq;
-    pc99_ltimer->callback_data.irq_handler = handle_irq;
-    pc99_ltimer->irq_id = ps_irq_register(&ops.irq_ops, pc99_ltimer->irq, handle_irq_wrapper,
-                                          &pc99_ltimer->callback_data);
+    pc99_ltimer->irq_id = ps_irq_register(&ops.irq_ops, pc99_ltimer->irq, handle_irq,
+                                          pc99_ltimer);
     if (pc99_ltimer->irq_id < 0) {
         return EIO;
     }
