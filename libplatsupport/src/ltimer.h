@@ -26,6 +26,8 @@ typedef struct {
  * This is a simple wrapper around the per-platform ltimer IRQ handling function.
  *
  * This is called as a callback function from the IRQ interface when the user asks it to handle IRQs.
+ *
+ * Note that this wrapper assumes that the interrupts are level triggered.
  */
 static inline void handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
