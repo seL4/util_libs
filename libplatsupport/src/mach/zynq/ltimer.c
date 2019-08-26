@@ -105,7 +105,8 @@ static void update_timestamp(ttc_ltimer_t *ttc_ltimer)
         /* if handle irq returns a high value, we have an overflow irq unhandled */
         ttc_ltimer->time += ttc_ticks_to_ns(&ttc_ltimer->ttcs[TIMESTAMP_IDX], UINT32_MAX);
 #else
-        /* if handle irq returns a high value, we have an overflow irq unhandled */
+        /* if handle irq returns a high value, we have an overflow irq unhandled,
+         * the only other platform, zynq7000 doesn't support ticks > 2^16 */
         ttc_ltimer->time += ttc_ticks_to_ns(&ttc_ltimer->ttcs[TIMESTAMP_IDX], UINT16_MAX);
 #endif
     }
