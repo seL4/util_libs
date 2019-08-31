@@ -71,3 +71,4 @@ if __name__ == "__main__":
 
     print(qemu_simulate_command)
     subprocess.call(qemu_simulate_command, shell=True)
+    subprocess.call("tput reset", shell=True)
