@@ -272,13 +272,16 @@ if(DEFINED platform_yaml)
 
     set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
     set(SHOEHORN_COMMAND "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} > ${IMAGE_START_ADDR_H}")
-
-    add_custom_command(
-        OUTPUT ${IMAGE_START_ADDR_H}
-        COMMAND sh -c "${SHOEHORN_COMMAND}"
-        VERBATIM
-        DEPENDS archive.o ${ELF_SIFT} ${SHOEHORN}
-    )
+    if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
+        file(WRITE ${IMAGE_START_ADDR_H} "#define IMAGE_START_ADDR ${IMAGE_START_ADDR}")
+    else()
+        add_custom_command(
+            OUTPUT ${IMAGE_START_ADDR_H}
+            COMMAND sh -c "${SHOEHORN_COMMAND}"
+            VERBATIM
+            DEPENDS archive.o ${ELF_SIFT} ${SHOEHORN}
+        )
+    endif()
 else()
     message(
         FATAL_ERROR
