@@ -12,7 +12,7 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-include(environment_flags)
+find_package(musllibc REQUIRED)
 # Make build options a visible choice, default it to Debug
 set(force "")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -25,32 +25,5 @@ set(
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 
-add_default_compilation_options()
-
-find_libgcc_files()
-
-set(
-    CRTObjFiles
-    "${CMAKE_CURRENT_BINARY_DIR}/lib/crt0.o ${CMAKE_CURRENT_BINARY_DIR}/lib/crti.o ${CRTBeginFile}"
-)
-set(FinObjFiles "${CRTEndFile} ${CMAKE_CURRENT_BINARY_DIR}/lib/crtn.o")
-
-# -lgcc has to be given twice since whilst normally it should be put at the end, we implement
-# some libgcc dependencies in our libc
-set(common_link_string "<LINK_FLAGS> ${CRTObjFiles} <OBJECTS> ${libgcc} <LINK_LIBRARIES> \
-    ${libgcc} <LINK_LIBRARIES> ${FinObjFiles} -o <TARGET>")
-set(
-    CMAKE_C_LINK_EXECUTABLE
-    "<CMAKE_C_COMPILER>  <FLAGS> <CMAKE_C_LINK_FLAGS> ${common_link_string}"
-)
-set(
-    CMAKE_CXX_LINK_EXECUTABLE
-    "<CMAKE_CXX_COMPILER>  <FLAGS> <CMAKE_CXX_LINK_FLAGS> ${common_link_string}"
-)
-set(
-    CMAKE_ASM_LINK_EXECUTABLE
-    "<CMAKE_ASM_COMPILER>  <FLAGS> <CMAKE_ASM_LINK_FLAGS> ${common_link_string}"
-)
-
-# We want to check what we can set the -mfloat-abi to on arm and if that matches what is requested
-add_fpu_compilation_options()
+# Declare build flags for using musllibc in targets
+musllibc_set_environment_flags()
