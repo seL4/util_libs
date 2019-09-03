@@ -14,13 +14,9 @@ cmake_minimum_required(VERSION 3.7.2)
 
 find_package(musllibc REQUIRED)
 # Make build options a visible choice, default it to Debug
-set(force "")
-if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(force "FORCE")
-endif()
 set(
     CMAKE_BUILD_TYPE "Debug"
-    CACHE STRING "Set the user mode build type (kernel build ignores this)" ${force}
+    CACHE STRING "Set the user mode build type (kernel build ignores this)"
 )
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
