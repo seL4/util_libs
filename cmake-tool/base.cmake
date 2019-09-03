@@ -62,8 +62,17 @@ get_filename_component(real_list "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
 # not run as a user under the kernel
 add_subdirectory("${real_list}/../elfloader-tool" elfloader-tool)
 
-# Setup the build flags
-include("${CMAKE_CURRENT_LIST_DIR}/flags.cmake")
+find_package(musllibc REQUIRED)
+# Make build options a visible choice, default it to Debug
+set(
+    CMAKE_BUILD_TYPE "Debug"
+    CACHE STRING "Set the user mode build type (kernel build ignores this)"
+)
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel")
+mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
+
+# Declare build flags for using musllibc in targets
+musllibc_set_environment_flags()
 
 # Now all platform compilation flags have been set, we can check the compiler against flags
 include("${CMAKE_CURRENT_LIST_DIR}/helpers/check_arch_compiler.cmake")
