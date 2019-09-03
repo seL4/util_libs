@@ -20,6 +20,3 @@ include("${CMAKE_CURRENT_LIST_DIR}/base.cmake")
 
 # Now that flags are setup include all the parts of the project
 include("${CMAKE_CURRENT_LIST_DIR}/projects.cmake")
-
-# Should be done adding targets, can now generate the global configuration
-include("${CMAKE_CURRENT_LIST_DIR}/configuration.cmake")
