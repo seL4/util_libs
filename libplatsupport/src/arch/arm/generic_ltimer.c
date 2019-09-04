@@ -139,7 +139,7 @@ static void destroy(void *data)
         ps_free(&generic_ltimer->ops.malloc_ops, sizeof(ps_irq_t), generic_ltimer->callback_data.irq);
     }
     if (generic_ltimer->timer_irq_id > PS_INVALID_IRQ_ID) {
-        error = ps_irq_unregister(&ops.irq_ops, generic_ltimer->timer_irq_id);
+        error = ps_irq_unregister(&generic_ltimer->ops.irq_ops, generic_ltimer->timer_irq_id);
         ZF_LOGF_IF(error, "Failed to unregister IRQ ID");
     }
     ps_free(&generic_ltimer->ops.malloc_ops, sizeof(generic_ltimer_t), generic_ltimer);
@@ -173,7 +173,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     generic_ltimer->ops = ops;
     generic_ltimer->user_callback = callback;
-    generic_ltimer->user_callback_token = callback_token;
+    generic_ltimer->user_callback_token = callback_data;
 
     generic_ltimer->freq = generic_timer_get_freq();
     if (generic_ltimer->freq == 0) {
@@ -185,21 +185,21 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     generic_timer_enable();
 
     /* register the IRQ we need */
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &generic_timer->callback_data.irq);
+    error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &generic_ltimer->callback_data.irq);
     if (error) {
         destroy(ltimer->data);
         return error;
     }
-    generic_timer->callback_data.ltimer = ltimer;
-    generic_timer->callback_data.irq_handler = handle_irq;
-    error = get_nth_irq(ltimer->data, 0, generic_timer->callback_data.irq);
+    generic_ltimer->callback_data.ltimer = ltimer;
+    generic_ltimer->callback_data.irq_handler = handle_irq;
+    error = get_nth_irq(ltimer->data, 0, generic_ltimer->callback_data.irq);
     if (error) {
         destroy(ltimer->data);
         return error;
     }
-    generic_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, *generic_timer->callback_data.irq,
-                                                  handle_irq_wrapper, &generic_timer->callback_data);
-    if (generic_timer->timer_irq_id < 0) {
+    generic_ltimer->timer_irq_id = ps_irq_register(&ops.irq_ops, *generic_ltimer->callback_data.irq,
+                                                  handle_irq_wrapper, &generic_ltimer->callback_data);
+    if (generic_ltimer->timer_irq_id < 0) {
         destroy(ltimer->data);
         return EIO;
     }
