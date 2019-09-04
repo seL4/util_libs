@@ -42,8 +42,11 @@ static size_t get_num_irqs(void *data)
 static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
 {
     assert(n < get_num_irqs(data));
-    irq->type = PS_INTERRUPT;
-    irq->irq.number = GENERIC_TIMER_PCNT_IRQ;
+    irq->type = PS_PER_CPU;
+    irq->cpu.number = GENERIC_TIMER_PCNT_IRQ;
+    irq->cpu.trigger = 0;
+    irq->cpu.cpu_idx = 0;
+
     return 0;
 }
 
