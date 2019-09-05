@@ -14,6 +14,8 @@ cmake_minimum_required(VERSION 3.7.2)
 # Include our common helpers
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/ ${CMAKE_SOURCE_DIR}/projects/musllibc)
 
+include(use_ccache)
+
 enable_language(C)
 enable_language(CXX)
 enable_language(ASM)
@@ -26,7 +28,6 @@ mark_as_advanced(
     EXECUTABLE_OUTPUT_PATH
     CMAKE_BACKWARDS_COMPATIBILITY
     LIBRARY_OUTPUT_PATH
-    CCACHE_FOUND
     CMAKE_ASM_COMPILER
     CMAKE_C_COMPILER
 )
@@ -38,11 +39,7 @@ if("${KERNEL_PATH}" STREQUAL "KERNEL_PATH-NOTFOUND")
 endif()
 
 # Use ccache if possible
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    set_property(DIRECTORY PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(DIRECTORY PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
+use_ccache()
 
 # Give an explicit build directory as there is no guarantee this is actually
 # subdirectory from the root source hierarchy
