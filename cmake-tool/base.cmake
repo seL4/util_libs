@@ -15,6 +15,7 @@ cmake_minimum_required(VERSION 3.7.2)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/ ${CMAKE_SOURCE_DIR}/projects/musllibc)
 
 include(use_ccache)
+include(check_arch_compiler)
 
 enable_language(C)
 enable_language(CXX)
@@ -72,6 +73,6 @@ mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 musllibc_set_environment_flags()
 
 # Now all platform compilation flags have been set, we can check the compiler against flags
-include("${CMAKE_CURRENT_LIST_DIR}/helpers/check_arch_compiler.cmake")
+check_arch_compiler()
 
 add_subdirectory("${KERNEL_PATH}/libsel4" libsel4)
