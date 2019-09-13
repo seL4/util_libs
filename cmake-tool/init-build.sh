@@ -37,6 +37,18 @@ then
     exit 1
 fi
 
-# Initialize CMake.
-cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
-    -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
+if [ -e "$SCRIPT_PATH/CMakeLists.txt" ]
+then
+    # If we have a CMakeLists.txt in the top level project directory,
+    # initialize CMake.
+    cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
+        -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
+else
+    # If we don't have a CMakeLists.txt in the top level project directory then
+    # assume we use the project's directory tied to easy-settings.cmake and resolve
+    # that to use as the CMake source directory.
+    real_easy_settings="$(realpath $SCRIPT_PATH/easy-settings.cmake)"
+    project_dir="$(dirname $real_easy_settings)"
+    # Initialize CMake.
+    cmake -G Ninja "$@" -C "$project_dir/settings.cmake" "$project_dir"
+fi
