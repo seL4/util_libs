@@ -15,6 +15,8 @@
 #include <types.h>
 #include <elfloader.h>
 #include <mode/structures.h>
+#include <printf.h>
+#include <abort.h>
 
 /*
 * Create a "boot" page table, which contains a 1:1 mapping below
@@ -26,6 +28,7 @@ void init_boot_vspace(struct image_info *kernel_info)
     word_t i;
 
     vaddr_t first_vaddr = kernel_info->virt_region_start;
+    vaddr_t last_vaddr = kernel_info->virt_region_end;
     paddr_t first_paddr = kernel_info->phys_region_start;
 
     _boot_pgd_down[0] = ((uintptr_t)_boot_pud_down) | BIT(1) | BIT(0); /* its a page table */
@@ -43,14 +46,20 @@ void init_boot_vspace(struct image_info *kernel_info)
     _boot_pud_up[GET_PUD_INDEX(first_vaddr)]
         = ((uintptr_t)_boot_pmd_up) | BIT(1) | BIT(0); /* its a page table */
 
-    for (i = 0; i < BIT(PMD_BITS); i++) {
-        _boot_pmd_up[i] = ((i << ARM_2MB_BLOCK_BITS) + first_paddr)
+    /* We only map in 1 GiB, so check that the kernel doesn't cross 1GiB boundary. */
+    if ((first_vaddr & ~MASK(ARM_1GB_BLOCK_BITS)) != (last_vaddr & ~MASK(ARM_1GB_BLOCK_BITS))) {
+        printf("We only map 1GiB, but kernel vaddr range covers multiple GiB.\n");
+        abort();
+    }
+    for (i = GET_PMD_INDEX(first_vaddr); i < BIT(PMD_BITS); i++) {
+        _boot_pmd_up[i] = first_paddr
                           | BIT(10) /* access flag */
 #if CONFIG_MAX_NUM_NODES > 1
                           | (3 << 8) /* make sure the shareability is the same as the kernel's */
 #endif
                           | (4 << 2) /* MT_NORMAL memory */
                           | BIT(0); /* 2M block */
+        first_paddr += BIT(ARM_2MB_BLOCK_BITS);
     }
 }
 
