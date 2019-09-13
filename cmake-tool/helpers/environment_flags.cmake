@@ -31,6 +31,7 @@ macro(add_default_compilation_options)
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections ")
         endif()
     endif()
+    mark_as_advanced(UserLinkerGCSections)
 
     add_compile_options(
         -nostdinc
@@ -43,6 +44,7 @@ macro(add_default_compilation_options)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++")
     set(CMAKE_C_STANDARD 11)
     set(LinkPageSize "0x1000" CACHE STRING "Page size to be used for linker")
+    mark_as_advanced(LinkPageSize)
     set(
         CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -static -nostdlib -z max-page-size=${LinkPageSize}"
