@@ -14,16 +14,8 @@
 # script in the build directory for running produced images in Qemu.
 include_guard(GLOBAL)
 
-find_file(
-    SIMULATE_SCRIPT simulate.py
-    PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/"
-    CMAKE_FIND_ROOT_PATH_BOTH
-)
-find_file(
-    CONFIGURE_FILE_SCRIPT configure_file.cmake
-    PATHS "${CMAKE_CURRENT_LIST_DIR}"
-    CMAKE_FIND_ROOT_PATH_BOTH
-)
+RequireFile(SIMULATE_SCRIPT simulate.py PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/")
+RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS "${CMAKE_CURRENT_LIST_DIR}")
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
 macro(TestQemuCPUFeature config feature string)
