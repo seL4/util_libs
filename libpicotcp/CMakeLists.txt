@@ -11,7 +11,6 @@
 #
 
 cmake_minimum_required(VERSION 3.7.2)
-include(ExternalProject)
 project(libpicotcp NONE)
 
 set(configure_string "")
@@ -66,6 +65,7 @@ if(LibPicotcp)
     add_dependencies(get_muslc muslc)
 
     # build picotcp using its very own build system
+    include(ExternalProject)
     ExternalProject_Add(
         picotcp_external
         SOURCE_DIR
