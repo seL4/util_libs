@@ -14,7 +14,6 @@ cmake_minimum_required(VERSION 3.7.2)
 # Include our common helpers
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/ ${CMAKE_SOURCE_DIR}/projects/musllibc)
 
-include(use_ccache)
 include(check_arch_compiler)
 
 enable_language(C)
@@ -38,9 +37,6 @@ mark_as_advanced(FORCE KERNEL_PATH)
 if("${KERNEL_PATH}" STREQUAL "KERNEL_PATH-NOTFOUND")
     message(FATAL_ERROR "Failed to find kernel. Consider cmake -DKERNEL_PATH=/path/to/kernel")
 endif()
-
-# Use ccache if possible
-use_ccache()
 
 # Give an explicit build directory as there is no guarantee this is actually
 # subdirectory from the root source hierarchy
