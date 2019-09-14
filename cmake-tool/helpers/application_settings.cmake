@@ -97,6 +97,24 @@ endfunction()
 # Calling this function will result in forced updates to the cache.
 function(correct_platform_strings)
     set(_REWRITE ON)
+    set(
+        correct_platform_strings_platform_aliases
+        sabre
+        wandq
+        kzm
+        rpi3
+        exynos5250
+        exynos5410
+        exynos5422
+        am335x-boneblack
+        am335x-boneblue
+        x86_64
+        ia32
+    )
+    set(
+        correct_platform_strings_platform_aliases ${correct_platform_strings_platform_aliases}
+        CACHE INTERNAL ""
+    )
     if("${PLATFORM}" STREQUAL "sabre")
         set(KernelPlatform imx6 CACHE STRING "" FORCE)
         set(KernelARMPlatform sabre CACHE STRING "" FORCE)
