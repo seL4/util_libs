@@ -12,7 +12,10 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 # Include our common helpers
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/ ${CMAKE_SOURCE_DIR}/projects/musllibc)
+list(
+    APPEND
+        CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/helpers/ ${CMAKE_SOURCE_DIR}/projects/musllibc
+)
 
 include(check_arch_compiler)
 
@@ -43,7 +46,6 @@ endif()
 add_subdirectory("${KERNEL_PATH}" kernel)
 # Include helpers from the kernel
 include(${KERNEL_HELPERS_PATH})
-
 
 include("${CMAKE_CURRENT_LIST_DIR}/common.cmake")
 
