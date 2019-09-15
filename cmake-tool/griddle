@@ -217,23 +217,14 @@ then
         " cd ../build\")"
 fi
 
-# Is a repo dir present in the PWD, but not the CMake lists file?
-if [ -d "$SOURCE_ROOT"/"$REPO_DIR" ]
+# Is a repo dir present in the PWD?
+if ! [ -d "$SOURCE_ROOT"/"$REPO_DIR" ]
 then
-    if ! [ -e "$CMAKELISTS" ]
-    then
-        # This should only happen if the checkout is badly damaged or someone
-        # ran "repo init" without "repo sync" and grabbed this script from
-        # someplace else.
-        die "no \"$CMAKELISTS\" file present;" \
-            "${NORMAL}did you forget to run \"repo sync\"?"
-    fi
-else
     # We are completely in the wilderness.
     die "cannot find \"$REPO_DIR\" in this directory or its parent;" \
         "${NORMAL}you need to (1) initialise a repo with \"repo init -u" \
         "\$GIT_CLONE_URL\", (2) \"repo sync\", (3) create a build directory" \
-        "(e.g., \"cd build\"), (4) change into that directory (e.g." \
+        "(e.g., \"mkdir build\"), (4) change into that directory (e.g." \
         "\"cd build\"), and (5) try to run this tool again."
 fi
 
@@ -609,19 +600,38 @@ elif [ $MODE = invoke ]
 then
     if [ -n "$DO_CMAKE_INITIALIZE" ]
     then
-        # Some of these variables are unquoted because because cmake needs shell
-        # word-splitting to be done on its parameters.  Furthermore, there
-        # should be no configuration variables with whitespace embedded in their
-        # flag names or values.  (Well, certainly not the _names_...)
-        # $SOURCE_ROOT, however, could be anywhere in the user's file system and
-        # its value may have embedded whitespace.
-        cmake \
-            -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
-            -G Ninja \
-            ${EXTRA_ARGS:-} \
-            $CMAKE_ARGS \
-            -C "$SOURCE_ROOT/settings.cmake" \
-            "$SOURCE_ROOT"
+
+        if [ -e "$CMAKELISTS" ]
+        then
+            # Some of these variables are unquoted because because cmake needs shell
+            # word-splitting to be done on its parameters.  Furthermore, there
+            # should be no configuration variables with whitespace embedded in their
+            # flag names or values.  (Well, certainly not the _names_...)
+            # $SOURCE_ROOT, however, could be anywhere in the user's file system and
+            # its value may have embedded whitespace.
+            cmake \
+                -DCMAKE_TOOLCHAIN_FILE="$CMAKETOOLCHAIN" \
+                -G Ninja \
+                ${EXTRA_ARGS:-} \
+                $CMAKE_ARGS \
+                -C "$SOURCE_ROOT/settings.cmake" \
+                "$SOURCE_ROOT"
+        elif [ -e "$EASY_KNOBS" ]
+        then
+            # If we don't have a CMakeLists.txt in the top level project directory then
+            # assume we use the project's directory tied to easy-settings.cmake and resolve
+            # that to use as the CMake source directory.
+            REAL_EASY_KNOBS=$(realpath "$EASY_KNOBS")
+            PROJECT_DIR=${REAL_EASY_KNOBS%/*}
+            # Initialize CMake.
+            cmake -G Ninja ${EXTRA_ARGS:-} \
+                    $CMAKE_ARGS \
+                    -C "$project_dir/settings.cmake" "$project_dir"
+        else
+            # This case shouldn't be hit as if $SOURCE_ROOT/easy-settings.cmake doesn't
+            # exist then the script should have failed earlier.
+            die "impossible: \"$CMAKELISTS\" does not exist and \"$EASY_KNOBS\" does not either"
+        fi
     fi
 
     # If this tool is re-run over an existing build with new parameters, the
