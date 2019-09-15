@@ -289,6 +289,9 @@ do
         OPTION_REPORT="${OPTION_REPORT:=}
 $CONFIG_VAR is type: $TYPE, default: $DEFAULT_VALUE, $CACHED; $DESCRIPTION"
         ;;
+    (mark_as_advanced'('*)
+        describe "exporting external setting: \"$LINE\""
+        ;;
     (*)
         die "$EASY_KNOBS:$CMAKE_LINENO: I don't know how to handle \"$LINE\""
         ;;
