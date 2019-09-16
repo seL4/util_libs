@@ -18,31 +18,19 @@
  * interrupt routing from the NVidia timer to the shared interrupt controller.
  * Refer to the respective reference manual for more specific platform differences.
  */
+#include <stdbool.h>
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
-#include <platsupport/pmem.h>
 #include <utils/util.h>
 
 #include "../../ltimer.h"
 
-#define NV_TMR_ID TMR1
-#define NV_TMR_ID_OFFSET TMR1_OFFSET
-
 typedef struct {
+    bool started;
     nv_tmr_t nv_tmr;
-    /* base of TKE block */
-    void *vaddr_base;
-    /* base of TKE block or second timer mapping if timers are on different pages.
-     * if timers are on single page, then this is same as vaddr_base.
-     */
-    void *vaddr_tmr;
-    irq_id_t irq_id;
-    timer_callback_data_t callback_data;
     ps_io_ops_t ops;
     uint64_t period;
-    ltimer_callback_fn_t user_callback;
-    void *user_callback_token;
 } nv_tmr_ltimer_t;
 
 static pmem_region_t pmem = {
@@ -82,22 +70,6 @@ static int get_nth_pmem(void *data, size_t n, pmem_region_t *paddr)
     if (n == 1) {
         /* If the timer offset is greater than a 4k page, we require a second mapping */
         paddr->base_addr += NV_TMR_ID_OFFSET;
-    }
-    return 0;
-}
-
-static int handle_irq(void *data, ps_irq_t *irq)
-{
-    assert(data != NULL);
-    nv_tmr_ltimer_t *nv_tmr_ltimer = data;
-    nv_tmr_handle_irq(&nv_tmr_ltimer->nv_tmr);
-    if (nv_tmr_ltimer->period > 0) {
-        nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, nv_tmr_ltimer->period);
-    }
-    /* invoke the user supplied callback, note that on these boards,
-     * we will only get interrupts for timeout events */
-    if (nv_tmr_ltimer->user_callback) {
-        nv_tmr_ltimer->user_callback(nv_tmr_ltimer->user_callback_token, LTIMER_TIMEOUT_EVENT);
     }
     return 0;
 }
@@ -154,23 +126,10 @@ static void destroy(void *data)
 {
     assert(data);
     nv_tmr_ltimer_t *nv_tmr_ltimer = data;
-    if (nv_tmr_ltimer->vaddr_base) {
+    if (nv_tmr_ltimer->started) {
         nv_tmr_stop(&nv_tmr_ltimer->nv_tmr);
-        nv_tmr_handle_irq(&nv_tmr_ltimer->nv_tmr);
-        ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem, nv_tmr_ltimer->vaddr_base);
-        if (nv_tmr_ltimer->vaddr_base != nv_tmr_ltimer->vaddr_tmr) {
-            /* We have two mappings and need to unmap the second one also */
-            pmem_region_t pmem_tmr = pmem;
-            pmem_tmr.base_addr += NV_TMR_ID_OFFSET;
-            ps_pmem_unmap(&nv_tmr_ltimer->ops, pmem_tmr, nv_tmr_ltimer->vaddr_tmr);
-        }
+        nv_tmr_destroy(&nv_tmr_ltimer->nv_tmr);
     }
-
-    if (nv_tmr_ltimer->irq_id > PS_INVALID_IRQ_ID) {
-        int error = ps_irq_unregister(&nv_tmr_ltimer->ops.irq_ops, nv_tmr_ltimer->irq_id);
-        ZF_LOGF_IF(error, "Failed to unregister an IRQ");
-    }
-
     ps_free(&nv_tmr_ltimer->ops.malloc_ops, sizeof(nv_tmr_ltimer), nv_tmr_ltimer);
 }
 
@@ -194,46 +153,15 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     assert(ltimer->data != NULL);
     nv_tmr_ltimer_t *nv_tmr_ltimer = ltimer->data;
     nv_tmr_ltimer->ops = ops;
-    /* register the user supplied callbacks */
-    nv_tmr_ltimer->user_callback = callback;
-    nv_tmr_ltimer->user_callback_token = callback_token;
 
-    nv_tmr_ltimer->vaddr_base = ps_pmem_map(&ops, pmem, false, PS_MEM_NORMAL);
-    if (NV_TMR_ID_OFFSET >= PAGE_SIZE_4K) {
-        /* If the timer offset is greater than a 4k page, we require a second mapping */
-        pmem_region_t pmem_tmr = pmem;
-        pmem_tmr.base_addr += NV_TMR_ID_OFFSET;
-        nv_tmr_ltimer->vaddr_tmr = ps_pmem_map(&ops, pmem_tmr, false, PS_MEM_NORMAL);
-    } else {
-        /* If all timers are on one page, we set vaddr_tmr to the same as vaddr_base */
-        nv_tmr_ltimer->vaddr_tmr = nv_tmr_ltimer->vaddr_base;
-    }
-    if (nv_tmr_ltimer->vaddr_base == NULL || nv_tmr_ltimer->vaddr_tmr == NULL) {
+    error = nv_tmr_init(&nv_tmr_ltimer->nv_tmr, ops, NV_TMR_PATH, callback, callback_token);
+    if (error) {
         destroy(ltimer->data);
-        return ENOMEM;
+        return error;
     }
 
-    /* register the IRQ */
-    ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = nv_tmr_get_irq(NV_TMR_ID) }};
-    /* only set the ltimer and the handler, 'handle_irq' for the NV ltimers don't actually use the 
-     * 'irq' argument */
-    nv_tmr_ltimer->callback_data.ltimer = ltimer;
-    nv_tmr_ltimer->callback_data.irq_handler = handle_irq;
-    nv_tmr_ltimer->irq_id = ps_irq_register(&ops.irq_ops, irq, handle_irq_wrapper, &nv_tmr_ltimer->callback_data);
-    if (nv_tmr_ltimer->irq_id < 0) {
-        destroy(ltimer->data);
-        return EIO;
-    }
-
-    /* setup nv_tmr */
-    nv_tmr_config_t config = {
-        .vaddr_base = (uintptr_t) nv_tmr_ltimer->vaddr_base,
-        .vaddr_tmr = (uintptr_t) nv_tmr_ltimer->vaddr_tmr,
-        .id = TMR1
-    };
-
-    nv_tmr_init(&nv_tmr_ltimer->nv_tmr, config);
     nv_tmr_start(&nv_tmr_ltimer->nv_tmr);
+    nv_tmr_ltimer->started = true;
     /* success! */
     return 0;
 }

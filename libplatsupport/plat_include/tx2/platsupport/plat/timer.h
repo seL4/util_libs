@@ -47,6 +47,9 @@
 #define NV_TMR_PADDR    (0x03010000)
 #define NV_TMR_SIZE     (64 * 1024 * 11)
 
+#define NV_TMR_PATH "/timer@3020000"
+#define NV_TMR_ID TMR0
+#define NV_TMR_ID_OFFSET TMR0_OFFSET
 
 struct tmr_shared_map {
     uint32_t TKETSC0; // Value of local TSC counter TSC[31:0], synchronized across SOC

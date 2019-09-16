@@ -17,7 +17,9 @@
  * timestamp counter
  * */
 
+#include <platsupport/fdt.h>
 #include <platsupport/timer.h>
+#include <platsupport/ltimer.h>
 #include <stdint.h>
 
 typedef enum {
@@ -55,6 +57,12 @@ typedef struct nv_tmr {
     volatile struct tmrus_map       *tmrus_map;
     volatile struct tmr_shared_map  *tmr_shared_map;
     uint64_t                        counter_start;
+    uintptr_t                       reg_base;
+    ps_io_ops_t                     ops;
+    pmem_region_t                   timer_pmem;
+    irq_id_t                        irq_id;
+    ltimer_callback_fn_t            user_callback;
+    void                            *user_callback_token;
 } nv_tmr_t;
 
 static UNUSED timer_properties_t tmr_properties = {
@@ -68,9 +76,9 @@ static UNUSED timer_properties_t tmr_properties = {
 
 int nv_tmr_start(nv_tmr_t *tmr);
 int nv_tmr_stop(nv_tmr_t *tmr);
+void nv_tmr_destroy(nv_tmr_t *tmr);
 int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns);
-void nv_tmr_handle_irq(nv_tmr_t *tmr);
+void nv_tmr_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data);
 uint64_t nv_tmr_get_time(nv_tmr_t *tmr);
-long nv_tmr_get_irq(nv_tmr_id_t n);
-int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config);
+int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback, void *user_callback_token);
 uint32_t nv_tmr_get_usec_upcounter_val(nv_tmr_t *tmr);

@@ -62,6 +62,18 @@ int nv_tmr_stop(nv_tmr_t *tmr)
     return 0;
 }
 
+void nv_tmr_destroy(nv_tmr_t *tmr)
+{
+    if (tmr->reg_base) {
+        ps_pmem_unmap(&tmr->ops, tmr->timer_pmem, (void *) tmr->reg_base);
+    }
+
+    if (tmr->irq_id > PS_INVALID_IRQ_ID) {
+        int error = ps_irq_unregister(&tmr->ops.irq_ops, tmr->irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister an IRQ");
+    }
+}
+
 #define INVALID_PVT_VAL 0x80000000
 
 static uint32_t
@@ -90,11 +102,17 @@ int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns)
     return 0;
 }
 
-void nv_tmr_handle_irq(nv_tmr_t *tmr)
+void nv_tmr_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
+    nv_tmr_t *tmr = data;
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
     if (!(tmr->tmr_map->pvt & BIT(PVT_PERIODIC_E_BIT))) {
         tmr->tmr_map->pvt &= ~(BIT(PVT_E_BIT));
+    }
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the timer's interrupts");
+    if (tmr->user_callback) {
+        /* Call the ltimer's user callback */
+        tmr->user_callback(tmr->user_callback_token, LTIMER_TIMEOUT_EVENT);
     }
 }
 
@@ -134,54 +152,80 @@ long nv_tmr_get_irq(nv_tmr_id_t n)
 
 #define TMRUS_USEC_CFG_DEFAULT   11
 
-int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
 {
-    if (config.id < TMR0 || config.id > TMR_LAST) {
+    assert(token != NULL);
+    nv_tmr_t *tmr = token;
+    /* There's only one register region to map, map it in */
+    assert(num_regs == 1 && curr_num == 0);
+    tmr->reg_base = (uintptr_t) ps_pmem_map(&tmr->ops, pmem, false, PS_MEM_NORMAL);
+    if (tmr->reg_base == 0) {
+        return EIO;
+    }
+    tmr->timer_pmem = pmem;
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    assert(token != NULL);
+    nv_tmr_t *tmr = token;
+    /* Skip all interrupts except the first */
+    if (curr_num != 0) {
+        return 0;
+    }
+
+    tmr->irq_id = ps_irq_register(&tmr->ops.irq_ops, irq, nv_tmr_handle_irq, tmr);
+    if (tmr->irq_id < 0) {
+        return EIO;
+    }
+
+    return 0;
+}
+
+int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback, void *user_callback_token)
+{
+    if (!tmr || !device_path) {
         return EINVAL;
     }
 
-    uintptr_t offset;
-    switch (config.id)
-    {
-    case TMR0:
-        offset = TMR0_OFFSET;
-        break;
-    case TMR1:
-        offset = TMR1_OFFSET;
-        break;
-    case TMR2:
-        offset = TMR2_OFFSET;
-        break;
-    case TMR3:
-        offset = TMR3_OFFSET;
-        break;
-    case TMR4:
-        offset = TMR4_OFFSET;
-        break;
-    case TMR5:
-        offset = TMR5_OFFSET;
-        break;
-    case TMR6:
-        offset = TMR6_OFFSET;
-        break;
-    case TMR7:
-        offset = TMR7_OFFSET;
-        break;
-    case TMR8:
-        offset = TMR8_OFFSET;
-        break;
-    case TMR9:
-        offset = TMR9_OFFSET;
-        break;
-    };
+    /* setup the private structure */
+    tmr->ops = ops;
+    tmr->user_callback = user_callback;
+    tmr->user_callback_token = user_callback_token;
+    tmr->irq_id = PS_INVALID_IRQ_ID;
 
-    /* If the offset is across a page boundary we require a separate mapping. */
-    if (offset >= PAGE_SIZE_4K) {
-        offset = 0;
+    /* read the timer's path in the DTB */
+    ps_fdt_cookie_t *cookie = NULL;
+    int error = ps_fdt_read_path(&ops.io_fdt, &ops.malloc_ops, device_path, &cookie);
+    if (error) {
+        nv_tmr_destroy(tmr);
+        return ENODEV;
     }
-    tmr->tmr_map = (void *) (config.vaddr_tmr + offset);
-    tmr->tmrus_map = (void *) (config.vaddr_base + TMRUS_OFFSET);
-    tmr->tmr_shared_map = (void *) config.vaddr_base;
+
+    /* walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&ops.io_fdt, cookie, allocate_register_callback, tmr);
+    if (error) {
+        nv_tmr_destroy(tmr);
+        return ENODEV;
+    }
+
+    /* walk the interrupts and allocate the first */
+    error = ps_fdt_walk_irqs(&ops.io_fdt, cookie, allocate_irq_callback, tmr);
+    if (error) {
+        nv_tmr_destroy(tmr);
+        return ENODEV;
+    }
+
+    error = ps_fdt_cleanup_cookie(&ops.malloc_ops, cookie);
+    if (error) {
+        nv_tmr_destroy(tmr);
+        return ENODEV;
+    }
+
+    tmr->tmr_map = (void *)(tmr->reg_base + NV_TMR_ID_OFFSET);
+    tmr->tmrus_map = (void *)(tmr->reg_base + TMRUS_OFFSET);
+    tmr->tmr_shared_map = (void *) tmr->reg_base + TMR_SHARED_OFFSET;
 
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
@@ -193,7 +237,7 @@ int nv_tmr_init(nv_tmr_t *tmr, nv_tmr_config_t config)
  */
 #ifdef CONFIG_PLAT_TX2
     /* Route the interrupt to the correct shared interrupt number. */
-    tmr->tmr_shared_map->TKEIE[config.id] = BIT(config.id);
+    tmr->tmr_shared_map->TKEIE[NV_TMR_ID] = BIT(NV_TMR_ID);
 #else
     /* Just unconditionally set the divisor as if "clk_m" is always 12MHz,
      * because it actually is always 12MHz on TK1 or TX1.

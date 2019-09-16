@@ -47,6 +47,10 @@
 #define NV_TMR_PADDR    0x60005000
 #define NV_TMR_SIZE     0x1000
 
+#define NV_TMR_PATH "/timer@60005000"
+#define NV_TMR_ID TMR1
+#define NV_TMR_ID_OFFSET TMR1_OFFSET
+
 struct tmr_shared_map {
     uint32_t intr_status;
     uint32_t secure_cfg;
