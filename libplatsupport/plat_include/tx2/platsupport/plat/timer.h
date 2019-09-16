@@ -34,7 +34,6 @@
 #define TMR1_OFFSET         0x20000
 #define TMR2_OFFSET         0x30000
 #define TMR3_OFFSET         0x40000
-
 #define TMR4_OFFSET         0x50000
 #define TMR5_OFFSET         0x60000
 #define TMR6_OFFSET         0x70000
@@ -70,6 +69,5 @@ static_assert(sizeof(struct tmr_shared_map) == 0x208, "struct tmr_shared_map has
 struct tmrus_map {
     uint32_t cntr_1us; /* offset 0 */
 };
-
 
 #include <platsupport/mach/timer.h>
