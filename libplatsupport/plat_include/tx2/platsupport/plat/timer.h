@@ -19,17 +19,6 @@
 
 #include <stdint.h>
 
-#define INT_NV_TMR0         32
-#define INT_NV_TMR1         33
-#define INT_NV_TMR2         34
-#define INT_NV_TMR3         35
-#define INT_NV_TMR4         36
-#define INT_NV_TMR5         37
-#define INT_NV_TMR6         38
-#define INT_NV_TMR7         39
-#define INT_NV_TMR8         40
-#define INT_NV_TMR9         41
-
 #define TMR0_OFFSET         0x10000
 #define TMR1_OFFSET         0x20000
 #define TMR2_OFFSET         0x30000
@@ -42,10 +31,6 @@
 #define TMR9_OFFSET         0xA0000
 #define TMRUS_OFFSET        0x8
 #define TMR_SHARED_OFFSET   0
-
-/* Each timer is in its own 64k page. */
-#define NV_TMR_PADDR    (0x03010000)
-#define NV_TMR_SIZE     (64 * 1024 * 11)
 
 #define NV_TMR_PATH "/timer@3020000"
 #define NV_TMR_ID TMR0
