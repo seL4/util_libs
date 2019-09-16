@@ -34,7 +34,6 @@ typedef enum {
     TMR8,
     TMR9,
     TMR_LAST = TMR9,
-    PS_DEFAULT_TIMER = TMR1
 } nv_tmr_id_t;
 
 

@@ -33,47 +33,6 @@ typedef struct {
     uint64_t period;
 } nv_tmr_ltimer_t;
 
-static pmem_region_t pmem = {
-    .type = PMEM_TYPE_DEVICE,
-    .base_addr = NV_TMR_PADDR,
-    .length =  PAGE_SIZE_4K
-};
-
-size_t get_num_irqs(void *data)
-{
-    return 1;
-}
-
-static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
-{
-    assert(n == 0);
-    irq->irq.number = nv_tmr_get_irq(NV_TMR_ID);
-    irq->type = PS_INTERRUPT;
-    return 0;
-}
-
-static size_t get_num_pmems(void *data)
-{
-    /* If the timer offset is greater than a 4k page, we require a second mapping */
-    if (NV_TMR_ID_OFFSET >= PAGE_SIZE_4K) {
-        return 2;
-    } else {
-        return 1;
-    }
-}
-
-static int get_nth_pmem(void *data, size_t n, pmem_region_t *paddr)
-{
-    assert(n < get_num_pmems(NULL));
-
-    *paddr = pmem;
-    if (n == 1) {
-        /* If the timer offset is greater than a 4k page, we require a second mapping */
-        paddr->base_addr += NV_TMR_ID_OFFSET;
-    }
-    return 0;
-}
-
 static int get_time(void *data, uint64_t *time)
 {
     assert(data != NULL);
@@ -166,16 +125,10 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     return 0;
 }
 
+/* This function is intended to be deleted,
+ * this is just left here for now so that stuff can compile */
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-    if (ltimer == NULL) {
-        ZF_LOGE("Timer is NULL!");
-        return EINVAL;
-    }
-
-    ltimer->get_num_irqs = get_num_irqs;
-    ltimer->get_nth_irq = get_nth_irq;
-    ltimer->get_num_pmems = get_num_pmems;
-    ltimer->get_nth_pmem = get_nth_pmem;
-    return 0;
+    ZF_LOGE("get_(nth/num)_(irqs/pmems) are not valid");
+    return EINVAL;
 }

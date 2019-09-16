@@ -121,35 +121,6 @@ uint64_t nv_tmr_get_time(nv_tmr_t *tmr)
     return (uint64_t)tmr->tmrus_map->cntr_1us * NS_IN_US;
 }
 
-long nv_tmr_get_irq(nv_tmr_id_t n)
-{
-    switch (n) {
-        case TMR0:
-            return INT_NV_TMR0;
-        case TMR1:
-            return INT_NV_TMR1;
-        case TMR2:
-            return INT_NV_TMR2;
-        case TMR3:
-            return INT_NV_TMR3;
-        case TMR4:
-            return INT_NV_TMR4;
-        case TMR5:
-            return INT_NV_TMR5;
-        case TMR6:
-            return INT_NV_TMR6;
-        case TMR7:
-            return INT_NV_TMR7;
-        case TMR8:
-            return INT_NV_TMR8;
-        case TMR9:
-            return INT_NV_TMR9;
-        default:
-            ZF_LOGE("invalid timer id %d\n", n);
-            return 0;
-    }
-}
-
 #define TMRUS_USEC_CFG_DEFAULT   11
 
 static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
