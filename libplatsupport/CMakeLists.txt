@@ -63,7 +63,13 @@ elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
 endif()
 
-if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM OR KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+if(
+    KernelPlatImx6
+    OR KernelPlatformImx7Sabre
+    OR KernelPlatformKZM
+    OR KernelPlatformImx8mq-evk
+    OR KernelPlatformImx8mm-evk
+)
     if(NOT (KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk))
         list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
     endif()
@@ -74,7 +80,6 @@ endif()
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     list(APPEND deps src/plat/imx8m/chardev.c)
 endif()
-
 
 list(SORT deps)
 
@@ -88,19 +93,24 @@ if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
 endif()
 target_include_directories(
     platsupport
-    PUBLIC
-        include
-        plat_include/${KernelPlatform}
-        arch_include/${KernelArch}
+    PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
 )
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
 endif()
 if("${KernelArch}" STREQUAL "arm")
     set(sel4_arch "${KernelSel4Arch}")
-    if ("${KernelSel4Arch}" STREQUAL "arm_hyp")
+    if("${KernelSel4Arch}" STREQUAL "arm_hyp")
         set(sel4_arch "aarch32")
     endif()
     target_include_directories(platsupport PUBLIC sel4_arch_include/${sel4_arch})
 endif()
-target_link_libraries(platsupport muslc utils fdt sel4_autoconf platsupport_Config ${irqchip_modules})
+target_link_libraries(
+    platsupport
+    muslc
+    utils
+    fdt
+    sel4_autoconf
+    platsupport_Config
+    ${irqchip_modules}
+)
