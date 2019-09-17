@@ -32,8 +32,8 @@ typedef struct {
     uint32_t freq;
 } generic_timer_t;
 
-static inline timer_properties_t
-get_generic_timer_properties(void) {
+static inline timer_properties_t get_generic_timer_properties(void)
+{
     return (timer_properties_t) {
         .upcounter = true,
         .bit_width = 64
