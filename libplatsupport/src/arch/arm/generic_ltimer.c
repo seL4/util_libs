@@ -198,7 +198,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         return error;
     }
     generic_ltimer->timer_irq_id = ps_irq_register(&ops.irq_ops, *generic_ltimer->callback_data.irq,
-                                                  handle_irq_wrapper, &generic_ltimer->callback_data);
+                                                   handle_irq_wrapper, &generic_ltimer->callback_data);
     if (generic_ltimer->timer_irq_id < 0) {
         destroy(ltimer->data);
         return EIO;
