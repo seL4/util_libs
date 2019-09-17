@@ -99,7 +99,10 @@ int set_timeout(void *data, uint64_t ns, timeout_type_t type)
 
 static int handle_irq(void *data, ps_irq_t *irq)
 {
-    if (irq->irq.number != GENERIC_TIMER_PCNT_IRQ) {
+    if (irq->type != PS_PER_CPU &&
+        irq->cpu.number != GENERIC_TIMER_PCNT_IRQ &&
+        irq->cpu.trigger != 0 &&
+        irq->cpu.cpu_idx != 0) {
         return EINVAL;
     }
 
