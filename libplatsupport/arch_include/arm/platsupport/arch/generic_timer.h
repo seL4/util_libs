@@ -20,6 +20,8 @@
 #define GENERIC_TIMER_ENABLE BIT(0)
 #define GENERIC_TIMER_IMASK  BIT(1)
 #define GENERIC_TIMER_STATUS BIT(2)
+/* Tested to work on ARM A53's */
+#define GENERIC_TIMER_PCNT_IRQ 30
 
 /*
  * This timer will only work if the kernel has configured
