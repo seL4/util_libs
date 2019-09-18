@@ -42,7 +42,7 @@ static int parse_arm_gic_interrupts(char *dtb_blob, int node_offset, int intr_co
 {
     bool is_extended = false;
     int prop_len = 0;
-    void *interrupts_prop = get_interrupts_prop(dtb_blob, node_offset, &is_extended, &prop_len);
+    const void *interrupts_prop = get_interrupts_prop(dtb_blob, node_offset, &is_extended, &prop_len);
     assert(interrupts_prop != NULL);
     int total_cells = prop_len / sizeof(uint32_t);
 
@@ -53,7 +53,7 @@ static int parse_arm_gic_interrupts(char *dtb_blob, int node_offset, int intr_co
 
     for (int i = 0; i < num_interrupts; i++) {
         ps_irq_t curr_irq = {0};
-        void *curr = interrupts_prop + (i * stride * sizeof(uint32_t));
+        const void *curr = interrupts_prop + (i * stride * sizeof(uint32_t));
         curr_irq.type = PS_INTERRUPT;
         uint32_t irq_type = 0;
         uint32_t irq = 0;

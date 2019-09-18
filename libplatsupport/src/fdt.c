@@ -101,7 +101,7 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
     }
 
     int prop_len = 0;
-    void *reg_prop = fdt_getprop(dtb_blob, node_offset, "reg", &prop_len);
+    const void *reg_prop = fdt_getprop(dtb_blob, node_offset, "reg", &prop_len);
     if (!reg_prop) {
         /* The error is written to the variable passed in */
         return prop_len;
@@ -116,7 +116,7 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
 
     for (int i = 0; i < num_regs; i++) {
         pmem_region_t curr_pmem = {0};
-        void *curr = reg_prop + (i * stride * sizeof(uint32_t));
+        const void *curr = reg_prop + (i * stride * sizeof(uint32_t));
         curr_pmem.type = PMEM_TYPE_DEVICE;
         curr_pmem.base_addr = READ_CELL(num_address_cells, curr, 0);
         curr_pmem.length = READ_CELL(num_size_cells, curr, num_address_cells);
@@ -156,7 +156,7 @@ int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_f
     int node_offset = cookie->node_offset;
 
     /* check that this node actually has interrupts */
-    void *intr_addr = fdt_getprop(dtb_blob, node_offset, "interrupts", NULL);
+    const void *intr_addr = fdt_getprop(dtb_blob, node_offset, "interrupts", NULL);
     if (!intr_addr) {
         intr_addr = fdt_getprop(dtb_blob, node_offset, "interrupts-extended", NULL);
         if (!intr_addr) {
@@ -174,7 +174,7 @@ int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_f
     /* get the interrupt controller of the node */
     int curr_offset = parent_offset;
     bool found_controller = false;
-    void *intr_parent_prop;
+    const void *intr_parent_prop;
     while (curr_offset >= 0 && !found_controller) {
         intr_parent_prop = fdt_getprop(dtb_blob, curr_offset, "interrupt-parent", NULL);
         if (!intr_parent_prop) {

@@ -33,10 +33,10 @@ typedef struct ps_irqchip {
     ps_irqchip_parse_fn_t parser_fn;
 } ps_irqchip_t;
 
-static inline void *get_interrupts_prop(char *dtb_blob, int node_offset, bool *is_extended, int *prop_len)
+static inline const void *get_interrupts_prop(char *dtb_blob, int node_offset, bool *is_extended, int *prop_len)
 {
     ZF_LOGF_IF(!is_extended || !prop_len, "Ret args are NULL!");
-    void *interrupts_prop = fdt_getprop(dtb_blob, node_offset, "interrupts-extended", prop_len);
+    const void *interrupts_prop = fdt_getprop(dtb_blob, node_offset, "interrupts-extended", prop_len);
     if (interrupts_prop) {
         *is_extended = true;
         return interrupts_prop;
