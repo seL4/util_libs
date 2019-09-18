@@ -45,19 +45,6 @@ function(MakeCPIO output_name input_files)
     if(NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to MakeCPIO")
     endif()
-    if(KernelSel4ArchIA32)
-        set(LinkOFormat "elf32-i386")
-    elseif(KernelSel4ArchX86_64)
-        set(LinkOFormat "elf64-x86-64")
-    elseif(KernelSel4ArchAarch32 OR KernelSel4ArchArmHyp)
-        set(LinkOFormat "elf32-littlearm")
-    elseif(KernelSel4ArchAarch64)
-        set(LinkOFormat "elf64-littleaarch64")
-    elseif(KernelSel4ArchRiscV32)
-        set(LinkOFormat "elf32-littleriscv")
-    elseif(KernelSel4ArchRiscV64)
-        set(LinkOFormat "elf64-littleriscv")
-    endif()
     set(archive_symbol "_cpio_archive")
     if(NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
         set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
@@ -80,6 +67,11 @@ function(MakeCPIO output_name input_files)
     endforeach()
     list(APPEND commands "true")
 
+    if(KernelSel4ArchIA32)
+        set(CFLAGS "-m32")
+    else()
+	set(CFLAGS "")
+    endif()
     # RiscV doesn't support linking with -r
     if(KernelArchRiscV)
         set(relocate "")
@@ -90,9 +82,9 @@ function(MakeCPIO output_name input_files)
         OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
-	COMMAND sh -c "echo 'X.section .archive_cpioX.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
+	COMMAND sh -c "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
 	> ${output_name}.S
-        COMMAND ${CMAKE_C_COMPILER} ${relocate} -c -o ${output_name} ${output_name}.S
+        COMMAND ${CMAKE_C_COMPILER} ${CFLAGS} ${relocate} -c -o ${output_name} ${output_name}.S
         BYPRODUCTS archive.${output_name}.cpio ${output_name}.S
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
