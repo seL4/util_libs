@@ -13,7 +13,7 @@
 # This module provides a function GenerateSimulateScript which will place a `simulate`
 # script in the build directory for running produced images in Qemu.
 include_guard(GLOBAL)
-
+include("${KERNEL_HELPERS_PATH}")
 RequireFile(SIMULATE_SCRIPT simulate.py PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/")
 RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS "${CMAKE_CURRENT_LIST_DIR}")
 
