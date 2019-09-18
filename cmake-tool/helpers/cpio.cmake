@@ -90,15 +90,10 @@ function(MakeCPIO output_name input_files)
         OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
-        COMMAND
-            echo
-            "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
-            > link.${output_name}.ld
-        COMMAND
-            ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld
-            --oformat
-                ${LinkOFormat} ${relocate} -b binary archive.${output_name}.cpio -o ${output_name}
-                BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
+	COMMAND sh -c "echo 'X.section .archive_cpioX.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
+	> ${output_name}.S
+        COMMAND ${CMAKE_C_COMPILER} ${relocate} -c -o ${output_name} ${output_name}.S
+        BYPRODUCTS archive.${output_name}.cpio ${output_name}.S
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
         COMMENT "Generate CPIO archive ${output_name}"
