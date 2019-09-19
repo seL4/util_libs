@@ -70,7 +70,7 @@ function(MakeCPIO output_name input_files)
     if(KernelSel4ArchIA32)
         set(CFLAGS "-m32")
     else()
-	set(CFLAGS "")
+        set(CFLAGS "")
     endif()
     # RiscV doesn't support linking with -r
     if(KernelArchRiscV)
