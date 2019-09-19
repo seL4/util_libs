@@ -82,12 +82,17 @@ function(MakeCPIO output_name input_files)
         OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
-	COMMAND sh -c "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
-	> ${output_name}.S
-        COMMAND ${CMAKE_C_COMPILER} ${CFLAGS} ${relocate} -c -o ${output_name} ${output_name}.S
-        BYPRODUCTS archive.${output_name}.cpio ${output_name}.S
+        COMMAND
+            sh -c
+            "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
+            > ${output_name}.S
+        COMMAND
+            ${CMAKE_C_COMPILER} ${CFLAGS} ${relocate} -c -o ${output_name} ${output_name}.S
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
+        BYPRODUCTS
+        archive.${output_name}.cpio
+        ${output_name}.S
         COMMENT "Generate CPIO archive ${output_name}"
     )
 endfunction(MakeCPIO)
