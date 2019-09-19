@@ -66,18 +66,8 @@ function(MakeCPIO output_name input_files)
         set(append "--append")
     endforeach()
     list(APPEND commands "true")
+    separate_arguments(cmake_c_flags_sep NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 
-    if(KernelSel4ArchIA32)
-        set(CFLAGS "-m32")
-    else()
-        set(CFLAGS "")
-    endif()
-    # RiscV doesn't support linking with -r
-    if(KernelArchRiscV)
-        set(relocate "")
-    else()
-        set(relocate "-r")
-    endif()
     add_custom_command(
         OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
@@ -87,7 +77,7 @@ function(MakeCPIO output_name input_files)
             "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
             > ${output_name}.S
         COMMAND
-            ${CMAKE_C_COMPILER} ${CFLAGS} ${relocate} -c -o ${output_name} ${output_name}.S
+            ${CMAKE_C_COMPILER} ${cmake_c_flags_sep} -c -o ${output_name} ${output_name}.S
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
         BYPRODUCTS
