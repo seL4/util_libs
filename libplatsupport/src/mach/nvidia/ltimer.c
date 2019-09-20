@@ -30,7 +30,6 @@ typedef struct {
     bool started;
     nv_tmr_t nv_tmr;
     ps_io_ops_t ops;
-    uint64_t period;
 } nv_tmr_ltimer_t;
 
 static int get_time(void *data, uint64_t *time)
@@ -52,7 +51,6 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
 {
     assert(data != NULL);
     nv_tmr_ltimer_t *nv_tmr_ltimer = data;
-    nv_tmr_ltimer->period = 0;
 
     switch (type) {
     case TIMEOUT_ABSOLUTE: {
@@ -63,10 +61,8 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns - time);
     }
     case TIMEOUT_PERIODIC:
-        /* fall through */
-        nv_tmr_ltimer->period = ns;
     case TIMEOUT_RELATIVE:
-        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, false, ns);
+        return nv_tmr_set_timeout(&nv_tmr_ltimer->nv_tmr, (type == TIMEOUT_PERIODIC), ns);
     }
 
     return EINVAL;
