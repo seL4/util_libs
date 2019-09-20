@@ -36,15 +36,6 @@ typedef enum {
     TMR_LAST = TMR9,
 } nv_tmr_id_t;
 
-
-typedef struct {
-    /* vaddr of the base timer device registers */
-    uintptr_t vaddr_base;
-    /* second vaddr mapping for platforms that have timers on separate pages (TX2) */
-    uintptr_t vaddr_tmr;
-    nv_tmr_id_t id;
-} nv_tmr_config_t;
-
 struct tmr_map {
     uint32_t pvt;    /* present trigger value */
     uint32_t pcr;    /* present count value */
