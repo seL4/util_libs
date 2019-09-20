@@ -76,8 +76,7 @@ void nv_tmr_destroy(nv_tmr_t *tmr)
 
 #define INVALID_PVT_VAL 0x80000000
 
-static uint32_t
-get_ticks(uint64_t ns)
+static uint32_t get_ticks(uint64_t ns)
 {
     uint64_t microsecond = ns / 1000ull;
     uint64_t ticks = microsecond * CLK_FREQ_MHZ;
@@ -98,7 +97,7 @@ int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns)
     /* ack any pending irqs */
     tmr->tmr_map->pcr |= BIT(PCR_INTR_CLR_BIT);
     tmr->tmr_map->pvt = BIT(PVT_E_BIT) | ticks
-        | ((periodic) ? BIT(PVT_PERIODIC_E_BIT) : 0);
+                        | ((periodic) ? BIT(PVT_PERIODIC_E_BIT) : 0);
     return 0;
 }
 
@@ -154,7 +153,8 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irq
     return 0;
 }
 
-int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback, void *user_callback_token)
+int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback,
+                void *user_callback_token)
 {
     if (!tmr || !device_path) {
         return EINVAL;
@@ -201,11 +201,11 @@ int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callba
     tmr->tmr_map->pvt = 0;
     tmr->tmr_map->pcr = BIT(PCR_INTR_CLR_BIT);
 
-/* The following #ifdef is for some platform specific init for tk1, tx1, tx2
- * currently this custom init is only one line each hence using the ifdef.
- * If the platform specific code becomes any larger, then it should be considered
- * moving into a per platform nv_timer_plat_init function
- */
+    /* The following #ifdef is for some platform specific init for tk1, tx1, tx2
+     * currently this custom init is only one line each hence using the ifdef.
+     * If the platform specific code becomes any larger, then it should be considered
+     * moving into a per platform nv_timer_plat_init function
+     */
 #ifdef CONFIG_PLAT_TX2
     /* Route the interrupt to the correct shared interrupt number. */
     tmr->tmr_shared_map->TKEIE[NV_TMR_ID] = BIT(NV_TMR_ID);

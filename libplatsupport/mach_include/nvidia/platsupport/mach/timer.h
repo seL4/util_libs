@@ -70,5 +70,6 @@ void nv_tmr_destroy(nv_tmr_t *tmr);
 int nv_tmr_set_timeout(nv_tmr_t *tmr, bool periodic, uint64_t ns);
 void nv_tmr_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data);
 uint64_t nv_tmr_get_time(nv_tmr_t *tmr);
-int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback, void *user_callback_token);
+int nv_tmr_init(nv_tmr_t *tmr, ps_io_ops_t ops, char *device_path, ltimer_callback_fn_t user_callback,
+                void *user_callback_token);
 uint32_t nv_tmr_get_usec_upcounter_val(nv_tmr_t *tmr);

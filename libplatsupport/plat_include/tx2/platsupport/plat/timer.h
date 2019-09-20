@@ -42,13 +42,13 @@ struct tmr_shared_map {
     uint32_t TKEUSEC; // This is the same as the tmrus_map.cntr_1us below
     uint32_t TKEOSC;  // Value of local OSC counter, not synchronized across SOC
     uint32_t TKECR;   // Control register
-    uint32_t pad[(0x100/4)-5]; // Have to pad to 0x100
+    uint32_t pad[(0x100 / 4) - 5]; // Have to pad to 0x100
     uint32_t TKEIE[10]; // Routing of shared interrupt {i}, a bit mask indicating which
-                        // of the internal interrupts is propagated to external interrupt {i},
-    uint32_t pad1[(0x100/4)-10]; // Have to pad to 0x200
+    // of the internal interrupts is propagated to external interrupt {i},
+    uint32_t pad1[(0x100 / 4) - 10]; // Have to pad to 0x200
     uint32_t TKEIV;   // Which shared interrupts are currently asserted
     uint32_t TKEIR;   // Which internal interrupts are currently asserted, before applying the
-                      // TKEIE masks
+    // TKEIE masks
 } PACKED;
 static_assert(sizeof(struct tmr_shared_map) == 0x208, "struct tmr_shared_map has incorrect layout");
 
