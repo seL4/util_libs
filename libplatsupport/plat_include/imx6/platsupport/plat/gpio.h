@@ -12,9 +12,11 @@
 
 #pragma once
 
+#include <utils/util.h>
 #include <platsupport/gpio.h>
 #include <platsupport/mux.h>
 
+/* GPIO IDs */
 #define GPIOID_GPIO0     GPIOID(GPIO_BANK1,  0)
 #define GPIOID_GPIO1     GPIOID(GPIO_BANK1,  1)
 #define GPIOID_GPIO2     GPIOID(GPIO_BANK1,  2)
@@ -38,6 +40,9 @@
 #define GPIOID_NAND_D06  GPIOID(GPIO_BANK2,  6)
 #define GPIOID_NAND_D07  GPIOID(GPIO_BANK2,  7)
 
+#define MAX_GPIO_ID GPIOID_NAND_D07
+
+/* Aliases */
 #define KEY_VOL_UP  GPIOID_GPIO18
 #define KEY_HOME    GPIOID_NAND_D04
 #define KEY_SEARCH  GPIOID_NAND_D03

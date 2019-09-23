@@ -21,6 +21,7 @@
 #define GPIOPORT(bank, port)        _GPIOPORT(GPIO_##bank##_BANK, port)
 #define GPIOPORT_NONE               _GPIOPORT(GPIO_NBANKS, 0)
 
+/* GPIO IDs */
 #define XEINT0   GPIOID(GPX0, 0)
 #define XEINT1   GPIOID(GPX0, 1)
 #define XEINT2   GPIOID(GPX0, 2)
@@ -53,6 +54,8 @@
 #define XEINT29  GPIOID(GPX3, 5)
 #define XEINT30  GPIOID(GPX3, 6)
 #define XEINT31  GPIOID(GPX3, 7)
+
+#define MAX_GPIO_ID XEINT31
 
 enum gpio_bank {
     GPIO_LEFT_BANK,

@@ -285,6 +285,8 @@ enum gpio_pin {
         GPIOPORT_NONE,
 };
 
+#define MAX_GPIO_ID GPIO_PFF7
+
 /** Statically initializes a mux_sys for the TK1 SoC.
  *
  * Usually a GPIO driver would depend on a mux driver, but on the TK1, it is the
