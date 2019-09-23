@@ -19,12 +19,12 @@ typedef struct mux_sys mux_sys_t;
 
 #include <utils/arith.h>
 
-enum mux_gpio_dir {
+typedef enum mux_gpio_dir {
     MUX_DIR_NOT_A_GPIO = 0,
     MUX_DIR_GPIO_IN = BIT(0),
     MUX_DIR_GPIO_OUT = BIT(1),
     MUX_DIR_GPIO_BOTH = (MUX_DIR_GPIO_IN | MUX_DIR_GPIO_OUT)
-};
+} mux_gpio_dir_t;
 
 struct mux_sys {
     int (*feature_enable)(mux_sys_t* mux, mux_feature_t, enum mux_gpio_dir);
@@ -108,4 +108,3 @@ static inline int mux_feature_disable(mux_sys_t* mux, mux_feature_t mux_feature)
         return -ENOSYS;
     }
 }
-

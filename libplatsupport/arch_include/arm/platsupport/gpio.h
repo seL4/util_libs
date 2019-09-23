@@ -32,7 +32,7 @@ struct gpio {
     gpio_sys_t *gpio_sys;
 };
 
-enum gpio_dir {
+typedef enum gpio_dir {
 /// Input direction
     GPIO_DIR_IN,
     /* Output direction:
@@ -55,7 +55,7 @@ enum gpio_dir {
     GPIO_DIR_IRQ_RISE,
 /// Input direction with IRQ on both rising and falling edges
     GPIO_DIR_IRQ_EDGE
-};
+} gpio_dir_t;
 
 enum gpio_level {
     /* GPIO input/output levels */
