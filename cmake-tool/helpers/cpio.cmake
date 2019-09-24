@@ -45,19 +45,6 @@ function(MakeCPIO output_name input_files)
     if(NOT "${MAKE_CPIO_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to MakeCPIO")
     endif()
-    if(KernelSel4ArchIA32)
-        set(LinkOFormat "elf32-i386")
-    elseif(KernelSel4ArchX86_64)
-        set(LinkOFormat "elf64-x86-64")
-    elseif(KernelSel4ArchAarch32 OR KernelSel4ArchArmHyp)
-        set(LinkOFormat "elf32-littlearm")
-    elseif(KernelSel4ArchAarch64)
-        set(LinkOFormat "elf64-littleaarch64")
-    elseif(KernelSel4ArchRiscV32)
-        set(LinkOFormat "elf32-littleriscv")
-    elseif(KernelSel4ArchRiscV64)
-        set(LinkOFormat "elf64-littleriscv")
-    endif()
     set(archive_symbol "_cpio_archive")
     if(NOT "${MAKE_CPIO_CPIO_SYMBOL}" STREQUAL "")
         set(archive_symbol ${MAKE_CPIO_CPIO_SYMBOL})
@@ -79,28 +66,23 @@ function(MakeCPIO output_name input_files)
         set(append "--append")
     endforeach()
     list(APPEND commands "true")
+    separate_arguments(cmake_c_flags_sep NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 
-    # RiscV doesn't support linking with -r
-    if(KernelArchRiscV)
-        set(relocate "")
-    else()
-        set(relocate "-r")
-    endif()
     add_custom_command(
         OUTPUT ${output_name}
         COMMAND rm -f archive.${output_name}.cpio
         COMMAND ${commands}
         COMMAND
-            echo
-            "SECTIONS { ._archive_cpio : ALIGN(4) { ${archive_symbol} = . ; *(.*) ; ${archive_symbol}_end = . ; } }"
-            > link.${output_name}.ld
+            sh -c
+            "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
+            > ${output_name}.S
         COMMAND
-            ${CROSS_COMPILER_PREFIX}ld -T link.${output_name}.ld
-            --oformat
-                ${LinkOFormat} ${relocate} -b binary archive.${output_name}.cpio -o ${output_name}
-                BYPRODUCTS archive.${output_name}.cpio link.${output_name}.ld
+            ${CMAKE_C_COMPILER} ${cmake_c_flags_sep} -c -o ${output_name} ${output_name}.S
         DEPENDS ${input_files} ${MAKE_CPIO_DEPENDS}
         VERBATIM
+        BYPRODUCTS
+        archive.${output_name}.cpio
+        ${output_name}.S
         COMMENT "Generate CPIO archive ${output_name}"
     )
 endfunction(MakeCPIO)
