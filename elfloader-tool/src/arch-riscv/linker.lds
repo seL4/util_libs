@@ -99,6 +99,11 @@ SECTIONS
   {
     *(.rodata)
     *(.rodata.*)
+
+    . = ALIGN(8);
+    _archive_start = .;
+      *(._archive_cpio)
+    _archive_end = .;
   }
 
 _end = .;
