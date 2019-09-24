@@ -59,3 +59,14 @@ SECTIONS
     _got_end = .;
 }
 INSERT AFTER .rodata;
+
+SECTIONS
+{
+    . = ALIGN(8);
+    ._archive_cpio : {
+        _archive_start = .;
+        *(._archive_cpio)
+        _archive_end = .;
+    }
+}
+INSERT AFTER .eh_frame;

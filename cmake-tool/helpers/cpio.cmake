@@ -74,7 +74,7 @@ function(MakeCPIO output_name input_files)
         COMMAND ${commands}
         COMMAND
             sh -c
-            "echo 'X.section .archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
+            "echo 'X.section ._archive_cpio,\"aw\"X.globl ${archive_symbol}, ${archive_symbol}_endX${archive_symbol}:X.incbin \"archive.${output_name}.cpio\"X${archive_symbol}_end:X' | tr X '\\n'"
             > ${output_name}.S
         COMMAND
             ${CMAKE_C_COMPILER} ${cmake_c_flags_sep} -c -o ${output_name} ${output_name}.S
