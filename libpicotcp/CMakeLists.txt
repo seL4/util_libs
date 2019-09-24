@@ -13,6 +13,8 @@
 cmake_minimum_required(VERSION 3.7.2)
 project(libpicotcp NONE)
 
+include(external-project-helpers)
+
 set(configure_string "")
 
 config_option(LibPicotcp LIB_PICOTCP "Build libpicotcp" DEFAULT OFF)
