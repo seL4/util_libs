@@ -11,6 +11,7 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <ethdrivers/gen_config.h>
 #include <ethdrivers/imx6.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>

@@ -13,6 +13,7 @@
 
 #include "unimplemented.h"
 #include "io.h"
+#include <ethdrivers/gen_config.h>
 #include <ethdrivers/zynq7000.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
