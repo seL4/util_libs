@@ -91,16 +91,16 @@ int setup_iomux_enet(ps_io_ops_t *io_ops);
 #define TXD_ADDCRC    BIT(10) /* Append a CRC to the end of the frame */
 #define TXD_ADDBADCRC BIT( 9) /* Append a bad CRC to the end of the frame */
 
-static void
-low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
+static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data*)driver->eth_data;
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     enet_get_mac(dev->enet, mac);
     *mtu = MAX_PKT_SIZE;
 }
 
-static void fill_rx_bufs(struct eth_driver *driver) {
-    struct imx6_eth_data *dev = (struct imx6_eth_data*)driver->eth_data;
+static void fill_rx_bufs(struct eth_driver *driver)
+{
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     __sync_synchronize();
     while (dev->rx_remain > 0) {
         /* request a buffer */
@@ -110,7 +110,7 @@ static void fill_rx_bufs(struct eth_driver *driver) {
         // This fn ptr is either lwip_allocate_rx_buf or lwip_pbuf_allocate_rx_buf (in src/lwip.c)
         uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie);
         if (!phys) {
-            // NOTE: This condition could happen if 
+            // NOTE: This condition could happen if
             //       CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS < CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT
             break;
         }
@@ -130,21 +130,23 @@ static void fill_rx_bufs(struct eth_driver *driver) {
     }
 }
 
-static void enable_interrupts(struct imx6_eth_data *dev) {
-    struct enet* enet = dev->enet;
+static void enable_interrupts(struct imx6_eth_data *dev)
+{
+    struct enet *enet = dev->enet;
     assert(enet);
     enet_enable_events(enet, 0);
     enet_clr_events(enet, ~(NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR));
     enet_enable_events(enet, NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
 }
 
-static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man) {
+static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
+{
     if (dev->rx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->rx_ring, sizeof(struct descriptor) * dev->rx_size);
+        dma_unpin_free(dma_man, (void *)dev->rx_ring, sizeof(struct descriptor) * dev->rx_size);
         dev->rx_ring = NULL;
     }
     if (dev->tx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->tx_ring, sizeof(struct descriptor) * dev->tx_size);
+        dma_unpin_free(dma_man, (void *)dev->tx_ring, sizeof(struct descriptor) * dev->tx_size);
         dev->tx_ring = NULL;
     }
     if (dev->rx_cookies) {
@@ -161,7 +163,8 @@ static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man) {
     }
 }
 
-static int initialize_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man) {
+static int initialize_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
+{
     dma_addr_t rx_ring = dma_alloc_pin(dma_man, sizeof(struct descriptor) * dev->rx_size, 0, DMA_ALIGN);
     if (!rx_ring.phys) {
         LOG_ERROR("Failed to allocate rx_ring");
@@ -177,8 +180,8 @@ static int initialize_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man
     }
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct descriptor) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct descriptor) * dev->tx_size);
-    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
+    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
+    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
         if (dev->rx_cookies) {
@@ -223,8 +226,9 @@ static int initialize_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man
     return 0;
 }
 
-static void complete_rx(struct eth_driver *eth_driver) {
-    struct imx6_eth_data *dev = (struct imx6_eth_data*)eth_driver->eth_data;
+static void complete_rx(struct eth_driver *eth_driver)
+{
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)eth_driver->eth_data;
     unsigned int rdt = dev->rdt;
     while (dev->rdh != rdt) {
         unsigned int status = dev->rx_ring[dev->rdh].stat;
@@ -247,8 +251,9 @@ static void complete_rx(struct eth_driver *eth_driver) {
     }
 }
 
-static void complete_tx(struct eth_driver *driver) {
-    struct imx6_eth_data *dev = (struct imx6_eth_data*)driver->eth_data;
+static void complete_tx(struct eth_driver *driver)
+{
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     while (dev->tdh != dev->tdt) {
         unsigned int i;
         for (i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
@@ -266,47 +271,49 @@ static void complete_tx(struct eth_driver *driver) {
         /* give the buffer back */
         driver->i_cb.tx_complete(driver->cb_cookie, cookie);
     }
-    if(dev->tdh != dev->tdt && !enet_tx_enabled(dev->enet)) {
+    if (dev->tdh != dev->tdt && !enet_tx_enabled(dev->enet)) {
         enet_tx_enable(dev->enet);
     }
 }
 
-static void print_state(struct eth_driver *eth_driver) {
-    struct imx6_eth_data *eth_data = (struct imx6_eth_data*)eth_driver->eth_data;
+static void print_state(struct eth_driver *eth_driver)
+{
+    struct imx6_eth_data *eth_data = (struct imx6_eth_data *)eth_driver->eth_data;
     enet_print_mib(eth_data->enet);
 }
 
-static void
-handle_irq(struct eth_driver *driver, int irq)
+static void handle_irq(struct eth_driver *driver, int irq)
 {
-    struct imx6_eth_data *eth_data = (struct imx6_eth_data*)driver->eth_data;
-    struct enet* enet = eth_data->enet;
+    struct imx6_eth_data *eth_data = (struct imx6_eth_data *)driver->eth_data;
+    struct enet *enet = eth_data->enet;
     uint32_t e;
     e = enet_clr_events(enet, NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
-    if(e & NETIRQ_TXF){
+    if (e & NETIRQ_TXF) {
         complete_tx(driver);
     }
-    if(e & NETIRQ_RXF){
+    if (e & NETIRQ_RXF) {
         complete_rx(driver);
         fill_rx_bufs(driver);
     }
-    if(e & NETIRQ_EBERR){
+    if (e & NETIRQ_EBERR) {
         printf("Error: System bus/uDMA\n");
         //ethif_print_state(netif_get_eth_driver(netif));
         assert(0);
-        while(1);
+        while (1);
     }
 }
 
-static void raw_poll(struct eth_driver *driver) {
+static void raw_poll(struct eth_driver *driver)
+{
     complete_rx(driver);
     complete_tx(driver);
     fill_rx_bufs(driver);
 }
 
-static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie) {
-    struct imx6_eth_data *dev = (struct imx6_eth_data*)driver->eth_data;
-    struct enet* enet = dev->enet;
+static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie)
+{
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    struct enet *enet = dev->enet;
     /* Ensure we have room */
     if (dev->tx_remain < num) {
         /* try and complete some */
@@ -322,7 +329,8 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
         dev->tx_ring[ring].len = len[i];
         dev->tx_ring[ring].phys = phys[i];
         __sync_synchronize();
-        dev->tx_ring[ring].stat = TXD_READY | (ring + 1 == dev->tx_size ? TXD_WRAP : 0) | (i + 1 == num ? TXD_ADDCRC | TXD_LAST : 0);
+        dev->tx_ring[ring].stat = TXD_READY | (ring + 1 == dev->tx_size ? TXD_WRAP : 0) | (i + 1 == num ? TXD_ADDCRC |
+                                                                                           TXD_LAST : 0);
     }
     dev->tx_cookies[dev->tdt] = cookie;
     dev->tx_lengths[dev->tdt] = num;
@@ -344,10 +352,11 @@ static struct raw_iface_funcs iface_fns = {
     .raw_poll = raw_poll
 };
 
-int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config) {
+int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
+{
     struct ocotp *ocotp = NULL;
     int err;
-    struct enet * enet;
+    struct enet *enet;
     struct imx6_eth_data *eth_data = NULL;
     uint8_t mac[6];
 
@@ -358,7 +367,7 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
 
     struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
 
-    eth_data = (struct imx6_eth_data*)malloc(sizeof(struct imx6_eth_data));
+    eth_data = (struct imx6_eth_data *)malloc(sizeof(struct imx6_eth_data));
     if (eth_data == NULL) {
         LOG_ERROR("Failed to allocate eth data struct");
         goto error;
@@ -393,7 +402,9 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     /* Initialise the phy */
     phy_micrel_init();
     /* Initialise the RGMII interface */
-    enet = enet_init((struct desc_data){.tx_phys = eth_data->tx_ring_phys, .rx_phys = eth_data->rx_ring_phys, .rx_bufsize = BUF_SIZE}, &io_ops);
+    enet = enet_init((struct desc_data) {
+        .tx_phys = eth_data->tx_ring_phys, .rx_phys = eth_data->rx_ring_phys, .rx_bufsize = BUF_SIZE
+    }, &io_ops);
     if (!enet) {
         LOG_ERROR("Failed to initialize RGMII");
         /* currently no way to properly clean up enet */
@@ -407,8 +418,7 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
             memcpy(mac, DEFAULT_MAC, 6);
         }
         enet_prom_enable(enet);
-    }
-    else {
+    } else {
         memcpy(mac, plat_config->mac_addr, 6);
         enet_prom_disable(enet);
     }
