@@ -81,7 +81,7 @@
        (_n + (_n % _b == 0 ? 0 : (_b - (_n % _b)))); \
     })
 
-#define DIV_ROUND_UP(n,d)	\
+#define DIV_ROUND_UP(n,d)   \
     ({ typeof (n) _n = (n); \
        typeof (d) _d = (d); \
        (_n/_d + (_n % _d == 0 ? 0 : 1)); \
