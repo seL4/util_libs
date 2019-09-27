@@ -47,6 +47,19 @@
  * we learn how many bits from the 'right' it is. */
 #define LOG_BASE_2(n) (sizeof(unsigned long) * CHAR_BIT - CLZL(n) - 1)
 
+/* Taken from Hacker's Delight, this works on 32 bit integers,
+ * also note that it *will* calculate the *next* power of two,
+ * i.e. NEXT_POWER_OF_2(64) == 128 not 64 */
+#define NEXT_POWER_OF_2(x)  \
+    ({ uint32_t temp = (uint32_t) x;    \
+       temp |= (temp >> 1);             \
+       temp |= (temp >> 2);             \
+       temp |= (temp >> 4);             \
+       temp |= (temp >> 8);             \
+       temp |= (temp >> 16);            \
+       temp += 1;                       \
+    })
+
 #define IS_POWER_OF_2_OR_ZERO(x) (0 == ((x) & ((x) - 1)))
 #define IS_POWER_OF_2(x) (((x) != 0) && IS_POWER_OF_2_OR_ZERO(x))
 #define ALIGN_UP(x, n) (((x) + (n) - 1) & ~((n) - 1))
