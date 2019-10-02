@@ -90,9 +90,8 @@ static void destroy(void *data)
 
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
+    if (!ltimer) {
+        return EINVAL;
     }
 
     ltimer->get_time = get_time;
@@ -101,7 +100,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     ltimer->reset = reset;
     ltimer->destroy = destroy;
 
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(nv_tmr_ltimer_t), &ltimer->data);
+    int error = ps_calloc(&ops.malloc_ops, 1, sizeof(nv_tmr_ltimer_t), &ltimer->data);
     if (error) {
         return error;
     }
