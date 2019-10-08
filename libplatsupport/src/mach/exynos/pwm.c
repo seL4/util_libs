@@ -20,7 +20,11 @@
 #include <platsupport/timer.h>
 #include <platsupport/mach/pwm.h>
 
-#define ACLK_66 66 /* MHz */
+#if defined CONFIG_PLAT_EXYNOS5
+#define CLK_FREQ 66ull /* MHz */
+#else
+#define CLK_FREQ 100ull /* MHz */
+#endif
 
 #define T4_ENABLE          BIT(20)
 #define T4_MANUALRELOAD    BIT(21)
@@ -78,8 +82,10 @@ void configure_timeout(pwm_t *pwm, uint64_t ns, int timer_number, bool periodic)
 
     /* Calculate the scale and reload values. */
     uint32_t div = 0; /* Not implemented */
-    uint32_t prescale = ns * ACLK_66 / 1000 / 100000000UL;
-    uint32_t cnt = ns * ACLK_66 / 1000 / (prescale + 1) / (BIT(div));
+    uint64_t ticks = (ns * CLK_FREQ) / 1000;
+    uint32_t prescale = ticks >> (32);
+    uint32_t cnt = ticks / (prescale + 1) / (BIT(div));
+
     assert(prescale <= 0xff); /* if this fails, we need to implement div */
     assert(div <= 0xf);
 
@@ -184,13 +190,17 @@ void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 
 uint64_t pwm_get_time(pwm_t *pwm)
 {
-    pwm_handle_irq(pwm, 0); // Ensure the time is up to date
-    uint64_t time_l = (pwm->pwm_map->tcntO0 / (ACLK_66 / 1000.0)); // Clk is in MHz
+    uint64_t hi = pwm->time_h;
+    uint64_t time_l = ((pwm->pwm_map->tcntO0 / CLK_FREQ) * 1000.0); // Clk is in MHz
+    pwm_handle_irq(pwm, PWM_T0_INTERRUPT); // Ensure the time is up to date
+    if (hi != pwm->time_h) {
+        time_l = ((pwm->pwm_map->tcntO0 / CLK_FREQ) * 1000.0);
+    }
     return pwm->time_h * NS_IN_S + (NS_IN_S - time_l);
 }
 
 int pwm_init(pwm_t *pwm, pwm_config_t config)
 {
-    pwm->pwm_map = (volatile struct pwm_map*) config.vaddr;
+    pwm->pwm_map = (volatile struct pwm_map *) config.vaddr;
     return 0;
 }
