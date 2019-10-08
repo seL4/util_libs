@@ -552,3 +552,14 @@ i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size,
                                   cb, token);
 }
 
+
+static inline void i2c_handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t ack, void *ack_data)
+{
+    assert(data);
+
+    i2c_bus_t *bus = data;
+    i2c_handle_irq(bus);
+
+    int error = ack(ack_data);
+    assert(!error);
+}
