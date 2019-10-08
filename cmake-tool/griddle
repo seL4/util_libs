@@ -629,7 +629,7 @@ then
             # Initialize CMake.
             cmake -G Ninja ${EXTRA_ARGS:-} \
                     $CMAKE_ARGS \
-                    -C "$project_dir/settings.cmake" "$project_dir"
+                    -C "$PROJECT_DIR/settings.cmake" "$PROJECT_DIR"
         else
             # This case shouldn't be hit as if $SOURCE_ROOT/easy-settings.cmake doesn't
             # exist then the script should have failed earlier.
