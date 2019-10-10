@@ -136,7 +136,11 @@ is_configuration_stable () {
     fi
 
     cp $CMAKECACHE $CMAKECACHE_BACKUP
-    cmake "$CMAKE_ARGS" . || die "cmake failed"
+    # $CMAKE_ARGS is unquoted because because cmake needs shell word-splitting
+    # to be done on its parameters.  Furthermore, there should be no
+    # configuration variables with whitespace embedded in their flag names or
+    # values.  (Well, certainly not the _names_...)
+    cmake $CMAKE_ARGS . || die "cmake failed"
     cmp -s $CMAKECACHE $CMAKECACHE_BACKUP
     # `return` with no arguments returns the exit status of the last "simple
     # command" executed, so don't insert anything between `cmp` and `return`.
