@@ -90,7 +90,7 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
     if (num_address_cells < 0) {
         return num_address_cells;
     }
-    int num_size_cells = fdt_address_cells(dtb_blob, parent_offset);
+    int num_size_cells = fdt_size_cells(dtb_blob, parent_offset);
     if (num_size_cells < 0) {
         return num_size_cells;
     }
