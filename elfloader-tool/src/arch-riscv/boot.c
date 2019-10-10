@@ -120,11 +120,51 @@ uint64_t vm_mode = 0x9llu << 60;
 #error "Wrong PT level"
 #endif
 
+#if CONFIG_MAX_NUM_NODES > 1
+int secondary_go = 0;
+int next_logical_core_id = 1;
+int mutex = 0;
+int core_ready[CONFIG_MAX_NUM_NODES] = { 0 };
+static void set_and_wait_for_ready(int hart_id, int core_id)
+{
+    while (__atomic_exchange_n(&mutex, 1, __ATOMIC_ACQUIRE) != 0);
+    printf("Hart ID %d core ID %d\n", hart_id, core_id);
+    core_ready[core_id] = 1;
+    __atomic_store_n(&mutex, 0, __ATOMIC_RELEASE);
+
+    for (int i = 0; i < CONFIG_MAX_NUM_NODES; i++) {
+        while (__atomic_load_n(&core_ready[i], __ATOMIC_RELAXED) == 0) ;
+    }
+}
+#endif
+
+static inline void sfence_vma(void)
+{
+    asm volatile("sfence.vma" ::: "memory");
+}
+
+static inline void ifence(void)
+{
+    asm volatile("fence.i" ::: "memory");
+}
+
+static inline void enable_virtual_memory(void)
+{
+    sfence_vma();
+    asm volatile(
+        "csrw sptbr, %0\n"
+        :
+        : "r"(vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
+        :
+    );
+    ifence();
+}
+
 int num_apps = 0;
-void main(UNUSED int hardid, void *dtb)
+void main(UNUSED int hartid, void *dtb)
 {
     uint32_t dtb_size;
-    printf("ELF-loader started on\n");
+    printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);
 
     printf("  paddr=[%p..%p]\n", _start, _end - 1);
     /* Unpack ELF images into memory. */
@@ -138,21 +178,48 @@ void main(UNUSED int hardid, void *dtb)
 
     printf("Jumping to kernel-image entry point...\n\n");
 
-    asm volatile("sfence.vma");
-    asm volatile("fence.i");
+#if CONFIG_MAX_NUM_NODES > 1
+    /* Unleash secondary cores */
+    __atomic_store_n(&secondary_go, 1, __ATOMIC_RELEASE);
+    /* Set that the current core is ready and wait for other cores */
+    set_and_wait_for_ready(hartid, 0);
+#endif
 
-    asm volatile(
-        "csrw sptbr, %0\n"
-        :
-        : "r"(vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
-        :
-    );
+    enable_virtual_memory();
 
     /* TODO: pass DTB to kernel. */
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                                   user_info.phys_region_end, user_info.phys_virt_offset,
-                                                  user_info.virt_entry);
+                                                  user_info.virt_entry
+#if CONFIG_MAX_NUM_NODES > 1
+                                                  ,
+                                                  hartid,
+                                                  0
+#endif
+                                                  );
 
     /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
 }
+
+#if CONFIG_MAX_NUM_NODES > 1
+
+void secondary_entry(int hart_id, int core_id)
+{
+    while (__atomic_load_n(&secondary_go, __ATOMIC_ACQUIRE) == 0) ;
+
+    set_and_wait_for_ready(hart_id, core_id);
+
+    enable_virtual_memory();
+
+    /* TODO: pass DTB to kernel. */
+    ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
+                                                  user_info.phys_region_end, user_info.phys_virt_offset,
+                                                  user_info.virt_entry
+                                                  ,
+                                                  hart_id,
+                                                  core_id
+                                                  );
+}
+
+#endif
