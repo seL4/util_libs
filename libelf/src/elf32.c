@@ -84,8 +84,7 @@
 #include <string.h>
 
 /* ELF header functions */
-int
-elf32_checkFile(elf_t *elf)
+int elf32_checkFile(elf_t *elf)
 {
     if (elf->elfSize < sizeof(Elf32_Ehdr)) {
         return -1; /* file smaller than ELF header */
@@ -116,8 +115,7 @@ elf32_checkFile(elf_t *elf)
     return 0; /* elf header looks OK */
 }
 
-int
-elf32_checkProgramHeaderTable(elf_t *elf)
+int elf32_checkProgramHeaderTable(elf_t *elf)
 {
     Elf32_Ehdr *header = elf->elfFile;
     size_t ph_end = header->e_phoff + header->e_phentsize * header->e_phnum;
@@ -128,8 +126,7 @@ elf32_checkProgramHeaderTable(elf_t *elf)
     return 0;
 }
 
-int
-elf32_checkSectionTable(elf_t *elf)
+int elf32_checkSectionTable(elf_t *elf)
 {
     Elf32_Ehdr *header = elf->elfFile;
     size_t sh_end = header->e_shoff + header->e_shentsize * header->e_shnum;
