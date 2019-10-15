@@ -341,7 +341,8 @@ foreach(val IN LISTS kernel_platforms)
 endforeach()
 EOF
 
-    (cd ../kernel && cmake -P "$TEMP" 2>&1 | cut -d';' -f1)
+    (cd ../kernel && cmake -DCMAKE_TOOLCHAIN_FILE=ignore -P "$TEMP" 2>&1 \
+        | cut -d';' -f1)
     # Clean up the temporary file and deregister the signal handler.
     rm "$TEMP"
     trap - HUP INT QUIT TERM
@@ -537,10 +538,10 @@ do
             HAD_ARGUMENT_PROBLEMS=yes
         fi
 
-                VALUE=$2
+        VALUE=$2
 
         # Handle the option argument.
-        case "${2:-}" in
+        case "${VALUE:-}" in
             # GNU getopt synthesises a single space as an option argument if one
             # was not specified.
             (" ")
