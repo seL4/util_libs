@@ -399,7 +399,7 @@ gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
     return !!(val & BIT(GPIO_BIT(gpio)));
 }
 
-static int tegra_pending_status(gpio_t* gpio, int clear)
+static int tegra_pending_status(gpio_t* gpio, bool clear)
 {
     int pending;
 

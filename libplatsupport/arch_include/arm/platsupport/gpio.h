@@ -81,7 +81,7 @@ struct gpio_sys {
     int (*set_level)(gpio_t *gpio, enum gpio_level level);
     int (*read_level)(gpio_t *gpio);
 /// Manipulate the status of a pending IRQ
-    int (*pending_status)(gpio_t *gpio, int clear);
+    int (*pending_status)(gpio_t *gpio, bool clear);
 /// Enable and disable the IRQ signal from the pin
     int (*irq_enable_disable)(gpio_t *gpio, bool enable);
 /// platform specific private data
@@ -150,18 +150,22 @@ static inline int gpio_is_pending(gpio_t* gpio)
 {
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    return gpio->gpio_sys->pending_status(gpio, 0);
+    return gpio->gpio_sys->pending_status(gpio, false);
 }
 
 /**
  * Clear pending IRQs for this GPIO
  * @param[in] a handle to a GPIO
  */
-static inline void gpio_pending_clear(gpio_t* gpio)
+static inline int gpio_pending_clear(gpio_t* gpio)
 {
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    gpio->gpio_sys->pending_status(gpio, 1);
+    int ret = gpio->gpio_sys->pending_status(gpio, true);
+    if (ret < 0) {
+        return ret;
+    }
+    return 0;
 }
 
 /**

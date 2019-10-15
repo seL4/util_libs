@@ -324,7 +324,7 @@ gpio_dir_get_intcon(enum gpio_dir dir)
 }
 
 static int
-exynos_pending_status(gpio_t* gpio, int clear)
+exynos_pending_status(gpio_t* gpio, bool clear)
 {
     volatile struct mux_bank* bank;
     uint32_t pend;
