@@ -52,34 +52,33 @@ struct imx6_gpio_regs {
 };
 
 static struct imx6_gpio {
-    mux_sys_t* mux;
-    volatile struct imx6_gpio_regs* bank[GPIO_NBANKS];
+    mux_sys_t *mux;
+    volatile struct imx6_gpio_regs *bank[GPIO_NBANKS];
 } _gpio;
 
-volatile static struct imx6_gpio_regs*
-imx6_gpio_get_bank(gpio_t* gpio) {
-    struct imx6_gpio* gpio_priv;
+volatile static struct imx6_gpio_regs *imx6_gpio_get_bank(gpio_t *gpio)
+{
+    struct imx6_gpio *gpio_priv;
     int port;
     assert(gpio);
     assert(gpio->gpio_sys);
     assert(gpio->gpio_sys->priv);
-    gpio_priv = (struct imx6_gpio*)gpio->gpio_sys->priv;
+    gpio_priv = (struct imx6_gpio *)gpio->gpio_sys->priv;
     port = GPIOID_PORT(gpio->id);
     assert(port < GPIO_NBANKS);
     assert(port >= 0);
     return gpio_priv->bank[port];
 }
 
-static int
-imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
+static int imx6_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio_t *gpio)
 {
-    volatile struct imx6_gpio_regs* bank;
-    struct imx6_gpio* gpio_priv;
+    volatile struct imx6_gpio_regs *bank;
+    struct imx6_gpio *gpio_priv;
     uint32_t v;
     int pin;
     assert(gpio);
     assert(gpio_sys);
-    gpio_priv = (struct imx6_gpio*)gpio_sys->priv;
+    gpio_priv = (struct imx6_gpio *)gpio_sys->priv;
     assert(gpio_priv);
     pin = GPIOID_PIN(id);
     assert(pin < 32);
@@ -90,7 +89,7 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
 
     bank = imx6_gpio_get_bank(gpio);
     ZF_LOGD("Configuring GPIO on port %d pin %d\n",
-          GPIOID_PORT(id), GPIOID_PIN(id));
+            GPIOID_PORT(id), GPIOID_PIN(id));
 
     /* MUX the GPIO */
     if (imx6_mux_enable_gpio(gpio_priv->mux, id)) {
@@ -103,21 +102,20 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
     if (dir == GPIO_DIR_IN) {
         v &= ~BIT(pin);
         ZF_LOGD("configuring {%d,%d} for input %p => 0x%x->0x%x\n",
-              GPIOID_PORT(id), GPIOID_PIN(id),
-              &bank->direction, bank->direction, v);
+                GPIOID_PORT(id), GPIOID_PIN(id),
+                &bank->direction, bank->direction, v);
     } else {
         v |= BIT(pin);
         ZF_LOGD("configuring {%d,%d} for output %p => 0x%x->0x%x\n",
-              GPIOID_PORT(id), GPIOID_PIN(id),
-              &bank->direction, bank->direction, v);
+                GPIOID_PORT(id), GPIOID_PIN(id),
+                &bank->direction, bank->direction, v);
     }
     bank->direction = v;
 
     return 0;
 }
 
-static int
-imx6_gpio_set_level(gpio_t *gpio, enum gpio_level level)
+static int imx6_gpio_set_level(gpio_t *gpio, enum gpio_level level)
 {
     volatile struct imx6_gpio_regs *bank;
     uint32_t v;
@@ -140,8 +138,7 @@ imx6_gpio_set_level(gpio_t *gpio, enum gpio_level level)
     return 0;
 }
 
-static int
-imx6_gpio_read_level(gpio_t *gpio)
+static int imx6_gpio_read_level(gpio_t *gpio)
 {
     volatile struct imx6_gpio_regs *bank;
     uint32_t v;
@@ -160,22 +157,20 @@ imx6_gpio_read_level(gpio_t *gpio)
     return GPIO_LEVEL_LOW;
 }
 
-int
-imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys)
+int imx6_gpio_init_common(mux_sys_t *mux, gpio_sys_t *gpio_sys)
 {
     _gpio.mux = mux;
-    gpio_sys->priv = (void*)&_gpio;
+    gpio_sys->priv = (void *)&_gpio;
     gpio_sys->set_level = &imx6_gpio_set_level;
     gpio_sys->read_level = &imx6_gpio_read_level;
     gpio_sys->init = &imx6_gpio_init;
     return 0;
 }
 
-int
-imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
-                   void* bank4, void* bank5, void* bank6,
-                   void* bank7,
-                   mux_sys_t* mux, gpio_sys_t* gpio_sys)
+int imx6_gpio_sys_init(void *bank1, void *bank2, void *bank3,
+                       void *bank4, void *bank5, void *bank6,
+                       void *bank7,
+                       mux_sys_t *mux, gpio_sys_t *gpio_sys)
 {
     if (bank1 != NULL) {
         _gpio.bank[GPIO_BANK1] = bank1;
@@ -201,8 +196,7 @@ imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
     return imx6_gpio_init_common(mux, gpio_sys);
 }
 
-int
-gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
+int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t *gpio_sys)
 {
     MAP_IF_NULL(io_ops, IMX6_GPIO1, _gpio.bank[0]);
     MAP_IF_NULL(io_ops, IMX6_GPIO2, _gpio.bank[1]);

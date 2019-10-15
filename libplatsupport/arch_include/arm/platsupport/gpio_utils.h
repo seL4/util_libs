@@ -35,7 +35,7 @@ int gpio_chain_init(ps_malloc_ops_t *malloc_ops, gpio_chain_t **ret_chain);
  */
 int gpio_chain_destroy(ps_malloc_ops_t *malloc_ops, gpio_chain_t *chain);
 
-/** 
+/**
  * Add a GPIO pin to a GPIO chain. Note that the lifetime of the gpio_t
  * pointer passed in must be the same as the lifetime of the gpio chain that
  * holds the pointer.

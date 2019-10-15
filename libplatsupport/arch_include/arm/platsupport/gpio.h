@@ -29,7 +29,7 @@ struct gpio {
 /// GPIO port identifier
     gpio_id_t id;
 /// GPIO subsystem handle
-    gpio_sys_t* gpio_sys;
+    gpio_sys_t *gpio_sys;
 };
 
 enum gpio_dir {
@@ -78,7 +78,7 @@ struct gpio_sys {
      * @param   gpio[out]       Pointer to a gpio_t structure to be initialised.
      * @return 0 on success. Non-zero on error.
      */
-    int (*init)(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio);
+    int (*init)(gpio_sys_t *gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t *gpio);
 
     /**
      * Set a GPIO's output level. The pin must be configured for output
@@ -118,11 +118,10 @@ struct gpio_sys {
     int (*irq_enable_disable)(gpio_t *gpio, bool enable);
 
 /// platform specific private data
-    void* priv;
+    void *priv;
 };
 
-static inline bool
-gpio_sys_valid(const gpio_sys_t *gpio_sys)
+static inline bool gpio_sys_valid(const gpio_sys_t *gpio_sys)
 {
     return gpio_sys != NULL && gpio_sys->priv != NULL;
 }
@@ -146,16 +145,18 @@ static inline bool gpio_instance_valid(const gpio_t *gpio)
  * @param[out] gpio_sys A gpio handle structure to initialise
  * @return              0 on success, errno value otherwise
  */
-int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
+int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t *gpio_sys);
 
 /**
  * Clear a GPIO pin
  * @param[in] a handle to a GPIO
  * @return    0 on success, otherwise errno value
  */
-static inline int gpio_clr(gpio_t* gpio)
+static inline int gpio_clr(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->set_level) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -168,9 +169,11 @@ static inline int gpio_clr(gpio_t* gpio)
  * @param[in] a handle to a GPIO
  * @return    the value of the pin, otherwise errno value
  */
-static inline int gpio_get(gpio_t* gpio)
+static inline int gpio_get(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->read_level) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -183,9 +186,11 @@ static inline int gpio_get(gpio_t* gpio)
  * @param[in] a handle to a GPIO
  * @return    0 on success, otherwise errno value
  */
-static inline int gpio_set(gpio_t* gpio)
+static inline int gpio_set(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->set_level) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -200,9 +205,11 @@ static inline int gpio_set(gpio_t* gpio)
  *             0 if an IRQ is not pending
  *             1 if an IRQ is pending
  */
-static inline int gpio_is_pending(gpio_t* gpio)
+static inline int gpio_is_pending(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->pending_status) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -215,9 +222,11 @@ static inline int gpio_is_pending(gpio_t* gpio)
  * @param[in] a handle to a GPIO
  * @return    0 on success, errno value on error
  */
-static inline int gpio_pending_clear(gpio_t* gpio)
+static inline int gpio_pending_clear(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->pending_status) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -236,7 +245,9 @@ static inline int gpio_pending_clear(gpio_t* gpio)
  */
 static inline int gpio_irq_enable(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->irq_enable_disable) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -251,7 +262,9 @@ static inline int gpio_irq_enable(gpio_t *gpio)
  */
 static inline int gpio_irq_disable(gpio_t *gpio)
 {
-    if (!gpio_instance_valid(gpio)) return -EINVAL;
+    if (!gpio_instance_valid(gpio)) {
+        return -EINVAL;
+    }
     if (!gpio->gpio_sys->irq_enable_disable) {
         ZF_LOGE("Unimplemented");
         return -ENOSYS;
@@ -268,7 +281,7 @@ static inline int gpio_irq_disable(gpio_t *gpio)
  * @param[out] gpio      a GPIO handle to initialise
  * @return               0 on success
  */
-static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio)
+static inline int gpio_new(gpio_sys_t *gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t *gpio)
 {
     if (!gpio_sys) {
         ZF_LOGE("Handle to GPIO controller not supplied!");

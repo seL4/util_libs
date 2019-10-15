@@ -72,33 +72,33 @@ enum tk1_gpio_bank_regs {
 #define TEGRA_GPIO_PORTS   4
 #define TEGRA_GPIO_BANKS   8
 
-#define GPIO_BANK(x)		((x) >> 5)
-#define GPIO_PORT(x)		(((x) >> 3) & 0x3)
-#define GPIO_BIT(x)		((x) & 0x7)
+#define GPIO_BANK(x)        ((x) >> 5)
+#define GPIO_PORT(x)        (((x) >> 3) & 0x3)
+#define GPIO_BIT(x)     ((x) & 0x7)
 
-#define GPIO_INT_LVL_MASK		0x010101
-#define GPIO_INT_LVL_EDGE_RISING	0x000101
-#define GPIO_INT_LVL_EDGE_FALLING	0x000100
-#define GPIO_INT_LVL_EDGE_BOTH		0x010100
-#define GPIO_INT_LVL_LEVEL_HIGH		0x000001
-#define GPIO_INT_LVL_LEVEL_LOW		0x000000
+#define GPIO_INT_LVL_MASK       0x010101
+#define GPIO_INT_LVL_EDGE_RISING    0x000101
+#define GPIO_INT_LVL_EDGE_FALLING   0x000100
+#define GPIO_INT_LVL_EDGE_BOTH      0x010100
+#define GPIO_INT_LVL_LEVEL_HIGH     0x000001
+#define GPIO_INT_LVL_LEVEL_LOW      0x000000
 
 /* Used for debug output */
 static uint32_t tegra_gpio_controller[] = { GPIO_CONTROLLER1_ADDR_OFFSET,
-                                     GPIO_CONTROLLER2_ADDR_OFFSET,
-                                     GPIO_CONTROLLER3_ADDR_OFFSET,
-                                     GPIO_CONTROLLER4_ADDR_OFFSET,
-                                     GPIO_CONTROLLER5_ADDR_OFFSET,
-                                     GPIO_CONTROLLER6_ADDR_OFFSET,
-                                     GPIO_CONTROLLER7_ADDR_OFFSET,
-                                     GPIO_CONTROLLER8_ADDR_OFFSET
-                                   };
+                                            GPIO_CONTROLLER2_ADDR_OFFSET,
+                                            GPIO_CONTROLLER3_ADDR_OFFSET,
+                                            GPIO_CONTROLLER4_ADDR_OFFSET,
+                                            GPIO_CONTROLLER5_ADDR_OFFSET,
+                                            GPIO_CONTROLLER6_ADDR_OFFSET,
+                                            GPIO_CONTROLLER7_ADDR_OFFSET,
+                                            GPIO_CONTROLLER8_ADDR_OFFSET
+                                          };
 
 static uint32_t tegra_gpio_port[] = { GPIO_PORT1,
-                               GPIO_PORT2,
-                               GPIO_PORT3,
-                               GPIO_PORT4
-                             };
+                                      GPIO_PORT2,
+                                      GPIO_PORT3,
+                                      GPIO_PORT4
+                                    };
 
 typedef struct tk1_gpio_ {
     volatile uint32_t ports[TEGRA_GPIO_PORTS];
@@ -116,32 +116,28 @@ static_assert(sizeof(tk1_gpio_bank_t) == 256, "Banks should be 256 bytes each");
 typedef struct tk1_gpio_regs_ {
     tk1_gpio_bank_t     bank[TEGRA_GPIO_BANKS];
 } tk1_gpio_regs_t;
-static_assert(sizeof(tk1_gpio_regs_t) == 256*8, "There are only 8 banks");
+static_assert(sizeof(tk1_gpio_regs_t) == 256 * 8, "There are only 8 banks");
 
-static inline tk1_gpio_regs_t *
-tk1_gpio_get_priv(gpio_sys_t *sys)
+static inline tk1_gpio_regs_t *tk1_gpio_get_priv(gpio_sys_t *sys)
 {
     ZF_LOGF_IF(sys == NULL, "Invalid controller handle!");
     return (tk1_gpio_regs_t *)sys->priv;
 }
 
-static inline tk1_gpio_regs_t *
-tk1_gpio_pin_get_priv(gpio_t *pin)
+static inline tk1_gpio_regs_t *tk1_gpio_pin_get_priv(gpio_t *pin)
 {
     ZF_LOGF_IF(pin == NULL, "Invalid pin handle!");
     return tk1_gpio_get_priv(pin->gpio_sys);
 }
 
-static inline tk1_gpio_bank_t *
-tk1_gpio_get_bank_by_pin(gpio_sys_t *sys, int pin)
+static inline tk1_gpio_bank_t *tk1_gpio_get_bank_by_pin(gpio_sys_t *sys, int pin)
 {
     return &tk1_gpio_get_priv(sys)->bank[GPIO_BANK(pin)];
 }
 
-static inline volatile uint32_t *
-get_controller_register(gpio_sys_t *gpio_sys,
-                        enum gpio_pin gpio_num,
-                        enum tk1_gpio_bank_regs gpio_register)
+static inline volatile uint32_t *get_controller_register(gpio_sys_t *gpio_sys,
+                                                         enum gpio_pin gpio_num,
+                                                         enum tk1_gpio_bank_regs gpio_register)
 {
     ZF_LOGF_IF(gpio_register == GPIO_REG_INVALID, "Invalid register index!");
     ZF_LOGF_IF(gpio_register < 0 || gpio_register > GPIO_MSK_INT_LVL,
@@ -157,8 +153,7 @@ get_controller_register(gpio_sys_t *gpio_sys,
  * GPIO pins. This function does a scan and prints all those pins that have
  * their lock bits set.
  */
-UNUSED static void
-tk1_gpio_debug_print_locks(gpio_sys_t *gs)
+UNUSED static void tk1_gpio_debug_print_locks(gpio_sys_t *gs)
 {
     volatile uint32_t   *v_cnf;
     int                 total = 0;
@@ -169,15 +164,14 @@ tk1_gpio_debug_print_locks(gpio_sys_t *gs)
         if (*v_cnf & BIT(GPIO_BIT(i))) {
             total++;
             ZF_LOGD("GPIO: Pin %d has its lock set: CNF lock: regval %x.\n",
-                   i, *v_cnf);
+                    i, *v_cnf);
         }
     }
     ZF_LOGD("GPIO: lock scan: %d pins have their locks set.\n", total);
 }
 
-static int
-gpio_set_direction(gpio_sys_t *gpio_sys,
-              enum gpio_pin gpio, enum gpio_dir mode)
+static int gpio_set_direction(gpio_sys_t *gpio_sys,
+                              enum gpio_pin gpio, enum gpio_dir mode)
 {
     uint32_t            val, cnf_val;
     volatile uint32_t   *cnf_vaddr = get_controller_register(gpio_sys,
@@ -257,9 +251,8 @@ gpio_set_direction(gpio_sys_t *gpio_sys,
     return 0;
 }
 
-static void
-gpio_set_interrupt_type(gpio_sys_t *gpio_sys,
-                        enum gpio_pin gpio, enum gpio_dir dir)
+static void gpio_set_interrupt_type(gpio_sys_t *gpio_sys,
+                                    enum gpio_pin gpio, enum gpio_dir dir)
 {
     uint32_t            val, lvl_type = 0;
     volatile uint32_t   *reg_vaddr = get_controller_register(gpio_sys,
@@ -283,7 +276,7 @@ gpio_set_interrupt_type(gpio_sys_t *gpio_sys,
         lvl_type = GPIO_INT_LVL_LEVEL_LOW;
         break;
     default:
-       ZF_LOGF("GPIO: %d, invalid pin direction/interrupt %d", gpio, dir);
+        ZF_LOGF("GPIO: %d, invalid pin direction/interrupt %d", gpio, dir);
     }
 
     val &= ~(GPIO_INT_LVL_MASK << GPIO_BIT(gpio));
@@ -292,9 +285,8 @@ gpio_set_interrupt_type(gpio_sys_t *gpio_sys,
     assert(*reg_vaddr == val);
 }
 
-static void
-gpio_interrupt_enable(gpio_sys_t *gpio_sys,
-                      enum gpio_pin gpio, bool enable)
+static void gpio_interrupt_enable(gpio_sys_t *gpio_sys,
+                                  enum gpio_pin gpio, bool enable)
 {
     uint32_t            val;
     volatile uint32_t   *reg_vaddr = get_controller_register(gpio_sys,
@@ -310,8 +302,7 @@ gpio_interrupt_enable(gpio_sys_t *gpio_sys,
     assert(*reg_vaddr == val);
 }
 
-static void
-tegra_set_level(gpio_t *gpio, enum gpio_level level)
+static void tegra_set_level(gpio_t *gpio, enum gpio_level level)
 {
     gpio_sys_t *gpio_sys = gpio->gpio_sys;
     enum gpio_pin pin = gpio->id;
@@ -322,8 +313,8 @@ tegra_set_level(gpio_t *gpio, enum gpio_level level)
     ZF_LOGV("Offset: 0x%x (vaddr %x), controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d",
             tegra_gpio_controller[GPIO_BANK(pin)]
-                + tegra_gpio_port[GPIO_PORT(pin)]
-                + GPIO_OUT,
+            + tegra_gpio_port[GPIO_PORT(pin)]
+            + GPIO_OUT,
             reg_vaddr,
             tegra_gpio_controller[GPIO_BANK(pin)],
             tegra_gpio_port[GPIO_PORT(pin)],
@@ -340,23 +331,22 @@ tegra_set_level(gpio_t *gpio, enum gpio_level level)
     assert(*reg_vaddr == val);
 }
 
-static bool
-tegra_read_level(gpio_t *gpio)
+static bool tegra_read_level(gpio_t *gpio)
 {
     gpio_sys_t *gpio_sys = gpio->gpio_sys;
     enum gpio_pin pin = gpio->id;
-   uint32_t             val;
-   volatile uint32_t    *reg_vaddr = get_controller_register(gpio_sys,
-                                                             pin, GPIO_IN);
+    uint32_t             val;
+    volatile uint32_t    *reg_vaddr = get_controller_register(gpio_sys,
+                                                              pin, GPIO_IN);
 
     ZF_LOGV("Offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d",
-                tegra_gpio_controller[GPIO_BANK(pin)]
-                    + tegra_gpio_port[GPIO_PORT(pin)]
-                    + GPIO_IN,
-                tegra_gpio_controller[GPIO_BANK(pin)],
-                tegra_gpio_port[GPIO_PORT(pin)],
-                GPIO_OUT, pin, GPIO_BANK(pin), GPIO_PORT(pin), GPIO_BIT(pin));
+            tegra_gpio_controller[GPIO_BANK(pin)]
+            + tegra_gpio_port[GPIO_PORT(pin)]
+            + GPIO_IN,
+            tegra_gpio_controller[GPIO_BANK(pin)],
+            tegra_gpio_port[GPIO_PORT(pin)],
+            GPIO_OUT, pin, GPIO_BANK(pin), GPIO_PORT(pin), GPIO_BIT(pin));
 
 
     val = *reg_vaddr & REG_VALID_BITS_MASK;
@@ -367,29 +357,27 @@ tegra_read_level(gpio_t *gpio)
     return GPIO_LEVEL_LOW;
 }
 
-static void
-gpio_int_clear(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
+static void gpio_int_clear(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
 {
-   uint32_t             val;
-   volatile uint32_t    *reg_vaddr = get_controller_register(gpio_sys,
-                                                             gpio, GPIO_INT_CLR);
+    uint32_t             val;
+    volatile uint32_t    *reg_vaddr = get_controller_register(gpio_sys,
+                                                              gpio, GPIO_INT_CLR);
 
     ZF_LOGV("offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d",
-                tegra_gpio_controller[GPIO_BANK(gpio)]
-                    + tegra_gpio_port[GPIO_PORT(gpio)]
-                    + GPIO_INT_CLR,
-                tegra_gpio_controller[GPIO_BANK(gpio)],
-                tegra_gpio_port[GPIO_PORT(gpio)],
-                GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
+            tegra_gpio_controller[GPIO_BANK(gpio)]
+            + tegra_gpio_port[GPIO_PORT(gpio)]
+            + GPIO_INT_CLR,
+            tegra_gpio_controller[GPIO_BANK(gpio)],
+            tegra_gpio_port[GPIO_PORT(gpio)],
+            GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
 
     val = *reg_vaddr & REG_VALID_BITS_MASK;
     val |= BIT(GPIO_BIT(gpio));
     *reg_vaddr = val;
 }
 
-static bool
-gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
+static bool gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
 {
     uint32_t            val;
     volatile uint32_t   *reg_vaddr = get_controller_register(gpio_sys,
@@ -399,7 +387,7 @@ gpio_check_pending(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
     return !!(val & BIT(GPIO_BIT(gpio)));
 }
 
-static int tegra_pending_status(gpio_t* gpio, bool clear)
+static int tegra_pending_status(gpio_t *gpio, bool clear)
 {
     int pending;
 
@@ -419,7 +407,7 @@ static int tegra_pending_status(gpio_t* gpio, bool clear)
     return pending;
 }
 
-static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
+static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio_t *gpio)
 {
     int error;
 
@@ -454,15 +442,13 @@ static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio
     return 0;
 }
 
-static int
-tegra_gpio_int_enable_disable(gpio_t *gpio, bool enable)
+static int tegra_gpio_int_enable_disable(gpio_t *gpio, bool enable)
 {
     gpio_interrupt_enable(gpio->gpio_sys, gpio->id, enable);
     return 0;
 }
 
-int
-gpio_init(volatile void *vaddr, gpio_sys_t *gpio_sys)
+int gpio_init(volatile void *vaddr, gpio_sys_t *gpio_sys)
 {
     if (gpio_sys == NULL) {
         return -ENOSYS;
@@ -483,7 +469,7 @@ gpio_init(volatile void *vaddr, gpio_sys_t *gpio_sys)
     return 0;
 }
 
-int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t* gpio_sys)
+int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t *gpio_sys)
 {
     if (io_ops == NULL) {
         return -ENOSYS;
@@ -501,22 +487,21 @@ int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t* gpio_sys)
     return gpio_init(gpio_sys->priv, gpio_sys);
 }
 
-int
-gpio_set_pad_mode(gpio_sys_t *gpio_sys,
-                  enum gpio_pin gpio, enum gpio_pad_mode mode, enum gpio_dir dir)
+int gpio_set_pad_mode(gpio_sys_t *gpio_sys,
+                      enum gpio_pin gpio, enum gpio_pad_mode mode, enum gpio_dir dir)
 {
     uint32_t            val, out_val;
     volatile uint32_t   *reg_vaddr = get_controller_register(gpio_sys,
                                                              gpio, GPIO_CNF);
     volatile uint32_t   *out_reg_vaddr = get_controller_register(gpio_sys,
-                                                             gpio, GPIO_OUT);
+                                                                 gpio, GPIO_OUT);
 
     ZF_LOGV("Offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_CNF: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d"
             "Mode %d.\n",
             tegra_gpio_controller[GPIO_BANK(gpio)]
-                + tegra_gpio_port[GPIO_PORT(gpio)]
-                + GPIO_CNF,
+            + tegra_gpio_port[GPIO_PORT(gpio)]
+            + GPIO_CNF,
             tegra_gpio_controller[GPIO_BANK(gpio)],
             tegra_gpio_port[GPIO_PORT(gpio)],
             GPIO_CNF, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio),

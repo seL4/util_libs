@@ -31,7 +31,7 @@ static int gpio_chain_comparator(void *a, void *b)
 {
     gpio_t *gpio_a = a;
     gpio_t *gpio_b = b;
-    
+
     if (gpio_a->id == gpio_b->id) {
         return 0;
     }
@@ -124,11 +124,11 @@ int gpio_chain_io_callback(void *data, void *token)
     }
 
     size_t curr_byte = cb_token->bits_processed / sizeof(*(cb_token->buffer));
-    size_t curr_bit = cb_token->bits_processed % sizeof(*(cb_token->buffer)); 
+    size_t curr_bit = cb_token->bits_processed % sizeof(*(cb_token->buffer));
 
     if (cb_token->is_read) {
         int val = gpio_get(gpio);
-        
+
         val <<= curr_bit;
         cb_token->buffer[curr_byte] &= ~BIT(curr_bit);
         cb_token->buffer[curr_byte] |= val;
@@ -137,9 +137,9 @@ int gpio_chain_io_callback(void *data, void *token)
             gpio_set(gpio);
         } else {
             gpio_clr(gpio);
-        } 
+        }
     }
-    
+
     cb_token->bits_processed++;
 
     return 0;
@@ -153,7 +153,8 @@ int gpio_chain_read(gpio_chain_t *chain, char *data, int len)
     }
 
     struct gpio_callback_token cb_token = { .is_read = true, .buffer = data, .bits_processed = 0,
-                                            .nbits_to_process = len };
+               .nbits_to_process = len
+    };
 
     int error = list_foreach(&chain->pin_list, gpio_chain_io_callback, &cb_token);
     if (error) {
@@ -171,7 +172,8 @@ int gpio_chain_write(gpio_chain_t *chain, const char *data, int len)
     }
 
     struct gpio_callback_token cb_token = { .is_read = false, .buffer = data, .bits_processed = 0,
-                                            .nbits_to_process = len };
+               .nbits_to_process = len
+    };
 
     int error = list_foreach(&chain->pin_list, gpio_chain_io_callback, &cb_token);
     if (error) {

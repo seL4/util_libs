@@ -58,7 +58,7 @@ bool list_is_empty(list_t *l)
     return l->head == NULL;
 }
 
-bool list_exists(list_t *l, void *data, int(*cmp)(void*, void*))
+bool list_exists(list_t *l, void *data, int(*cmp)(void *, void *))
 {
     assert(l != NULL);
     for (node_t *n = l->head; n != NULL; n = n->next) {
@@ -79,7 +79,7 @@ int list_length(list_t *l)
     return i;
 }
 
-int list_index(list_t *l, void *data, int(*cmp)(void*, void*))
+int list_index(list_t *l, void *data, int(*cmp)(void *, void *))
 {
     assert(l != NULL);
     int i = 0;
@@ -91,7 +91,7 @@ int list_index(list_t *l, void *data, int(*cmp)(void*, void*))
     return -1;
 }
 
-int list_foreach(list_t *l, int(*action)(void*, void*), void *token)
+int list_foreach(list_t *l, int(*action)(void *, void *), void *token)
 {
     assert(l != NULL);
     for (node_t *n = l->head; n != NULL; n = n->next) {
@@ -103,7 +103,7 @@ int list_foreach(list_t *l, int(*action)(void*, void*), void *token)
     return 0;
 }
 
-static int remove(list_t *l, void *data, int (*cmp)(void*, void*),
+static int remove(list_t *l, void *data, int (*cmp)(void *, void *),
                   bool should_free)
 {
     assert(l != NULL);
@@ -124,7 +124,7 @@ static int remove(list_t *l, void *data, int (*cmp)(void*, void*),
     return -1;
 }
 
-int list_remove(list_t *l, void *data, int(*cmp)(void*, void*))
+int list_remove(list_t *l, void *data, int(*cmp)(void *, void *))
 {
     return remove(l, data, cmp, true);
 }
@@ -171,7 +171,7 @@ int list_append_node(list_t *l, node_t *node)
     return 0;
 }
 
-int list_remove_node(list_t *l, void *data, int(*cmp)(void*, void*))
+int list_remove_node(list_t *l, void *data, int(*cmp)(void *, void *))
 {
     return remove(l, data, cmp, false);
 }
