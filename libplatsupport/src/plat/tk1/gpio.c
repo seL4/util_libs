@@ -311,27 +311,29 @@ gpio_interrupt_enable(gpio_sys_t *gpio_sys,
 }
 
 static void
-gpio_set_level(gpio_sys_t *gpio_sys, enum gpio_pin gpio, int level)
+tegra_set_level(gpio_t *gpio, enum gpio_level level)
 {
+    gpio_sys_t *gpio_sys = gpio->gpio_sys;
+    enum gpio_pin pin = gpio->id;
     uint32_t            val;
     volatile uint32_t   *reg_vaddr = get_controller_register(gpio_sys,
-                                                             gpio, GPIO_OUT);
+                                                             pin, GPIO_OUT);
 
     ZF_LOGV("Offset: 0x%x (vaddr %x), controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d",
-            tegra_gpio_controller[GPIO_BANK(gpio)]
-                + tegra_gpio_port[GPIO_PORT(gpio)]
+            tegra_gpio_controller[GPIO_BANK(pin)]
+                + tegra_gpio_port[GPIO_PORT(pin)]
                 + GPIO_OUT,
             reg_vaddr,
-            tegra_gpio_controller[GPIO_BANK(gpio)],
-            tegra_gpio_port[GPIO_PORT(gpio)],
-            GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
+            tegra_gpio_controller[GPIO_BANK(pin)],
+            tegra_gpio_port[GPIO_PORT(pin)],
+            GPIO_OUT, pin, GPIO_BANK(pin), GPIO_PORT(pin), GPIO_BIT(pin));
 
     val = *reg_vaddr & REG_VALID_BITS_MASK;
-    if (level) {
-        val |= BIT(GPIO_BIT(gpio));
+    if (level == GPIO_LEVEL_HIGH) {
+        val |= BIT(GPIO_BIT(pin));
     } else {
-        val &= ~(BIT(GPIO_BIT(gpio)));
+        val &= ~(BIT(GPIO_BIT(pin)));
     }
 
     *reg_vaddr = val;
@@ -339,26 +341,30 @@ gpio_set_level(gpio_sys_t *gpio_sys, enum gpio_pin gpio, int level)
 }
 
 static bool
-gpio_get_input(gpio_sys_t *gpio_sys, enum gpio_pin gpio)
+tegra_read_level(gpio_t *gpio)
 {
+    gpio_sys_t *gpio_sys = gpio->gpio_sys;
+    enum gpio_pin pin = gpio->id;
    uint32_t             val;
    volatile uint32_t    *reg_vaddr = get_controller_register(gpio_sys,
-                                                             gpio, GPIO_IN);
+                                                             pin, GPIO_IN);
 
     ZF_LOGV("Offset: 0x%x, controller offset: 0x%x, port offset: 0x%x, "
             "GPIO_IN: 0x%x, gpio: %d, bank: %d, port: %d, gpio_bit: %d",
-                tegra_gpio_controller[GPIO_BANK(gpio)]
-                    + tegra_gpio_port[GPIO_PORT(gpio)]
+                tegra_gpio_controller[GPIO_BANK(pin)]
+                    + tegra_gpio_port[GPIO_PORT(pin)]
                     + GPIO_IN,
-                tegra_gpio_controller[GPIO_BANK(gpio)],
-                tegra_gpio_port[GPIO_PORT(gpio)],
-                GPIO_OUT, gpio, GPIO_BANK(gpio), GPIO_PORT(gpio), GPIO_BIT(gpio));
+                tegra_gpio_controller[GPIO_BANK(pin)],
+                tegra_gpio_port[GPIO_PORT(pin)],
+                GPIO_OUT, pin, GPIO_BANK(pin), GPIO_PORT(pin), GPIO_BIT(pin));
 
 
     val = *reg_vaddr & REG_VALID_BITS_MASK;
-    ZF_LOGV("GPIO %d bit value: 0x%x\n", gpio, val);
-    return !!(val & BIT(GPIO_BIT(gpio)));
-
+    ZF_LOGV("GPIO %d bit value: 0x%x\n", pin, val);
+    if (!!(val & BIT(GPIO_BIT(pin)))) {
+        return GPIO_LEVEL_HIGH;
+    }
+    return GPIO_LEVEL_LOW;
 }
 
 static void
@@ -411,64 +417,6 @@ static int tegra_pending_status(gpio_t* gpio, int clear)
     }
 
     return pending;
-}
-
-static int
-tegra_gpio_read(gpio_t* gpio, char* data, int len)
-{
-    /* Assuming 8 bits per byte. This is TK1-specific code, so this is fine.
-     */
-    gpio_t *curr_gpio = gpio;
-    const int nbytes = DIV_ROUND_UP(len, 8);
-
-    for (int i = 0; i < nbytes; i++) {
-        const int nbits = ((len - i * 8) / 8) ? 8 : (len % 8);
-
-        for (int j = 0; j < nbits; j++, curr_gpio = curr_gpio->next) {
-            int val;
-
-            if (curr_gpio == NULL) {
-                ZF_LOGE("Called to write out %d bits, but on bit %d, gpio link "
-                        "was NULL.",
-                        len, (i * 8 + j));
-
-                return -EINVAL;
-            }
-
-            val = gpio_get_input(gpio->gpio_sys, curr_gpio->id);
-            val <<= j;
-            data[i] &= ~BIT(j);
-            data[i] |= val;
-        }
-    }
-
-    return len;
-}
-
-static int
-tegra_gpio_write(gpio_t* gpio, const char* data, int len)
-{
-    gpio_t *curr_gpio = gpio;
-    const int nbytes = DIV_ROUND_UP(len, 8);
-
-    for (int i = 0; i < nbytes ; i++) {
-        const int nbits = ((len - i * 8) / 8) ? 8 : (len % 8);
-
-        for (int j = 0; j < nbits; j++, curr_gpio = curr_gpio->next) {
-            if (curr_gpio == NULL) {
-                ZF_LOGE("Called to write out %d bits, but on bit %d, gpio link "
-                        "was NULL.",
-                        len, (i * 8 + j));
-
-                return -EINVAL;
-            }
-
-            gpio_set_level(gpio->gpio_sys, curr_gpio->id,
-                           !!(data[i] & BIT(j)));
-        }
-    }
-
-    return len;
 }
 
 static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
@@ -525,8 +473,8 @@ gpio_init(volatile void *vaddr, gpio_sys_t *gpio_sys)
 
     ZF_LOGV("vaddr: %p", vaddr);
 
-    gpio_sys->read = &tegra_gpio_read;
-    gpio_sys->write = &tegra_gpio_write;
+    gpio_sys->set_level = &tegra_set_level;
+    gpio_sys->read_level = &tegra_read_level;
     gpio_sys->pending_status = &tegra_pending_status;
     gpio_sys->irq_enable_disable = &tegra_gpio_int_enable_disable;
     gpio_sys->init = &tegra_gpio_init;

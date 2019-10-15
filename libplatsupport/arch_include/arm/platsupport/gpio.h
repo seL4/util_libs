@@ -57,6 +57,12 @@ enum gpio_dir {
     GPIO_DIR_IRQ_EDGE
 };
 
+enum gpio_level {
+    /* GPIO input/output levels */
+    GPIO_LEVEL_LOW,
+    GPIO_LEVEL_HIGH
+};
+
 struct gpio_sys {
     /** Initialize a GPIO pin.
      * @param   gpio_sys        Initialized gpio driver instance.
@@ -72,10 +78,8 @@ struct gpio_sys {
      * @return 0 on success. Non-zero on error.
      */
     int (*init)(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir, gpio_t* gpio);
-/// Write to a GPIO
-    int (*write)(gpio_t* gpio, const char* data, int len);
-/// Read from a GPIO
-    int (*read)(gpio_t* gpio, char* data, int len);
+    int (*set_level)(gpio_t *gpio, enum gpio_level level);
+    int (*read_level)(gpio_t *gpio);
 /// Manipulate the status of a pending IRQ
     int (*pending_status)(gpio_t *gpio, int clear);
 /// Enable and disable the IRQ signal from the pin
@@ -105,11 +109,9 @@ int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
  */
 static inline int gpio_clr(gpio_t* gpio)
 {
-    char data;
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    data = 0;
-    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
+    return gpio->gpio_sys->set_level(gpio, GPIO_LEVEL_LOW);
 }
 
 /**
@@ -119,16 +121,10 @@ static inline int gpio_clr(gpio_t* gpio)
  */
 static inline int gpio_get(gpio_t* gpio)
 {
-    char data = 0;
-    int ret;
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    ret = gpio->gpio_sys->read(gpio, &data, 1);
-    if (ret == 1) {
-        return data;
-    } else {
-        return -1;
     }
+    return gpio->gpio_sys->read_level(gpio);
 }
 
 /**
@@ -138,11 +134,9 @@ static inline int gpio_get(gpio_t* gpio)
  */
 static inline int gpio_set(gpio_t* gpio)
 {
-    char data;
     ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
     ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    data = 0xff;
-    return (gpio->gpio_sys->write(gpio, &data, 1) != 1);
+    return gpio->gpio_sys->set_level(gpio, GPIO_LEVEL_HIGH);
 }
 
 /**
@@ -214,45 +208,4 @@ static inline int gpio_new(gpio_sys_t* gpio_sys, gpio_id_t id, enum gpio_dir dir
     return gpio_sys->init(gpio_sys, id, dir, gpio);
 }
 
-/**
- * Read from a GPIO pin or a daisy chain of GPIO pins.
- *
- * You can chain GPIO pins together and read from them all at once, or read from
- * a single GPIO pin using this function. The buffer supplied for output will
- * only be touched as far as "len" bits.
- *
- * @param gpio      An initialized gpio_t handle from gpio_new().
- * @param data      A buffer in which the driver should place the data it reads.
- * @param len       The number of chained GPIO pins to read from.
- * @return          The number of bits of data read.
- */
-static inline int
-gpio_read(gpio_t* gpio, char* data, int len)
-{
-    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
-    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    ZF_LOGF_IF(!gpio->gpio_sys->read, "Unimplemented!");
-    return gpio->gpio_sys->read(gpio, data, len);
-}
 
-/** Write to a GPIO pin or a daisy chain of GPIO pins.
- *
- * You can chain pins together and write to them in a single invocation; or
- * write to a single gpio pin, using this function. The "len" argument will
- * determine how many chained pins the driver will attempt to write to.
- *
- * @param gpio      An initialized gpio_t handle from gpio_new().
- * @param data      A buffer from which the driver will draw the data to be
- *                  written out.
- * @param len       The number of bits to write out from the buffer to chained
- *                  GPIO pins.
- * @return          The number of bits of data written out.
- */
-static inline int
-gpio_write(gpio_t* gpio, const char* data, int len)
-{
-    ZF_LOGF_IF(!gpio, "Handle to GPIO pin not supplied!");
-    ZF_LOGF_IF(!gpio->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    ZF_LOGF_IF(!gpio->gpio_sys->write, "Unimplemented!");
-    return gpio->gpio_sys->write(gpio, data, len);
-}

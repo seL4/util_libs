@@ -442,33 +442,28 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
 }
 
 static int
-exynos_gpio_write(gpio_t* gpio, const char* data, int len)
+exynos_gpio_set_level(gpio_t *gpio, enum gpio_level level)
 {
-    int count;
-    for (count = 0; count < len && gpio; count++) {
-        struct mux_cfg* cfg;
-        cfg = get_gpio_cfg(gpio);
-        exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), *data++);
-        gpio = gpio->next;
+    struct mux_cfg *cfg;
+    cfg = get_gpio_cfg(gpio);
+    if (level == GPIO_LEVEL_HIGH) {
+        exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), 1);
+    } else {
+        exynos_mux_set_data(cfg, GPIOID_PIN(gpio->id), 0);
     }
-    return count;
+    return 0;
 }
 
 static int
-exynos_gpio_read(gpio_t* gpio, char* data, int len)
+exynos_gpio_read_level(gpio_t *gpio)
 {
-    int count;
-    for (count = 0; count < len && gpio; count++) {
-        struct mux_cfg* cfg;
-        cfg = get_gpio_cfg(gpio);
-        if (exynos_mux_get_dat(cfg, GPIOID_PIN(gpio->id))) {
-            *data++ = 0xff;
-        } else {
-            *data++ = 0x00;
-        }
-        gpio = gpio->next;
+    struct mux_cfg *cfg;
+    cfg = get_gpio_cfg(gpio);
+    if (exynos_mux_get_dat(cfg, GPIOID_PIN(gpio->id))) {
+        return GPIO_LEVEL_HIGH;
+    } else {
+        return GPIO_LEVEL_LOW;
     }
-    return count;
 }
 
 int
@@ -481,8 +476,8 @@ exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys)
     } else {
         /* GPIO is done through the MUX on exynos */
         gpio_sys->priv = mux_sys;
-        gpio_sys->read = &exynos_gpio_read;
-        gpio_sys->write = &exynos_gpio_write;
+        gpio_sys->set_level = &exynos_gpio_set_level;
+        gpio_sys->read_level = &exynos_gpio_read_level;
         gpio_sys->pending_status = &exynos_pending_status;
         gpio_sys->init = &exynos_gpio_init;
         return 0;

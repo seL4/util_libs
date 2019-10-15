@@ -117,63 +117,47 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
 }
 
 static int
-imx6_gpio_write(gpio_t* gpio, const char* data, int len)
+imx6_gpio_set_level(gpio_t *gpio, enum gpio_level level)
 {
-    int count;
-    for (count = 0; count < len && gpio; count++) {
-        volatile struct imx6_gpio_regs* bank;
-        uint32_t v;
-        int pin;
+    volatile struct imx6_gpio_regs *bank;
+    uint32_t v;
+    int pin;
 
-        bank = imx6_gpio_get_bank(gpio);
-        pin = GPIOID_PIN(gpio->id);
-        assert(pin < 32);
-        assert(pin >= 0);
+    bank = imx6_gpio_get_bank(gpio);
+    pin = GPIOID_PIN(gpio->id);
+    assert(pin < 32);
+    assert(pin >= 0);
 
-        v = bank->data;
-        if (*data++) {
-            v |= (1U << pin);
-            ZF_LOGD("data(%p) => 0x%x->0x%x\n",
-                  &bank->data, bank->data, v);
-        } else {
-            v &= ~(1U << pin);
-            ZF_LOGD("data(%p) => 0x%x->0x%x\n",
-                  &bank->data, bank->data, v);
-        }
-        bank->data = v;
-        assert(bank->data == v);
-
-        gpio = gpio->next;
+    v = bank->data;
+    if (level == GPIO_LEVEL_HIGH) {
+        v |= (1U << pin);
+    } else {
+        v &= ~(1U << pin);
     }
-    return count;
+    bank->data = v;
+    assert(bank->data == v);
+
+    return 0;
 }
 
 static int
-imx6_gpio_read(gpio_t* gpio, char* data, int len)
+imx6_gpio_read_level(gpio_t *gpio)
 {
-    int count;
-    for (count = 0; count < len && gpio; count++) {
-        volatile struct imx6_gpio_regs* bank;
-        uint32_t v;
-        int pin;
+    volatile struct imx6_gpio_regs *bank;
+    uint32_t v;
+    int pin;
 
-        bank = imx6_gpio_get_bank(gpio);
-        pin = GPIOID_PIN(gpio->id);
-        assert(pin < 32);
-        assert(pin >= 0);
+    bank = imx6_gpio_get_bank(gpio);
+    pin = GPIOID_PIN(gpio->id);
+    assert(pin < 32);
+    assert(pin >= 0);
 
-        v = bank->data;
-
-        ZF_LOGD("data(%p) <=> 0x%x\n",  &bank->data, v);
-        if (v & (1U << pin)) {
-            *data++ = 0xff;
-        } else {
-            *data++ = 0x00;
-        }
-
-        gpio = gpio->next;
+    v = bank->data;
+    if (v & (1U << pin)) {
+        return GPIO_LEVEL_HIGH;
     }
-    return count;
+
+    return GPIO_LEVEL_LOW;
 }
 
 int
@@ -181,8 +165,8 @@ imx6_gpio_init_common(mux_sys_t* mux, gpio_sys_t* gpio_sys)
 {
     _gpio.mux = mux;
     gpio_sys->priv = (void*)&_gpio;
-    gpio_sys->read = &imx6_gpio_read;
-    gpio_sys->write = &imx6_gpio_write;
+    gpio_sys->set_level = &imx6_gpio_set_level;
+    gpio_sys->read_level = &imx6_gpio_read_level;
     gpio_sys->init = &imx6_gpio_init;
     return 0;
 }
