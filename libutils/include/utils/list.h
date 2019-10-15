@@ -53,7 +53,7 @@ int list_index(list_t *l, void *data, int(*cmp)(void*, void*));
  * the caller's action ever returns non-zero the traversal is aborted and that
  * value is returned. If traversal completes, this function returns 0.
  */
-int list_foreach(list_t *l, int(*action)(void*));
+int list_foreach(list_t *l, int(*action)(void*, void*), void *token);
 
 /* Remove the given element from the list. Returns non-zero if the element is
  * not found.

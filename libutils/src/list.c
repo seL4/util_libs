@@ -91,11 +91,11 @@ int list_index(list_t *l, void *data, int(*cmp)(void*, void*))
     return -1;
 }
 
-int list_foreach(list_t *l, int(*action)(void*))
+int list_foreach(list_t *l, int(*action)(void*, void*), void *token)
 {
     assert(l != NULL);
     for (node_t *n = l->head; n != NULL; n = n->next) {
-        int res = action(n->data);
+        int res = action(n->data, token);
         if (res != 0) {
             return res;
         }
