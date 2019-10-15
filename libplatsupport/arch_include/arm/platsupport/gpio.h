@@ -26,14 +26,10 @@ typedef int gpio_id_t;
 
 typedef struct gpio gpio_t;
 struct gpio {
-    /* Used to chain GPIO pins together. */
-    void (*set_next)(gpio_t *gpio, gpio_t *next);
 /// GPIO port identifier
     gpio_id_t id;
 /// GPIO subsystem handle
     gpio_sys_t* gpio_sys;
-/// Chain GPIO's to enable bulk reads/writes
-    struct gpio* next;
 };
 
 enum gpio_dir {
@@ -101,23 +97,6 @@ gpio_sys_valid(const gpio_sys_t *gpio_sys)
  * @return              0 on success
  */
 int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys);
-
-/** Set the GPIO pin which is "next" in sequence to this one.
- * @param[in] self      Handle to a valid, initialized gpio_t instance.
- * @param[in] next      Handle to a valid, initialized gpio_t instance which
- *                      is to be linked as the next in the chain after
- *                      "self".
- *                      This can also be "NULL", in which case the chain link is
- *                      considered to be severed.
- */
-static inline void
-gpio_set_next(gpio_t *self, gpio_t *next)
-{
-    ZF_LOGF_IF(!self, "Handle to GPIO pin not supplied!");
-    ZF_LOGF_IF(!self->gpio_sys, "GPIO pin's parent controller handle invalid!");
-    ZF_LOGF_IF(!self->set_next, "Unimplemented!");
-    self->set_next(self, next);
-}
 
 /**
  * Clear a GPIO pin

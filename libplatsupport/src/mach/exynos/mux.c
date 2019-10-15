@@ -420,7 +420,6 @@ exynos_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
 
     gpio->id = id;
     gpio->gpio_sys = gpio_sys;
-    gpio->next = NULL;
     cfg = get_gpio_cfg(gpio);
     if (cfg == NULL) {
         return -1;

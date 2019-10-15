@@ -87,7 +87,6 @@ imx6_gpio_init(gpio_sys_t* gpio_sys, int id, enum gpio_dir dir, gpio_t* gpio)
 
     gpio->id = id;
     gpio->gpio_sys = gpio_sys;
-    gpio->next = NULL;
 
     bank = imx6_gpio_get_bank(gpio);
     ZF_LOGD("Configuring GPIO on port %d pin %d\n",

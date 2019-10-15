@@ -413,12 +413,6 @@ static int tegra_pending_status(gpio_t* gpio, int clear)
     return pending;
 }
 
-static void
-tegra_gpio_set_next(gpio_t *self, gpio_t *next)
-{
-    self->next = next;
-}
-
 static int
 tegra_gpio_read(gpio_t* gpio, char* data, int len)
 {
@@ -485,9 +479,6 @@ static int tegra_gpio_init(gpio_sys_t *gpio_sys, int id, enum gpio_dir dir, gpio
 
     gpio->id = id;
     gpio->gpio_sys = gpio_sys;
-    gpio->next = NULL;
-
-    gpio->set_next = &tegra_gpio_set_next;
 
     error = gpio_set_pad_mode(gpio_sys, id, GPIO_MODE, dir);
     if (error != 0) {
