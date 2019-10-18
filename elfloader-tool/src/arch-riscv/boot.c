@@ -197,7 +197,7 @@ void main(UNUSED int hardid, void *bootloader_dtb)
                                                   hartid,
                                                   0
 #endif
-                                                  );
+                                                 );
 
     /* We should never get here. */
     printf("Kernel returned back to the elf-loader.\n");
@@ -220,7 +220,7 @@ void secondary_entry(int hart_id, int core_id)
                                                   ,
                                                   hart_id,
                                                   core_id
-                                                  );
+                                                 );
 }
 
 #endif
