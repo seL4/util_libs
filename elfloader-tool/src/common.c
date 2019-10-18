@@ -277,7 +277,8 @@ static paddr_t load_elf(const char *name, void *elf, paddr_t dest_paddr,
  *  We attempt to check for some of these, but some may go unnoticed.
  */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
-                 int max_user_images, int *num_images, void **dtb, uint32_t *dtb_size)
+                 int max_user_images, int *num_images, void *bootloader_dtb, void **chosen_dtb,
+                 uint32_t *chosen_dtb_size)
 {
     int i;
     uint64_t kernel_phys_start, kernel_phys_end;
@@ -302,7 +303,9 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
 
-    if (dtb && !*dtb) {
+    void *dtb = NULL;
+#ifdef CONFIG_ELFLOADER_INCLUDE_DTB
+    if (chosen_dtb) {
         printf("Looking for DTB in CPIO archive...");
         /*
          * Note the lack of newline in the above printf().  Normally one would
@@ -311,40 +314,46 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
          * devices).  But we are freestanding (on the "bare metal"), and using
          * our own unbuffered printf() implementation.
          */
-        *dtb = cpio_get_file(_archive_start, cpio_len, "kernel.dtb", &unused);
-        if (*dtb == NULL) {
+        dtb = cpio_get_file(_archive_start, cpio_len, "kernel.dtb", &unused);
+        if (dtb == NULL) {
             printf("not found.\n");
         } else {
             has_dtb_cpio = 1;
-            printf("found at %p.\n", *dtb);
+            printf("found at %p.\n", dtb);
         }
+    }
+#endif
+
+    if (chosen_dtb && !dtb && bootloader_dtb) {
+        /* Use the bootloader's DTB if we are not using the DTB in the CPIO archive. */
+        dtb = bootloader_dtb;
     }
 
     /*
      * Move the DTB out of the way, if it's present.
      */
-    if (dtb && *dtb) {
+    if (dtb) {
         /* keep it page aligned */
         next_phys_addr = dtb_phys_start = ROUND_UP(kernel_phys_end, PAGE_BITS);
 
-        *dtb_size = fdt_size(*dtb);
-        if (!*dtb_size) {
+        *chosen_dtb_size = fdt_size(dtb);
+        if (!*chosen_dtb_size) {
             printf("Invalid device tree blob supplied!\n");
             abort();
         }
 
         /* Make sure this is a sane thing to do */
         ensure_phys_range_valid("DTB", next_phys_addr,
-                                next_phys_addr + *dtb_size);
+                                next_phys_addr + *chosen_dtb_size);
 
-        memmove((void *)next_phys_addr, *dtb, *dtb_size);
-        next_phys_addr += *dtb_size;
+        memmove((void *)next_phys_addr, dtb, *chosen_dtb_size);
+        next_phys_addr += *chosen_dtb_size;
         next_phys_addr = ROUND_UP(next_phys_addr, PAGE_BITS);
         dtb_phys_end = next_phys_addr;
 
-        printf("Loaded DTB from %p.\n", *dtb);
+        printf("Loaded DTB from %p.\n", dtb);
         printf("   paddr=[%lx..%lx]\n", dtb_phys_start, dtb_phys_end - 1);
-        *dtb = (void *)dtb_phys_start;
+        *chosen_dtb = (void *)dtb_phys_start;
     } else {
         next_phys_addr = ROUND_UP(kernel_phys_end, PAGE_BITS);
     }

@@ -91,6 +91,8 @@ void main(UNUSED void *arg)
 {
     int num_apps;
 
+    void *bootloader_dtb = NULL;
+
 #ifdef CONFIG_IMAGE_UIMAGE
     if (arg) {
         uint32_t magic = *(uint32_t *)arg;
@@ -104,9 +106,9 @@ void main(UNUSED void *arg)
             arg = NULL;
         }
     }
-    dtb = arg;
+    bootloader_dtb = arg;
 #else
-    dtb = NULL;
+    bootloader_dtb = NULL;
 #endif
 
 #ifdef CONFIG_IMAGE_EFI
@@ -115,7 +117,7 @@ void main(UNUSED void *arg)
         abort();
     }
 
-    dtb = efi_get_fdt();
+    bootloader_dtb = efi_get_fdt();
 #endif
 
     /* Print welcome message. */
@@ -129,14 +131,14 @@ void main(UNUSED void *arg)
      * U-Boot will either pass us a DTB, or (if we're being booted via bootelf)
      * pass '0' in argc.
      */
-    if (dtb) {
+    if (bootloader_dtb) {
         printf("  dtb=%p\n", dtb);
     } else {
         printf("No DTB passed in from boot loader.\n");
     }
 
     /* Unpack ELF images into memory. */
-    load_images(&kernel_info, &user_info, 1, &num_apps, &dtb, &dtb_size);
+    load_images(&kernel_info, &user_info, 1, &num_apps, bootloader_dtb, &dtb, &dtb_size);
     if (num_apps != 1) {
         printf("No user images loaded!\n");
         abort();

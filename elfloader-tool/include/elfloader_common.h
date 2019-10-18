@@ -66,7 +66,8 @@ extern char _archive_start_end[];
 
 /* Load images. */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
-                 int max_user_images, int *num_images, void **dtb, uint32_t *dtb_size);
+                 int max_user_images, int *num_images, void *bootloader_dtb, void **chosen_dtb,
+                 uint32_t *chosen_dtb_size);
 
 /* Platform functions */
 void platform_init(void);
