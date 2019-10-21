@@ -161,7 +161,7 @@ static inline void enable_virtual_memory(void)
 }
 
 int num_apps = 0;
-void main(UNUSED int hardid, void *bootloader_dtb)
+void main(UNUSED int hartid, void *bootloader_dtb)
 {
     void *dtb = NULL;
     uint32_t dtb_size = 0;
