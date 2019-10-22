@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -25,13 +25,13 @@
 #define TIER_OVERFLOWENABLE BIT(1)
 #define TIER_COMPAREENABLE BIT(2)
 
+#define TCLR_STARTTIMER BIT(0)
 #define TCLR_AUTORELOAD BIT(1)
 #define TCLR_COMPAREENABLE BIT(6)
-#define TCLR_STARTTIMER BIT(0)
 
-#define TISR_TCAR_IT_FLAG BIT(2)
-#define TISR_OVF_IT_FLAG BIT(1)
 #define TISR_MAT_IT_FLAG BIT(0)
+#define TISR_OVF_IT_FLAG BIT(1)
+#define TISR_TCAR_IT_FLAG BIT(2)
 
 #define TISR_IRQ_CLEAR (TISR_TCAR_IT_FLAG | TISR_OVF_IT_FLAG | TISR_MAT_IT_FLAG)
 
@@ -41,7 +41,8 @@
 
 static void dmt_reset(dmt_t *dmt)
 {
-    dmt->hw->tclr = 0;          /* stop */
+    /* stop */
+    dmt->hw->tclr = 0;
     dmt->hw->cfg = TIOCP_CFG_SOFTRESET;
     while (dmt->hw->cfg & TIOCP_CFG_SOFTRESET);
     dmt->hw->tier = TIER_OVERFLOWENABLE;
@@ -94,7 +95,8 @@ void dmt_handle_irq(dmt_t *dmt)
         ZF_LOGE("DMT is NULL");
         return;
     }
-    dmt->hw->tisr = TISR_IRQ_CLEAR;  /* ack any pending irqs */
+    /* ack any pending irqs */
+    dmt->hw->tisr = TISR_IRQ_CLEAR;
 }
 
 bool dmt_pending_match(dmt_t *dmt)

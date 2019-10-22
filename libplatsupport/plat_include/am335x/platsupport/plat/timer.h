@@ -100,15 +100,17 @@ typedef struct dmt {
     volatile struct dmt_map *hw;
 } dmt_t;
 
-static inline void *dmt_paddr(dmt_id_t id) {
+static inline void *dmt_paddr(dmt_id_t id)
+{
     if (id <= DMTIMER7 && id >= DMTIMER2) {
-        return  (void *) dmt_paddrs[id];
+        return (void *) dmt_paddrs[id];
     } else {
         return NULL;
     }
 }
 
-static inline long dmt_irq(dmt_id_t id) {
+static inline long dmt_irq(dmt_id_t id)
+{
     if (id <= DMTIMER7 && id >= DMTIMER2) {
         return dmt_irqs[id];
     } else {
