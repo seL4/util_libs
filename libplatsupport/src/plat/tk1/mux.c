@@ -355,7 +355,7 @@ tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
             ZF_LOGE("Can't enable both tristate and pull-resistor output drivers.");
             return -1;
         }
-        requiredval |= BIT(MUX_REG_TRISTATE_TRISTATE);
+        requiredval |= BIT(MUX_REG_TRISTATE_SHIFT);
     }
     if (desc->flags & P_PULLUP || desc->flags & P_PULLDOWN) {
         if ((desc->flags & P_PULLUP) && (desc->flags & P_PULLDOWN)) {
