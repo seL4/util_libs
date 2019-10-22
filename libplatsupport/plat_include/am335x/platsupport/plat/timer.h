@@ -121,7 +121,12 @@ static inline long dmt_irq(dmt_id_t id)
 int dmt_init(dmt_t *dmt, dmt_config_t config);
 int dmt_start(dmt_t *dmt);
 int dmt_stop(dmt_t *dmt);
+/* configure a timeout */
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic);
+/* start the ticking timer */
+int dmt_start_ticking_timer(dmt_t *dmt);
 void dmt_handle_irq(dmt_t *dmt);
-/* return true if a match is pending */
-bool dmt_pending_match(dmt_t *dmt);
+/* return true if an overflow is pending */
+bool dmt_pending_overflow(dmt_t *dmt);
+/* return ticks */
+uint32_t dmt_get_time(dmt_t *dmt);

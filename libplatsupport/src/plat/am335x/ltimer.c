@@ -17,6 +17,7 @@
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
+#include <utils/frequency.h>
 
 #include <utils/util.h>
 
@@ -36,7 +37,7 @@ typedef struct {
     ltimer_callback_fn_t user_callback;
     void *user_callback_token;
     ps_io_ops_t ops;
-    uint64_t ms;
+    uint32_t high_ticks;
 } dmt_ltimer_t;
 
 static size_t get_num_irqs(void *data)
@@ -73,7 +74,7 @@ static int ltimer_handle_irq(void *data, ps_irq_t *irq)
 
     ltimer_event_t event;
     if (irq->irq.number == dmt_irq(DMT_ID + TICK_DMT)) {
-        dmt_ltimer->ms++;
+        dmt_ltimer->high_ticks++;
         dmt_handle_irq(&dmt_ltimer->dmts[TICK_DMT]);
         event = LTIMER_OVERFLOW_EVENT;
     } else if (irq->irq.number == dmt_irq(DMT_ID + TIMEOUT_DMT)) {
@@ -97,12 +98,16 @@ static int get_time(void *data, uint64_t *time)
     assert(time != NULL);
 
     dmt_ltimer_t *dmt_ltimer = data;
-    uint64_t ms = dmt_ltimer->ms;
-    /* check for pending irqs */
-    if (dmt_pending_match(&dmt_ltimer->dmts[TICK_DMT])) {
-        ms++;
-    }
-    *time = ms * NS_IN_MS;
+    uint32_t high, low, high1;
+
+    do {
+        high  = dmt_ltimer->high_ticks;
+        low   = dmt_get_time(&dmt_ltimer->dmts[TICK_DMT]);
+        high1 = dmt_ltimer->high_ticks;
+    } while (high != high1);
+
+    uint64_t ticks = (((uint64_t)high << 32llu) | low);
+    *time = freq_cycles_and_hz_to_ns(ticks, 24000000llu);
     return 0;
 }
 
@@ -121,6 +126,7 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         uint64_t current_time = 0;
         int error = get_time(data, &current_time);
         assert(error == 0);
+        assert(ns > current_time);
         ns -= current_time;
     }
 
@@ -133,13 +139,11 @@ static int reset(void *data)
     dmt_ltimer_t *dmt_ltimer = data;
 
     /* reset the timers */
-    dmt_ltimer->ms = 0;
     for (int i = 0; i < NUM_DMTS; i++) {
         dmt_stop(&dmt_ltimer->dmts[i]);
         dmt_start(&dmt_ltimer->dmts[i]);
     }
-    /* set timeout for ticking dmt */
-    return dmt_set_timeout(&dmt_ltimer->dmts[TICK_DMT], NS_IN_MS, true);
+    return 0;
 }
 
 static void destroy(void *data)
@@ -236,12 +240,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     /* start the ticking dmt */
     if (!error) {
-       error = dmt_start(&dmt_ltimer->dmts[TICK_DMT]);
-    }
-
-    /* set the tick */
-    if (!error) {
-        error = dmt_set_timeout(&dmt_ltimer->dmts[TICK_DMT], NS_IN_MS, true);
+        error = dmt_start_ticking_timer(&dmt_ltimer->dmts[TICK_DMT]);
     }
 
     if (error) {

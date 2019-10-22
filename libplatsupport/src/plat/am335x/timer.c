@@ -27,6 +27,7 @@
 
 #define TCLR_STARTTIMER BIT(0)
 #define TCLR_AUTORELOAD BIT(1)
+#define TCLR_PRESCALER BIT(5)
 #define TCLR_COMPAREENABLE BIT(6)
 
 #define TISR_MAT_IT_FLAG BIT(0)
@@ -34,10 +35,6 @@
 #define TISR_TCAR_IT_FLAG BIT(2)
 
 #define TISR_IRQ_CLEAR (TISR_TCAR_IT_FLAG | TISR_OVF_IT_FLAG | TISR_MAT_IT_FLAG)
-
-#define TICKS_PER_SECOND 24000000  /* TODO: Pin this frequency down without relying on u-boot. */
-#define TIMER_INTERVAL_TICKS(ns) ((uint32_t)(1ULL * (ns) * TICKS_PER_SECOND / 1000 / 1000 / 1000))
-#define TICKS_TIMER_INTERVAL(x)  (((uint64_t)x * 1000 * 1000 * 1000) / TICKS_PER_SECOND)
 
 static void dmt_reset(dmt_t *dmt)
 {
@@ -77,15 +74,52 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic)
     /* XXX handle prescaler */
     uint32_t tclrFlags = periodic ? TCLR_AUTORELOAD : 0;
 
-    uint32_t ticks = TIMER_INTERVAL_TICKS(ns);
+    uint64_t ticks = freq_ns_and_hz_to_cycles(ns, 24000000llu);
     if (ticks < 2) {
+        return ETIME;
+    }
+    /* TODO: add functionality for 64 bit timeouts
+     */
+    assert((ticks <= UINT32_MAX));
+
+    /* reload value */
+    dmt->hw->tldr = 0xffffffff - (ticks);
+
+    /* counter */
+    dmt->hw->tcrr = 0xffffffff - (ticks);
+
+    /* ack any pending irqs */
+    dmt->hw->tisr = TISR_IRQ_CLEAR;
+    dmt->hw->tclr = TCLR_STARTTIMER | tclrFlags;
+    return 0;
+}
+
+int dmt_start_ticking_timer(dmt_t *dmt)
+{
+    if (dmt == NULL) {
         return EINVAL;
     }
-    //printf("timer %lld ns = %x ticks (cntr %x)\n", ns, ticks, (uint32_t)(~0UL - ticks));
-    dmt->hw->tldr = ~0UL - ticks;   /* reload value */
-    dmt->hw->tcrr = ~0UL - ticks;   /* counter */
-    dmt->hw->tisr = TISR_IRQ_CLEAR;  /* ack any pending irqs */
-    dmt->hw->tclr = TCLR_STARTTIMER | tclrFlags;
+    /* stop */
+    dmt->hw->tclr = 0;
+
+    /* reset */
+    dmt->hw->cfg = TIOCP_CFG_SOFTRESET;
+    while (dmt->hw->cfg & TIOCP_CFG_SOFTRESET);
+
+    /* reload value */
+    dmt->hw->tldr = 0x0;
+
+    /* use overflow mode */
+    dmt->hw->tier = TIER_OVERFLOWENABLE;
+
+    /* counter */
+    dmt->hw->tcrr = 0x0;
+
+    /* ack any pending irqs */
+    dmt->hw->tisr = TISR_IRQ_CLEAR;
+
+    /* start with auto reload */
+    dmt->hw->tclr = TCLR_STARTTIMER | TCLR_AUTORELOAD;
     return 0;
 }
 
@@ -99,9 +133,14 @@ void dmt_handle_irq(dmt_t *dmt)
     dmt->hw->tisr = TISR_IRQ_CLEAR;
 }
 
-bool dmt_pending_match(dmt_t *dmt)
+bool dmt_pending_overflow(dmt_t *dmt)
 {
-    return dmt->hw->tisr & TISR_MAT_IT_FLAG;
+    return dmt->hw->tisr & TISR_OVF_IT_FLAG;
+}
+
+uint32_t dmt_get_time(dmt_t *dmt)
+{
+    return dmt->hw->tcrr;
 }
 
 int dmt_init(dmt_t *dmt, dmt_config_t config)
