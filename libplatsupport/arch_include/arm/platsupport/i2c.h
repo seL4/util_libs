@@ -111,14 +111,12 @@ enum kvfmt {
 #define I2C_VALID_ADDR_MIN      (0x8)
 #define I2C_VALID_ADDR_MAX      (0x78)
 
-static inline bool
-i2c_is_valid_address(uint8_t id)
+static inline bool i2c_is_valid_address(uint8_t id)
 {
     return id >= I2C_VALID_ADDR_MIN && id < I2C_VALID_ADDR_MAX;
 }
 
-static inline int
-i2c_extract_address(uint8_t id_with_rw_bit)
+static inline int i2c_extract_address(uint8_t id_with_rw_bit)
 {
     return (id_with_rw_bit >> 1) & 0x7F;
 }
@@ -128,7 +126,7 @@ i2c_extract_address(uint8_t id_with_rw_bit)
  * should respond by calling i2c_read or i2c_write with an appropriate transfer buffer
  * depending on the reported i2c_mode.
  */
-typedef void (*i2c_aas_callback_fn)(i2c_bus_t* bus, enum i2c_mode, void* token);
+typedef void (*i2c_aas_callback_fn)(i2c_bus_t *bus, enum i2c_mode, void *token);
 /**
  * This callback is called when a transfer needs attention.
  * It will be called if the transfer is interrupted, just before the last byte is
@@ -141,7 +139,7 @@ typedef void (*i2c_aas_callback_fn)(i2c_bus_t* bus, enum i2c_mode, void* token);
  * of the original buffer will not take part in the transfer. The reason for this
  * strange operation is due to the ACK policy of I2C transfers.
  */
-typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void* token);
+typedef void (*i2c_callback_fn)(i2c_bus_t *bus, enum i2c_stat, size_t size, void *token);
 
 /** I2C slave controller handle structure.
  *
@@ -154,14 +152,14 @@ typedef void (*i2c_callback_fn)(i2c_bus_t* bus, enum i2c_stat, size_t size, void
  */
 typedef struct i2c_slave i2c_slave_t;
 struct i2c_slave {
-    int (*slave_read)(i2c_slave_t* i2c_slave, void* data, size_t size,
+    int (*slave_read)(i2c_slave_t *i2c_slave, void *data, size_t size,
                       bool end_with_repeat_start,
-                      i2c_callback_fn cb, void* token);
-    int (*slave_write)(i2c_slave_t* i2c_slave, const void* data, size_t size,
+                      i2c_callback_fn cb, void *token);
+    int (*slave_write)(i2c_slave_t *i2c_slave, const void *data, size_t size,
                        bool end_with_repeat_start,
-                       i2c_callback_fn cb, void* token);
+                       i2c_callback_fn cb, void *token);
 
-    i2c_bus_t* bus;
+    i2c_bus_t *bus;
     int        address;
     enum i2c_slave_address_size address_size;
     enum i2c_slave_speed        max_speed;
@@ -194,41 +192,41 @@ struct i2c_bus {
      * If you will be using the controller in slave mode, you should register
      * a slave mode event handler to receive notifications of slave mode events.
      */
-    int (*slave_init)(i2c_bus_t* i2c_bus, int address,
+    int (*slave_init)(i2c_bus_t *i2c_bus, int address,
                       enum i2c_slave_address_size address_size,
                       enum i2c_slave_speed max_speed,
                       uint32_t i2c_opts,
-                      i2c_slave_t* i2c_slave);
+                      i2c_slave_t *i2c_slave);
 
-    long (*set_speed)(i2c_bus_t* bus, enum i2c_slave_speed speed);
+    long (*set_speed)(i2c_bus_t *bus, enum i2c_slave_speed speed);
     /* Bus clear operation, for when the slave holds SDA line low. */
-    int (*master_stop)(i2c_bus_t* bus);
-    void (*set_hsmode_master_address)(i2c_bus_t* bus, int addr);
+    int (*master_stop)(i2c_bus_t *bus);
+    void (*set_hsmode_master_address)(i2c_bus_t *bus, int addr);
     /* Slave mode functions: To be used when the controller is in slave mode. */
-    int (*read)(i2c_bus_t* bus, void* buf, size_t size, bool end_with_repeat_start,
-                i2c_callback_fn cb, void* token);
-    int (*write)(i2c_bus_t* bus, const void* buf, size_t size, bool end_with_repeat_start,
-                 i2c_callback_fn cb, void* token);
+    int (*read)(i2c_bus_t *bus, void *buf, size_t size, bool end_with_repeat_start,
+                i2c_callback_fn cb, void *token);
+    int (*write)(i2c_bus_t *bus, const void *buf, size_t size, bool end_with_repeat_start,
+                 i2c_callback_fn cb, void *token);
     void (*register_slave_event_handler)(i2c_bus_t *bus,
                                          i2c_aas_callback_fn cb, void *token);
 
     int (*set_self_slave_address)(i2c_bus_t *bus, int addr);
-    enum i2c_mode (*probe_aas)(i2c_bus_t* bus);
+    enum i2c_mode(*probe_aas)(i2c_bus_t *bus);
 
-    void (*handle_irq)(i2c_bus_t* bus);
+    void (*handle_irq)(i2c_bus_t *bus);
 
     i2c_callback_fn cb;
-    void* token;
+    void *token;
     i2c_aas_callback_fn aas_cb;
-    void* aas_token;
-    void* priv;
+    void *aas_token;
+    void *priv;
 };
 
 struct i2c_bb {
     gpio_id_t scl;
     gpio_id_t sda;
     int speed;
-    gpio_sys_t* gpio_sys;
+    gpio_sys_t *gpio_sys;
 };
 
 /**
@@ -239,7 +237,7 @@ struct i2c_bb {
  * @param[out] i2c_bus A handle to the i2c bus driver for future calls
  * @return             0 on success
  */
-int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c_bus);
+int i2c_init(enum i2c_id id, ps_io_ops_t *io_ops, i2c_bus_t *i2c_bus);
 
 /**
  * Initialise a bit-banged I2C bus
@@ -251,7 +249,7 @@ int i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c_bus);
  * @param[out] i2c_bus   A generic I2C bus structure to populate
  * @return               0 on success
  */
-int i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda, struct i2c_bb* i2c_bb, struct i2c_bus* i2c_bus);
+int i2c_bb_init(gpio_sys_t *gpio_sys, gpio_id_t scl, gpio_id_t sda, struct i2c_bb *i2c_bb, struct i2c_bus *i2c_bus);
 
 /** Initialise an I2C slave device for "stream" reading and writing.
  *
@@ -278,11 +276,11 @@ int i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda, struct i2c_b
  */
 #define I2C_SLAVE_OPTS_DEVICE_DOES_NOT_ACK     BIT(0)
 
-int i2c_slave_init(i2c_bus_t* i2c_bus, int address,
+int i2c_slave_init(i2c_bus_t *i2c_bus, int address,
                    enum i2c_slave_address_size address_size,
                    enum i2c_slave_speed max_speed,
                    uint32_t i2c_opts,
-                   i2c_slave_t* i2c_slave);
+                   i2c_slave_t *i2c_slave);
 
 typedef struct i2c_kvslave_ {
     i2c_slave_t *slave;
@@ -306,9 +304,9 @@ typedef struct i2c_kvslave_ {
  * @param[out] i2c_kvslave A slave device structure to initialise
  * @return             0 on success
  */
-int i2c_kvslave_init(i2c_slave_t* i2c_slave,
+int i2c_kvslave_init(i2c_slave_t *i2c_slave,
                      enum kvfmt asize, enum kvfmt dsize,
-                     i2c_kvslave_t* i2c_kvslave);
+                     i2c_kvslave_t *i2c_kvslave);
 
 /**
  * Set the speed of the I2C bus
@@ -317,7 +315,7 @@ int i2c_kvslave_init(i2c_slave_t* i2c_slave,
  *                     HS.
  * @return             The actual speed set
  */
-static inline long i2c_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
+static inline long i2c_set_speed(i2c_bus_t *i2c_bus, enum i2c_slave_speed speed)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->set_speed, "Unimplemented!");
@@ -328,7 +326,7 @@ static inline long i2c_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
  * Signal an IRQ event to an I2C bus.
  * @param[in] i2c_bus The I2C bus that triggered the IRQ
  */
-static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
+static inline void i2c_handle_irq(i2c_bus_t *i2c_bus)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->handle_irq, "Unimplemented!");
@@ -346,9 +344,8 @@ static inline void i2c_handle_irq(i2c_bus_t* i2c_bus)
  *                      to notify the client application of.
  * @param[in] token     Client-specific data that the driver returns unchanged.
  */
-static inline void
-i2c_register_slave_event_handler(i2c_bus_t *bus,
-                                 i2c_aas_callback_fn cb, void *token)
+static inline void i2c_register_slave_event_handler(i2c_bus_t *bus,
+                                                    i2c_aas_callback_fn cb, void *token)
 {
     ZF_LOGF_IF(!bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!bus->register_slave_event_handler, "Unimplemented!");
@@ -369,8 +366,7 @@ i2c_register_slave_event_handler(i2c_bus_t *bus,
  *                      the address should be set to 0.
  * @return              0 on success
  */
-static inline int
-i2c_set_self_slave_address(i2c_bus_t *bus, int addr)
+static inline int i2c_set_self_slave_address(i2c_bus_t *bus, int addr)
 {
     ZF_LOGF_IF(!bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!bus->set_self_slave_address, "Unimplemented!");
@@ -391,8 +387,7 @@ i2c_set_self_slave_address(i2c_bus_t *bus, int addr)
  * @param[in] aas_cb    A callback function to call when the slave is addressed
  * @param[in] aas_token A token to pass, unmodified to the provided callback function
  */
-static inline void
-i2c_set_hsmode_master_address(i2c_bus_t* i2c_bus, int addr)
+static inline void i2c_set_hsmode_master_address(i2c_bus_t *i2c_bus, int addr)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->set_hsmode_master_address, "Unimplemented!");
@@ -410,9 +405,9 @@ i2c_set_hsmode_master_address(i2c_bus_t* i2c_bus, int addr)
  * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes read
  */
-static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size,
+static inline int i2c_read(i2c_bus_t *i2c_bus, void *data, size_t size,
                            bool end_with_repeat_start,
-                           i2c_callback_fn cb, void* token)
+                           i2c_callback_fn cb, void *token)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->read, "Unimplemented!");
@@ -428,9 +423,9 @@ static inline int i2c_read(i2c_bus_t* i2c_bus, void* data, size_t size,
  * @param[in] token   A token to pass unmodified to the registered callback
  * @return            The number of bytes sent
  */
-static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size,
+static inline int i2c_write(i2c_bus_t *i2c_bus, const void *data, size_t size,
                             bool end_with_repeat_start,
-                            i2c_callback_fn cb, void* token)
+                            i2c_callback_fn cb, void *token)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->write, "Unimplemented!");
@@ -445,7 +440,7 @@ static inline int i2c_write(i2c_bus_t* i2c_bus, const void* data, size_t size,
  * @return             The mode in which the bus was addressed, or I2CMODE_IDLE if
  *                     the bus was not addressed in the last byte received.
  */
-static inline enum i2c_mode i2c_probe_aas(i2c_bus_t* i2c_bus)
+static inline enum i2c_mode i2c_probe_aas(i2c_bus_t *i2c_bus)
 {
     ZF_LOGF_IF(!i2c_bus, "Handle to I2C controller not supplied!");
     ZF_LOGF_IF(!i2c_bus->probe_aas, "Unimplmented!");
@@ -467,7 +462,7 @@ static inline enum i2c_mode i2c_probe_aas(i2c_bus_t* i2c_bus)
  *                     If the return value equals @ref(naddr), one should
  *                     repeat the call with @ref(start) adjusted appropraitly.
  */
-int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
+int i2c_scan(i2c_bus_t *i2c_bus, int start, int *addr, int naddr);
 
 
 
@@ -490,7 +485,7 @@ int i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr);
  * @param[in] nregs      The number of registers to read
  * @return               The actual number of bytes read
  */
-int i2c_kvslave_read(i2c_kvslave_t* i2c_kvslave, uint64_t start, void* data, int nregs);
+int i2c_kvslave_read(i2c_kvslave_t *i2c_kvslave, uint64_t start, void *data, int nregs);
 
 /**
  * Write registers to a register map I2C slave device
@@ -505,7 +500,7 @@ int i2c_kvslave_read(i2c_kvslave_t* i2c_kvslave, uint64_t start, void* data, int
  * @param[in] nregs      The number of registers to write
  * @return               The actual number of bytes read
  */
-int i2c_kvslave_write(i2c_kvslave_t* i2c_kvslave, uint64_t start, const void* data, int nregs);
+int i2c_kvslave_write(i2c_kvslave_t *i2c_kvslave, uint64_t start, const void *data, int nregs);
 
 
 /**** Streaming device ****/
@@ -519,10 +514,9 @@ int i2c_kvslave_write(i2c_kvslave_t* i2c_kvslave, uint64_t start, const void* da
  * @param[in] token      The token that the callback returns
  * @return               The actual number of registers read
  */
-static inline int
-i2c_slave_read(i2c_slave_t* i2c_slave, void* data, size_t size,
-               bool end_with_repeat_start,
-               i2c_callback_fn cb, void* token)
+static inline int i2c_slave_read(i2c_slave_t *i2c_slave, void *data, size_t size,
+                                 bool end_with_repeat_start,
+                                 i2c_callback_fn cb, void *token)
 {
     ZF_LOGF_IF(!i2c_slave, "Handle to I2C slave info not supplied!");
     ZF_LOGF_IF(!i2c_slave->bus, "I2C slave's parent bus not filled out!");
@@ -540,10 +534,9 @@ i2c_slave_read(i2c_slave_t* i2c_slave, void* data, size_t size,
  * @param[in] token      The token that the callback returns
  * @return               The actual number of registers written
  */
-static inline int
-i2c_slave_write(i2c_slave_t* i2c_slave, const void* data, int size,
-                bool end_with_repeat_start,
-                i2c_callback_fn cb, void* token)
+static inline int i2c_slave_write(i2c_slave_t *i2c_slave, const void *data, int size,
+                                  bool end_with_repeat_start,
+                                  i2c_callback_fn cb, void *token)
 {
     ZF_LOGF_IF(!i2c_slave, "Handle to I2C slave info not supplied!");
     ZF_LOGF_IF(!i2c_slave->bus, "I2C slave's parent bus not filled out!");
