@@ -158,6 +158,8 @@ file(
     GLOB
         files
         src/*.c
+        src/drivers/*.c
+        src/drivers/uart/*.c
         src/utils/*.c
         src/arch-${KernelArch}/*.c
         src/arch-${KernelArch}/*.S
@@ -263,8 +265,8 @@ MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 # Now, instead, we compute a reasonable image start address, using a tool called
 # `shoehorn`, based on knowledge of how where and how big the extracted payloads
 # will be, obtained by a tool called `elf_sift`.
+set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/")
 if(DEFINED platform_yaml)
-    set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/")
     set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
     set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
     add_custom_command(
@@ -298,6 +300,26 @@ else()
         FATAL_ERROR
             "no image start address computed for platform; use platform YAML file ${platform_yaml} or replace this diagnostic with a CMake custom command to generate a file \"${IMAGE_START_ADDR_H}\" that hard-codes it; the same goes for \"${PLATFORM_INFO_H}\""
     )
+endif()
+
+if(DEFINED KernelDTBPath)
+    get_filename_component(KernelTools ${HARDWARE_GEN_PATH} DIRECTORY)
+    set(config_file "${KernelTools}/hardware.yml")
+    set(schema_file "${KernelTools}/hardware_schema.yml")
+    set(DEVICES_GEN_H "${PLATFORM_HEADER_DIR}/devices_gen.h")
+    add_custom_command(
+        OUTPUT ${DEVICES_GEN_H}
+        COMMAND
+            ${PYTHON3} ${HARDWARE_GEN_PATH}
+            --elfloader
+            --elfloader-out "${DEVICES_GEN_H}"
+            --hardware-config "${config_file}"
+            --hardware-schema "${schema_file}"
+            --dtb "${KernelDTBPath}"
+        VERBATIM
+        DEPENDS ${KernelDTBPath} ${config_file} ${schema_file}
+    )
+    set_property(SOURCE src/drivers/driver.c PROPERTY OBJECT_DEPENDS ${DEVICES_GEN_H})
 endif()
 
 # Generate linker script

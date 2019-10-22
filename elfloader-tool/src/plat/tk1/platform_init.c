@@ -14,7 +14,10 @@
 #include <elfloader/gen_config.h>
 #include <elfloader.h>
 #include <printf.h>
-#include <platform.h>
+
+/* TODO: get rid of this, make GIC initialisation part of a driver. */
+#define TK1_GICD_PADDR    0x50041000
+#define TK1_GICC_PADDR    0x50042000
 
 extern void flush_dcache(void);
 extern void invalidate_icache(void);

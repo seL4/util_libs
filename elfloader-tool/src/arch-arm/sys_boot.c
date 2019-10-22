@@ -13,12 +13,13 @@
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
 
+#include <drivers.h>
+#include <drivers/uart.h>
 #include <printf.h>
 #include <types.h>
 #include <abort.h>
 #include <strops.h>
 #include <cpuid.h>
-#include <platform.h>
 
 #include <binaries/efi/efi.h>
 #include <elfloader.h>
@@ -81,7 +82,8 @@ void relocate_below_kernel(void)
      */
     uintptr_t new_base = kernel_info.virt_region_start - (ROUND_UP(size, MAX_ALIGN_BITS));
     uint32_t offset = start - new_base;
-    printf("relocating from %p-%p to %p-%p... size=0x%x (padded size = 0x%x)\n", start, end, new_base, new_base + size, size, ROUND_UP(size, MAX_ALIGN_BITS));
+    printf("relocating from %p-%p to %p-%p... size=0x%x (padded size = 0x%x)\n", start, end, new_base, new_base + size,
+           size, ROUND_UP(size, MAX_ALIGN_BITS));
 
     memmove((void *)new_base, (void *)start, size);
 
@@ -103,6 +105,8 @@ void main(UNUSED void *arg)
     int num_apps;
 
     void *bootloader_dtb = NULL;
+
+    initialise_devices();
 
 #ifdef CONFIG_IMAGE_UIMAGE
     if (arg) {
@@ -169,8 +173,17 @@ void main(UNUSED void *arg)
 
 void continue_boot(int was_relocated)
 {
-    if (was_relocated)
+    if (was_relocated) {
         printf("ELF loader relocated, continuing boot...\n");
+    }
+
+    /*
+     * If we were relocated, we need to re-initialise the
+     * driver model so all its pointers are set up properly.
+     */
+    if (was_relocated) {
+        initialise_devices();
+    }
 
 #if (defined(CONFIG_ARCH_ARM_V7A) || defined(CONFIG_ARCH_ARM_V8A)) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
     if (is_hyp_mode()) {
@@ -204,7 +217,7 @@ void continue_boot(int was_relocated)
     }
 
     /* Enter kernel. */
-    if (UART_PPTR < kernel_info.virt_region_start) {
+    if ((uintptr_t)uart_get_mmio() < kernel_info.virt_region_start) {
         printf("Jumping to kernel-image entry point...\n\n");
     } else {
         /* Our serial port is no longer accessible */

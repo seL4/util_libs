@@ -14,7 +14,6 @@
 #include <elfloader/gen_config.h>
 #include <elfloader.h>
 #include <printf.h>
-#include "platform.h"
 
 #define IMX6_SCU_PADDR          0x00a00000
 #define IMX6_SCU_SACR_PADDR     (IMX6_SCU_PADDR + 0x50)

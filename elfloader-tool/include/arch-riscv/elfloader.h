@@ -13,6 +13,8 @@
 #include <autoconf.h>
 #include <elfloader_common.h>
 
+int riscv_fputc(int c, volatile void *ptr);
+
 typedef void (*init_riscv_kernel_t)(paddr_t ui_p_reg_start,
                                     paddr_t ui_p_reg_end, int32_t pv_offset,
                                     vaddr_t v_entry

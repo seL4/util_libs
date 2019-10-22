@@ -70,5 +70,4 @@ void remap_ram(void)
 void platform_init(void)
 {
     remap_ram();
-    enable_uart();
 }

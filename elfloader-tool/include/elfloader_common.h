@@ -28,6 +28,8 @@ typedef uintptr_t vaddr_t;
 #define ALIGN(n)            __attribute__((__aligned__(n)))
 #define VISIBLE             __attribute__((externally_visible))
 #define UNUSED              __attribute__((unused))
+#define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
+#define NULL                ((void *)0)
 
 /*
  * Information about an image we are loading.

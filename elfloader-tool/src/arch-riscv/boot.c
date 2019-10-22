@@ -165,6 +165,7 @@ void main(UNUSED int hartid, void *bootloader_dtb)
 {
     void *dtb = NULL;
     uint32_t dtb_size = 0;
+
     printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);
 
     printf("  paddr=[%p..%p]\n", _text, _end - 1);

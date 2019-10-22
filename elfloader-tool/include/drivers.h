@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,11 +10,6 @@
  * @TAG(DATA61_GPL)
  */
 
-#include <elfloader_common.h>
-#include "sbi.h"
+#pragma once
 
-int plat_console_putchar(unsigned int c)
-{
-    sbi_console_putchar(c);
-    return 0;
-}
+int initialise_devices(void);
