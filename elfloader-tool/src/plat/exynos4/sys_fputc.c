@@ -52,16 +52,16 @@ __fputc(int c, FILE *stream);
 
 int __fputc(int c, FILE *stream)
 {
+    /* Send '\r' (CR) before every '\n' (LF). */
+    if (c == '\n') {
+        (void)__fputc('\r', stream);
+    }
+
     /* Wait until UART ready for the next character. */
     while (!(*UART_REG(UTRSTAT) & TXBUF_EMPTY));
 
     /* Put in the register to be sent*/
     *UART_REG(UTXH) = (c & 0xff);
-
-    /* Send '\r' after every '\n'. */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
 
     return 0;
 }

@@ -26,14 +26,16 @@
 
 int __fputc(int c, FILE *stream)
 {
-
-    while ((*UART_REG(ULSR) & ULSR_THRE) == 0);
-
-    *UART_REG(UTHR) = (c & 0xff);
-
+    /* Send '\r' (CR) before every '\n' (LF). */
     if (c == '\n') {
         __fputc('\r', stream);
     }
+
+    /* Wait to be able to transmit. */
+    while ((*UART_REG(ULSR) & ULSR_THRE) == 0);
+
+    /* Transmit. */
+    *UART_REG(UTHR) = (c & 0xff);
 
     return 0;
 }

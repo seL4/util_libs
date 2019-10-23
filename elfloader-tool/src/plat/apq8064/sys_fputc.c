@@ -36,17 +36,17 @@ __fputc(int c, FILE *stream);
 
 int __fputc(int c, UNUSED FILE *stream)
 {
+    /* Send '\r' (CR) before every '\n' (LF). */
+    if (c == '\n') {
+        (void)__fputc('\r', stream);
+    }
+
     /* Wait for TX fifo to be empty */
     while (!(*UART_REG(USR) & USR_TXEMP));
     /* Tell the peripheral how many characters to send */
     *UART_REG(UNTX) = 1;
     /* Write the character into the FIFO */
     *UART_REG(UTF) = c & 0xff;
-
-    /* Send '\r' after every '\n'. */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
 
     return 0;
 }

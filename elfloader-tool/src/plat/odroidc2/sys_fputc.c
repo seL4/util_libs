@@ -22,14 +22,16 @@
 
 int __fputc(int c, FILE *stream)
 {
-
-    while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
-    *UART_REG(UART_WFIFO) = c;
-
-    /* Send '\r' after every '\n'. */
+    /* Send '\r' (CR) before every '\n' (LF). */
     if (c == '\n') {
         (void)__fputc('\r', stream);
     }
+
+    /* Wait to be able to transmit. */
+    while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
+
+    /* Transmit. */
+    *UART_REG(UART_WFIFO) = c;
 
     return 0;
 }

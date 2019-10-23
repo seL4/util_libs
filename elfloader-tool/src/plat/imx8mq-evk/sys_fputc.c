@@ -34,16 +34,16 @@
 
 int __fputc(int c, FILE *stream)
 {
+    /* Send '\r' (CR) before every '\n' (LF). */
+    if (c == '\n') {
+        (void)__fputc('\r', stream);
+    }
+
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_STAT2) & TXFE));
 
     /* Transmit. */
     *UART_REG(UART_TRANSMIT) = c;
-
-    /* Send '\r' after every '\n'. */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
 
     return 0;
 }
