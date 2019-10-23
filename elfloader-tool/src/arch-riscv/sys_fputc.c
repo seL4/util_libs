@@ -19,6 +19,7 @@
 
 int __fputc(int c, UNUSED FILE *stream)
 {
+    /* Send '\r' (CR) before every '\n' (LF). */
     if (c == '\n') {
         sbi_console_putchar('\r');
     }
