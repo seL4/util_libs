@@ -78,6 +78,7 @@ function(ApplyCommonReleaseVerificationSettings release verification)
     else()
         set(KernelDebugBuild OFF CACHE BOOL "" FORCE)
     endif()
+    mark_as_advanced(CMAKE_BUILD_TYPE)
 endfunction()
 
 # Try and map a PLATFORM value to a valid kernel platform and architecture
