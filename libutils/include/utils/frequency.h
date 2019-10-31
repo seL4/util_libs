@@ -22,6 +22,14 @@
 typedef uint64_t freq_t;
 
 static inline uint64_t freq_cycles_and_hz_to_ns(uint64_t ncycles, freq_t hz) {
+    if (hz % GHZ == 0) {
+        return ncycles / (hz / GHZ);
+    } else if (hz % MHZ == 0) {
+        return ncycles * MS_IN_S / (hz / MHZ);
+    } else if (hz % KHZ == 0) {
+        return ncycles * US_IN_S / (hz / KHZ);
+    }
+
     return (ncycles * NS_IN_S) / hz;
 }
 
