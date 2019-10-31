@@ -210,8 +210,10 @@ int uart_putchar(
     ps_chardevice_t *d,
     int c)
 {
-    int ret = -1;
     zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
+
+    /* default to error, indicates there is not enough space in the FIFO */
+    int ret = -1;
 
     uint32_t imr = regs->imr;
     regs->idr = imr;
@@ -221,17 +223,17 @@ int uart_putchar(
          * this bit is set if the fifo level is >= the trigger level
          */
         if (!(regs->sr & UART_SR_TTRIG)) {
-
-            regs->fifo = '\r';
-            regs->fifo = '\n';
-
-            ret = '\n';
+            regs->fifo = '\r'; // send CR before LF (\n)
+            regs->fifo = c;
+            ret = c; /* sending was successful */
         }
+
     } else if (!(regs->sr & UART_SR_TFUL)) {
         regs->fifo = c;
-        ret = c;
+        ret = c; /* sending was successful */
     }
 
+    /* block until FIFO is empty */
     while ((regs->sr & (UART_SR_TEMPTY | UART_SR_TACTIVE)) != UART_SR_TEMPTY);
 
     regs->ier = imr;
