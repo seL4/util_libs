@@ -355,9 +355,8 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys)
+clk_print_clock_tree(clock_sys_t* sys UNUSED)
 {
-    (void)sys;
     clk_t* clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");
 }

@@ -34,17 +34,17 @@ static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux)
 }
 
 static int
-omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enum mux_gpio_dir mgd)
+omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+                         enum mux_gpio_dir mgd UNUSED)
 {
-    struct omap3_mux* m;
     if (mux == NULL || mux->priv == NULL) {
         return -1;
     }
-    m = get_mux_priv(mux);
+
+    struct omap3_mux* m UNUSED = get_mux_priv(mux);
 
     switch (mux_feature) {
     default:
-        (void)m;
         return -1;
     }
 }
@@ -58,16 +58,15 @@ omap3_mux_init_common(mux_sys_t* mux)
 }
 
 int
-omap3_mux_init(void* bank1,
+omap3_mux_init(void* bank1 UNUSED,
                mux_sys_t* mux)
 {
-    (void)bank1;
     return omap3_mux_init_common(mux);
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops UNUSED, void *dependencies UNUSED,
+             mux_sys_t* mux)
 {
-    (void)io_ops;
     return omap3_mux_init_common(mux);
 }

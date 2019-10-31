@@ -20,7 +20,8 @@ static volatile struct clock_regs {
 } clk_regs;
 
 static int
-imx31_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+imx31_gate_enable(clock_sys_t* clock_sys UNUSED, enum clock_gate gate UNUSED,
+                  enum clock_gate_mode mode UNUSED)
 {
     return -1;
 }

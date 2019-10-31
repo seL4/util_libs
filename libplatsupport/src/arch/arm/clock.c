@@ -203,7 +203,7 @@ clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
  * their own symbol with an implementation
  */
 WEAK int
-clock_sys_init(ps_io_ops_t* io_ops, clock_sys_t* clk_sys)
+clock_sys_init(ps_io_ops_t* io_ops UNUSED, clock_sys_t* clk_sys UNUSED)
 {
     return 0;
 }

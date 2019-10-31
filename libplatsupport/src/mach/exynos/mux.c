@@ -147,7 +147,7 @@ exynos_mux_configure(struct mux_cfg* cfg, int pin,
 
 static int
 exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
-                          UNUSED enum mux_gpio_dir mgd)
+                          enum mux_gpio_dir mgd UNUSED)
 {
     struct mux_feature_data* data = feature_data[mux_feature];
     (void)mux;
@@ -199,7 +199,7 @@ exynos_mux_init(void* gpioleft, void* gpioright, void* gpioc2c,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
+mux_sys_init(ps_io_ops_t* io_ops, void *dependencies UNUSED, mux_sys_t* mux)
 {
 
     MAP_IF_NULL(io_ops, EXYNOS_GPIOLEFT,  _bank[GPIO_LEFT_BANK]);
