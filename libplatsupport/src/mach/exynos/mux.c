@@ -36,13 +36,13 @@
 static volatile struct mux_bank* _bank[GPIO_NBANKS];
 
 static struct mux_bank**
-mux_priv_get_banks(mux_sys_t* mux) {
+mux_priv_get_banks(const mux_sys_t* mux) {
     assert(mux);
     return (struct mux_bank**)mux->priv;
 }
 
 static struct mux_cfg*
-get_mux_cfg(mux_sys_t* mux, int port) {
+get_mux_cfg(const mux_sys_t* mux, int port) {
     struct mux_bank** bank;
     int b, p;
     bank = mux_priv_get_banks(mux);
@@ -146,7 +146,7 @@ exynos_mux_configure(struct mux_cfg* cfg, int pin,
 }
 
 static int
-exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+exynos_mux_feature_enable(const mux_sys_t* mux, enum mux_feature mux_feature,
                           enum mux_gpio_dir mgd UNUSED)
 {
     struct mux_feature_data* data = feature_data[mux_feature];
@@ -199,7 +199,8 @@ exynos_mux_init(void* gpioleft, void* gpioright, void* gpioc2c,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, void *dependencies UNUSED, mux_sys_t* mux)
+mux_sys_init(const ps_io_ops_t* io_ops, void *dependencies UNUSED,
+             mux_sys_t* mux)
 {
 
     MAP_IF_NULL(io_ops, EXYNOS_GPIOLEFT,  _bank[GPIO_LEFT_BANK]);

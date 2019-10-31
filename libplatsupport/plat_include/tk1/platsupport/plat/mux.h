@@ -272,5 +272,5 @@ enum mux_pad {
 };
 
 int tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
-               ps_io_ops_t *io_ops,
+               const ps_io_ops_t *io_ops,
                gpio_sys_t *gpio_sys, mux_sys_t *self);

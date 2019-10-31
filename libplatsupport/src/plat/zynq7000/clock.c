@@ -422,7 +422,7 @@ zynq7000_even_divisor(uint8_t divisor)
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 static uint32_t
-_decode_pll(clk_t* clk, volatile uint32_t** ctrl, volatile uint32_t** cfg)
+_decode_pll(const clk_t* clk, volatile uint32_t** ctrl, volatile uint32_t** cfg)
 {
     switch (clk->id) {
     case CLK_ARM_PLL:
@@ -445,7 +445,7 @@ _decode_pll(clk_t* clk, volatile uint32_t** ctrl, volatile uint32_t** cfg)
 
 /* PLLs */
 static freq_t
-_pll_get_freq(clk_t* clk)
+_pll_get_freq(const clk_t* clk)
 {
     volatile uint32_t* ctrl_reg;
     volatile uint32_t* cfg_reg;
@@ -467,7 +467,7 @@ _pll_get_freq(clk_t* clk)
 }
 
 static freq_t
-_pll_set_freq(clk_t* clk, freq_t hz)
+_pll_set_freq(const clk_t* clk, freq_t hz)
 {
     volatile uint32_t* ctrl_reg;
     volatile uint32_t* cfg_reg;
@@ -506,7 +506,7 @@ _pll_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_pll_recal(clk_t* clk UNUSED)
+_pll_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -561,7 +561,7 @@ clk_cpu_clk_select_421(clk_t* clk)
 
 /* CPU Clocks */
 static freq_t
-_cpu_get_freq(clk_t* clk)
+_cpu_get_freq(const clk_t* clk)
 {
     uint8_t clk_621_true, divisor0;
     uint32_t divisor;
@@ -595,7 +595,7 @@ _cpu_get_freq(clk_t* clk)
 }
 
 static freq_t
-_cpu_set_freq(clk_t* clk, freq_t hz)
+_cpu_set_freq(const clk_t* clk, freq_t hz)
 {
     uint32_t fin;
     uint8_t divisor0;
@@ -619,7 +619,7 @@ _cpu_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_cpu_recal(clk_t* clk UNUSED)
+_cpu_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -646,7 +646,7 @@ static struct clock cpu_1x_clk    = { CLK_OPS(CPU_1X,    cpu, NULL) };
 
 /* DDR Clocks */
 static freq_t
-_ddr_get_freq(clk_t* clk)
+_ddr_get_freq(const clk_t* clk)
 {
     uint8_t divisor0, divisor1;
     uint32_t fout, fin;
@@ -676,7 +676,7 @@ _ddr_get_freq(clk_t* clk)
 }
 
 static freq_t
-_ddr_set_freq(clk_t* clk, freq_t hz)
+_ddr_set_freq(const clk_t* clk, freq_t hz)
 {
     uint32_t fin;
     uint8_t divisor0, divisor1;
@@ -709,7 +709,7 @@ _ddr_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_ddr_recal(clk_t* clk UNUSED)
+_ddr_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -733,7 +733,7 @@ static struct clock dci_clk    = { CLK_OPS(DCI,    ddr, NULL) };
 
 /* I/O Peripheral Clocks */
 static freq_t
-_aper_get_freq(clk_t* clk)
+_aper_get_freq(const clk_t* clk)
 {
     enum clk_id id;
     uint8_t divisor0, divisor1;
@@ -795,7 +795,7 @@ _aper_get_freq(clk_t* clk)
 }
 
 static freq_t
-_aper_set_freq(clk_t* clk, freq_t hz)
+_aper_set_freq(const clk_t* clk, freq_t hz)
 {
     uint32_t fin;
     uint8_t divisor0, divisor1;
@@ -850,7 +850,7 @@ _aper_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_aper_recal(clk_t* clk UNUSED)
+_aper_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -882,7 +882,7 @@ static struct clock can0_clk  = { CLK_OPS(CAN0,  aper, NULL) };
 static struct clock can1_clk  = { CLK_OPS(CAN1,  aper, NULL) };
 
 static inline pl_clk_regs_t*
-get_pl_clk_regs(clk_t* clk)
+get_pl_clk_regs(const clk_t* clk)
 {
     switch (clk->id) {
     case CLK_FPGA_PL0:
@@ -900,7 +900,7 @@ get_pl_clk_regs(clk_t* clk)
 
 /* FPGA PL Clocks */
 static freq_t
-_fpga_get_freq(clk_t* clk)
+_fpga_get_freq(const clk_t* clk)
 {
     pl_clk_regs_t* regs = (pl_clk_regs_t*)clk->priv;
     uint8_t div0, div1;
@@ -912,7 +912,7 @@ _fpga_get_freq(clk_t* clk)
 }
 
 static freq_t
-_fpga_set_freq(clk_t* clk, freq_t hz)
+_fpga_set_freq(const clk_t* clk, freq_t hz)
 {
     pl_clk_regs_t* regs = (pl_clk_regs_t*)clk->priv;
     uint8_t div0, div1;
@@ -926,7 +926,7 @@ _fpga_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_fpga_recal(clk_t* clk UNUSED)
+_fpga_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -960,7 +960,8 @@ static struct clock pcap_clk = { CLK_OPS_DEFAULT(PCAP) };
 static struct clock dbg_clk  = { CLK_OPS_DEFAULT(DBG ) };
 
 static int
-zynq7000_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+zynq7000_gate_enable(const clock_sys_t* clock_sys, enum clock_gate gate,
+                     enum clock_gate_mode mode)
 {
     uint32_t aper_clk_ctrl;
 
@@ -977,7 +978,7 @@ zynq7000_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_ga
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+clock_sys_init(const ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     src_dev_t slcr;
     int err;
@@ -998,7 +999,7 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys)
+clk_print_clock_tree(const clock_sys_t* sys)
 {
     clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");

@@ -30,7 +30,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct zynq_mux* zynq_mux)
 }
 
 static int
-zynq_mux_feature_enable(mux_sys_t* mux UNUSED,
+zynq_mux_feature_enable(const mux_sys_t* mux UNUSED,
                         enum mux_feature mux_feature UNUSED,
                         enum mux_gpio_dir mgd UNUSED)
 {
@@ -52,7 +52,8 @@ zynq_mux_init(mux_sys_t* mux)
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops, void *dependencies UNUSED, mux_sys_t* mux)
+mux_sys_init(const ps_io_ops_t* io_ops, void *dependencies UNUSED,
+             mux_sys_t* mux)
 {
     return zynq_mux_init_common(mux);
 }

@@ -39,8 +39,8 @@ extern freq_t ps_freq_default[];
 extern clk_t* ps_clocks[];
 
 /** Helpers **/
-static inline clock_sys_t*
-clk_get_clock_sys(clk_t* clk)
+static inline const clock_sys_t*
+clk_get_clock_sys(const clk_t* clk)
 {
     assert(clk);
     return clk->clk_sys;
@@ -55,7 +55,7 @@ clk_init(clk_t* clk)
 }
 
 static inline void
-clk_recal(clk_t* clk)
+clk_recal(const clk_t* clk)
 {
     assert(clk);
     assert(clk->recal);
@@ -70,14 +70,14 @@ clk_recal(clk_t* clk)
  * @param[in] clk     The root of the tree
  * @param[in] prefix  A string prefix to print before each line
  */
-void clk_print_tree(clk_t* clk, const char* prefix);
+void clk_print_tree(const clk_t* clk, const char* prefix);
 
 /* Default clocks - Frequency must be defined in freq_default */
-freq_t _default_clk_get_freq(clk_t* clk);
-freq_t _default_clk_set_freq(clk_t* clk, freq_t hz);
-void   _default_clk_recal(clk_t* clk);
+freq_t _default_clk_get_freq(const clk_t* clk);
+freq_t _default_clk_set_freq(const clk_t* clk, freq_t hz);
+void   _default_clk_recal(const clk_t* clk);
 clk_t* _default_clk_init(clk_t* clk);
 
 /* Generic clock acquisition for all platforms */
-clk_t* ps_get_clock(clock_sys_t* sys, enum clk_id id);
+clk_t* ps_get_clock(const clock_sys_t* sys, enum clk_id id);
 

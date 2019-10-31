@@ -108,7 +108,7 @@ static struct clock wcnxo_clk  = { CLK_OPS_DEFAULT(WCNXO)  };
 static struct clock slpxo_clk  = { CLK_OPS_DEFAULT(SLPXO)  };
 
 static int
-apq8064_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
+apq8064_gate_enable(const clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
 {
     (void)sys;
     (void)gate;
@@ -117,9 +117,9 @@ apq8064_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys)
+clk_print_clock_tree(const clock_sys_t* sys)
 {
-    clk_t *clk = clk_get_clock(sys, CLK_MASTER);
+    const clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
 
@@ -131,7 +131,7 @@ static int apq8064_clock_sys_init_common(clock_sys_t* clk_sys)
 }
 
 int
-clock_sys_init(ps_io_ops_t* io_ops, clock_sys_t* clk_sys)
+clock_sys_init(const ps_io_ops_t* io_ops, clock_sys_t* clk_sys)
 {
     struct clock_sys_regs* d = &clk_sys_regs;
     MAP_IF_NULL(io_ops, APQ8064_CLK_CTL0, d->block0);

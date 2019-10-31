@@ -209,13 +209,13 @@ static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, CLKID_DIVCOPY)  
  **** MUXes ****
  ***************/
 static freq_t
-_mux_get_freq(clk_t* clk)
+_mux_get_freq(const clk_t* clk)
 {
     return clk_get_freq(clk->parent);
 }
 
 static freq_t
-_mux_set_freq(clk_t* clk, freq_t hz)
+_mux_set_freq(const clk_t* clk, freq_t hz)
 {
     /* TODO: we can choose a different source... */
     clk_set_freq(clk->parent, hz);
@@ -223,7 +223,7 @@ _mux_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_mux_recal(clk_t* clk)
+_mux_recal(const clk_t* clk)
 {
     assert(0);
 }
@@ -277,20 +277,20 @@ static struct clock muxhpm_clk = { CLK_OPS(MUXHPM, mux, NULL) };
  ****  SPI  ****
  ***************/
 static freq_t
-_spi_get_freq(clk_t* clk)
+_spi_get_freq(const clk_t* clk)
 {
     return 0;
 }
 
 static freq_t
-_spi_set_freq(clk_t* clk, freq_t hz)
+_spi_set_freq(const clk_t* clk, freq_t hz)
 {
     (void)hz;
     return clk_get_freq(clk);
 }
 
 static void
-_spi_recal(clk_t* clk)
+_spi_recal(const clk_t* clk)
 {
     assert(0);
 }
@@ -310,7 +310,8 @@ static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, NULL) };
 /*******************************************/
 
 static int
-exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
+exynos4_gate_enable(const clock_sys_t* sys, enum clock_gate gate,
+                    enum clock_gate_mode mode)
 {
     (void)sys;
     (void)gate;
@@ -328,7 +329,7 @@ clock_sys_common_init(clock_sys_t* clock_sys)
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+clock_sys_init(const ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     MAP_IF_NULL(o, CMU_LEFTBUS , _clk_regs[CLKREGS_LEFT]);
     MAP_IF_NULL(o, CMU_RIGHTBUS, _clk_regs[CLKREGS_RIGHT]);
@@ -342,7 +343,7 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys UNUSED)
+clk_print_clock_tree(const clock_sys_t* sys UNUSED)
 {
     clk_t* clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");

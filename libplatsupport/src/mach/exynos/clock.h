@@ -91,40 +91,40 @@ struct pll_priv {
 };
 
 static inline clk_regs_io_t**
-clk_sys_get_clk_regs(clock_sys_t* clock_sys)
+clk_sys_get_clk_regs(const clock_sys_t* clock_sys)
 {
     clk_regs_io_t** clk_regs_ptr = (clk_regs_io_t**)clock_sys->priv;
     return clk_regs_ptr;
 };
 
 static inline clk_regs_io_t**
-clk_get_clk_regs(clk_t* clk)
+clk_get_clk_regs(const clk_t* clk)
 {
     return clk_sys_get_clk_regs(clk->clk_sys);
 };
 
 static inline const struct pll_priv*
-exynos_clk_get_priv_pll(clk_t* clk) {
+exynos_clk_get_priv_pll(const clk_t* clk) {
     return (const struct pll_priv*)clk->priv;
 }
 
 static inline int
-exynos_clk_get_priv_id(clk_t* clk)
+exynos_clk_get_priv_id(const clk_t* clk)
 {
     return (int)clk->priv;
 }
 
 /* Generic exynos devider */
-freq_t _div_get_freq(clk_t* clk);
-freq_t _div_set_freq(clk_t* clk, freq_t hz);
-void   _div_recal(clk_t* clk);
+freq_t _div_get_freq(const clk_t* clk);
+freq_t _div_set_freq(const clk_t* clk, freq_t hz);
+void   _div_recal(const clk_t* clk);
 /* Generic exynos PLL */
-freq_t _pll_get_freq(clk_t* clk);
-freq_t _pll_set_freq(clk_t* clk, freq_t hz);
-void   _pll_recal(clk_t* clk);
+freq_t _pll_get_freq(const clk_t* clk);
+freq_t _pll_set_freq(const clk_t* clk, freq_t hz);
+void   _pll_recal(const clk_t* clk);
 clk_t* _pll_init(clk_t* clk);
 /* PLL get_freq */
-uint32_t exynos_pll_get_freq(clk_t* clk, int clkid, uint32_t pll_idx);
+uint32_t exynos_pll_get_freq(const clk_t* clk, int clkid, uint32_t pll_idx);
 
 /**** helpers ****/
 static inline void

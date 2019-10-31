@@ -67,7 +67,7 @@ typedef struct ps_io_mapper {
 } ps_io_mapper_t;
 
 static inline void *
-ps_io_map(ps_io_mapper_t *io_mapper, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)
+ps_io_map(const ps_io_mapper_t *io_mapper, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)
 {
     assert(io_mapper);
     assert(io_mapper->io_map_fn);
@@ -75,7 +75,7 @@ ps_io_map(ps_io_mapper_t *io_mapper, uintptr_t paddr, size_t size, int cached, p
 }
 
 static inline void
-ps_io_unmap(ps_io_mapper_t *io_mapper, void *vaddr, size_t size)
+ps_io_unmap(const ps_io_mapper_t *io_mapper, void *vaddr, size_t size)
 {
     assert(io_mapper);
     assert(io_mapper->io_unmap_fn);
@@ -113,7 +113,8 @@ typedef struct ps_io_port_ops {
 } ps_io_port_ops_t;
 
 static inline int
-ps_io_port_in(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t *result)
+ps_io_port_in(const ps_io_port_ops_t *port_ops, uint32_t port, int io_size,
+              uint32_t *result)
 {
     assert(port_ops);
     assert(port_ops->io_port_in_fn);
@@ -121,7 +122,8 @@ ps_io_port_in(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t *
 }
 
 static inline int
-ps_io_port_out(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t val)
+ps_io_port_out(const ps_io_port_ops_t *port_ops, uint32_t port, int io_size,
+               uint32_t val)
 {
     assert(port_ops);
     assert(port_ops->io_port_out_fn);
@@ -204,7 +206,8 @@ typedef struct ps_dma_man {
 } ps_dma_man_t;
 
 static inline void *
-ps_dma_alloc(ps_dma_man_t *dma_man, size_t size, int align, int cache, ps_mem_flags_t flags)
+ps_dma_alloc(const ps_dma_man_t *dma_man, size_t size, int align, int cache,
+             ps_mem_flags_t flags)
 {
     assert(dma_man);
     assert(dma_man->dma_alloc_fn);
@@ -212,7 +215,7 @@ ps_dma_alloc(ps_dma_man_t *dma_man, size_t size, int align, int cache, ps_mem_fl
 }
 
 static inline void
-ps_dma_free(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_free(const ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_free_fn);
@@ -220,7 +223,7 @@ ps_dma_free(ps_dma_man_t *dma_man, void *addr, size_t size)
 }
 
 static inline uintptr_t
-ps_dma_pin(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_pin(const ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_pin_fn);
@@ -228,7 +231,7 @@ ps_dma_pin(ps_dma_man_t *dma_man, void *addr, size_t size)
 }
 
 static inline void
-ps_dma_unpin(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_unpin(const ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_unpin_fn);
@@ -236,7 +239,8 @@ ps_dma_unpin(ps_dma_man_t *dma_man, void *addr, size_t size)
 }
 
 static inline void
-ps_dma_cache_op(ps_dma_man_t *dma_man, void *addr, size_t size, dma_cache_op_t op)
+ps_dma_cache_op(const ps_dma_man_t *dma_man, void *addr, size_t size,
+                dma_cache_op_t op)
 {
     assert(dma_man);
     assert(dma_man->dma_cache_op_fn);
@@ -244,19 +248,20 @@ ps_dma_cache_op(ps_dma_man_t *dma_man, void *addr, size_t size, dma_cache_op_t o
 }
 
 static inline void
-ps_dma_cache_clean(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_cache_clean(const ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_CLEAN);
 }
 
 static inline void
-ps_dma_cache_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_cache_invalidate(const ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_INVALIDATE);
 }
 
 static inline void
-ps_dma_cache_clean_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
+ps_dma_cache_clean_invalidate(const ps_dma_man_t *dma_man, void *addr,
+                              size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_CLEAN_INVALIDATE);
 }
@@ -302,7 +307,8 @@ typedef struct {
     void *cookie;
 } ps_malloc_ops_t;
 
-static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void **ptr)
+static inline int ps_malloc(const ps_malloc_ops_t *ops, size_t size,
+                            void **ptr)
 {
     if (ops == NULL) {
         ZF_LOGE("ops cannot be NULL");
@@ -328,7 +334,8 @@ static inline int ps_malloc(ps_malloc_ops_t *ops, size_t size, void **ptr)
     return ops->malloc(ops->cookie, size, ptr);
 }
 
-static inline int ps_calloc(ps_malloc_ops_t *ops, size_t nmemb, size_t size, void **ptr)
+static inline int ps_calloc(const ps_malloc_ops_t *ops, size_t nmemb,
+                            size_t size, void **ptr)
 {
 
     if (ops == NULL) {
@@ -355,7 +362,7 @@ static inline int ps_calloc(ps_malloc_ops_t *ops, size_t nmemb, size_t size, voi
     return ops->calloc(ops->cookie, nmemb, size, ptr);
 }
 
-static inline int ps_free(ps_malloc_ops_t *ops, size_t size, void *ptr)
+static inline int ps_free(const ps_malloc_ops_t *ops, size_t size, void *ptr)
 {
     if (ops == NULL) {
         ZF_LOGE("ops cannot be NULL");
@@ -389,7 +396,7 @@ typedef struct ps_fdt {
     ps_io_fdt_get_fn_t get_fn;
 } ps_io_fdt_t;
 
-static inline char *ps_io_fdt_get(ps_io_fdt_t *io_fdt)
+static inline char *ps_io_fdt_get(const ps_io_fdt_t *io_fdt)
 {
     if (io_fdt == NULL) {
         ZF_LOGE("fdt cannot be NULL");

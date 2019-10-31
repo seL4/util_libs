@@ -128,7 +128,7 @@ struct spi_bus {
     int mode: 1;              //0 -- Master, 1 -- Slave
     int high_speed: 1;        //High speed operation in slave mode.
     int cs_auto: 1;           //Auto chip selection.
-    clk_t *clk;               //Clock for changing the bus speed.
+    const clk_t *clk;         //Clock for changing the bus speed.
 
     /* Transfer management */
     const char *txbuf;

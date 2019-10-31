@@ -132,7 +132,7 @@ static struct clock sclkbpll_clk  = { CLK_OPS(SCLKBPLL, pll, &sclkbpll_priv) };
 /* The SPI div register is a special case as we have 2 dividers, one of which
  * is 2 nibbles wide */
 static freq_t
-_spi_get_freq(clk_t* clk)
+_spi_get_freq(const clk_t* clk)
 {
     freq_t fin;
     int clkid;
@@ -164,7 +164,7 @@ _spi_get_freq(clk_t* clk)
 }
 
 static freq_t
-_spi_set_freq(clk_t* clk, freq_t hz)
+_spi_set_freq(const clk_t* clk, freq_t hz)
 {
     freq_t fin;
     int clkid;
@@ -198,7 +198,7 @@ _spi_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_spi_recal(clk_t* clk)
+_spi_recal(const clk_t* clk)
 {
     assert(!"Not implemented");
 }
@@ -228,7 +228,7 @@ static struct clock spi0_isp_clk = { CLK_OPS(SPI0_ISP, spi, CLKID_SPI0_ISP) };
 static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, CLKID_SPI1_ISP) };
 
 static freq_t
-_peric_clk_get_freq(clk_t* clk)
+_peric_clk_get_freq(const clk_t* clk)
 {
     freq_t fin;
     int clkid;
@@ -242,7 +242,7 @@ _peric_clk_get_freq(clk_t* clk)
 }
 
 static freq_t
-_peric_clk_set_freq(clk_t* clk, freq_t hz)
+_peric_clk_set_freq(const clk_t* clk, freq_t hz)
 {
     freq_t fin;
     int clkid;
@@ -257,7 +257,7 @@ _peric_clk_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_peric_clk_recal(clk_t* clk)
+_peric_clk_recal(const clk_t* clk)
 {
     assert(!"Not implemented");
 }
@@ -287,7 +287,8 @@ static struct clock uart3_clk = { CLK_OPS(UART3, peric_clk, CLKID_UART3) };
 static struct clock pwm_clk   = { CLK_OPS(PWM  , peric_clk, CLKID_PWM  ) };
 
 static int
-exynos5_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+exynos5_gate_enable(const clock_sys_t* clock_sys, enum clock_gate gate,
+                    enum clock_gate_mode mode)
 {
     return -1;
 }
@@ -340,7 +341,7 @@ exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+clock_sys_init(const ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     MAP_IF_NULL(o, EXYNOS5_CMU_CPU,   _clk_regs[CLKREGS_CPU]);
     MAP_IF_NULL(o, EXYNOS5_CMU_CORE,  _clk_regs[CLKREGS_CORE]);
@@ -355,7 +356,7 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys UNUSED)
+clk_print_clock_tree(const clock_sys_t* sys UNUSED)
 {
     clk_t* clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");

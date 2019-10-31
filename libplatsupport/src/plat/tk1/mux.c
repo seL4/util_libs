@@ -252,14 +252,14 @@ typedef struct tegra_mux_state {
 } tegra_mux_state_t;
 
 static const tegra_mux_state_t *
-tk1_mux_get_priv(mux_sys_t *mux_sys)
+tk1_mux_get_priv(const mux_sys_t *mux_sys)
 {
     assert(mux_sys != NULL);
     return (const tegra_mux_state_t *)mux_sys->priv;
 }
 
 static volatile uint32_t *
-tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
+tk1_mux_get_group_reg_handle_for_pin(const mux_sys_t *ms, int mux_reg_index)
 {
     volatile uint32_t   *ret;
     int                 group_offset;
@@ -272,7 +272,7 @@ tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
 }
 
 static void
-tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
+tk1_mux_set_drive_strength_for_pin(const mux_sys_t *ms,
                                    int mux_reg_index,
                                    uint8_t drive_up_strength,
                                    uint8_t drive_down_strength)
@@ -305,7 +305,7 @@ tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
 }
 
 static int
-tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
+tk1_mux_set_pin_params(const mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
                        enum mux_gpio_dir mux_gpio_dir)
 {
     uint32_t regval, requiredval;
@@ -516,7 +516,7 @@ tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_index,
 }
 
 static int
-tk1_mux_feature_enable(mux_sys_t* mux, enum mux_feature feat,
+tk1_mux_feature_enable(const mux_sys_t* mux, enum mux_feature feat,
                        enum mux_gpio_dir mux_gpio_dir)
 {
     int error;
@@ -598,7 +598,7 @@ tk1_mux_feature_enable(mux_sys_t* mux, enum mux_feature feat,
 }
 
 static int
-tk1_mux_feature_disable(mux_sys_t* mux, enum mux_feature feat)
+tk1_mux_feature_disable(const mux_sys_t* mux, enum mux_feature feat)
 {
     tk1_mux_feature_pinmap_t *map;
     const tegra_mux_state_t *s = tk1_mux_get_priv(mux);
@@ -629,7 +629,7 @@ tk1_mux_set_all_pins_to_default_state(volatile uint32_t *mux_regs)
 
 int
 tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
-               ps_io_ops_t *io_ops,
+               const ps_io_ops_t *io_ops,
                gpio_sys_t *gpio_sys, mux_sys_t *self)
 {
     int error;
@@ -667,7 +667,7 @@ tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
 }
 
 int
-mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
+mux_sys_init(const ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
 {
     void *pinmux_misc_vaddr = NULL, *pinmux_aux_vaddr = NULL;
     gpio_sys_t *gpio_sys = (gpio_sys_t *)dependencies;

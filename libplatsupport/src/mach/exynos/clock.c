@@ -17,7 +17,7 @@
  ***********/
 
 freq_t
-_div_get_freq(clk_t* clk)
+_div_get_freq(const clk_t* clk)
 {
     clk_regs_io_t** clk_regs;
     uint32_t div;
@@ -31,7 +31,7 @@ _div_get_freq(clk_t* clk)
 }
 
 freq_t
-_div_set_freq(clk_t* clk, freq_t hz)
+_div_set_freq(const clk_t* clk, freq_t hz)
 {
     clk_regs_io_t** clk_regs;
     uint32_t div;
@@ -59,7 +59,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
 }
 
 void
-_div_recal(clk_t* clk)
+_div_recal(const clk_t* clk)
 {
     assert(0);
 }
@@ -69,7 +69,7 @@ _div_recal(clk_t* clk)
  ***********/
 
 freq_t
-_pll_get_freq(clk_t* clk)
+_pll_get_freq(const clk_t* clk)
 {
     const struct pll_priv* pll_priv;
     int clkid, pll_idx;
@@ -82,7 +82,7 @@ _pll_get_freq(clk_t* clk)
 }
 
 freq_t
-_pll_set_freq(clk_t* clk, freq_t hz)
+_pll_set_freq(const clk_t* clk, freq_t hz)
 {
     volatile struct pll_regs* pll_regs;
     const struct pll_priv* pll_priv;
@@ -132,7 +132,7 @@ _pll_set_freq(clk_t* clk, freq_t hz)
 }
 
 void
-_pll_recal(clk_t* clk)
+_pll_recal(const clk_t* clk)
 {
     assert(0);
 }

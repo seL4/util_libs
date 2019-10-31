@@ -18,7 +18,7 @@
  * their own symbol with an implementation
  */
 WEAK int
-mux_sys_init(ps_io_ops_t* io_ops UNUSED, void *dependencies UNUSED,
+mux_sys_init(const ps_io_ops_t* io_ops UNUSED, void *dependencies UNUSED,
              mux_sys_t* mux UNUSED)
 {
     return 0;

@@ -95,7 +95,7 @@
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
-static clk_t *clk;
+static const clk_t *clk;
 
 enum mux_feature uart_mux[] = {
                                   [PS_SERIAL0] = MUX_UART0,
@@ -508,8 +508,8 @@ chardevice_init(ps_chardevice_t* dev, void* vaddr, const int* irqs)
 }
 
 int
-exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
-                   clk_t* clk_src, ps_chardevice_t* dev)
+exynos_serial_init(enum chardev_id id, void* vaddr, const mux_sys_t* mux_sys,
+                   const clk_t* clk_src, ps_chardevice_t* dev)
 {
     int v;
     uart_flush(dev);
@@ -538,7 +538,7 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
 }
 
 static clk_t*
-clk_init(enum clk_id clock_id, ps_io_ops_t* ops)
+clk_init(enum clk_id clock_id, const ps_io_ops_t* ops)
 {
     assert(ops != NULL);
     if (clock_sys_valid(&ops->clock_sys)) {
@@ -548,7 +548,7 @@ clk_init(enum clk_id clock_id, ps_io_ops_t* ops)
 }
 
 int
-serial_init(enum chardev_id id, ps_io_ops_t* ops,
+serial_init(enum chardev_id id, const ps_io_ops_t* ops,
             ps_chardevice_t* dev)
 {
     void* vaddr;

@@ -134,13 +134,13 @@ struct ttc_tmr_regs {
 };
 typedef volatile struct ttc_tmr_regs ttc_tmr_regs_t;
 
-static freq_t _ttc_clk_get_freq(clk_t* clk);
-static freq_t _ttc_clk_set_freq(clk_t* clk, freq_t hz);
-static void _ttc_clk_recal(clk_t* clk);
+static freq_t _ttc_clk_get_freq(const clk_t* clk);
+static freq_t _ttc_clk_set_freq(const clk_t* clk, freq_t hz);
+static void _ttc_clk_recal(const clk_t* clk);
 static clk_t* _ttc_clk_init(clk_t* clk);
 
 static inline ttc_tmr_regs_t*
-ttc_get_regs(ttc_t *ttc)
+ttc_get_regs(const ttc_t *ttc)
 {
     return ttc->regs;
 }
@@ -148,14 +148,14 @@ ttc_get_regs(ttc_t *ttc)
 /****************** Clocks ******************/
 
 static ttc_t*
-ttc_clk_get_priv(clk_t* clk)
+ttc_clk_get_priv(const clk_t* clk)
 {
     return (ttc_t*)clk->priv;
 }
 
 /* FPGA PL Clocks */
 static freq_t
-_ttc_clk_get_freq(clk_t* clk)
+_ttc_clk_get_freq(const clk_t* clk)
 {
     ttc_t *ttc = ttc_clk_get_priv(clk);
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
@@ -179,7 +179,7 @@ _ttc_clk_get_freq(clk_t* clk)
 }
 
 static freq_t
-_ttc_clk_set_freq(clk_t* clk, freq_t hz)
+_ttc_clk_set_freq(const clk_t* clk, freq_t hz)
 {
     ttc_t *ttc = ttc_clk_get_priv(clk);
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
@@ -209,7 +209,7 @@ _ttc_clk_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_ttc_clk_recal(clk_t* clk UNUSED)
+_ttc_clk_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -221,7 +221,7 @@ _ttc_clk_init(clk_t* clk)
 }
 
 static inline freq_t
-_ttc_get_freq(ttc_t *ttc)
+_ttc_get_freq(const ttc_t *ttc)
 {
     return ttc->freq;
 }
@@ -281,14 +281,14 @@ _ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
     return 0;
 }
 
-int ttc_start(ttc_t *ttc)
+int ttc_start(const ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl &= ~CNTCTRL_STOP;
     return 0;
 }
 
-int ttc_stop(ttc_t *ttc)
+int ttc_stop(const ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl |= CNTCTRL_STOP;
@@ -296,7 +296,7 @@ int ttc_stop(ttc_t *ttc)
     return 0;
 }
 
-void ttc_freerun(ttc_t *ttc)
+void ttc_freerun(const ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl = CNTCTRL_RST;
@@ -324,7 +324,7 @@ _ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
     return 0;
 }
 
-int ttc_handle_irq(ttc_t *ttc)
+int ttc_handle_irq(const ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
 
@@ -345,7 +345,7 @@ int ttc_handle_irq(ttc_t *ttc)
     return res;
 }
 
-uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
+uint64_t ttc_ticks_to_ns(const ttc_t *ttc, uint32_t ticks) {
     if (!ttc) {
         return 0;
     }
@@ -353,7 +353,7 @@ uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
     return freq_cycles_and_hz_to_ns(ticks, fin);
 }
 
-uint64_t ttc_get_time(ttc_t *ttc)
+uint64_t ttc_get_time(const ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     uint32_t cnt = *regs->cnt_val;

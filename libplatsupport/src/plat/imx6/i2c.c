@@ -86,7 +86,7 @@ struct i2c_bus_priv {
  ********************/
 
 static struct i2c_bus_priv*
-i2c_clk_get_priv(clk_t* clk) {
+i2c_clk_get_priv(const clk_t* clk) {
     return (struct i2c_bus_priv*)clk->priv;
 }
 
@@ -143,7 +143,7 @@ _i2c_clk_init(clk_t* clk)
 }
 
 static freq_t
-_i2c_clk_get_freq(clk_t* clk)
+_i2c_clk_get_freq(const clk_t* clk)
 {
     freq_t fin = clk_get_freq(clk->parent);
     struct i2c_bus_priv* dev = i2c_clk_get_priv(clk);
@@ -152,7 +152,7 @@ _i2c_clk_get_freq(clk_t* clk)
 }
 
 static freq_t
-_i2c_clk_set_freq(clk_t* clk, freq_t hz)
+_i2c_clk_set_freq(const clk_t* clk, freq_t hz)
 {
     freq_t fin = clk_get_freq(clk->parent);
     struct i2c_bus_priv* dev = i2c_clk_get_priv(clk);
@@ -163,7 +163,7 @@ _i2c_clk_set_freq(clk_t* clk, freq_t hz)
 }
 
 static void
-_i2c_clk_recal(clk_t* clk)
+_i2c_clk_recal(const clk_t* clk)
 {
     assert(!"IMPLEMENT ME");
 }

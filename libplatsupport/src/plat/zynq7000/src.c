@@ -79,7 +79,7 @@ reset_controller_get_clock_regs(src_dev_t* dev)
 }
 
 int
-reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
+reset_controller_init(enum src_id id, const ps_io_ops_t* ops, src_dev_t* dev)
 {
     /* Input bounds check */
     if (id < 0 || id >= NSRC) {

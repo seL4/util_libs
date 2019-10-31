@@ -43,8 +43,11 @@ typedef struct {
  * @param[out] dev    A character device structure to initialise
  * @return            0 on success
  */
-int exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
-                       clk_t* clk_src, ps_chardevice_t* dev);
+int exynos_serial_init(enum chardev_id id,
+                       void* vaddr,
+                       const mux_sys_t* mux_sys,
+                       const clk_t* clk_src,
+                       ps_chardevice_t* dev);
 
 /*
  * Handles only the receive interrupt. Allows RX and TX work to be seperated

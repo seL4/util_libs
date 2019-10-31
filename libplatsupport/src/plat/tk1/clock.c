@@ -565,14 +565,14 @@ const clk_register_t tk1_clk_registers[] = {
 };
 
 static clk_t *
-tk1_car_get_clock(clock_sys_t *cs, enum clk_id id)
+tk1_car_get_clock(const clock_sys_t *cs, enum clk_id id)
 {
     assert(cs != NULL);
     return NULL;
 }
 
 static int
-tk1_car_gate_enable(clock_sys_t* clock_sys,
+tk1_car_gate_enable(const clock_sys_t* clock_sys,
                     enum clock_gate gate, enum clock_gate_mode mode)
 {
     /* The TK1 CAR controller only supports enabling and disabling the clock
@@ -607,7 +607,7 @@ tegra_car_init(void *regs_vaddr, clock_sys_t *cs)
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+clock_sys_init(const ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     void *car_vaddr = NULL;
 

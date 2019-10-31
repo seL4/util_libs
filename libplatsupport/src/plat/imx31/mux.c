@@ -22,7 +22,7 @@ static struct imx31_mux {
     volatile struct imx31_mux_regs*    mux;
 } _mux;
 
-static inline struct imx31_mux* get_mux_priv(mux_sys_t* mux) {
+static inline struct imx31_mux* get_mux_priv(const mux_sys_t* mux) {
     return (struct imx31_mux*)mux->priv;
 }
 
@@ -34,7 +34,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct imx31_mux* imx31_mux)
 }
 
 static int
-imx31_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+imx31_mux_feature_enable(const mux_sys_t* mux, enum mux_feature mux_feature,
                          enum mux_gpio_dir mgd UNUSED)
 {
     if (mux == NULL || mux->priv == NULL) {
@@ -65,7 +65,7 @@ imx31_mux_init(void* bank1 UNUSED,
 }
 
 int
-mux_sys_init(ps_io_ops_t* io_ops UNUSED, void *dependencies UNUSED,
+mux_sys_init(const ps_io_ops_t* io_ops UNUSED, void *dependencies UNUSED,
              mux_sys_t* mux)
 {
     return imx31_mux_init_common(mux);

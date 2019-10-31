@@ -20,14 +20,15 @@ static volatile struct clock_regs {
 } clk_regs;
 
 static int
-imx31_gate_enable(clock_sys_t* clock_sys UNUSED, enum clock_gate gate UNUSED,
+imx31_gate_enable(const clock_sys_t* clock_sys UNUSED,
+                  enum clock_gate gate UNUSED,
                   enum clock_gate_mode mode UNUSED)
 {
     return -1;
 }
 
 int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+clock_sys_init(const ps_io_ops_t* o, clock_sys_t* clock_sys)
 {
     clock_sys->priv = (void*)&clk_regs;
     clock_sys->get_clock = &ps_get_clock;
@@ -36,9 +37,9 @@ clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
 }
 
 void
-clk_print_clock_tree(clock_sys_t* sys)
+clk_print_clock_tree(const clock_sys_t* sys)
 {
-    clk_t *clk = clk_get_clock(sys, CLK_MASTER);
+    const clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
 

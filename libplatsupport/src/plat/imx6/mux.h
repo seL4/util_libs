@@ -12,4 +12,4 @@
 
 #include <platsupport/mux.h>
 
-int imx6_mux_enable_gpio(mux_sys_t* mux, int gpio_id);
+int imx6_mux_enable_gpio(const mux_sys_t* mux, int gpio_id);

@@ -17,19 +17,19 @@
 
 /* Fixed clocks */
 static freq_t
-_fixed_clk_get_freq(clk_t* clk)
+_fixed_clk_get_freq(const clk_t* clk)
 {
     return clk->req_freq;
 }
 
 static freq_t
-_fixed_clk_set_freq(clk_t* clk, freq_t hz UNUSED)
+_fixed_clk_set_freq(const clk_t* clk, freq_t hz UNUSED)
 {
     return clk_get_freq(clk);
 }
 
 void
-_fixed_clk_recal(clk_t* clk UNUSED)
+_fixed_clk_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -42,20 +42,20 @@ _fixed_clk_init(clk_t* clk)
 
 /* Default clocks. Simply report the recorded default frequency */
 freq_t
-_default_clk_get_freq(clk_t* clk)
+_default_clk_get_freq(const clk_t* clk)
 {
     assert(clk->id < NCLOCKS);
     return ps_freq_default[clk->id];
 }
 
 freq_t
-_default_clk_set_freq(clk_t* clk, freq_t hz UNUSED)
+_default_clk_set_freq(const clk_t* clk, freq_t hz UNUSED)
 {
     return clk_get_freq(clk);
 }
 
 void
-_default_clk_recal(clk_t* clk UNUSED)
+_default_clk_recal(const clk_t* clk UNUSED)
 {
     assert(0);
 }
@@ -67,13 +67,12 @@ _default_clk_init(clk_t* clk)
 }
 
 static clk_t*
-get_clock_default(clock_sys_t* clock_sys UNUSED, enum clk_id id)
+get_clock_default(const clock_sys_t* clock_sys, enum clk_id id)
 {
     if (id >= NCLOCKS) {
         return NULL;
     } else {
-        clk_t* clk;
-        clk = ps_clocks[id];
+        clk_t* clk = ps_clocks[id];
         /* Destroy original clock links */
         clk->clk_sys = clock_sys;
         clk->init = _default_clk_init;
@@ -85,7 +84,9 @@ get_clock_default(clock_sys_t* clock_sys UNUSED, enum clk_id id)
 }
 
 static int
-gate_enable_default(clock_sys_t* clock_sys UNUSED, enum clock_gate gate UNUSED, enum clock_gate_mode mode UNUSED)
+gate_enable_default(const clock_sys_t* clock_sys UNUSED,
+                    enum clock_gate gate UNUSED,
+                    enum clock_gate_mode mode UNUSED)
 {
     /* Assume the gate is already enabled */
     return 0;
@@ -113,13 +114,12 @@ clock_sys_set_default_freq(enum clk_id id, freq_t hz)
 }
 
 clk_t*
-ps_get_clock(clock_sys_t* sys, enum clk_id id)
+ps_get_clock(const clock_sys_t* sys, enum clk_id id)
 {
     if (id >= NCLOCKS) {
         return NULL;
     } else {
-        clk_t* clk;
-        clk = ps_clocks[id];
+        clk_t* clk = ps_clocks[id];
         assert(clk);
         assert(ps_clocks[id]->init);
         clk->clk_sys = sys;
@@ -128,7 +128,7 @@ ps_get_clock(clock_sys_t* sys, enum clk_id id)
 }
 
 void
-clk_print_tree(clk_t* clk, const char* prefix)
+clk_print_tree(const clk_t* clk, const char* prefix)
 {
     int depth = strlen(prefix);
     char new_prefix[depth + 2];
@@ -203,7 +203,7 @@ clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
  * their own symbol with an implementation
  */
 WEAK int
-clock_sys_init(ps_io_ops_t* io_ops UNUSED, clock_sys_t* clk_sys UNUSED)
+clock_sys_init(const ps_io_ops_t* io_ops UNUSED, clock_sys_t* clk_sys UNUSED)
 {
     return 0;
 }

@@ -24,7 +24,7 @@ typedef struct src_dev {
  * @param[out] dev      A device structure to initialise
  * @return              0 on success
  */
-int reset_controller_init(enum src_id, ps_io_ops_t* ops, src_dev_t* dev);
+int reset_controller_init(enum src_id, const ps_io_ops_t* ops, src_dev_t* dev);
 
 /**
  * Reset a subsubsystem.

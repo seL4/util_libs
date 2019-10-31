@@ -22,7 +22,7 @@ static struct apq8064_mux {
     volatile struct apq8064_mux_regs*    mux;
 } _mux;
 
-static inline struct apq8064_mux* get_mux_priv(mux_sys_t* mux) {
+static inline struct apq8064_mux* get_mux_priv(const mux_sys_t* mux) {
     return (struct apq8064_mux*)mux->priv;
 }
 
@@ -34,7 +34,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct apq8064_mux* apq8064_mux)
 }
 
 static int
-apq8064_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+apq8064_mux_feature_enable(const mux_sys_t* mux, enum mux_feature mux_feature,
                            enum mux_gpio_dir mgd UNUSED)
 {
     if (mux == NULL || mux->priv == NULL) {
@@ -65,7 +65,7 @@ apq8064_mux_init(UNUSED void* bank1,
 }
 
 int
-mux_sys_init(UNUSED ps_io_ops_t* io_ops, void *dependencies UNUSED,
+mux_sys_init(UNUSED const ps_io_ops_t* io_ops, void *dependencies UNUSED,
              mux_sys_t* mux)
 {
     return apq8064_mux_init_common(mux);

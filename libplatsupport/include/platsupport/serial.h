@@ -39,7 +39,7 @@ enum serial_parity {
  * @return   : 0 on success
  */
 int serial_init(enum chardev_id id,
-                ps_io_ops_t* ops,
+                const ps_io_ops_t* ops,
                 ps_chardevice_t* dev);
 
 /*
