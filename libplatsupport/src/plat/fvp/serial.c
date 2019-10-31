@@ -38,14 +38,22 @@ int uart_getchar(ps_chardevice_t *d)
     return ch;
 }
 
+static void internal_uart_putchar(void* vaddr, int c)
+{
+    while ((*REG_PTR(vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0) {
+        continue;
+    }
+    *REG_PTR(vaddr, UARTDR) = c;
+}
+
 int uart_putchar(ps_chardevice_t* d, int c)
 {
-    while ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0);
-
-    *REG_PTR(d->vaddr, UARTDR) = c;
+    void* vaddr = d->vaddr;
+    /* SERIAL_AUTO_CR: Send '\r' (CR) before every '\n' (LF). */
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-        uart_putchar(d, '\r');
+        internal_uart_putchar(vaddr, '\r');
     }
+    internal_uart_putchar(vaddr, c);
 
     return c;
 }

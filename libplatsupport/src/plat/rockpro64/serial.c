@@ -36,15 +36,21 @@ int uart_getchar(ps_chardevice_t *d)
     return ch;
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+static void internal_uart_putchar(void* vaddr, int c)
 {
-    while (!(*REG_PTR(d->vaddr, LSR) & LSR_TXFIFOE)) {
+    while (!(*REG_PTR(vaddr, LSR) & LSR_TXFIFOE)) {
         continue;
     }
-    *REG_PTR(d->vaddr, THR) = c;
+    *REG_PTR(vaddr, THR) = c;
+}
+
+int uart_putchar(ps_chardevice_t* d, int c)
+{
+    void* vaddr = d->vaddr;
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-        uart_putchar(d, '\r');
+        internal_uart_putchar(vaddr, '\r');
     }
+    internal_uart_putchar(vaddr, c);
 
     return c;
 }
