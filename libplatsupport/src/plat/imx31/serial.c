@@ -51,17 +51,34 @@ int uart_getchar(ps_chardevice_t* d)
     return character;
 }
 
+static int
+internal_uart_tx_busy(void* vaddr)
+{
+    return !(*REG_PTR(vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE);
+}
+
+static int
+internal_uart_tx(void* vaddr, int c)
+{
+    *REG_PTR(vaddr, IMXUART_THR) = c;
+}
+
 int uart_putchar(ps_chardevice_t* d, int c)
 {
-    if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
-        *REG_PTR(d->vaddr, IMXUART_THR) = c;
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            uart_putchar(d, '\r');
-        }
-        return c;
-    } else {
+    void* vaddr = d->vaddr;
+    if (internal_uart_tx_busy(vaddr)) {
         return -1;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        internal_uart_tx(vaddr, '\r');
+        if (internal_uart_tx_busy(vaddr)) {
+            return -1;
+        }
+    }
+
+    internal_uart_tx(vaddr, c);
+    return c;
 }
 
 static void uart_handle_irq(ps_chardevice_t* d UNUSED)

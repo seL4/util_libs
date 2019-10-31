@@ -141,26 +141,43 @@ static const struct dev_defn dev_defn[] = {
 };
 
 static int
+internal_uart_tx_busy(void* vaddr)
+{
+    return *REG_PTR(vaddr, UFRSTAT) & FRSTAT_TX_FULL;
+}
+
+static int
+internal_uart_tx(void* vaddr, int c)
+{
+    *REG_PTR(vaddr, UTXH) = c;
+}
+
+static int
 exynos_uart_putchar(ps_chardevice_t *d, int c)
 {
-    if (*REG_PTR(d->vaddr, UFRSTAT) & FRSTAT_TX_FULL) {
+    void* vaddr = d->vaddr;
+    if (internal_uart_tx_busy(vaddr)) {
         /* abort: no room in FIFO */
         return -1;
-    } else {
-        /* Write out the next character. */
-        *REG_PTR(d->vaddr, UTXH) = c;
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            /* In this case, We should have checked that we had two free bytes in
-             * the FIFO before we submitted the first char, however, the fifo size
-             * would need to be considered and this differs between UARTs.
-             * To keep things simple, we recognise that it is rare for a '\n' to
-             * be sent when there is insufficient FIFO space and accept the
-             * inefficiencies of spinning, waiting for space.
-             */
-            while (exynos_uart_putchar(d, '\r') < 0);
-        }
-        return c;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        internal_uart_tx(vaddr, '\r');
+        /* In this case, We should have checked that we had two free bytes in
+         * the FIFO before we submitted the first char, however, the fifo size
+         * would need to be considered and this differs between UARTs.
+         * To keep things simple, we recognise that it is rare for a '\n' to
+         * be sent when there is insufficient FIFO space and accept the
+         * inefficiencies of spinning, waiting for space.
+         */
+        while (internal_uart_tx_busy(vaddr)) {
+            continue;
+        }
+    }
+
+    /* Write out the next character. */
+    internal_uart_tx(vaddr, c);
+    return c;
 }
 
 static int

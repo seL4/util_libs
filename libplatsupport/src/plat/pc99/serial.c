@@ -64,37 +64,44 @@ int uart_getchar(ps_chardevice_t *device)
     return (int) res;
 }
 
-static int serial_ready(ps_chardevice_t* device)
+static int internal_serial_ready(const ps_io_port_ops_t *port_ops,
+                                 uint32_t io_port)
 {
-    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
     uint32_t res;
-    int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
+    int error = ps_io_port_in(port_ops, CONSOLE(io_port, LSR), 1, &res);
     if (error != 0) {
         return 0;
     }
     return res & SERIAL_LSR_TRANSMITTER_EMPTY;
 }
 
+static int internal_serial_tx(const ps_io_port_ops_t *port_ops,
+                              uint32_t io_port, int c)
+{
+    ps_io_port_out(port_ops, CONSOLE(io_port, THR), 1, c);
+}
+
 int uart_putchar(ps_chardevice_t* device, int c)
 {
     uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
+    const ps_io_port_ops_t *port_ops = &device->ioops.io_port_ops;
 
     /* Check if serial is ready. */
-    if (!serial_ready(device)) {
+    if (!internal_serial_ready(port_ops, io_port)) {
         return -1;
     }
-
-    /* Write out the next character. */
-    ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
 
     // ToDo: check SERIAL_AUTO_CR and print CR (\r) first on LF (\n)
 
     if (c == '\n') {
+        internal_serial_tx(port_ops, io_port, '\r');
         /* If we output immediately then odds are the transmit buffer
          * will be full, so we have to wait */
-        while (!serial_ready(device));
-        uart_putchar(device, '\r');
+        while (!internal_serial_ready(port_ops, io_port));
     }
+
+    /* Write out the next character. */
+    internal_serial_tx(port_ops, io_port, c);
 
     return c;
 }
