@@ -60,19 +60,35 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
+static int
+internal_uart_tx_busy(uart_regs_t* regs)
+{
+    return regs->txdata & UART_TX_DATA_FULL;
+}
+
+static int
+internal_uart_tx(uart_regs_t* regs, int c)
+{
+    regs->txdata = c & UART_TX_DATA_MASK;
+}
+
 int uart_putchar(ps_chardevice_t* d, int c)
 {
     uart_regs_t* regs = uart_get_priv(d);
-    if (!(regs->txdata & UART_TX_DATA_FULL)) {
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            regs->txdata = '\r' & UART_TX_DATA_MASK;
-            while(regs->txdata & UART_TX_DATA_FULL) {}
-        }
-        regs->txdata = c & UART_TX_DATA_MASK;
-        return c;
-    } else {
+
+    if (internal_uart_tx_busy(regs)) {
         return -1;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        internal_uart_tx(regs, '\r');
+        while (internal_uart_tx_busy(regs)) {
+            continue;
+        }
+    }
+
+    internal_uart_tx(regs, c);
+    return c;
 }
 
 static void

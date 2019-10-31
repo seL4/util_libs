@@ -102,18 +102,34 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
+static int
+internal_uart_tx_busy(imx_uart_regs_t* regs)
+{
+    return !(regs->sr2 & UART_SR2_TXFIFO_EMPTY);
+}
+
+static int
+internal_uart_tx(imx_uart_regs_t* regs, int c)
+{
+    regs->txd = c;
+}
+
 int uart_putchar(ps_chardevice_t* d, int c)
 {
     imx_uart_regs_t* regs = imx_uart_get_priv(d);
-    if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            uart_putchar(d, '\r');
-        }
-        regs->txd = c;
-        return c;
-    } else {
+    if (internal_uart_tx_busy(regs)) {
         return -1;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        internal_uart_tx(regs, '\r');
+        if (internal_uart_tx_busy(regs)) {
+            return -1;
+        }
+    }
+
+    internal_uart_tx(regs, c);
+    return c;
 }
 
 static void
@@ -230,12 +246,12 @@ int uart_init(const struct dev_defn* defn,
 
 
 #ifdef CONFIG_PLAT_IMX6
-    /* The UART1 on the IMX6 has the problem that the MUX is not correctly set, and the RX PIN is 
+    /* The UART1 on the IMX6 has the problem that the MUX is not correctly set, and the RX PIN is
      * not routed correctly.
      */
     if ((defn->id == IMX_UART1) && mux_sys_valid(&ops->mux_sys)) {
         if (mux_feature_enable(&ops->mux_sys, MUX_UART1, 0)) {
-            // Failed to configure the mux 
+            // Failed to configure the mux
             return -1;
         }
     }

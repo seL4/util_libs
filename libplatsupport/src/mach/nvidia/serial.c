@@ -158,22 +158,37 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
+static int
+internal_uart_tx_busy(tk1_uart_regs_t* regs)
+{
+    return ((regs->lsr & LSR_THRE_EMPTY) != LSR_THRE_EMPTY);
+}
+
+static int
+internal_uart_tx(tk1_uart_regs_t* regs, uint8_t c)
+{
+    regs->thr_dlab = c;
+}
+
+
 int uart_putchar(ps_chardevice_t* d, int c)
 {
     tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
-    uint32_t lsr = regs->lsr;
 
-    if (((lsr & LSR_THRE_EMPTY) == LSR_THRE_EMPTY)) {
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            uart_putchar(d, '\r');
-        }
-
-        regs->thr_dlab = (uint8_t) c;
-
-        return c;
-    } else {
+    if (internal_uart_tx_busy(regs)) {
         return -1;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        internal_uart_tx(regs, '\r');
+        if (internal_uart_tx_busy(regs)) {
+            return -1;
+        }
+    }
+
+    internal_uart_tx(regs, (uint8_t)c);
+
+    return c;
 }
 
 static void
