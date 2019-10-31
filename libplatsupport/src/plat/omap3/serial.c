@@ -41,6 +41,8 @@ int uart_getchar(ps_chardevice_t* d)
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
+    // TODO: check SERIAL_AUTO_CR and print CR (\r) first on LF (\n)
+
     if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
         *REG_PTR(d->vaddr, IMXUART_THR) = c;
         return c;

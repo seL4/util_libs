@@ -51,6 +51,8 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
 
 int uart_putchar(ps_chardevice_t* d, int c)
 {
+    // TODD: check SERIAL_AUTO_CR and print CR (\r) first on LF (\n)
+
     while ( !(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_TXIDLE) );
     *REG_PTR(d->vaddr, MU_IO) = (c & 0xff);
 

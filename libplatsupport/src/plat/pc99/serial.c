@@ -87,6 +87,8 @@ int uart_putchar(ps_chardevice_t* device, int c)
     /* Write out the next character. */
     ps_io_port_out(&device->ioops.io_port_ops, CONSOLE(io_port, THR), 1, c);
 
+    // TODO: check SERIAL_AUTO_CR and print CR (\r) first on LF (\n)
+
     if (c == '\n') {
         /* If we output immediately then odds are the transmit buffer
          * will be full, so we have to wait */
