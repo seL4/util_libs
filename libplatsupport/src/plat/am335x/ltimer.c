@@ -126,7 +126,9 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         uint64_t current_time = 0;
         int error = get_time(data, &current_time);
         assert(error == 0);
-        assert(ns > current_time);
+        if (ns < current_time) {
+            return ETIME;
+        }
         ns -= current_time;
     }
 
