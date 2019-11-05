@@ -28,6 +28,8 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
+    else()
+        set(ElfloaderImage "elf" CACHE STRING "" FORCE)
     endif()
 
     if(${kernel_platform} STREQUAL "tk1" AND ${kernel_sel4_arch} STREQUAL "arm_hyp")
