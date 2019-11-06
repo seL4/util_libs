@@ -117,3 +117,8 @@ target_link_libraries(
     platsupport_Config
     ${irqchip_modules}
 )
+
+if("${KernelPlatform}" STREQUAL "tx2")
+    # Link the libtx2bpmp library for the clock
+    target_link_libraries(platsupport tx2bpmp)
+endif()
