@@ -135,8 +135,8 @@ static void enable_interrupts(struct imx6_eth_data *dev)
     struct enet *enet = dev->enet;
     assert(enet);
     enet_enable_events(enet, 0);
-    enet_clr_events(enet, ~(NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR));
-    enet_enable_events(enet, NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
+    enet_clr_events(enet, (uint32_t) ~(NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR));
+    enet_enable_events(enet, (uint32_t) NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
 }
 
 static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
@@ -426,7 +426,8 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     enet_set_mac(enet, mac);
 
     /* Connect the phy to the ethernet controller */
-    if (fec_init(CONFIG_FEC_MXC_PHYMASK, enet)) {
+    unsigned phy_mask = 0xffffffff;
+    if (fec_init(phy_mask, enet)) {
         LOG_ERROR("Failed to initialize fec");
         goto error;
     }

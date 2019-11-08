@@ -69,22 +69,29 @@ mark_as_advanced(
 )
 add_config_library(ethdrivers "${configure_string}")
 
+if("${KernelPlatform}" MATCHES "imx8mq-evk")
+    # Re-use the imx6 sources
+    set(PlatPrefix "imx6")
+else()
+    set(PlatPrefix "${KernelPlatform}")
+endif()
+
 file(
     GLOB
         sources
-        src/plat/${KernelPlatform}/*.c
-        src/plat/${KernelPlatform}/uboot/*.c
-        src/plat/${KernelPlatform}/cpsw/*.c
+        src/plat/${PlatPrefix}/*.c
+        src/plat/${PlatPrefix}/uboot/*.c
+        src/plat/${PlatPrefix}/cpsw/*.c
         src/*.c
 )
 
 add_library(ethdrivers STATIC EXCLUDE_FROM_ALL ${sources})
-target_include_directories(ethdrivers PRIVATE src/plat/${KernelPlatform}/cpsw)
+target_include_directories(ethdrivers PRIVATE src/plat/${PlatPrefix}/cpsw)
 target_include_directories(
     ethdrivers
     PUBLIC
         include
-        plat_include/${KernelPlatform}
+        plat_include/${PlatPrefix}
         arch_include/${KernelArch}
 )
 target_link_libraries(ethdrivers muslc platsupport ethdrivers_Config lwip_Config picotcp_Config sel4_autoconf)

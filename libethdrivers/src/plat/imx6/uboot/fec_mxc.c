@@ -8,6 +8,7 @@
  * (C) Copyright 2008 Armadeus Systems nc
  * (C) Copyright 2007 Pengutronix, Sascha Hauer <s.hauer@pengutronix.de>
  * (C) Copyright 2007 Pengutronix, Juergen Beisert <j.beisert@pengutronix.de>
+ * (C) Copyright 2018, NXP
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -121,20 +122,35 @@ int fec_init(unsigned phy_mask, struct enet* enet)
         return -1;
     }
 
-    /* min rx data delay */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
-    /* min tx data delay */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_TX_DATA_SKEW, 0x0);
-    /* max rx/tx clock delay, min rx/tx control */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
-    ksz9021_config(phydev);
+    if (config_set(CONFIG_PLAT_IMX8MQ_EVK)) {
+        /* enable rgmii rxc skew and phy mode select to RGMII copper */
+        phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
+        phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
+        phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
+        phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
 
-	/* Start up the PHY */
-	ret = ksz9021_startup(phydev);
-	if (ret) {
-		printf("Could not initialize PHY %s\n", phydev->dev->name);
-		return ret;
-	}
+        if (phydev->drv->config)
+            phydev->drv->config(phydev);
+
+        if (phydev->drv->startup)
+            phydev->drv->startup(phydev);
+    } else if (config_set(CONFIG_PLAT_IMX6)) {
+        /* min rx data delay */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
+        /* min tx data delay */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_TX_DATA_SKEW, 0x0);
+        /* max rx/tx clock delay, min rx/tx control */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
+        ksz9021_config(phydev);
+
+        /* Start up the PHY */
+        ret = ksz9021_startup(phydev);
+        if (ret) {
+            printf("Could not initialize PHY %s\n", phydev->dev->name);
+            return ret;
+        }
+
+    }
 
     printf("\n  * Link speed: %4i Mbps, ", phydev->speed);
     if(phydev->duplex == DUPLEX_FULL){

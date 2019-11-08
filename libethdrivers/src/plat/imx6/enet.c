@@ -1,4 +1,5 @@
 /*
+ * Copyright 2017, NXP
  * Copyright 2017, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
@@ -19,8 +20,17 @@
 #include "../../debug.h"
 #include <stdlib.h>
 
+#ifdef CONFIG_PLAT_IMX6
 #define IMX6_ENET_PADDR 0x02188000
 #define IMX6_ENET_SIZE  0x00004000
+#endif
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+#define IMX6_ENET_PADDR 0x30be0000
+#define IMX6_ENET_SIZE  0x10000
+
+#define CCM_PADDR 0x30380000
+#define CCM_SIZE 0x10000
+#endif
 
 #define ENET_FREQ  125000000UL
 #define MDC_FREQ    20000000UL /* must be less than 2.5MHz */
@@ -314,6 +324,27 @@ static struct clock mdc_clk = {
         .child = NULL,
     };
 
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+static freq_t
+_enet_clk_get_freq(clk_t *clk){
+    return clk->req_freq;
+}
+
+static struct clock enet_clk = {
+    .id = CLK_CUSTOM,
+    .name = "enet_clk",
+    .priv = NULL,
+    .req_freq = 125000000UL,
+    .set_freq = NULL,
+    .get_freq = &_enet_clk_get_freq,
+    .recal = NULL,
+    .init = NULL,
+    .parent = NULL,
+    .sibling = NULL,
+    .child = NULL,
+};
+#endif
+
 void
 enet_set_speed(struct enet* enet, int speed, int full_duplex){
     enet_regs_t* regs = enet_get_regs(enet);
@@ -486,7 +517,7 @@ struct enet *
 enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     enet_regs_t* regs;
     struct enet* ret;
-    struct clock* enet_clk;
+    struct clock* enet_clk_ptr = NULL;
 
     /* Map in the device */
     regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
@@ -503,14 +534,47 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     regs->eimr = 0x00000000;
     regs->eir  = 0xffffffff;
 
+#ifdef CONFIG_PLAT_IMX6
     /* Set the ethernet clock frequency */
     clock_sys_t *clk_sys = malloc(sizeof(clock_sys_t));
     clock_sys_init(io_ops, clk_sys);
-    enet_clk = clk_get_clock(clk_sys, CLK_ENET);
-    clk_set_freq(enet_clk, ENET_FREQ);
+    enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
+    clk_set_freq(enet_clk_ptr, ENET_FREQ);
+#endif
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+    enet_clk_ptr = &enet_clk;
+    // TODO Implement an actual clock driver for the imx8mq
+    void *clock_base = RESOURCE(&io_ops->io_mapper, CCM);
+    if (!clock_base) {
+        return NULL;
+    }
+
+    uint32_t *ccgr_enet_set = clock_base + 0x40a0;
+    uint32_t *ccgr_enet_clr = clock_base + 0x40a4;
+    uint32_t *ccgr_sim_enet_set = clock_base + 0x4400;
+    uint32_t *ccgr_sim_enet_clr = clock_base + 0x4404;
+
+    /* Gate the clocks first */
+    *ccgr_enet_clr = 0x3;
+    *ccgr_sim_enet_clr = 0x3;
+
+    /* Setup the clocks to have the proper sources/configs */
+    uint32_t *enet_axi_target = clock_base + 0x8880;
+    uint32_t *enet_ref_target = clock_base + 0xa980;
+    uint32_t *enet_timer_target = clock_base + 0xaa00;
+
+    *enet_axi_target = BIT(28) | 0x01000000; // ENABLE | MUX SYS1_PLL | POST AND PRE DIVIDE BY 1
+    *enet_ref_target = BIT(28) | 0x01000000; // ENABLE | MUX PLL2_DIV8 | POST AND PRE DIVIDE BY 1
+    *enet_timer_target = BIT(28) | 0x01000000 | ((4) & 0x3f); // ENABLE | MUX PLL2_DIV10 | POST DIVIDE BY 4, PRE DIVIDE BY 1
+
+    /* Ungate the clocks now */
+    *ccgr_enet_set = 0x3;
+    *ccgr_sim_enet_set = 0x3;
+#endif
+
     /* Set the MDIO clock frequency */
     mdc_clk.priv = (void*)enet_get_regs(ret);
-    clk_register_child(enet_clk, &mdc_clk);
+    clk_register_child(enet_clk_ptr, &mdc_clk);
     clk_set_freq(&mdc_clk, MDC_FREQ);
 
     /* Clear out MIB */

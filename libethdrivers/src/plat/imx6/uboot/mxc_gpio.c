@@ -43,6 +43,8 @@ enum mxc_gpio_direction {
 #define GPIO_SIZE 0x4000
 
 /* GPIO port description */
+
+#ifdef CONFIG_PLAT_IMX6
 static unsigned long gpio_ports[] = {
 	[0] = 0,
 	[1] = 0,
@@ -54,14 +56,32 @@ static unsigned long gpio_ports[] = {
 };
 
 static unsigned long gpio_paddr[] = {
-	[0] = GPIO1_BASE_ADDR,
-	[1] = GPIO2_BASE_ADDR,
-	[2] = GPIO3_BASE_ADDR, /* Used by ethernet */
-	[3] = GPIO4_BASE_ADDR,
-	[4] = GPIO5_BASE_ADDR,
-	[5] = GPIO6_BASE_ADDR,
-	[6] = GPIO7_BASE_ADDR,
+    [0] = GPIO1_BASE_ADDR,
+    [1] = GPIO2_BASE_ADDR,
+    [2] = GPIO3_BASE_ADDR, /* Used by ethernet */
+    [3] = GPIO4_BASE_ADDR,
+    [4] = GPIO5_BASE_ADDR,
+    [5] = GPIO6_BASE_ADDR,
+    [6] = GPIO7_BASE_ADDR,
 };
+#endif
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+static unsigned long gpio_ports[] = {
+	[0] = 0,
+	[1] = 0,
+	[2] = 0,
+	[3] = 0,
+	[4] = 0,
+};
+
+static unsigned long gpio_paddr[] = {
+	[0] = 0x30200000,
+	[1] = 0x30210000,
+	[2] = 0x30220000,
+	[3] = 0x30230000,
+	[4] = 0x30240000,
+};
+#endif
 
 static int mxc_gpio_direction(unsigned int gpio,
 	enum mxc_gpio_direction direction, ps_io_ops_t *io_ops)

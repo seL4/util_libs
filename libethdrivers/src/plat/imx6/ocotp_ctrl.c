@@ -22,8 +22,14 @@
  * CCM_CGR2[CG6]
  */
 
+#ifdef CONFIG_PLAT_IMX6
 #define IMX6_OCOTP_PADDR   0x021BC000
 #define IMX6_OCOTP_SIZE    0x00004000
+#endif
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+#define IMX6_OCOTP_PADDR   0x30350000
+#define IMX6_OCOTP_SIZE    0x00010000
+#endif
 
 #define TIMING_WAIT(x)       ((x) << 22)
 #define TIMING_SREAD(x)      ((x) << 16)

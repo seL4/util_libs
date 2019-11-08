@@ -4,6 +4,7 @@
 
 /*
  * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
+ * Copyright (C) 2018 NXP
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -35,6 +36,7 @@
 
 #include "gpio.h"
 #include "mx6x_pins.h"
+#include "imx8mq_pins.h"
 #include "miiphy.h"
 #include "micrel.h"
 #include "mx6qsabrelite.h"
@@ -43,8 +45,15 @@
 #include <platsupport/io.h>
 
 #include <stdio.h>
+
+#ifdef CONFIG_PLAT_IMX6
 #define IOMUXC_PADDR 0x020E0000
 #define IOMUXC_SIZE      0x4000
+#endif
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+#define IOMUXC_PADDR 0x30330000
+#define IOMUXC_SIZE      0x10000
+#endif
 
 #define ENET_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |		\
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED	  |		\
@@ -83,6 +92,26 @@ static iomux_v3_cfg_t const enet_pads2[] = {
 	MX6Q_PAD_RGMII_RD2__ENET_RGMII_RD2	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6Q_PAD_RGMII_RD3__ENET_RGMII_RD3	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6Q_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
+};
+
+static iomux_v3_cfg_t const fec1_pads[] = {
+    /* see the IMX8 reference manual for what the options mean,
+     * Section 8.2.4 i.e. IOMUXC_SW_PAD_CTL_PAD_* registers */
+    IMX8MQ_PAD_ENET_MDC__ENET_MDC | MUX_PAD_CTRL(0x3),
+    IMX8MQ_PAD_ENET_MDIO__ENET_MDIO | MUX_PAD_CTRL(0x23),
+    IMX8MQ_PAD_ENET_TD3__ENET_RGMII_TD3 | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_TD2__ENET_RGMII_TD2 | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_TD1__ENET_RGMII_TD1 | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_TD0__ENET_RGMII_TD0 | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_RD3__ENET_RGMII_RD3 | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_ENET_RD2__ENET_RGMII_RD2 | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_ENET_RD1__ENET_RGMII_RD1 | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_ENET_RD0__ENET_RGMII_RD0 | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_ENET_TXC__ENET_RGMII_TXC | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_RXC__ENET_RGMII_RXC | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_ENET_TX_CTL__ENET_RGMII_TX_CTL | MUX_PAD_CTRL(0x1f),
+    IMX8MQ_PAD_ENET_RX_CTL__ENET_RGMII_RX_CTL | MUX_PAD_CTRL(0x91),
+    IMX8MQ_PAD_GPIO1_IO09__GPIO1_IO9 | MUX_PAD_CTRL(0x19)
 };
 
 /*
@@ -141,25 +170,39 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         return 1;
     }
 
-	gpio_direction_output(IMX_GPIO_NR(3, 23), 0, io_ops);
-	gpio_direction_output(IMX_GPIO_NR(6, 30), 1, io_ops);
-	gpio_direction_output(IMX_GPIO_NR(6, 25), 1, io_ops);
-	gpio_direction_output(IMX_GPIO_NR(6, 27), 1, io_ops);
-	gpio_direction_output(IMX_GPIO_NR(6, 28), 1, io_ops);
-	gpio_direction_output(IMX_GPIO_NR(6, 29), 1, io_ops);
-	ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads1, ARRAY_SIZE(enet_pads1));
-	if (ret) {
-	    return ret;
-	}
-	gpio_direction_output(IMX_GPIO_NR(6, 24), 1, io_ops);
-	/* Need delay 10ms according to KSZ9021 spec */
-	udelay(1000 * 10);
-	gpio_set_value(IMX_GPIO_NR(3, 23), 1);
+    if (config_set(CONFIG_PLAT_IMX8MQ_EVK)) {
+        ret = imx_iomux_v3_setup_multiple_pads(base, fec1_pads, ARRAY_SIZE(fec1_pads));
+        if (ret) {
+            return ret;
+        }
+        gpio_direction_output(IMX_GPIO_NR(1, 9), 0, io_ops);
+        udelay(500);
+        gpio_direction_output(IMX_GPIO_NR(1, 9), 1, io_ops);
 
-	ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads2, ARRAY_SIZE(enet_pads2));
-	if (ret) {
-	    return ret;
-	}
+        uint32_t *gpr1 = base + 0x4;
+        // Change ENET_TX to use internal clocks and not the external clocks
+        *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
+    } else if (config_set(CONFIG_PLAT_IMX6)) {
+        gpio_direction_output(IMX_GPIO_NR(3, 23), 0, io_ops);
+        gpio_direction_output(IMX_GPIO_NR(6, 30), 1, io_ops);
+        gpio_direction_output(IMX_GPIO_NR(6, 25), 1, io_ops);
+        gpio_direction_output(IMX_GPIO_NR(6, 27), 1, io_ops);
+        gpio_direction_output(IMX_GPIO_NR(6, 28), 1, io_ops);
+        gpio_direction_output(IMX_GPIO_NR(6, 29), 1, io_ops);
+        ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads1, ARRAY_SIZE(enet_pads1));
+        if (ret) {
+            return ret;
+        }
+        gpio_direction_output(IMX_GPIO_NR(6, 24), 1, io_ops);
+        /* Need delay 10ms according to KSZ9021 spec */
+        udelay(1000 * 10);
+        gpio_set_value(IMX_GPIO_NR(3, 23), 1);
+
+        ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads2, ARRAY_SIZE(enet_pads2));
+        if (ret) {
+            return ret;
+        }
+    }
 
     if (unmapOnExit) {
         UNRESOURCE(&io_ops->io_mapper, IOMUXC, base);

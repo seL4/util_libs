@@ -85,10 +85,10 @@ typedef uint64_t iomux_v3_cfg_t;
 	MUX_SEL_INPUT_OFS_SHIFT)
 
 #define MUX_MODE_SHIFT		36
-#define MUX_MODE_MASK		((iomux_v3_cfg_t)0x1f << MUX_MODE_SHIFT)
-#define MUX_PAD_CTRL_SHIFT	41
+#define MUX_MODE_MASK		((iomux_v3_cfg_t)0x3f << MUX_MODE_SHIFT)
+#define MUX_PAD_CTRL_SHIFT	42
 #define MUX_PAD_CTRL_MASK	((iomux_v3_cfg_t)0x3ffff << MUX_PAD_CTRL_SHIFT)
-#define MUX_SEL_INPUT_SHIFT	59
+#define MUX_SEL_INPUT_SHIFT	60
 #define MUX_SEL_INPUT_MASK	((iomux_v3_cfg_t)0xf << MUX_SEL_INPUT_SHIFT)
 
 #define MUX_PAD_CTRL(x)		((iomux_v3_cfg_t)(x) << MUX_PAD_CTRL_SHIFT)
