@@ -164,24 +164,25 @@ struct ocotp {
 
 typedef volatile struct ocotp_regs ocotp_regs_t;
 
-static inline ocotp_regs_t*
-ocotp_get_regs(struct ocotp* ocotp){
-    return (ocotp_regs_t*)ocotp;
+static inline ocotp_regs_t *ocotp_get_regs(struct ocotp *ocotp)
+{
+    return (ocotp_regs_t *)ocotp;
 }
 
 struct ocotp *
-ocotp_init(ps_io_mapper_t *io_mapper){
-    return (struct ocotp*)RESOURCE(io_mapper, IMX6_OCOTP);
+ocotp_init(ps_io_mapper_t *io_mapper)
+{
+    return (struct ocotp *)RESOURCE(io_mapper, IMX6_OCOTP);
 }
 
-void
-ocotp_free(struct ocotp *ocotp, ps_io_mapper_t *io_mapper) {
+void ocotp_free(struct ocotp *ocotp, ps_io_mapper_t *io_mapper)
+{
     UNRESOURCE(io_mapper, IMX6_OCOTP, ocotp);
 }
 
-int
-ocotp_get_mac(struct ocotp* ocotp, unsigned char *mac){
-    ocotp_regs_t* regs;
+int ocotp_get_mac(struct ocotp *ocotp, unsigned char *mac)
+{
+    ocotp_regs_t *regs;
     uint32_t mac0;
     uint32_t mac1;
     assert(ocotp);
@@ -189,7 +190,7 @@ ocotp_get_mac(struct ocotp* ocotp, unsigned char *mac){
     regs = ocotp_get_regs(ocotp);
     mac0 = regs->mac0;
     mac1 = regs->mac1;
-    if(mac0 | mac1){
+    if (mac0 | mac1) {
         mac[0] = (mac1 >>  8) & 0xff;
         mac[1] = (mac1 >>  0) & 0xff;
 
@@ -198,7 +199,7 @@ ocotp_get_mac(struct ocotp* ocotp, unsigned char *mac){
         mac[4] = (mac0 >>  8) & 0xff;
         mac[5] = (mac0 >>  0) & 0xff;
         return 0;
-    }else{
+    } else {
         return -1;
     }
 }

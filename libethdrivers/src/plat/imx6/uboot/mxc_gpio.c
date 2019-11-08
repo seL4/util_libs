@@ -34,11 +34,11 @@
 #include "../unimplemented.h"
 
 enum mxc_gpio_direction {
-	MXC_GPIO_DIRECTION_IN,
-	MXC_GPIO_DIRECTION_OUT,
+    MXC_GPIO_DIRECTION_IN,
+    MXC_GPIO_DIRECTION_OUT,
 };
 
-#define GPIO_TO_PORT(n)		(n / 32)
+#define GPIO_TO_PORT(n)     (n / 32)
 
 #define GPIO_SIZE 0x4000
 
@@ -46,13 +46,13 @@ enum mxc_gpio_direction {
 
 #ifdef CONFIG_PLAT_IMX6
 static unsigned long gpio_ports[] = {
-	[0] = 0,
-	[1] = 0,
-	[2] = 0,
-	[3] = 0,
-	[4] = 0,
-	[5] = 0,
-	[6] = 0,
+    [0] = 0,
+    [1] = 0,
+    [2] = 0,
+    [3] = 0,
+    [4] = 0,
+    [5] = 0,
+    [6] = 0,
 };
 
 static unsigned long gpio_paddr[] = {
@@ -67,123 +67,129 @@ static unsigned long gpio_paddr[] = {
 #endif
 #ifdef CONFIG_PLAT_IMX8MQ_EVK
 static unsigned long gpio_ports[] = {
-	[0] = 0,
-	[1] = 0,
-	[2] = 0,
-	[3] = 0,
-	[4] = 0,
+    [0] = 0,
+    [1] = 0,
+    [2] = 0,
+    [3] = 0,
+    [4] = 0,
 };
 
 static unsigned long gpio_paddr[] = {
-	[0] = 0x30200000,
-	[1] = 0x30210000,
-	[2] = 0x30220000,
-	[3] = 0x30230000,
-	[4] = 0x30240000,
+    [0] = 0x30200000,
+    [1] = 0x30210000,
+    [2] = 0x30220000,
+    [3] = 0x30230000,
+    [4] = 0x30240000,
 };
 #endif
 
 static int mxc_gpio_direction(unsigned int gpio,
-	enum mxc_gpio_direction direction, ps_io_ops_t *io_ops)
+                              enum mxc_gpio_direction direction, ps_io_ops_t *io_ops)
 {
-	unsigned int port = GPIO_TO_PORT(gpio);
-	struct gpio_regs *regs;
-	uint32_t l;
+    unsigned int port = GPIO_TO_PORT(gpio);
+    struct gpio_regs *regs;
+    uint32_t l;
 
-	if (port >= ARRAY_SIZE(gpio_ports))
-		return -1;
+    if (port >= ARRAY_SIZE(gpio_ports)) {
+        return -1;
+    }
 
-	gpio &= 0x1f;
+    gpio &= 0x1f;
 
-    if(gpio_ports[port] == 0){
+    if (gpio_ports[port] == 0) {
         uintptr_t gpio_phys = (uintptr_t)gpio_paddr[port];
         gpio_ports[port] = (unsigned long)ps_io_map(&io_ops->io_mapper, gpio_phys, GPIO_SIZE, 0, PS_MEM_NORMAL);
-        if(gpio_ports[port] == 0){
+        if (gpio_ports[port] == 0) {
             LOG_ERROR("Warning: No map for GPIO %d. Assuming that it is already configured\n", port);
             return 0;
         }
     }
 
-	regs = (struct gpio_regs *)gpio_ports[port];
-	l = readl(&regs->gpio_dir);
+    regs = (struct gpio_regs *)gpio_ports[port];
+    l = readl(&regs->gpio_dir);
 
-	switch (direction) {
-	case MXC_GPIO_DIRECTION_OUT:
-		l |= 1 << gpio;
-		break;
-	case MXC_GPIO_DIRECTION_IN:
-		l &= ~(BIT(gpio));
-	}
-	writel(l, &regs->gpio_dir);
+    switch (direction) {
+    case MXC_GPIO_DIRECTION_OUT:
+        l |= 1 << gpio;
+        break;
+    case MXC_GPIO_DIRECTION_IN:
+        l &= ~(BIT(gpio));
+    }
+    writel(l, &regs->gpio_dir);
 
-	return 0;
+    return 0;
 }
 
 int gpio_set_value(unsigned gpio, int value)
 {
-	unsigned int port = GPIO_TO_PORT(gpio);
-	struct gpio_regs *regs;
-	uint32_t l;
+    unsigned int port = GPIO_TO_PORT(gpio);
+    struct gpio_regs *regs;
+    uint32_t l;
 
-	if (port >= ARRAY_SIZE(gpio_ports))
-		return -1;
+    if (port >= ARRAY_SIZE(gpio_ports)) {
+        return -1;
+    }
 
-	gpio &= 0x1f;
+    gpio &= 0x1f;
 
-	regs = (struct gpio_regs *)gpio_ports[port];
+    regs = (struct gpio_regs *)gpio_ports[port];
 
-	l = readl(&regs->gpio_dr);
-	if (value)
-		l |= 1 << gpio;
-	else
-		l &= ~(BIT(gpio));
-	writel(l, &regs->gpio_dr);
+    l = readl(&regs->gpio_dr);
+    if (value) {
+        l |= 1 << gpio;
+    } else {
+        l &= ~(BIT(gpio));
+    }
+    writel(l, &regs->gpio_dr);
 
-	return 0;
+    return 0;
 }
 
 int gpio_get_value(unsigned gpio)
 {
-	unsigned int port = GPIO_TO_PORT(gpio);
-	struct gpio_regs *regs;
-	uint32_t val;
+    unsigned int port = GPIO_TO_PORT(gpio);
+    struct gpio_regs *regs;
+    uint32_t val;
 
-	if (port >= ARRAY_SIZE(gpio_ports))
-		return -1;
+    if (port >= ARRAY_SIZE(gpio_ports)) {
+        return -1;
+    }
 
-	gpio &= 0x1f;
+    gpio &= 0x1f;
 
-	regs = (struct gpio_regs *)gpio_ports[port];
+    regs = (struct gpio_regs *)gpio_ports[port];
 
-	val = (readl(&regs->gpio_psr) >> gpio) & 0x01;
+    val = (readl(&regs->gpio_psr) >> gpio) & 0x01;
 
-	return val;
+    return val;
 }
 
 int gpio_request(unsigned gpio, const char *label)
 {
-	unsigned int port = GPIO_TO_PORT(gpio);
-	if (port >= ARRAY_SIZE(gpio_ports))
-		return -1;
-	return 0;
+    unsigned int port = GPIO_TO_PORT(gpio);
+    if (port >= ARRAY_SIZE(gpio_ports)) {
+        return -1;
+    }
+    return 0;
 }
 
 int gpio_free(unsigned gpio)
 {
-	return 0;
+    return 0;
 }
 
 int gpio_direction_input(unsigned gpio, ps_io_ops_t *io_ops)
 {
-	return mxc_gpio_direction(gpio, MXC_GPIO_DIRECTION_IN, io_ops);
+    return mxc_gpio_direction(gpio, MXC_GPIO_DIRECTION_IN, io_ops);
 }
 
 int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops)
 {
-	int ret = mxc_gpio_direction(gpio, MXC_GPIO_DIRECTION_OUT, io_ops);
+    int ret = mxc_gpio_direction(gpio, MXC_GPIO_DIRECTION_OUT, io_ops);
 
-	if (ret < 0)
-		return ret;
+    if (ret < 0) {
+        return ret;
+    }
 
-	return gpio_set_value(gpio, value);
+    return gpio_set_value(gpio, value);
 }

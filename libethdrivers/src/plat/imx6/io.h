@@ -23,13 +23,13 @@
 //#define __raw_writel(...) writel(__VA_ARGS__)
 //#define __raw_readl(...) readl(__VA_ARGS__)
 
-#define __raw_writeb(v,a)	__arch_putb(v,a)
-#define __raw_writew(v,a)	__arch_putw(v,a)
-#define __raw_writel(v,a)	__arch_putl(v,a)
+#define __raw_writeb(v,a)   __arch_putb(v,a)
+#define __raw_writew(v,a)   __arch_putw(v,a)
+#define __raw_writel(v,a)   __arch_putl(v,a)
 
-#define __raw_readb(a)		__arch_getb(a)
-#define __raw_readw(a)		__arch_getw(a)
-#define __raw_readl(a)		__arch_getl(a)
+#define __raw_readb(a)      __arch_getb(a)
+#define __raw_readw(a)      __arch_getw(a)
+#define __raw_readl(a)      __arch_getl(a)
 
 /*
  * TODO: The kernel offers some more advanced versions of barriers, it might
@@ -44,14 +44,14 @@
 #define dmb()     asm volatile("dmb sy" ::: "memory") // For aarch64
 #define dsb()     asm volatile("dsb sy" ::: "memory")
 #define isb()     asm volatile("isb sy" ::: "memory")
-#define __iormb()	dmb()
-#define __iowmb()	dmb()
+#define __iormb()   dmb()
+#define __iowmb()   dmb()
 
-#define writeb(v,c)	({ uint8_t  __v = v; __iowmb(); __arch_putb(__v,c); __v; })
-#define writew(v,c)	({ uint16_t __v = v; __iowmb(); __arch_putw(__v,c); __v; })
-#define writel(v,c)	({ uint32_t __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+#define writeb(v,c) ({ uint8_t  __v = v; __iowmb(); __arch_putb(__v,c); __v; })
+#define writew(v,c) ({ uint16_t __v = v; __iowmb(); __arch_putw(__v,c); __v; })
+#define writel(v,c) ({ uint32_t __v = v; __iowmb(); __arch_putl(__v,c); __v; })
 
-#define readb(c)	({ uint8_t  __v = __arch_getb(c); __iormb(); __v; })
-#define readw(c)	({ uint16_t __v = __arch_getw(c); __iormb(); __v; })
-#define readl(c)	({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
+#define readb(c)    ({ uint8_t  __v = __arch_getb(c); __iormb(); __v; })
+#define readw(c)    ({ uint16_t __v = __arch_getw(c); __iormb(); __v; })
+#define readl(c)    ({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
 

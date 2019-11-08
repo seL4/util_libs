@@ -43,7 +43,7 @@
  * Timeout the transfer after 5 mS. This is usually a bit more, since
  * the code in the tightloops this timeout is used in adds some overhead.
  */
-#define FEC_XFER_TIMEOUT	5000
+#define FEC_XFER_TIMEOUT    5000
 
 #ifndef CONFIG_MII
 #error "CONFIG_MII has to be defined!"
@@ -57,13 +57,13 @@
 
 int fec_phy_read(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr)
 {
-	return enet_mdio_read((struct enet*)bus->priv, phyAddr, regAddr);
+    return enet_mdio_read((struct enet *)bus->priv, phyAddr, regAddr);
 }
 
 int fec_phy_write(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr,
-		uint16_t data)
+                  uint16_t data)
 {
-	return enet_mdio_write((struct enet*)bus->priv, phyAddr, regAddr, data);
+    return enet_mdio_write((struct enet *)bus->priv, phyAddr, regAddr, data);
 }
 
 /**
@@ -73,48 +73,49 @@ int fec_phy_write(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr,
 void fec_halt(struct eth_device *dev)
 {
 #if 0
-	struct fec_priv *fec = (struct fec_priv *)dev->priv;
-	int counter = 0xffff;
-	/* issue graceful stop command to the FEC transmitter if necessary */
-	writel(FEC_TCNTRL_GTS | readl(&fec->eth->x_cntrl), &fec->eth->x_cntrl);
-	/* wait for graceful stop to register */
-	while ((counter--) && (!(readl(&fec->eth->ievent) & FEC_IEVENT_GRA)))
-		udelay(1);
-	writel(readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_ETHER_EN, &fec->eth->ecntrl);
-	fec->rbd_index = 0;
-	fec->tbd_index = 0;
+    struct fec_priv *fec = (struct fec_priv *)dev->priv;
+    int counter = 0xffff;
+    /* issue graceful stop command to the FEC transmitter if necessary */
+    writel(FEC_TCNTRL_GTS | readl(&fec->eth->x_cntrl), &fec->eth->x_cntrl);
+    /* wait for graceful stop to register */
+    while ((counter--) && (!(readl(&fec->eth->ievent) & FEC_IEVENT_GRA))) {
+        udelay(1);
+    }
+    writel(readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_ETHER_EN, &fec->eth->ecntrl);
+    fec->rbd_index = 0;
+    fec->tbd_index = 0;
 #else
     assert(!"unimplemented");
 #endif
 }
-int fec_init(unsigned phy_mask, struct enet* enet)
+int fec_init(unsigned phy_mask, struct enet *enet)
 {
-	struct eth_device *edev;
+    struct eth_device *edev;
     struct phy_device *phydev;
-	struct mii_dev *bus;
-	int ret = 0;
+    struct mii_dev *bus;
+    int ret = 0;
     struct eth_device _eth;
-	/* create and fill edev struct */
-	edev = &_eth;
-	memset(edev, 0, sizeof(*edev));
+    /* create and fill edev struct */
+    edev = &_eth;
+    memset(edev, 0, sizeof(*edev));
 
-	edev->priv = (void*)enet;
-	edev->write_hwaddr = NULL;
+    edev->priv = (void *)enet;
+    edev->write_hwaddr = NULL;
 
     /* Alocate the mdio bus */
-	bus = mdio_alloc();
-	if (!bus) {
-		return -1;
-	}
-	bus->read = fec_phy_read;
-	bus->write = fec_phy_write;
-	bus->priv = enet;
-	strcpy(bus->name, edev->name);
-	ret = mdio_register(bus);
-	if (ret) {
-		free(bus);
-		return -1;
-	}
+    bus = mdio_alloc();
+    if (!bus) {
+        return -1;
+    }
+    bus->read = fec_phy_read;
+    bus->write = fec_phy_write;
+    bus->priv = enet;
+    strcpy(bus->name, edev->name);
+    ret = mdio_register(bus);
+    if (ret) {
+        free(bus);
+        return -1;
+    }
 
     /****** Configure phy ******/
     phydev = phy_connect_by_mask(bus, phy_mask, edev, PHY_INTERFACE_MODE_RGMII);
@@ -129,11 +130,13 @@ int fec_init(unsigned phy_mask, struct enet* enet)
         phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
         phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
 
-        if (phydev->drv->config)
+        if (phydev->drv->config) {
             phydev->drv->config(phydev);
+        }
 
-        if (phydev->drv->startup)
+        if (phydev->drv->startup) {
             phydev->drv->startup(phydev);
+        }
     } else if (config_set(CONFIG_PLAT_IMX6)) {
         /* min rx data delay */
         ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
@@ -153,10 +156,10 @@ int fec_init(unsigned phy_mask, struct enet* enet)
     }
 
     printf("\n  * Link speed: %4i Mbps, ", phydev->speed);
-    if(phydev->duplex == DUPLEX_FULL){
+    if (phydev->duplex == DUPLEX_FULL) {
         enet_set_speed(enet, phydev->speed, 1);
         printf("full-duplex *\n");
-    }else{
+    } else {
         enet_set_speed(enet, phydev->speed, 0);
         printf("half-duplex *\n");
     }

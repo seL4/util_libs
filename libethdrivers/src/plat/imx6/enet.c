@@ -104,7 +104,7 @@ struct mib_regs {
 };
 
 struct enet_regs {
-/* Configuration */
+    /* Configuration */
     uint32_t res0[1];
     uint32_t eir;    /* 004 Interrupt Event Register */
     uint32_t eimr;   /* 008 Interrupt Mask Register */
@@ -151,10 +151,10 @@ struct enet_regs {
     uint32_t tacc;   /* 1C0 Transmit Accelerator Function Configuration */
     uint32_t racc;   /* 1C4 Receive Accelerator Function Configuration */
     uint32_t res14[14];
-/* 0x200: Statistics counters MIB block RFC 2819 */
+    /* 0x200: Statistics counters MIB block RFC 2819 */
     struct mib_regs mib;
     uint32_t res15[64];
-/* 0x400: 1588 adjustable timer (TSM) and 1588 frame control */
+    /* 0x400: 1588 adjustable timer (TSM) and 1588 frame control */
     uint32_t atcr;   /* 400 Timer Control Register */
     uint32_t atvr;   /* 404 Timer Value Register */
     uint32_t atoff;  /* 408 Timer Offset Register */
@@ -164,7 +164,7 @@ struct enet_regs {
     uint32_t atstmp; /* 418 Timestamp of Last Transmitted Frame */
     uint32_t res16[121];
 
-/* 0x600: Capture/compare block */
+    /* 0x600: Capture/compare block */
     uint32_t res17[1];
     uint32_t tgsr;   /* 604 Timer Global Status Register */
     uint32_t tcsr0;  /* 608 Timer Control Status Register */
@@ -178,14 +178,14 @@ struct enet_regs {
 };
 
 struct enet {
-    void* dummy;
+    void *dummy;
 };
 
 typedef volatile struct enet_regs enet_regs_t;
 
-static inline enet_regs_t*
-enet_get_regs(struct enet* enet){
-    return (enet_regs_t*)enet;
+static inline enet_regs_t *enet_get_regs(struct enet *enet)
+{
+    return (enet_regs_t *)enet;
 }
 
 /* Ethernet control register */
@@ -265,68 +265,68 @@ enet_get_regs(struct enet* enet){
  *** MDIO clock ***
  ******************/
 
-static freq_t
-_mdc_clk_get_freq(clk_t *clk){
-    enet_regs_t *regs = (enet_regs_t*)clk->priv;
+static freq_t _mdc_clk_get_freq(clk_t *clk)
+{
+    enet_regs_t *regs = (enet_regs_t *)clk->priv;
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t v = (regs->mscr >> 1) & 0x3f;
     uint32_t fout = fin / ((v + 1) * 2);
     return fout;
 }
 
-static freq_t
-_mdc_clk_set_freq(clk_t* clk, freq_t hz){
-    enet_regs_t *regs = (enet_regs_t*)clk->priv;
+static freq_t _mdc_clk_set_freq(clk_t *clk, freq_t hz)
+{
+    enet_regs_t *regs = (enet_regs_t *)clk->priv;
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t v;
 
-    if(hz > 2500000UL){
+    if (hz > 2500000UL) {
         hz = 2500000UL;
-    }else if(hz == 0){
+    } else if (hz == 0) {
         hz = 1;
     }
 
     v = fin / (2 * hz) - 1;
 
-    if(v == -1){
+    if (v == -1) {
         v = 0;
-    }else if(v > 0x3f){
+    } else if (v > 0x3f) {
         v = 0x3f;
     }
 
     regs->mscr = v << 1;
     CLK_DEBUG(printf("Set MDC frequency to %.1f Mhz (<= 2.5 Mhz)\n",
-                        (float)clk_get_freq(clk)/MHZ));
+                     (float)clk_get_freq(clk) / MHZ));
     return clk_get_freq(clk);
 }
 
-static void
-_mdc_clk_recal(struct clock* clk){
+static void _mdc_clk_recal(struct clock *clk)
+{
     assert(0);
 }
 
-static clk_t*
-_mdc_clk_init(clk_t* clk){
+static clk_t *_mdc_clk_init(clk_t *clk)
+{
     return clk;
 }
 
 static struct clock mdc_clk = {
-        .id = CLK_CUSTOM,
-        .name = "mdc_clk",
-        .priv = NULL,
-        .req_freq = 2500000UL,
-        .set_freq = &_mdc_clk_set_freq,
-        .get_freq = &_mdc_clk_get_freq,
-        .recal = &_mdc_clk_recal,
-        .init = &_mdc_clk_init,
-        .parent = NULL,
-        .sibling = NULL,
-        .child = NULL,
-    };
+    .id = CLK_CUSTOM,
+    .name = "mdc_clk",
+    .priv = NULL,
+    .req_freq = 2500000UL,
+    .set_freq = &_mdc_clk_set_freq,
+    .get_freq = &_mdc_clk_get_freq,
+    .recal = &_mdc_clk_recal,
+    .init = &_mdc_clk_init,
+    .parent = NULL,
+    .sibling = NULL,
+    .child = NULL,
+};
 
 #ifdef CONFIG_PLAT_IMX8MQ_EVK
-static freq_t
-_enet_clk_get_freq(clk_t *clk){
+static freq_t _enet_clk_get_freq(clk_t *clk)
+{
     return clk->req_freq;
 }
 
@@ -345,16 +345,16 @@ static struct clock enet_clk = {
 };
 #endif
 
-void
-enet_set_speed(struct enet* enet, int speed, int full_duplex){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_set_speed(struct enet *enet, int speed, int full_duplex)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     uint32_t ecr = regs->ecr;
     uint32_t rcr = regs->rcr;
     /* RGMII mode */
     rcr &= ~RCR_RMII_MODE;
     rcr |= RCR_RGMII_EN | RCR_MII_MODE;
     /* Now select speed */
-    switch(speed){
+    switch (speed) {
     case 1000:
         ecr |= ECR_SPEED;
         rcr &= ~RCR_RMII_10T;
@@ -373,9 +373,9 @@ enet_set_speed(struct enet* enet, int speed, int full_duplex){
         return;
     }
     /* Now select duplex */
-    if(full_duplex){
+    if (full_duplex) {
         rcr &= ~RCR_DRT;
-    }else{
+    } else {
         rcr |= RCR_DRT;
     }
     /* Write the registers */
@@ -387,9 +387,9 @@ enet_set_speed(struct enet* enet, int speed, int full_duplex){
  *** MDIO bus ***
  ****************/
 
-int
-enet_mdio_read(struct enet * enet, uint16_t phy, uint16_t reg){
-    enet_regs_t* regs = enet_get_regs(enet);
+int enet_mdio_read(struct enet *enet, uint16_t phy, uint16_t reg)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     uint32_t v;
     assert(!(phy & ~0x1f));
     assert(!(reg & ~0x1f));
@@ -398,13 +398,15 @@ enet_mdio_read(struct enet * enet, uint16_t phy, uint16_t reg){
     v  = phy << PHYOP_PHY_SHIFT | reg << PHYOP_REG_SHIFT;
     v |= PHYOP_READ | PHYOP_VALID;
     writel(v, &regs->mmfr);
-    while(!enet_clr_events(enet, NETIRQ_MII)) dsb();
+    while (!enet_clr_events(enet, NETIRQ_MII)) {
+        dsb();
+    }
     return readl(&regs->mmfr) & 0xffff;
 }
 
-int
-enet_mdio_write(struct enet * enet, uint16_t phy, uint16_t reg, uint16_t data){
-    enet_regs_t* regs = enet_get_regs(enet);
+int enet_mdio_write(struct enet *enet, uint16_t phy, uint16_t reg, uint16_t data)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     uint32_t v;
     assert(!(phy & ~0x1f));
     assert(!(reg & ~0x1f));
@@ -413,62 +415,62 @@ enet_mdio_write(struct enet * enet, uint16_t phy, uint16_t reg, uint16_t data){
     v  = phy << PHYOP_PHY_SHIFT | reg << PHYOP_REG_SHIFT | data;
     v |= PHYOP_WRITE | PHYOP_VALID;
     regs->mmfr = v;
-    while(!enet_clr_events(enet, NETIRQ_MII));
+    while (!enet_clr_events(enet, NETIRQ_MII));
     return 0;
 }
 
 /*******************
  *** ENET driver ***
  *******************/
-void
-enet_rx_enable(struct enet* enet){
+void enet_rx_enable(struct enet *enet)
+{
     enet_get_regs(enet)->rdar = RDAR_RDAR;
 }
 
-int
-enet_rx_enabled(struct enet* enet){
+int enet_rx_enabled(struct enet *enet)
+{
     return enet_get_regs(enet)->rdar == RDAR_RDAR;
 }
 
-int
-enet_tx_enabled(struct enet* enet){
+int enet_tx_enabled(struct enet *enet)
+{
     return enet_get_regs(enet)->tdar == TDAR_TDAR;
 }
 
-void
-enet_tx_enable(struct enet* enet){
+void enet_tx_enable(struct enet *enet)
+{
     enet_get_regs(enet)->tdar = TDAR_TDAR;
 }
 
-void
-enet_enable(struct enet * enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_enable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     regs->ecr |= ECR_ETHEREN;
 }
 
-int
-enet_enabled(struct enet* enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+int enet_enabled(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     return (regs->ecr & ECR_ETHEREN) != 0;
 }
 
-void
-enet_disable(struct enet * enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_disable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     assert(!"WARNING Descriptors will be reset");
     regs->ecr &= ~ECR_ETHEREN;
 }
 
-void
-enet_set_mac(struct enet * enet, unsigned char* mac){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_set_mac(struct enet *enet, unsigned char *mac)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     regs->palr = mac[0] << 24 | mac[1] << 16 | mac[2] << 8 | mac[3] << 0;
     regs->paur = mac[4] << 24 | mac[5] << 16 | PAUSE_FRAME_TYPE_FIELD;
 }
 
-void
-enet_get_mac(struct enet * enet, unsigned char* mac){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_get_mac(struct enet *enet, unsigned char *mac)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     uint32_t macl = regs->palr;
     uint32_t macu = regs->paur;
 
@@ -481,53 +483,54 @@ enet_get_mac(struct enet * enet, unsigned char* mac){
     mac[5] = macu >> 16;
 }
 
-void
-enet_enable_events(struct enet * enet, uint32_t mask){
+void enet_enable_events(struct enet *enet, uint32_t mask)
+{
     assert(enet);
     enet_get_regs(enet)->eimr = mask;
 }
 
-uint32_t
-enet_get_events(struct enet * enet){
+uint32_t enet_get_events(struct enet *enet)
+{
     return enet_get_regs(enet)->eir;
 }
 
-uint32_t
-enet_clr_events(struct enet * enet, uint32_t bits){
-    enet_regs_t* regs = enet_get_regs(enet);
+uint32_t enet_clr_events(struct enet *enet, uint32_t bits)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     uint32_t e = regs->eir & bits;
     /* write 1 to clear */
     regs->eir = e;
     return e;
 }
 
-void
-enet_prom_enable(struct enet * enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_prom_enable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     regs->rcr |= RCR_PROM;
 }
 
-void
-enet_prom_disable(struct enet * enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_prom_disable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     regs->rcr &= ~RCR_PROM;
 }
 
 struct enet *
-enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
-    enet_regs_t* regs;
-    struct enet* ret;
-    struct clock* enet_clk_ptr = NULL;
+enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
+{
+    enet_regs_t *regs;
+    struct enet *ret;
+    struct clock *enet_clk_ptr = NULL;
 
     /* Map in the device */
     regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
-    if(regs == NULL){
+    if (regs == NULL) {
         return NULL;
     }
-    ret = (struct enet*)regs;
+    ret = (struct enet *)regs;
     /* Perform reset */
     regs->ecr = ECR_RESET;
-    while(regs->ecr & ECR_RESET);
+    while (regs->ecr & ECR_RESET);
     regs->ecr |= ECR_DBSWP;
 
     /* Clear and mask interrupts */
@@ -573,7 +576,7 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
 #endif
 
     /* Set the MDIO clock frequency */
-    mdc_clk.priv = (void*)enet_get_regs(ret);
+    mdc_clk.priv = (void *)enet_get_regs(ret);
     clk_register_child(enet_clk_ptr, &mdc_clk);
     clk_set_freq(&mdc_clk, MDC_FREQ);
 
@@ -587,12 +590,12 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     regs->galr = 0;
 
     /* Set MAC and pause frame type field */
-    enet_set_mac(ret, (unsigned char*)"\0\0\0\0\0\0");
+    enet_set_mac(ret, (unsigned char *)"\0\0\0\0\0\0");
 
     /* Configure pause frames (continues into MAC registers...) */
     regs->opd = PAUSE_OPCODE_FIELD << 16;
 #ifdef PAUSE_DURATION
-    if(PAUSE_DURATION >= 0){
+    if (PAUSE_DURATION >= 0) {
         regs->opd |= PAUSE_DURATION << 0;
     }
 #endif
@@ -602,7 +605,7 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
     /* Tranmsmit FIFO Watermark register - store and forward */
     regs->tfwr = 0;
 #ifdef STRFWD_BYTES
-    if(STRFWD_BYTES > 0){
+    if (STRFWD_BYTES > 0) {
         regs->tfwr = STRFWD_BYTES / 64;
         regs->tfwr |= TFWR_STRFWD;
     }
@@ -629,57 +632,59 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops) {
  *** Debug and statistics ***
  ****************************/
 
-static void
-dump_regs(uint32_t* start, int size){
+static void dump_regs(uint32_t *start, int size)
+{
     int i, j;
     uint32_t *base = start;
-    for(i = 0; i < size/sizeof(*start); ){
-        printf("+0x%03x: ",((uint32_t)(start - base)) * 4);
-        for(j = 0; j < 4; j++, i++, start++){
+    for (i = 0; i < size / sizeof(*start);) {
+        printf("+0x%03x: ", ((uint32_t)(start - base)) * 4);
+        for (j = 0; j < 4; j++, i++, start++) {
             printf("0x%08x ", *start);
         }
         printf("\n");
     }
 }
 
-void
-enet_dump_regs(struct enet* enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_dump_regs(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     printf("\nEthernet regs\n");
-    dump_regs((uint32_t*)regs, sizeof(*regs));
+    dump_regs((uint32_t *)regs, sizeof(*regs));
     printf("\n");
 }
 
-void enet_clear_mib(struct enet* enet){
-    enet_regs_t* regs = enet_get_regs(enet);
+void enet_clear_mib(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
     /* Disable */
     regs->mibc |= MIBC_DIS;
-    while(!(regs->mibc & MIBC_IDLE));
+    while (!(regs->mibc & MIBC_IDLE));
     /* Clear */
     regs->mibc |= MIBC_CLEAR;
-    while(!(regs->mibc & MIBC_IDLE));
+    while (!(regs->mibc & MIBC_IDLE));
     /* Restart */
     regs->mibc &= ~MIBC_CLEAR;
     regs->mibc &= ~MIBC_DIS;
 }
 
-void enet_print_mib(struct enet* enet){
-    enet_regs_t* regs = enet_get_regs(enet);
-    volatile struct mib_regs* mib = &regs->mib;
+void enet_print_mib(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
+    volatile struct mib_regs *mib = &regs->mib;
     regs->mibc |= MIBC_DIS;
 
     printf("Ethernet Counter regs\n");
-    dump_regs((uint32_t*)mib, sizeof(*mib));
+    dump_regs((uint32_t *)mib, sizeof(*mib));
     printf("\n");
 
     printf("-----------------------------\n");
     printf("RX  Frames RX OK: %d/%d\n", mib->ieee_r_frame_ok,
-                                       mib->rmon_r_packets);
+           mib->rmon_r_packets);
     printf("RX FIFO overflow: %d\n", mib->ieee_r_macerr);
     printf("RX  pause frames: %d\n", mib->ieee_r_fdxfc);
     printf("-----------------------------\n");
     printf("TX  Frames TX OK: %d/%d\n", mib->ieee_t_frame_ok,
-                                        mib->rmon_t_packets);
+           mib->rmon_t_packets);
     printf("TX FIFO underrun: %d\n", mib->ieee_t_macerr);
     printf("TX  pause frames: %d\n", mib->ieee_t_fdxfc);
     printf("-----------------------------\n");
@@ -687,12 +692,12 @@ void enet_print_mib(struct enet* enet){
     regs->mibc &= ~MIBC_DIS;
 }
 
-void
-enet_print_state(struct enet * enet){
-    enet_regs_t* regs = enet_get_regs(enet);
-    printf("Ethernet state: %s\n", (   enet_enabled(enet))? "Active" : "Inactive");
-    printf("      TX state: %s\n", (enet_tx_enabled(enet))? "Active" : "Inactive");
-    printf("      RX state: %s\n", (enet_rx_enabled(enet))? "Active" : "Inactive");
+void enet_print_state(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
+    printf("Ethernet state: %s\n", (enet_enabled(enet)) ? "Active" : "Inactive");
+    printf("      TX state: %s\n", (enet_tx_enabled(enet)) ? "Active" : "Inactive");
+    printf("      RX state: %s\n", (enet_rx_enabled(enet)) ? "Active" : "Inactive");
     printf("    TX control: 0x%08x\n", regs->tcr);
     printf("    RX control: 0x%08x\n", regs->rcr);
     printf("  RX desc base: 0x%08x (size: 0x%x)\n", regs->rdsr, regs->mrbr);
