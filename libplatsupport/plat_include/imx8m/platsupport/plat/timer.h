@@ -12,7 +12,7 @@
 
 #pragma once
 
-#define GPT_FREQ   (12u)
+#define GPT_FREQ   (24u)
 /* need to double check the value when the
  * clock control module is implemented.
  */
