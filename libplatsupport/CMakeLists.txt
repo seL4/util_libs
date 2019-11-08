@@ -80,6 +80,8 @@ if(
 endif()
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     list(APPEND deps src/plat/imx8m/chardev.c)
+    # There's no clock driver at the moment, but this is to allow the libethdrivers to build for imx8mq
+    list(APPEND deps src/plat/imx8m/clock.c)
 endif()
 
 list(SORT deps)

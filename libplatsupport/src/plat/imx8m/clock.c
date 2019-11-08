@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -9,15 +9,7 @@
  *
  * @TAG(DATA61_BSD)
  */
+#include <platsupport/clock.h>
 
-#pragma once
-
-enum clk_id {
-    CLK_MASTER,
-    NCLOCKS,
-    CLK_CUSTOM
-};
-
-enum clock_gate {
-    NCLKGATES
-};
+clk_t *ps_clocks[];
+freq_t ps_freq_default[];
