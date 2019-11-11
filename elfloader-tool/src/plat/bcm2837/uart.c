@@ -10,14 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
-#include <elfloader.h>
+
 
 /* When DLAB=1, MU_IO is a baud rate register.
  * Otherwise, write to TX, read to RX */
@@ -42,22 +37,11 @@
 #define MU_LCR_DLAB     BIT(7)
 #define MU_LCR_BREAK    BIT(6)
 #define MU_LCR_DATASIZE BIT(0)
-/*
- * Place a character to the given stream, which we always assume to be
- * 'stdout'.
- */
-extern int
-__fputc(int c, FILE *stream);
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait until UART ready for the next character. */
     while (!(*UART_REG(MU_LSR) & MU_LSR_TXIDLE));
 

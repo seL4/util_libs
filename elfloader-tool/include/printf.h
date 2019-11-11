@@ -15,9 +15,6 @@
 #define NULL ((void *)0)
 #define FILE void
 
-/* Architecture-specific putchar implementation. */
-int __fputc(int c, FILE *data);
-
 int printf(const char *format, ...);
 int sprintf(char *buff, const char *format, ...);
 

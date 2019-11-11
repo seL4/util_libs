@@ -10,13 +10,15 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
+
+
+/*
+ * UART Hardware Constants
+ *
+ * (from IMX31 SoC Manual).
+ */
 
 #define UART_TRANSMIT     0x40
 #define UART_CONTROL1     0x80
@@ -28,17 +30,12 @@
 #define UART_STAT2        0x98
 
 /* Transmit buffer FIFO empty. */
-#define TXFE            (1U << 14)
+#define TXFE            (1 << 14)
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_STAT2) & TXFE));
 

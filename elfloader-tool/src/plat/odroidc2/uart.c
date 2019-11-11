@@ -10,28 +10,22 @@
  * @TAG(DATA61_GPL)
  */
 
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
 
-#define UARTDR      0x000
-#define UARTFR      0x018
-#define UARTFR_TXFF (1 << 5)
 
+#define UART_WFIFO  0x0
+#define UART_STATUS 0xC
+#define UART_TX_FULL        BIT(21)
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
+    /* Wait to be able to transmit. */
+    while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
 
-    /* Wait until UART ready for the next character. */
-    while ((*UART_REG(UARTFR) & UARTFR_TXFF) != 0);
-
-    /* Add character to the buffer. */
-    *UART_REG(UARTDR) = (c & 0xff);
+    /* Transmit. */
+    *UART_REG(UART_WFIFO) = c;
 
     return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,20 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
 
-/*
- * Place a character to the given stream, which we always assume to be
- * 'stdout'.
- */
-extern int
-__fputc(int c, FILE *stream);
 
 #define UTHR 0x00 /* UART Transmit Holding Register */
 #define ULSR 0x14 /* UART Line Status Register */
@@ -31,13 +20,8 @@ __fputc(int c, FILE *stream);
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait until UART ready for the next character. */
     while ((*UART_REG(ULSR) & ULSR_THRE) == 0);
 

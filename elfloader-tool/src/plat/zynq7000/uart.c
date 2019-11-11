@@ -10,13 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
+
 
 /*
  * UART Hardware Constants
@@ -47,13 +43,8 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_CHANNEL_STS) & UART_CHANNEL_STS_TXEMPTY));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,28 +10,30 @@
  * @TAG(DATA61_GPL)
  */
 
-#include <printf.h>
-#include <types.h>
-#include <platform.h>
 #include <elfloader_common.h>
+#include <platform.h>
 
-#define UART_WFIFO  0x0
-#define UART_STATUS 0xC
-#define UART_TX_FULL        BIT(21)
+#define UART_TRANSMIT     0x40
+#define UART_CONTROL1     0x80
+#define UART_CONTROL2     0x84
+#define UART_CONTROL3     0x88
+#define UART_CONTROL4     0x8C
+#define UART_FIFO_CTRL    0x90
+#define UART_STAT1        0x94
+#define UART_STAT2        0x98
+
+/* Transmit buffer FIFO empty. */
+#define TXFE            (1U << 14)
+
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait to be able to transmit. */
-    while ((*UART_REG(UART_STATUS) & UART_TX_FULL));
+    while (!(*UART_REG(UART_STAT2) & TXFE));
 
     /* Transmit. */
-    *UART_REG(UART_WFIFO) = c;
+    *UART_REG(UART_TRANSMIT) = c;
 
     return 0;
 }

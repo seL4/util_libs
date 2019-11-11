@@ -9,20 +9,13 @@
  *
  * @TAG(DATA61_GPL)
  */
-/*
- * Platform-specific putchar implementation.
- */
 
-#include <types.h>
-#include <printf.h>
+#include <elfloader_common.h>
 #include "sbi.h"
 
-int __fputc(int c, UNUSED FILE *stream)
+
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        sbi_console_putchar('\r');
-    }
     sbi_console_putchar(c);
     return 0;
 }

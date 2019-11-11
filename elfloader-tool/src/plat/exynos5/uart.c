@@ -10,20 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
 
-/*
- * Place a character to the given stream, which we always assume to be
- * 'stdout'.
- */
-extern int
-__fputc(int c, FILE *stream);
 
 #define ULCON       0x0000 /* line control */
 #define UCON        0x0004 /*control */
@@ -50,13 +39,8 @@ __fputc(int c, FILE *stream);
 #define TX_EMPTY        (1<<2)
 #define TXBUF_EMPTY     (1<<1)
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait until UART ready for the next character. */
     while (!(*UART_REG(UTRSTAT) & TXBUF_EMPTY));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Data61
+ * Copyright 2017, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -9,28 +9,24 @@
  *
  * @TAG(DATA61_GPL)
  */
-#include <printf.h>
-#include <types.h>
+
+#include <elfloader_common.h>
 #include <platform.h>
 
-#define UARTDR      0x000
-#define UARTFR      0x018
-#define UARTFR_TXFF (1 << 5)
+
+#define UTHR 0x00 /* UART Transmit Holding Register */
+#define ULSR 0x14 /* UART Line Status Register */
+#define ULSR_THRE 0x20 /* Transmit Holding Register Empty */
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait until UART ready for the next character. */
-    while ((*UART_REG(UARTFR) & UARTFR_TXFF) != 0);
+    while ((*UART_REG(ULSR) & ULSR_THRE) == 0);
 
     /* Add character to the buffer. */
-    *UART_REG(UARTDR) = (c & 0xff);
+    *UART_REG(UTHR) = c;
 
     return 0;
 }

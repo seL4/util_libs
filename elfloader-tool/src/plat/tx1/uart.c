@@ -10,13 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
+
 
 #define UTHR        0x0
 #define ULSR        0x14
@@ -24,17 +20,12 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        __fputc('\r', stream);
-    }
-
-    /* Wait to be able to transmit. */
+    /* Wait until UART ready for the next character. */
     while ((*UART_REG(ULSR) & ULSR_THRE) == 0);
 
-    /* Transmit. */
+    /* Add character to the buffer. */
     *UART_REG(UTHR) = (c & 0xff);
 
     return 0;

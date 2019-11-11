@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Data61
+ * Copyright 2017, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,13 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
+
 
 #define UART_TRANSMIT     0x40
 #define UART_CONTROL1     0x80
@@ -32,13 +28,8 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait to be able to transmit. */
     while (!(*UART_REG(UART_STAT2) & TXFE));
 

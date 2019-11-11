@@ -72,4 +72,4 @@ void load_images(struct image_info *kernel_info, struct image_info *user_info,
 /* Platform functions */
 void platform_init(void);
 void init_cpus(void);
-
+int plat_console_putchar(unsigned int c);

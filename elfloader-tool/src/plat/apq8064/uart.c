@@ -10,20 +10,9 @@
  * @TAG(DATA61_GPL)
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
 
-/*
- * Place a character to the given stream, which we always assume to be
- * 'stdout'.
- */
-extern int
-__fputc(int c, FILE *stream);
 
 #define USR                   0x08
 #define UTF                   0x70
@@ -34,13 +23,8 @@ __fputc(int c, FILE *stream);
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, UNUSED FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait for TX fifo to be empty */
     while (!(*UART_REG(USR) & USR_TXEMP));
     /* Tell the peripheral how many characters to send */

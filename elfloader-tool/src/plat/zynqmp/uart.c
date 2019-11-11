@@ -17,12 +17,7 @@
  * Approved for Public Release, Distribution Unlimited.
  */
 
-/*
- * Platform-specific putchar implementation.
- */
-
-#include <printf.h>
-#include <types.h>
+#include <elfloader_common.h>
 #include <platform.h>
 
 /*
@@ -40,13 +35,8 @@
 
 #define UART_REG(x) ((volatile uint32_t *)(UART_PPTR + (x)))
 
-int __fputc(int c, FILE *stream)
+int plat_console_putchar(unsigned int c)
 {
-    /* Send '\r' (CR) before every '\n' (LF). */
-    if (c == '\n') {
-        (void)__fputc('\r', stream);
-    }
-
     /* Wait to be able to transmit. */
     while (!(*UART_REG(XUARTPS_SR) & XUARTPS_SR_TXEMPTY));
 
