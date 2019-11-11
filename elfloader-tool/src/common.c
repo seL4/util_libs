@@ -63,7 +63,7 @@ static void ensure_phys_range_valid(char const *const name, paddr_t paddr_min,
      * Ensure that the physical load address of the object we're loading (called
      * `name`) doesn't overwrite us.
      */
-    if (regions_overlap(paddr_min, paddr_max - 1, (word_t)_start, (word_t)_end - 1)) {
+    if (regions_overlap(paddr_min, paddr_max - 1, (word_t)_text, (word_t)_end - 1)) {
         printf("%s load address would overlap ELF-loader!\n", name);
         abort();
     }

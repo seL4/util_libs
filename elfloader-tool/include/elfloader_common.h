@@ -59,7 +59,7 @@ extern struct image_info user_info;
 extern void *dtb;
 
 /* Symbols defined in linker scripts. */
-extern char _start[];
+extern char _text[];
 extern char _end[];
 extern char _archive_start[];
 extern char _archive_start_end[];

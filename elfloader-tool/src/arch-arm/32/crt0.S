@@ -64,98 +64,42 @@ LC0:
 .word core_stack_alloc + 0xff0 // r5
 .size LC0, . - LC0
 
-BEGIN_FUNC(arch_early_relocate)
-    /* At this point, we're running on the EFI-provided stack, which is not a problem.
-     * Before we can save the EFI arguments in efi_early_init, we need to relocate
-     * the global offset table (GOT) entries.
-     */
-
-    push    {r0, r1}                    // save EFI arguments
-    adr     r0, LC1                  // get actual address of LC1
-    ldmia   r0, {r4, r6, r7, r8}
-
-    /*
-     * r4 = unrelocated LC1 address
-     * r6 = GOT start (unrelocated)
-     * r7 = GOT end (unrelocated)
-     * r8 = vector literal pool (unrelocated)
-     */
-
-    sub     r0, r0, r4                  // get relocation offset
-    add     r6, r6, r0                  // relocate GOT start
-    add     r7, r7, r0                  // relocate GOT end
-    add     r8, r8, r0                  // relocate vector literal pool
-
-    /* relocate vector table literals */
-1:  ldr r1, [r8, #0]                    // load table entry
-    cmp r1, #0                          // zero => end of literal pool
-    beq 2f
-    add r1, r1, r0                      // relocate
-    str r1, [r8], #4                    // put back
-    b 1b
-2:
-    /* relocate GOT entries - fix up C global variables. */
-1:  ldr r1, [r6, #0]                    // load table entry
-    add r1, r1, r0                      // relocate
-    str r1, [r6], #4                    // put back
-    cmp r6, r7
-    blo 1b
-
-    pop {r0, r1}                        // restore EFI arguments
-    mov pc, lr
-END_FUNC(arch_early_relocate)
-.align 2
-.type LC1, #object
-LC1:
-.word LC1
-.word _got_start
-.word _got_end
-.word arm_vector_literals
-.size LC1, . - LC1
-
 /* Move the elf loader out of the kernel's way */
 BEGIN_FUNC(finish_relocation)
-#ifdef CONFIG_IMAGE_EFI
+#if CONFIG_IMAGE_EFI
     // r0 = offset between current base address and new base address
+    // r1 = _DYNAMIC pointer (current base address)
+    // r2 = total offset (new_base)
+    mov r8, r1 // move to r8
 
     // figure out relocated address of continue_boot
     adr r1, LC2
-    ldmia r1, {r2, r3, r4, r5, r6, r7}
+    ldmia r1, {r3, r4, r5}
 
-    sub r1, r1, r2                  // r1 = current relocation offset
-    sub r1, r1, r0                  // total relocation offset (i.e. to final address)
-    add sp, r3, r1                  // new sp
-    add r4, r4, r1                  // continue_boot address in new stack
+    // r3 = stack pointer (in current program)
+    // r4 = continue_boot (in current program)
+    // r5 = current base address (_text, the start of the binary)
 
-    add r5, r5, r1                  // new GOT start
-    add r6, r6, r1                  // new GOT end
-    add r7, r7, r1                  // vector function table
+    sub sp, r3, r0                  // point sp to new stack
+    sub r4, r4, r0                  // continue_boot address in relocated elfloader
 
-    /*
-     * relocate the vector table's literal pool
-     * to make exception vectors work, and not
-     * just jump to a random location in memory.
-     */
-1:  ldr r3, [r7, #0]
-    cmp r3, #0
-    beq 2f
-    sub r3, r3, r0
-    str r3, [r7], #4
-    b 1b
-2:
-    /*
-     * note that we already relocated the GOT addresses to the
-     * current base address, so we use the offset in r0 (not r1!)
-     * when relocating them again.
-     */
+    // self_reloc expects:
+    // r0 = current base address
+    // r1 = dynamic section pointer
+    // r2 = new base address
+    // r3 = 0
 
-    /* relocate GOT entries - fix up C global variables. */
-1:  ldr r1, [r5, #0]                // load table entry
-    sub r1, r1, r0                  // relocate
-    str r1, [r5], #4                // put back
-    cmp r5, r6
-    blo 1b
+    mov r0, r5                      // current base address
+    mov r1, r8                      // put _DYNAMIC back
+    // r2 is new base address, passed from relocate_below_kernel()
+    mov r3, #0                      // NULL r3
 
+    push {r4}                       // save continue_boot address
+
+    bl _relocate
+
+    pop {r4}
+    mov r0, #1
     blx r4
     b abort // should never get here!
 #else
@@ -169,12 +113,9 @@ END_FUNC(finish_relocation)
 .align 2
 .type LC2, #object
 LC2:
-.word LC2                       // r2
 .word core_stack_alloc + 0xff0  // r3
 .word continue_boot             // r4
-.word _got_start                // r5
-.word _got_end                  // r6
-.word arm_vector_literals       // r7
+.word _text                     // r5
 .size LC2, . - LC2
 
 #if CONFIG_MAX_NUM_NODES > 1

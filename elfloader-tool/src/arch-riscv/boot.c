@@ -70,19 +70,19 @@ void map_kernel_window(struct image_info *kernel_info)
     unsigned long *lpt;
 
     /* Map the elfloader into the new address space */
-    index = GET_PT_INDEX((uintptr_t)_start, PT_LEVEL_1);
+    index = GET_PT_INDEX((uintptr_t)_text, PT_LEVEL_1);
 
 #if __riscv_xlen == 32
     lpt = l1pt;
 #else
     lpt = l2pt_elf;
     l1pt[index] = PTE_CREATE_NEXT((uintptr_t)l2pt_elf);
-    index = GET_PT_INDEX((uintptr_t)_start, PT_LEVEL_2);
+    index = GET_PT_INDEX((uintptr_t)_text, PT_LEVEL_2);
 #endif
 
-    if (IS_ALIGNED((uintptr_t)_start, PT_LEVEL_2_BITS)) {
+    if (IS_ALIGNED((uintptr_t)_text, PT_LEVEL_2_BITS)) {
         for (int page = 0; index < PTES_PER_PT; index++, page++) {
-            lpt[index] = PTE_CREATE_LEAF((uintptr_t)_start +
+            lpt[index] = PTE_CREATE_LEAF((uintptr_t)_text +
                                          (page << PT_LEVEL_2_BITS));
         }
     } else {
@@ -167,7 +167,7 @@ void main(UNUSED int hartid, void *bootloader_dtb)
     uint32_t dtb_size = 0;
     printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);
 
-    printf("  paddr=[%p..%p]\n", _start, _end - 1);
+    printf("  paddr=[%p..%p]\n", _text, _end - 1);
     /* Unpack ELF images into memory. */
     load_images(&kernel_info, &user_info, 1, &num_apps, bootloader_dtb, &dtb, &dtb_size);
     if (num_apps != 1) {

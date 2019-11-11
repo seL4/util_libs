@@ -82,6 +82,9 @@
 
 #include <types.h>
 
+#define R_AARCH64_NONE            0	/* No relocation.  */
+#define R_AARCH64_RELATIVE     1027	/* Adjust by program base.  */
+#define ELF64_R_TYPE(i)			((i) & 0xffffffff)
 /*
  * File header
  */
@@ -155,6 +158,12 @@ struct Elf64_Dyn {
         uint64_t d_val;
         uint64_t d_ptr;
     } d_un;
+};
+
+struct Elf64_Rela {
+    uint64_t r_offset;		/* Address */
+    uint64_t r_info;			/* Relocation type and symbol index */
+    uint64_t r_addend;		/* Addend */
 };
 
 int elf64_checkFile(void *elfFile);

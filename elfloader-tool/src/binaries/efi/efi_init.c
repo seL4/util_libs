@@ -15,10 +15,13 @@
 void *__application_handle = NULL;             // current efi application handler
 efi_system_table_t *__efi_system_table = NULL; // current efi system table
 
-void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table)
+extern void _start(void);
+unsigned int efi_main(uintptr_t application_handle, uintptr_t efi_system_table)
 {
     __application_handle = (void *)application_handle;
     __efi_system_table = (efi_system_table_t *)efi_system_table;
+    _start();
+    return 0;
 }
 
 void *efi_get_fdt(void)

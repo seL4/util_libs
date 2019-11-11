@@ -181,18 +181,29 @@ if(KernelArchARM)
 endif()
 
 if(ElfloaderImageEFI)
-    file(GLOB efi_files src/binaries/efi/*.c)
-    list(APPEND files "src/binaries/efi/efi_head.S" ${efi_files})
     # We cannot control where EFI loads the image and so we must make it relocatable
     add_compile_options(-fpic)
     if(KernelSel4ArchAarch32)
+        set(gnuefiArch "arm")
         # on aarch32 building with -fno-pie results in the compiler generating
         # movt/movw pairs that we can't easily relocate.
         add_compile_options(-fpie -mno-single-pic-base)
     else()
+        set(gnuefiArch "aarch64")
         # on aarch64 building with -fno-pie will just use pc-relative addressing.
-        add_compile_options(-fno-pie)
+        add_compile_options(-fno-pie -fPIC)
     endif()
+
+    file(GLOB efi_files src/binaries/efi/*.c)
+    list(
+        APPEND
+            files
+            ${efi_files}
+            src/binaries/efi/gnuefi/crt0-efi-${gnuefiArch}.S
+            src/binaries/efi/gnuefi/reloc_${gnuefiArch}.c
+    )
+    # We use gnu-efi's linker script on EFI.
+    set(linkerScript ${CMAKE_CURRENT_LIST_DIR}/src/binaries/efi/gnuefi/elf_${gnuefiArch}_efi.lds)
 else()
     add_compile_options(-fno-pic)
     add_compile_options(-fno-pie)
@@ -308,7 +319,33 @@ add_custom_command(
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
 
 add_executable(elfloader EXCLUDE_FROM_ALL ${files} archive.o)
-set_target_properties(elfloader PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp)
+if(ElfloaderImageEFI)
+    set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
+    set_target_properties(elfloader PROPERTIES LINK_DEPENDS ${linkerScript})
+    set_property(
+        TARGET elfloader
+        APPEND_STRING
+        PROPERTY
+            LINK_FLAGS
+            # -Bsymbolic forces symbols to bind to their definitions within the elfloader
+            # EFI_SUBSYSTEM=0xa indicates that we're building an EFI application.
+            " -T ${linkerScript} -nostdlib -shared -Wl,-Bsymbolic,--defsym=EFI_SUBSYSTEM=0xa -Wl,--build-id=none"
+    )
+else()
+    set_target_properties(
+        elfloader
+        PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp
+    )
+    add_dependencies(elfloader elfloader_linker)
+    set_property(
+        TARGET elfloader
+        APPEND_STRING
+        PROPERTY
+            LINK_FLAGS
+            " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none"
+    )
+endif()
+
 target_include_directories(
     elfloader
     PRIVATE
@@ -336,15 +373,3 @@ target_link_libraries(
         elfloader_Config
         sel4_autoconf
 )
-add_dependencies(elfloader elfloader_linker)
-set_property(
-    TARGET elfloader
-    APPEND_STRING
-    PROPERTY
-        LINK_FLAGS
-        " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none"
-)
-
-if(ElfloaderImageEFI)
-    set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
-endif()

@@ -82,6 +82,9 @@
 
 #include <types.h>
 
+#define ELF32_R_TYPE(val)		((val) & 0xff)
+#define R_ARM_NONE		0	/* No reloc */
+#define R_ARM_RELATIVE		23	/* Adjust by program base */
 /*
  * File header
  */
@@ -145,6 +148,30 @@ struct Elf32_Phdr {
     uint32_t p_align;	/* Reqd alignment of segment in
 					 * memory */
 };
+
+/*
+ * Dynamic header
+ */
+struct Elf32_Dyn
+{
+  uint32_t d_tag;			/* Dynamic entry type */
+  union
+    {
+      uint32_t d_val;			/* Integer value */
+      uint32_t d_ptr;			/* Address value */
+    } d_un;
+};
+
+
+/*
+ * Relocation
+ */
+struct Elf32_Rel
+{
+  uint32_t r_offset;		/* Address */
+  uint32_t r_info;			/* Relocation type and symbol index */
+};
+
 
 int elf32_checkFile(struct Elf32_Header *file);
 struct Elf32_Phdr * elf32_getProgramSegmentTable(struct Elf32_Header *file);
