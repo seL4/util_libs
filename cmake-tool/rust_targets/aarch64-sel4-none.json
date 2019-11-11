@@ -1,0 +1,31 @@
+{
+    "arch": "aarch64",
+    "os": "none",
+    "llvm-target": "aarch64-unknown-none",
+    "data-layout": "e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128",
+    "target-pointer-width": "64",
+    "target-c-int-width": "32",
+    "target-endian": "little",
+    "env": "none",
+    "pre-link-args" : {
+      "gcc": ["-m64", "-ffreestanding", "-nodefaultlibs", "-nostdlib", "-fno-stack-protector"]
+    },
+    "post-link-args" : {
+      "gcc": ["-lgcc", "-lgcc_eh", "-lnosys", "-lm"]
+    },
+    "disable-redzone": true,
+    "executables": true,
+    "has-elf-tls": false,
+    "relocation-model": "static",
+    "features": "+strict-align,+neon,+fp-armv8",
+    "is-builtin": true,
+    "linker-flavor": "gcc",
+    "linker-is-gnu": true,
+    "position-independent-executables": false,
+    "dynamic_linking": false,
+    "panic-strategy": "abort",
+    "no-default-libraries": true,
+    "no-compiler-rt": false,
+    "max-atomic-width": 128
+  }
+  
