@@ -15,6 +15,7 @@
 include_guard(GLOBAL)
 include("${KERNEL_HELPERS_PATH}")
 RequireFile(SIMULATE_SCRIPT simulate.py PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/")
+RequireFile(GDB_SCRIPT launch_gdb.py PATHS "${CMAKE_CURRENT_LIST_DIR}/../simulate_scripts/")
 RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS "${CMAKE_CURRENT_LIST_DIR}")
 
 # Help macro for testing a config and appending to a list that is destined for a qemu -cpu line
@@ -144,16 +145,25 @@ function(GenerateSimulateScript)
         set(error "Unsupported platform or architecture for simulation")
     endif()
     set(sim_path "${CMAKE_BINARY_DIR}/simulate")
+    set(gdb_path "${CMAKE_BINARY_DIR}/launch_gdb")
     if(NOT "${error}" STREQUAL "")
         set(script "#!/bin/sh\\necho ${error} && exit 1\\n")
         add_custom_command(
-            OUTPUT "${sim_path}"
+            OUTPUT "${sim_path}" "${gdb_path}"
             COMMAND
                 printf "${script}" > "${sim_path}"
-            COMMAND chmod u+x "${sim_path}"
+            COMMAND
+                printf "${script}" > "${gdb_path}"
+            COMMAND chmod u+x "${sim_path}" "${gdb_path}"
             VERBATIM
         )
     else()
+        # We assume a x86 host, but will provide options to override the default gdb binary
+        if(KernelArchX86)
+            set(GdbBinary "gdb")
+        else()
+            set(GdbBinary "gdb-multiarch")
+        endif()
         add_custom_command(
             OUTPUT "${sim_path}"
             COMMAND
@@ -167,6 +177,17 @@ function(GenerateSimulateScript)
             COMMAND chmod u+x "${sim_path}"
             VERBATIM COMMAND_EXPAND_LISTS
         )
+        add_custom_command(
+            OUTPUT "${gdb_path}"
+            COMMAND
+                ${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=${GDB_SCRIPT}
+                -DCONFIGURE_OUTPUT_FILE=${gdb_path} -DGDB_BINARY=${GdbBinary}
+                -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME}
+                -P ${CONFIGURE_FILE_SCRIPT}
+            COMMAND chmod u+x "${sim_path}"
+            VERBATIM COMMAND_EXPAND_LISTS
+        )
     endif()
     add_custom_target(simulate_gen ALL DEPENDS "${sim_path}")
+    add_custom_target(gdb_gen ALL DEPENDS "${gdb_path}")
 endfunction(GenerateSimulateScript)
