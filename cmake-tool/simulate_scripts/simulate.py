@@ -19,6 +19,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--binary', dest="qemu_sim_binary", type=str,
                         help="QEMU binary", default="@QEMU_SIM_BINARY@")
+    parser.add_argument('-d', '--gdbserver', dest="qemu_gdbserver", action='store_true',
+                        help="Tell QEMU to wait for gdb on port 1234")
     parser.add_argument('-M', '--machine', dest="qemu_sim_machine", type=str,
                         help="QEMU Machine", default="@QEMU_SIM_MACHINE@")
     parser.add_argument('-c', '--cpu', dest='qemu_sim_cpu', type=str,
@@ -63,12 +65,22 @@ if __name__ == "__main__":
     if args.qemu_sim_machine:
         qemu_sim_machine_entry = "-machine " + args.qemu_sim_machine
 
+    qemu_gdbserver_command = ""
+    if args.qemu_gdbserver:
+        qemu_gdbserver_command = "-s -S"
+
     qemu_sim_mem_size_entry = "-m size=" + args.qemu_sim_mem_size
 
     qemu_simulate_command_opts = [args.qemu_sim_binary, qemu_sim_machine_entry, qemu_sim_cpu_entry, args.qemu_sim_graphic_opt,
-                                  args.qemu_sim_serial_opt, qemu_sim_mem_size_entry, args.qemu_sim_extra_args, qemu_sim_images_entry]
+                                  args.qemu_sim_serial_opt, qemu_sim_mem_size_entry, args.qemu_sim_extra_args, qemu_sim_images_entry,
+                                  qemu_gdbserver_command]
     qemu_simulate_command = " ".join(qemu_simulate_command_opts)
 
+
     print(qemu_simulate_command)
+
+    if qemu_gdbserver_command != "":
+        print("\nWaiting for GDB on port 1234...")
+
     subprocess.call(qemu_simulate_command, shell=True)
     subprocess.call("tput reset", shell=True)
