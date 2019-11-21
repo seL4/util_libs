@@ -141,6 +141,7 @@ function(DeclareRootserver rootservername)
                     --with-payload=${elf_target_file}
                         && make -s clean && make -s > /dev/null
                 DEPENDS ${elf_target_file} elfloader
+                ${USES_TERMINAL_DEBUG}
             )
             set(elf_target_file "${CMAKE_BINARY_DIR}/bbl/bbl")
         endif()

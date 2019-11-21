@@ -68,7 +68,7 @@ function(RustAddLibrary lib_name)
         ${libmain}_custom
         BYPRODUCTS
         ${RUST_BUILD_DIR}/${RUST_LIB_FILENAME}
-        USES_TERMINAL
+        ${USES_TERMINAL_DEBUG}
         DEPENDS ${RUST_DEPENDS}
         WORKING_DIRECTORY ${RUST_SOURCE_DIR}
         COMMAND
