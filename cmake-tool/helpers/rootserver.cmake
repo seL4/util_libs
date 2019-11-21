@@ -33,11 +33,7 @@ find_file(
 )
 mark_as_advanced(TLS_ROOTSERVER)
 
-find_file(
-    UIMAGE_TOOL make-uimage
-    PATHS "${CMAKE_CURRENT_LIST_DIR}"
-    CMAKE_FIND_ROOT_PATH_BOTH
-)
+find_file(UIMAGE_TOOL make-uimage PATHS "${CMAKE_CURRENT_LIST_DIR}" CMAKE_FIND_ROOT_PATH_BOTH)
 mark_as_advanced(UIMAGE_TOOL)
 
 if(KernelArchRiscV)
