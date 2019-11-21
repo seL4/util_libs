@@ -184,7 +184,7 @@ function(GenerateSimulateScript)
                 -DCONFIGURE_OUTPUT_FILE=${gdb_path} -DGDB_BINARY=${GdbBinary}
                 -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME}
                 -P ${CONFIGURE_FILE_SCRIPT}
-            COMMAND chmod u+x "${sim_path}"
+            COMMAND chmod u+x "${gdb_path}"
             VERBATIM COMMAND_EXPAND_LISTS
         )
     endif()
