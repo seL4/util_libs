@@ -111,6 +111,9 @@ static int pit_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer)
 
     /* otherwise need to set another irq */
     uint64_t ns = MIN(pc99_ltimer->pit.abs_time - time, PIT_MAX_NS);
+    if (ns < PIT_MIN_NS) {
+        return 0;
+    }
     return pit_set_timeout(&pc99_ltimer->pit.device, ns, false);
 }
 
