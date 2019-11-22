@@ -17,8 +17,13 @@
 #define WAIT_SECONDS 2ull
 #define WAIT_NS (NS_IN_S * WAIT_SECONDS) /* 2 seconds in nano seconds to wait for */
 
+uint64_t tsc_freq_hint = 0;
+
 uint64_t tsc_calculate_frequency_hpet(const hpet_t *hpet)
 {
+    if (tsc_freq_hint) {
+        return tsc_freq_hint;
+    }
     uint64_t tsc_start = rdtsc_pure();
     uint64_t hpet_start = hpet_get_time(hpet);
     /* spin until WAIT_NS has passed */
@@ -29,6 +34,9 @@ uint64_t tsc_calculate_frequency_hpet(const hpet_t *hpet)
 
 uint64_t tsc_calculate_frequency_pit(pit_t *pit)
 {
+    if (tsc_freq_hint) {
+        return tsc_freq_hint;
+    }
     /* the PIT should be able to set a timeout for 50 ms */
     uint64_t wait_ns = 50 * NS_IN_MS;
 
