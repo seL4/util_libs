@@ -438,7 +438,8 @@ uint32_t ltimer_pit_get_tsc_freq(ltimer_t *ltimer)
 int _ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops, acpi_t *acpi)
 {
     pmem_region_t hpet_region;
-    int error = hpet_parse_acpi(acpi, &hpet_region);
+
+    int error = (acpi != NULL) ? hpet_parse_acpi(acpi, &hpet_region): 1;
 
     if (!error) {
         ps_irq_t irq;

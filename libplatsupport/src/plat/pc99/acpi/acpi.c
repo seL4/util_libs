@@ -383,7 +383,7 @@ acpi_init(ps_io_mapper_t io_mapper)
     rsdp_paddr = acpi_sig_search(acpi, ACPI_SIG_RSDP, strlen(ACPI_SIG_RSDP),
                                  (void *) BIOS_PADDR_START, (void *) BIOS_PADDR_END);
     if (rsdp_paddr == NULL) {
-        ZF_LOGE("Failed to find rsdp\n");
+        ZF_LOGW("Failed to find rsdp\n");
         return NULL;
     }
 
