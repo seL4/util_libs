@@ -37,12 +37,19 @@ then
     exit 1
 fi
 
+if [ -d "$HOME/.sel4_cache" ]
+then
+    CACHE_DIR="$HOME/.sel4_cache"
+else
+    CACHE_DIR="$SCRIPT_PATH/.sel4_cache"
+fi
+
 if [ -e "$SCRIPT_PATH/CMakeLists.txt" ]
 then
     # If we have a CMakeLists.txt in the top level project directory,
     # initialize CMake.
     cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
-        -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
+        -DSEL4_CACHE_DIR="$CACHE_DIR" -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
 else
     # If we don't have a CMakeLists.txt in the top level project directory then
     # assume we use the project's directory tied to easy-settings.cmake and resolve
@@ -50,5 +57,5 @@ else
     real_easy_settings="$(realpath $SCRIPT_PATH/easy-settings.cmake)"
     project_dir="$(dirname $real_easy_settings)"
     # Initialize CMake.
-    cmake -G Ninja "$@" -C "$project_dir/settings.cmake" "$project_dir"
+    cmake -G Ninja "$@" -DSEL4_CACHE_DIR="$CACHE_DIR" -C "$project_dir/settings.cmake" "$project_dir"
 fi
