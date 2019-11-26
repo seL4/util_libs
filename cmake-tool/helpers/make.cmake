@@ -92,8 +92,8 @@ macro(create_depfile_by_find ret outfile depfile dir)
         APPEND
             ${ret}
             COMMAND
-            echo
-            "${path}: \\\\"
+            printf
+            "${path}: "
             >
             ${depfile}
     )
