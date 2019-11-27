@@ -56,7 +56,7 @@ function(memoize_add_custom_command key replace_dir git_directory extra_argument
 
         execute_process(
             COMMAND
-                "${GIT_EXECUTABLE}" diff-index --quiet HEAD --
+                "${GIT_EXECUTABLE}" diff --exit-code HEAD --
             WORKING_DIRECTORY "${git_directory}"
             RESULT_VARIABLE res
             OUTPUT_VARIABLE out
