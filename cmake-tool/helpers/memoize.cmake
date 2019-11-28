@@ -17,7 +17,7 @@ if(NOT ${SEL4_CACHE_DIR} STREQUAL "")
     set(cache_dir "${SEL4_CACHE_DIR}")
 endif()
 # Convert to an absolute path.
-if(NOT IS_ABSOLUTE cache_dir)
+if((NOT ("${cache_dir}" STREQUAL "")) AND NOT IS_ABSOLUTE cache_dir)
     get_filename_component(cache_dir "${cache_dir}" ABSOLUTE BASE_DIR "${CMAKE_BINARY_DIR}")
 endif()
 set(MEMOIZE_CACHE_DIR "${cache_dir}" CACHE INTERNAL "" FORCE)
