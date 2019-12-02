@@ -147,8 +147,7 @@ typedef struct tk1_mux_feature_pinmap_ {
     } pins[8];
 } tk1_mux_feature_pinmap_t;
 
-static inline const char *
-get_feature_name_string(tk1_mux_feature_pinmap_t *var)
+static inline const char *get_feature_name_string(tk1_mux_feature_pinmap_t *var)
 {
 #ifdef CONFIG_DEBUG_BUILD
     return var->name;
@@ -170,37 +169,37 @@ tk1_mux_feature_pinmap_t    pinmaps[NMUX_FEATURES] = {
     /* UARTs are a 2 or 4 signal pinout: RTS, CTS, TX, RX. */
     PINMAP_2PIN(MUX_FEATURE_UARTA, GPIO_PS1, MUX_PAD_KB_ROW9_PS1, 3, P_BOTH, GPIO_PS2, MUX_PAD_KB_ROW10_PS2, 3, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_UARTB, GPIO_PC3, MUX_PAD_UART2_RXD_PC3, 0, P_BOTH,
-        GPIO_PC2, MUX_PAD_UART2_TXD_PC2, 0, P_BOTH,
-        GPIO_PJ6, MUX_PAD_UART2_RTS_N_PJ6, 1, P_BOTH,
-        GPIO_PJ5, MUX_PAD_UART2_CTS_N_PJ5, 1, P_BOTH),
+                GPIO_PC2, MUX_PAD_UART2_TXD_PC2, 0, P_BOTH,
+                GPIO_PJ6, MUX_PAD_UART2_RTS_N_PJ6, 1, P_BOTH,
+                GPIO_PJ5, MUX_PAD_UART2_CTS_N_PJ5, 1, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_UARTC, GPIO_PW6, MUX_PAD_UART3_TXD_PW6, 0, P_BOTH,
-        GPIO_PW7, MUX_PAD_UART3_RXD_PW7, 0, P_BOTH,
-        GPIO_PA1, MUX_PAD_UART3_CTS_N_PA1, 0, P_BOTH,
-        GPIO_PC0, MUX_PAD_UART3_RTS_N_PC0, 0, P_BOTH),
+                GPIO_PW7, MUX_PAD_UART3_RXD_PW7, 0, P_BOTH,
+                GPIO_PA1, MUX_PAD_UART3_CTS_N_PA1, 0, P_BOTH,
+                GPIO_PC0, MUX_PAD_UART3_RTS_N_PC0, 0, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_UARTD, GPIO_PJ7, MUX_PAD_PJ7, 0, P_BOTH,
-        GPIO_PB0, MUX_PAD_PB0, 0, P_BOTH,
-        GPIO_PB1, MUX_PAD_PB1, 0, P_BOTH,
-        GPIO_PK7, MUX_PAD_PK7, 0, P_BOTH),
+                GPIO_PB0, MUX_PAD_PB0, 0, P_BOTH,
+                GPIO_PB1, MUX_PAD_PB1, 0, P_BOTH,
+                GPIO_PK7, MUX_PAD_PK7, 0, P_BOTH),
 
     /* SPI is a 4 signal pinout: CS, SCLK, MOSI, MISO.
      * SPI1 is a special case, though I don't recall why.
      */
     PINMAP_3PIN(MUX_FEATURE_SPI1,
-        GPIO_PY0, MUX_PAD_ULPI_CLK_PY0, 0, P_BOTH,
-        GPIO_PY1, MUX_PAD_ULPI_DIR_PY1, 0, P_BOTH,
-        GPIO_PY2, MUX_PAD_ULPI_NXT_PY2, 0, P_BOTH),
+                GPIO_PY0, MUX_PAD_ULPI_CLK_PY0, 0, P_BOTH,
+                GPIO_PY1, MUX_PAD_ULPI_DIR_PY1, 0, P_BOTH,
+                GPIO_PY2, MUX_PAD_ULPI_NXT_PY2, 0, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_SPI2, GPIO_PO5, MUX_PAD_ULPI_DATA4_PO5, 0, P_BOTH,
-        GPIO_PO6, MUX_PAD_ULPI_DATA5_PO6, 0, P_BOTH,
-        GPIO_PO7, MUX_PAD_ULPI_DATA6_PO7, 0, P_BOTH,
-        GPIO_PO0, MUX_PAD_ULPI_DATA7_PO0, 0, P_BOTH),
+                GPIO_PO6, MUX_PAD_ULPI_DATA5_PO6, 0, P_BOTH,
+                GPIO_PO7, MUX_PAD_ULPI_DATA6_PO7, 0, P_BOTH,
+                GPIO_PO0, MUX_PAD_ULPI_DATA7_PO0, 0, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_SPI3, GPIO_PO1, MUX_PAD_ULPI_DATA0_PO1, 0, P_BOTH,
-        GPIO_PO2, MUX_PAD_ULPI_DATA1_PO2, 0, P_BOTH,
-        GPIO_PO3, MUX_PAD_ULPI_DATA2_PO3, 0, P_BOTH,
-        GPIO_PO4, MUX_PAD_ULPI_DATA3_PO4, 0, P_BOTH),
+                GPIO_PO2, MUX_PAD_ULPI_DATA1_PO2, 0, P_BOTH,
+                GPIO_PO3, MUX_PAD_ULPI_DATA2_PO3, 0, P_BOTH,
+                GPIO_PO4, MUX_PAD_ULPI_DATA3_PO4, 0, P_BOTH),
     PINMAP_4PIN(MUX_FEATURE_SPI4, GPIO_PG4, MUX_PAD_PG4, 3, P_BOTH,
-        GPIO_PG5, MUX_PAD_PG5, 3, P_BOTH,
-        GPIO_PG6, MUX_PAD_PG6, 3, P_BOTH,
-        GPIO_PG7, MUX_PAD_PG7, 3, P_BOTH),
+                GPIO_PG5, MUX_PAD_PG5, 3, P_BOTH,
+                GPIO_PG6, MUX_PAD_PG6, 3, P_BOTH,
+                GPIO_PG7, MUX_PAD_PG7, 3, P_BOTH),
 
     /* These are being mux settings to be used to configure the pins in GPIO
      * mode, which means that the SFIO function we select is irrelevant.
@@ -221,13 +220,13 @@ tk1_mux_feature_pinmap_t    pinmaps[NMUX_FEATURES] = {
     PINMAP_1PIN(MUX_FEATURE_GPIO_PA3, GPIO_PA3, MUX_PAD_DAP2_SCLK_PA3, 0, P_IN),
 
     PINMAP_2PIN(MUX_FEATURE_I2C0, GPIO_PC4, MUX_PAD_GEN1_I2C_SCL_PC4, 0, P_IN | P_OPEN_DRAIN,
-        GPIO_PC5, MUX_PAD_GEN1_I2C_SDA_PC5, 0, P_IN | P_OPEN_DRAIN),
+                GPIO_PC5, MUX_PAD_GEN1_I2C_SDA_PC5, 0, P_IN | P_OPEN_DRAIN),
     PINMAP_2PIN(MUX_FEATURE_I2C1, GPIO_PT5, MUX_PAD_GEN2_I2C_SCL_PT5, 0, P_IN | P_OPEN_DRAIN,
-        GPIO_PT6, MUX_PAD_GEN2_I2C_SDA_PT6, 0, P_IN | P_OPEN_DRAIN),
+                GPIO_PT6, MUX_PAD_GEN2_I2C_SDA_PT6, 0, P_IN | P_OPEN_DRAIN),
     PINMAP_2PIN(MUX_FEATURE_I2C2, GPIO_PBB1, MUX_PAD_CAM_I2C_SCL_PBB1, 1, P_IN | P_OPEN_DRAIN,
-        GPIO_PBB2, MUX_PAD_CAM_I2C_SDA_PBB2, 1, P_IN | P_OPEN_DRAIN),
+                GPIO_PBB2, MUX_PAD_CAM_I2C_SDA_PBB2, 1, P_IN | P_OPEN_DRAIN),
     PINMAP_2PIN(MUX_FEATURE_I2C3, GPIO_PV4, MUX_PAD_DDC_SCL_PV4, 0, P_IN,
-        GPIO_PV5, MUX_PAD_DDC_SDA_PV5, 0, P_IN),
+                GPIO_PV5, MUX_PAD_DDC_SDA_PV5, 0, P_IN),
 
     PINMAP_1PIN(MUX_FEATURE_GPIO_PC4, GPIO_PC4, MUX_PAD_GEN1_I2C_SCL_PC4, 0, P_BOTH),
     PINMAP_1PIN(MUX_FEATURE_GPIO_PC5, GPIO_PC5, MUX_PAD_GEN1_I2C_SDA_PC5, 0, P_BOTH),
@@ -242,8 +241,8 @@ tk1_mux_feature_pinmap_t    pinmaps[NMUX_FEATURES] = {
      * doesn't harm anything by being here.
      */
     PINMAP_2PIN(MUX_FEATURE_PPM_MIRROR,
-        GPIO_PJ6, MUX_PAD_UART2_RTS_N_PJ6, 1, P_PUSHPULL,
-        GPIO_PJ5, MUX_PAD_UART2_CTS_N_PJ5, 1, P_PUSHPULL)
+                GPIO_PJ6, MUX_PAD_UART2_RTS_N_PJ6, 1, P_PUSHPULL,
+                GPIO_PJ5, MUX_PAD_UART2_CTS_N_PJ5, 1, P_PUSHPULL)
 };
 
 typedef struct tegra_mux_state {
@@ -252,15 +251,13 @@ typedef struct tegra_mux_state {
     gpio_sys_t *gpio_sys;
 } tegra_mux_state_t;
 
-static const tegra_mux_state_t *
-tk1_mux_get_priv(mux_sys_t *mux_sys)
+static const tegra_mux_state_t *tk1_mux_get_priv(mux_sys_t *mux_sys)
 {
     assert(mux_sys != NULL);
     return (const tegra_mux_state_t *)mux_sys->priv;
 }
 
-static volatile uint32_t *
-tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
+static volatile uint32_t *tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
 {
     volatile uint32_t   *ret;
     int                 group_offset;
@@ -272,11 +269,10 @@ tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
     return &ret[group_offset / sizeof(uint32_t)];
 }
 
-static void
-tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
-                                   int mux_reg_index,
-                                   uint8_t drive_up_strength,
-                                   uint8_t drive_down_strength)
+static void tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
+                                               int mux_reg_index,
+                                               uint8_t drive_up_strength,
+                                               uint8_t drive_down_strength)
 {
     volatile uint32_t   *reg;
     int                 group_offset;
@@ -305,9 +301,8 @@ tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
     ZF_LOGD("Group off 0x%x: new val: 0x%x.", group_offset, *reg);
 }
 
-static int
-tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
-                       enum mux_gpio_dir mux_gpio_dir)
+static int tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
+                                  enum mux_gpio_dir mux_gpio_dir)
 {
     uint32_t regval, requiredval;
     const tegra_mux_state_t *s = tk1_mux_get_priv(mux);
@@ -374,7 +369,7 @@ tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
         requiredval |= ((desc->flags & P_PULLUP)
                         ? MUX_REG_PUPD_PULLUP
                         : MUX_REG_PUPD_PULLDOWN)
-                            << MUX_REG_PUPD_SHIFT;
+                       << MUX_REG_PUPD_SHIFT;
     }
     if (desc->flags & P_OPEN_DRAIN) {
         if (desc->flags & P_PUSHPULL) {
@@ -409,8 +404,7 @@ tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
     return 0;
 }
 
-static bool
-pin_is_pull_up_by_default(int mux_reg_index)
+static bool pin_is_pull_up_by_default(int mux_reg_index)
 {
     /* This is a list of the pins whose default state on #RESET is Pull-up. */
     const uint16_t pull_up_pin_indexes[] = {
@@ -455,9 +449,8 @@ pin_is_pull_up_by_default(int mux_reg_index)
     return false;
 }
 
-static void
-tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_index,
-                       bool enable_input_buffer)
+static void tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_index,
+                                   bool enable_input_buffer)
 {
     int pupd_val;
 
@@ -494,31 +487,30 @@ tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_index,
     }
 
     regs[mux_reg_index] = 0
-                       /* Tristate on */
-                       | MUX_REG_TRISTATE_TRISTATE << MUX_REG_TRISTATE_SHIFT
-                       /* Enable/disable the input buffer.
-                        *
-                        * We should disable it, but the problem is that if we
-                        * disable the input buffer on the pin, and then later
-                        * on somebody wants to use the pin as an GPIO input pin,
-                        * it would mean that the GPIO driver would have to call
-                        * down into the mux driver (this driver).
-                        *
-                        * But this driver already depends on the GPIO driver, so
-                        * that would create a circular dependency.
-                        *
-                        * Thankfully, leaving the input buffer on shouldn't be
-                        * detrimental because, according to the TRM sec 8.4.1,
-                        * the tristate option overrides all other options.
-                        */
-                       | (!!enable_input_buffer) << MUX_REG_ENABLE_SHIFT
-                       /* Assert either pull-up or pull-down. */
-                       | pupd_val << MUX_REG_PUPD_SHIFT;
+                          /* Tristate on */
+                          | MUX_REG_TRISTATE_TRISTATE << MUX_REG_TRISTATE_SHIFT
+                          /* Enable/disable the input buffer.
+                           *
+                           * We should disable it, but the problem is that if we
+                           * disable the input buffer on the pin, and then later
+                           * on somebody wants to use the pin as an GPIO input pin,
+                           * it would mean that the GPIO driver would have to call
+                           * down into the mux driver (this driver).
+                           *
+                           * But this driver already depends on the GPIO driver, so
+                           * that would create a circular dependency.
+                           *
+                           * Thankfully, leaving the input buffer on shouldn't be
+                           * detrimental because, according to the TRM sec 8.4.1,
+                           * the tristate option overrides all other options.
+                           */
+                          | (!!enable_input_buffer) << MUX_REG_ENABLE_SHIFT
+                          /* Assert either pull-up or pull-down. */
+                          | pupd_val << MUX_REG_PUPD_SHIFT;
 }
 
-static int
-tk1_mux_feature_enable(mux_sys_t* mux, mux_feature_t feat,
-                       enum mux_gpio_dir mux_gpio_dir)
+static int tk1_mux_feature_enable(mux_sys_t *mux, mux_feature_t feat,
+                                  enum mux_gpio_dir mux_gpio_dir)
 {
     int error;
     tk1_mux_feature_pinmap_t *map;
@@ -552,7 +544,7 @@ tk1_mux_feature_enable(mux_sys_t* mux, mux_feature_t feat,
              * default #RESET voltage level.
              */
             if ((s->pinmux_aux[map->pins[i].mux_reg_index]
-                & MUX_REG_SFIO_SELECT_MASK) != map->pins[i].mux_sfio_value) {
+                 & MUX_REG_SFIO_SELECT_MASK) != map->pins[i].mux_sfio_value) {
                 tk1_mux_set_pin_unused(s->pinmux_aux,
                                        map->pins[i].mux_reg_index, true);
             }
@@ -598,8 +590,7 @@ tk1_mux_feature_enable(mux_sys_t* mux, mux_feature_t feat,
     return 0;
 }
 
-static int
-tk1_mux_feature_disable(mux_sys_t* mux, mux_feature_t feat)
+static int tk1_mux_feature_disable(mux_sys_t *mux, mux_feature_t feat)
 {
     tk1_mux_feature_pinmap_t *map;
     const tegra_mux_state_t *s = tk1_mux_get_priv(mux);
@@ -619,8 +610,7 @@ tk1_mux_feature_disable(mux_sys_t* mux, mux_feature_t feat)
     return 0;
 }
 
-static void
-tk1_mux_set_all_pins_to_default_state(volatile uint32_t *mux_regs)
+static void tk1_mux_set_all_pins_to_default_state(volatile uint32_t *mux_regs)
 {
     /* TODO:
      * We should cycle through all valid pins here and call
@@ -628,10 +618,9 @@ tk1_mux_set_all_pins_to_default_state(volatile uint32_t *mux_regs)
      */
 }
 
-int
-tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
-               ps_io_ops_t *io_ops,
-               gpio_sys_t *gpio_sys, mux_sys_t *self)
+int tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
+                   ps_io_ops_t *io_ops,
+                   gpio_sys_t *gpio_sys, mux_sys_t *self)
 {
     int error;
     tegra_mux_state_t *state;
@@ -658,17 +647,16 @@ tegra_mux_init(volatile void *pinmux_misc, volatile void *pinmux_aux,
     tk1_mux_set_all_pins_to_default_state(tk1_mux_get_priv(self)->pinmux_aux);
 
     ZF_LOGE("Mux misc for dbgcfg @vaddrs 0x%p, 0x%p: values 0x%x, 0x%x (offsets are 0x%x, 0x%x).",
-        tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_GEN1_I2C_SCL_PC4),
-        tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_CAM_I2C_SCL_PBB1),
-        *tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_GEN1_I2C_SCL_PC4),
-        *tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_CAM_I2C_SCL_PBB1),
-        tk1_mux_get_group_offset_for_pin(MUX_PAD_GEN1_I2C_SCL_PC4),
-        tk1_mux_get_group_offset_for_pin(MUX_PAD_CAM_I2C_SCL_PBB1));
+            tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_GEN1_I2C_SCL_PC4),
+            tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_CAM_I2C_SCL_PBB1),
+            *tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_GEN1_I2C_SCL_PC4),
+            *tk1_mux_get_group_reg_handle_for_pin(self, MUX_PAD_CAM_I2C_SCL_PBB1),
+            tk1_mux_get_group_offset_for_pin(MUX_PAD_GEN1_I2C_SCL_PC4),
+            tk1_mux_get_group_offset_for_pin(MUX_PAD_CAM_I2C_SCL_PBB1));
     return 0;
 }
 
-int
-mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
+int mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux)
 {
     void *pinmux_misc_vaddr = NULL, *pinmux_aux_vaddr = NULL;
     gpio_sys_t *gpio_sys = (gpio_sys_t *)dependencies;
