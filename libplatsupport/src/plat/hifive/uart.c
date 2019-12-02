@@ -51,11 +51,10 @@ uart_get_priv(ps_chardevice_t *d)
 int uart_getchar(ps_chardevice_t *d)
 {
     uart_regs_t* regs = uart_get_priv(d);
-    uint32_t reg = 0;
+    uint32_t reg = regs->rxdata;
     int c = -1;
 
-    if (!(regs->rxdata & UART_RX_DATA_EMPTY)) {
-        reg = regs->rxdata;
+    if (!(reg & UART_RX_DATA_EMPTY)) {
         c = reg & UART_RX_DATA_MASK;
     }
     return c;
