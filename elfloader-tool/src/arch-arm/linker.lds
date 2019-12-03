@@ -34,6 +34,15 @@ INSERT BEFORE .text;
 
 SECTIONS
 {
+    .bss : {
+        _bss = .;
+        *(.bss)
+        _bss_end = .;
+    }
+}
+
+SECTIONS
+{
     . = ALIGN(8);
     ._archive_cpio : {
         _archive_start = .;

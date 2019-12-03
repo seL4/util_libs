@@ -44,25 +44,20 @@ BEGIN_FUNC(_start32)
     mcr     ACTLR(r1)
 #endif /* CONFIG_MAX_NUM_NODES > 1 */
 
-    adr     r1, LC0 // r1 = relocated address of literal pool
-    /*
-     * r4 = LC0 unrelocated address
-     * r5 = stack pointer
-     */
-    ldmia   r1, {r4, r5}
+    ldr sp, =core_stack_alloc + 0xff0
 
-    sub     r1, r1, r4 // r1 now contains relocation offset
-    add     sp, r5, r1 // set up sp properly
+#ifndef CONFIG_IMAGE_EFI
+    /*
+     * clear the BSS section, since it may not be clear yet.
+     * Under EFI, this is done earlier in the boot process.
+     */
+    push    {r0}
+    bl      clear_bss
+    pop     {r0}
+#endif
 
     b       main
 END_FUNC(_start)
-
-.align 2
-.type LC0, #object
-LC0:
-.word LC0                       // r4
-.word core_stack_alloc + 0xff0 // r5
-.size LC0, . - LC0
 
 /* Move the elf loader out of the kernel's way */
 BEGIN_FUNC(finish_relocation)

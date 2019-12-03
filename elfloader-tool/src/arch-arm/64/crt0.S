@@ -23,6 +23,9 @@ BEGIN_FUNC(_start)
     adrp    x19, core_stack_alloc
     add     x19, x19, #0xff0
     mov     sp, x19
+#ifdef CONFIG_IMAGE_BINARY
+    bl      clear_bss
+#endif
     b       main
 END_FUNC(_start)
 

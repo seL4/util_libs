@@ -66,6 +66,9 @@ extern char _end[];
 extern char _archive_start[];
 extern char _archive_start_end[];
 
+/* Clear BSS. */
+void clear_bss(void);
+
 /* Load images. */
 void load_images(struct image_info *kernel_info, struct image_info *user_info,
                  int max_user_images, int *num_images, void *bootloader_dtb, void **chosen_dtb,

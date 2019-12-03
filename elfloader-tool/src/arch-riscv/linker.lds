@@ -87,13 +87,14 @@ SECTIONS
 
   /* bss: Uninitialized writeable data section */
   . = .;
-  _bss_start = .;
+  _bss = .;
   .bss :
   {
     *(.bss)
     *(.bss.*)
     *(.sbss*)
   }
+  _bss_end = .;
 
   /* rodata: Read-only data */
   .rodata :
