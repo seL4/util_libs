@@ -84,7 +84,6 @@ macro(find_libgcc_files)
     endif()
 endmacro()
 
-
 macro(add_fpu_compilation_options)
     # We want to check what we can set the -mfloat-abi to on arm and if that matches what is requested
     if(KernelSel4ArchAarch64)
@@ -99,7 +98,8 @@ macro(add_fpu_compilation_options)
                 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void _start(void){}")
                 execute_process(
                     COMMAND
-                        "${CMAKE_C_COMPILER}" ${flags} -nostartfiles -nostdlib -o test_program test_program.c
+                        "${CMAKE_C_COMPILER}" ${flags} -nostartfiles -nostdlib -o test_program
+                        test_program.c
                     RESULT_VARIABLE result
                     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
                     OUTPUT_QUIET ERROR_QUIET
@@ -120,7 +120,9 @@ macro(add_fpu_compilation_options)
             if(NOT HARD_FLOAT)
                 SimpleCCompilationTest(SOFTFP_FLOAT "-mfloat-abi=softfp")
                 if(NOT SOFTFP_FLOAT)
-                    message(WARNING "Kernel supports hardware floating point but toolchain does not")
+                    message(
+                        WARNING "Kernel supports hardware floating point but toolchain does not"
+                    )
                     add_compile_options(-mfloat-abi=soft)
                 else()
                     add_compile_options(-mfloat-abi=softfp)
