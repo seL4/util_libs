@@ -96,10 +96,10 @@ macro(add_fpu_compilation_options)
         function(SimpleCCompilationTest var flags)
             if(NOT (DEFINED "${var}"))
                 message(STATUS "Performing test ${var} with flags ${flags}")
-                file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void main(void){}")
+                file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void _start(void){}")
                 execute_process(
                     COMMAND
-                        "${CMAKE_C_COMPILER}" ${flags} -o test_program test_program.c
+                        "${CMAKE_C_COMPILER}" ${flags} -nostartfiles -nostdlib -o test_program test_program.c
                     RESULT_VARIABLE result
                     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
                     OUTPUT_QUIET ERROR_QUIET
