@@ -13,6 +13,7 @@
 import subprocess
 import sys
 import argparse
+import time
 
 
 def parse_args():
@@ -82,5 +83,13 @@ if __name__ == "__main__":
     if qemu_gdbserver_command != "":
         print("\nWaiting for GDB on port 1234...")
 
-    subprocess.call(qemu_simulate_command, shell=True)
+    qemu_status = subprocess.call(qemu_simulate_command, shell=True)
+
+    if qemu_status != 0:
+        delay = 5 # in seconds
+        msg = "\nQEMU failed; resetting terminal in {d}".format(d=delay) \
+            + " seconds--interrupt to abort\n"
+        sys.stderr.write(msg)
+        time.sleep(delay)
+
     subprocess.call("tput reset", shell=True)
