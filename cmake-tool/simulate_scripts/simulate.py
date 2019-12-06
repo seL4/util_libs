@@ -49,8 +49,16 @@ def parse_args():
     return args
 
 
+def notice(message):
+    # Don't call this without initialising `progname`.
+    assert(progname)
+    sys.stderr.write("{}: {}".format(progname, message))
+    sys.stderr.flush()
+
+
 if __name__ == "__main__":
     args = parse_args()
+    progname = sys.argv[0]
 
     if args.qemu_sim_kernel_file == "":
         qemu_sim_images_entry = "-kernel " + args.qemu_sim_initrd_file
@@ -77,19 +85,20 @@ if __name__ == "__main__":
                                   qemu_gdbserver_command]
     qemu_simulate_command = " ".join(qemu_simulate_command_opts)
 
-
-    print(qemu_simulate_command)
+    notice(qemu_simulate_command)
 
     if qemu_gdbserver_command != "":
-        print("\nWaiting for GDB on port 1234...")
+        notice('waiting for GDB on port 1234...')
 
     qemu_status = subprocess.call(qemu_simulate_command, shell=True)
 
     if qemu_status != 0:
-        delay = 5 # in seconds
-        msg = "\nQEMU failed; resetting terminal in {d}".format(d=delay) \
-            + " seconds--interrupt to abort\n"
-        sys.stderr.write(msg)
+        delay = 5  # in seconds
+        # Force a newline onto the output stream.
+        sys.stderr.write('\n')
+        msg = "QEMU failed; resetting terminal in {d} seconds".format(d=delay) \
+            + "--interrupt to abort\n"
+        notice(msg)
         time.sleep(delay)
 
     subprocess.call("tput reset", shell=True)
