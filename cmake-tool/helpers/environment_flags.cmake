@@ -84,6 +84,16 @@ macro(find_libgcc_files)
     endif()
 endmacro()
 
+
+# Call check_c_source_runs but set the cache variables
+# that cause the generated executable to not be run
+# on cross_compilation targets.
+macro(check_c_source_runs_cross_compile program var)
+    set(${var}_EXITCODE 0 CACHE INTERNAL "")
+    set(${var}_EXITCODE__TRYRUN_OUTPUT "" CACHE INTERNAL "")
+    check_c_source_runs(${program} ${var})
+endmacro()
+
 macro(add_fpu_compilation_options)
     # We want to check what we can set the -mfloat-abi to on arm and if that matches what is requested
     if(KernelSel4ArchAarch64)
@@ -91,34 +101,18 @@ macro(add_fpu_compilation_options)
             add_compile_options(-mgeneral-regs-only)
         endif()
     elseif(KernelArchARM)
-        # Define a helper macro for performing our own compilation tests for floating point
-        function(SimpleCCompilationTest var flags)
-            if(NOT (DEFINED "${var}"))
-                message(STATUS "Performing test ${var} with flags ${flags}")
-                file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c" "void _start(void){}")
-                execute_process(
-                    COMMAND
-                        "${CMAKE_C_COMPILER}" ${flags} -nostartfiles -nostdlib -o test_program
-                        test_program.c
-                    RESULT_VARIABLE result
-                    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-                    OUTPUT_QUIET ERROR_QUIET
-                )
-                file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program.c")
-                file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test_program")
-                if("${result}" EQUAL 0)
-                    set("${var}" TRUE CACHE INTERNAL "")
-                    message(STATUS "Test ${var} PASSED")
-                else()
-                    set("${var}" FALSE CACHE INTERNAL "")
-                    message(STATUS "Test ${var} FAILED")
-                endif()
-            endif()
-        endfunction(SimpleCCompilationTest)
+        find_libgcc_files()
+        include(CheckCSourceRuns)
+        # Set the link libraries to use our crt and libgcc files.
+        # This picks up inconsistencies in floating point ABIs.
+        set(CMAKE_REQUIRED_LIBRARIES ${CRTBeginFile} ${libgcc} ${CRTEndFile})
+        set(test_program "void main(void){}")
         if(KernelHaveFPU)
-            SimpleCCompilationTest(HARD_FLOAT "-mfloat-abi=hard")
+            set(CMAKE_REQUIRED_FLAGS "-mfloat-abi=hard")
+            check_c_source_runs_cross_compile(${test_program} HARD_FLOAT)
             if(NOT HARD_FLOAT)
-                SimpleCCompilationTest(SOFTFP_FLOAT "-mfloat-abi=softfp")
+                set(CMAKE_REQUIRED_FLAGS "-mfloat-abi=softfp")
+                check_c_source_runs_cross_compile(${test_program} SOFTFP_FLOAT)
                 if(NOT SOFTFP_FLOAT)
                     message(
                         WARNING "Kernel supports hardware floating point but toolchain does not"
@@ -132,7 +126,7 @@ macro(add_fpu_compilation_options)
             endif()
         else()
             set(CMAKE_REQUIRED_FLAGS "-mfloat-abi=soft")
-            SimpleCCompilationTest(SOFT_FLOAT "-mfloat-abi=soft")
+            check_c_source_runs_cross_compile(${test_program} SOFT_FLOAT)
             if(NOT SOFT_FLOAT)
                 message(
                     SEND_ERROR
