@@ -110,7 +110,7 @@ function(memoize_add_custom_command key replace_dir git_directory extra_argument
             )
 
             # As we use the same output file we extract it from the args passed in.
-            if(NOT ${ARGV5} STREQUAL "OUTPUT")
+            if(NOT "${ARGV5}" STREQUAL "OUTPUT")
                 message(FATAL_ERROR "OUTPUT must be first argument to this function")
             endif()
             add_custom_command(
