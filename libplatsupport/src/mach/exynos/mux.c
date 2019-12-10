@@ -146,9 +146,13 @@ exynos_mux_configure(struct mux_cfg* cfg, int pin,
 }
 
 static int
-exynos_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+exynos_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature,
                           UNUSED enum mux_gpio_dir mgd)
 {
+    if (mux_feature < 0 || mux_feature >= NMUX_FEATURES) {
+        ZF_LOGE("Invalid mux feature provided: %zd", mux_feature);
+        return -1;
+    }
     struct mux_feature_data* data = feature_data[mux_feature];
     (void)mux;
     for (; data->port != GPIOPORT_NONE; data++) {

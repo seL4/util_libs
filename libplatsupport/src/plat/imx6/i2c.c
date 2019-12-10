@@ -12,6 +12,7 @@
 
 #include <platsupport/i2c.h>
 #include <platsupport/mux.h>
+#include <platsupport/plat/mux.h>
 #include <platsupport/clock.h>
 #include <utils/util.h>
 #include "../../services.h"
@@ -76,7 +77,7 @@ struct i2c_bus_priv {
     i2c_callback_fn cb;
     void* token;
 
-    enum mux_feature mux;
+    mux_feature_t mux;
     enum clock_gate clk_gate;
     struct clock clock;
 };

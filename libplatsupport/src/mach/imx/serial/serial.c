@@ -230,6 +230,7 @@ int uart_init(const struct dev_defn* defn,
 
 
 #ifdef CONFIG_PLAT_IMX6
+#include <platsupport/plat/mux.h>
     /* The UART1 on the IMX6 has the problem that the MUX is not correctly set, and the RX PIN is 
      * not routed correctly.
      */

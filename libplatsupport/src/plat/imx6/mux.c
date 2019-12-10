@@ -14,6 +14,7 @@
 #include "mux.h"
 #include <utils/util.h>
 #include <platsupport/gpio.h>
+#include <platsupport/plat/mux.h>
 #include "../../services.h"
 
 #define IMX6_IOMUXC_PADDR 0x020E0000
@@ -647,7 +648,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux)
 }
 
 static int
-imx6_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enum mux_gpio_dir mgd)
+imx6_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
     struct imx6_mux* m;
     if (mux == NULL || mux->priv == NULL) {

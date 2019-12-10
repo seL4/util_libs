@@ -27,7 +27,7 @@
 typedef struct {
     void *vaddr;
     enum clk_id clock_id;
-    enum mux_feature uart_mux_feature;
+    mux_feature_t uart_mux_feature;
 } static_serial_params_t;
 
 /*

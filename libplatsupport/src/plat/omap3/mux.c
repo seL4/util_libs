@@ -34,7 +34,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux)
 }
 
 static int
-omap3_mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature, UNUSED enum mux_gpio_dir mgd)
+omap3_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
     struct omap3_mux* m;
     if (mux == NULL || mux->priv == NULL) {

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <platsupport/mux.h>
+#include <platsupport/plat/mux.h>
 
 /* Value encodings */
 #define MUXVALUE_CPD(con, pud, drv) ((con) << 0 | (pud) << 4 | (drv) << 6)

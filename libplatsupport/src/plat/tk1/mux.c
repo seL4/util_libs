@@ -24,6 +24,7 @@
 
 #include <platsupport/io.h>
 #include <platsupport/mux.h>
+#include <platsupport/plat/mux.h>
 #include <platsupport/gpio.h>
 #include <platsupport/plat/gpio.h>
 
@@ -516,7 +517,7 @@ tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_index,
 }
 
 static int
-tk1_mux_feature_enable(mux_sys_t* mux, enum mux_feature feat,
+tk1_mux_feature_enable(mux_sys_t* mux, mux_feature_t feat,
                        enum mux_gpio_dir mux_gpio_dir)
 {
     int error;
@@ -598,7 +599,7 @@ tk1_mux_feature_enable(mux_sys_t* mux, enum mux_feature feat,
 }
 
 static int
-tk1_mux_feature_disable(mux_sys_t* mux, enum mux_feature feat)
+tk1_mux_feature_disable(mux_sys_t* mux, mux_feature_t feat)
 {
     tk1_mux_feature_pinmap_t *map;
     const tegra_mux_state_t *s = tk1_mux_get_priv(mux);

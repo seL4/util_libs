@@ -12,9 +12,11 @@
 
 #pragma once
 
+#include <unistd.h>
+
+typedef ssize_t mux_feature_t;
 typedef struct mux_sys mux_sys_t;
 
-#include <platsupport/plat/mux.h>
 #include <utils/arith.h>
 
 enum mux_gpio_dir {
@@ -25,8 +27,8 @@ enum mux_gpio_dir {
 };
 
 struct mux_sys {
-    int (*feature_enable)(mux_sys_t* mux, enum mux_feature, enum mux_gpio_dir);
-    int (*feature_disable)(mux_sys_t* mux, enum mux_feature);
+    int (*feature_enable)(mux_sys_t* mux, mux_feature_t, enum mux_gpio_dir);
+    int (*feature_disable)(mux_sys_t* mux, mux_feature_t);
     void *(*get_mux_vaddr)(mux_sys_t *mux);
     void *priv;
 };
@@ -75,7 +77,7 @@ int mux_sys_init(ps_io_ops_t* io_ops, void *dependencies, mux_sys_t* mux);
  *                          MUX_DIR_NOT_A_GPIO.
  * @return                0 on success
  */
-static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_feature,
+static inline int mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature,
                                      enum mux_gpio_dir mux_gpio_dir)
 {
     if (mux->feature_enable) {
@@ -98,7 +100,7 @@ static inline int mux_feature_enable(mux_sys_t* mux, enum mux_feature mux_featur
  * @param[in] mux_feature A SoC specific feature to enable.
  * @return                0 on success
  */
-static inline int mux_feature_disable(mux_sys_t* mux, enum mux_feature mux_feature)
+static inline int mux_feature_disable(mux_sys_t* mux, mux_feature_t mux_feature)
 {
     if (mux->feature_disable) {
         return mux->feature_disable(mux, mux_feature);

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <platsupport/spi.h>
+#include <platsupport/plat/mux.h>
 #include "../../services.h"
 
 //#define DEBUG_SPI
