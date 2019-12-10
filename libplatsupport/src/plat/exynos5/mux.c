@@ -11,6 +11,7 @@
  */
 #include "../../mach/exynos/mux.h"
 #include <platsupport/gpio.h>
+#include <platsupport/plat/gpio.h>
 
 /* I2C */
 static struct mux_feature_data i2c0_data[] = {

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <platsupport/gpio.h>
+#include <platsupport/plat/gpio.h>
 
 /** Sets a pin to either GPIO or SFIO (special function I/O) mode.
  *

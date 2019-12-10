@@ -14,6 +14,7 @@
 #include "mux.h"
 #include <utils/util.h>
 #include <platsupport/gpio.h>
+#include <platsupport/plat/gpio.h>
 #include <platsupport/plat/mux.h>
 #include "../../services.h"
 

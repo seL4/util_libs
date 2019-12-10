@@ -14,6 +14,7 @@
 #include "mux.h"
 #include <utils/util.h>
 #include <platsupport/gpio.h>
+#include <platsupport/plat/gpio.h>
 #include "../../services.h"
 
 #define IMX6_GPIO1_PADDR  0x0209C000

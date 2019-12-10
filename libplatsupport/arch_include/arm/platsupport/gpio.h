@@ -20,8 +20,6 @@ typedef int gpio_id_t;
 #include <utils/util.h>
 #include <platsupport/io.h>
 
-#include <platsupport/plat/gpio.h>
-
 #define GPIOID(port, pin)             ((port) * 32 + (pin))
 #define GPIOID_PORT(gpio)             ((gpio) / 32)
 #define GPIOID_PIN(gpio)              ((gpio) % 32)

@@ -15,6 +15,7 @@
 #include <utils/fence.h>
 #include <utils/attribute.h>
 #include <platsupport/gpio.h>
+#include <platsupport/plat/gpio.h>
 
 #include "mux_gpio_priv.h"
 #include "../../services.h"
