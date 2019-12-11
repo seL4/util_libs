@@ -21,18 +21,18 @@ struct clock_sys;
 
 typedef struct clock clk_t;
 typedef struct clock_sys clock_sys_t;
-typedef enum clk_id clk_id_t;
-typedef enum clock_gate clock_gate_t;
-typedef enum clock_gate_mode clock_gate_mode_t;
 
 #include <platsupport/plat/clock.h>
 
-enum clock_gate_mode {
+typedef enum clk_id clk_id_t;
+typedef enum clock_gate clock_gate_t;
+
+typedef enum clock_gate_mode {
     CLKGATE_ON,
     CLKGATE_IDLE,
     CLKGATE_SLEEP,
     CLKGATE_OFF
-};
+} clock_gate_mode_t;
 
 struct clock_sys {
     clk_t *(*get_clock)(clock_sys_t *clock_sys, enum clk_id id);
