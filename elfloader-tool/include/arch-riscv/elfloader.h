@@ -23,5 +23,4 @@ typedef void (*init_riscv_kernel_t)(paddr_t ui_p_reg_start,
                                     uint64_t hart_id,
                                     uint64_t core_id
 #endif
-                                    );
-
+                                   );
