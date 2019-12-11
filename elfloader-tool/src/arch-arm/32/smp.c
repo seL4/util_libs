@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -26,16 +26,14 @@ volatile int core_up[CONFIG_MAX_NUM_NODES];
 extern void core_entry_head(void);
 extern void non_boot_main(void);
 
-void core_entry(uint64_t sp)
+void core_entry(uint32_t sp)
 {
     int id;
     // get the logic ID
     id = (sp - (unsigned long)&core_stacks[0][0]) / STACK_SIZE;
-    // save the ID and pass it to the kernel
-    MSR("tpidr_el1", id);
 
     core_up[id] = id;
-    dmb();
+    dsb();
     non_boot_main();
 }
 

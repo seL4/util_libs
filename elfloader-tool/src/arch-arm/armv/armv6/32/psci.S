@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,15 +10,10 @@
  * @TAG(DATA61_GPL)
  */
 
-#include <autoconf.h>
-#include <elfloader/gen_config.h>
-#include <types.h>
+#include <assembler.h>
 
-#if CONFIG_MAX_NUM_NODES > 1
+.text
 
-void init_cpus(void)
-{
-    /* SMP booting for Tegra K1 to be implemented */
-}
-
-#endif /* CONFIG_MAX_NUM_NODES > 1 */
+BEGIN_FUNC(psci_func)
+    b abort
+END_FUNC(psci_func)

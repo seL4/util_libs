@@ -44,7 +44,6 @@ BEGIN_FUNC(_start)
     br      x2
 1:
 #endif
-
     b       main
 END_FUNC(_start)
 
@@ -122,3 +121,20 @@ BEGIN_FUNC(finish_relocation)
      */
     b abort // should never get here!
 END_FUNC(finish_relocation)
+
+/* secondary cpu startup */
+BEGIN_FUNC(secondary_startup)
+    /*
+     * secondary_data is a struct that looks like this:
+     * 0x0 void *entry
+     * 0x8 void *stack
+     */
+    adrp    x19, secondary_data
+    add     x19, x19, #:lo12:secondary_data
+
+    ldr     x0, [x19, #0x8]     // load stack
+    mov     sp, x0
+    ldr     x1, [x19, #0x0]     // load entry point
+
+    br x1
+END_FUNC(secondary_startup)

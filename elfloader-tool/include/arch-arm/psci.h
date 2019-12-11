@@ -24,7 +24,8 @@
 #define PSCI_DISABLED               -8
 #define PSCI_INVALID_ADDRESS        -9
 
-
+#define PSCI_METHOD_SMC             1
+#define PSCI_METHOD_HVC             2
 
 int psci_version(void);
 int psci_cpu_suspend(int power_state, unsigned long entry_point,

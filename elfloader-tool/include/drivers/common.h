@@ -30,6 +30,7 @@ struct dtb_match_table {
 
 enum driver_type {
     DRIVER_INVALID = 0,
+    DRIVER_SMP,
     DRIVER_UART,
     DRIVER_MAX
 };

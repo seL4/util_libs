@@ -159,10 +159,12 @@ file(
         files
         src/*.c
         src/drivers/*.c
+        src/drivers/smp/*.c
         src/drivers/uart/*.c
         src/utils/*.c
         src/arch-${KernelArch}/*.c
         src/arch-${KernelArch}/*.S
+        src/arch-${KernelArch}/drivers/*.c
         src/plat/${KernelPlatform}/*.c
         src/binaries/elf/*.c
         src/arch-${KernelArch}/${KernelWordSize}/*.c

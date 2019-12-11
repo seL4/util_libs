@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2018, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,21 +10,17 @@
  * @TAG(DATA61_GPL)
  */
 
+#pragma once
+
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
 
-#include <assembler.h>
-#include <armv/assembler.h>
-
-.extern non_boot_core
-
 #if CONFIG_MAX_NUM_NODES > 1
-BEGIN_FUNC(imx_non_boot)
-    /* Invalidate caches before proceeding... */
-    mov     r0, #0
-    mcr     IIALL(r0)
-    dcache  isw
 
-    b       non_boot_core
-END_FUNC(imx_non_boot)
-#endif /* CONFIG_MAX_NUM_NODES */
+#define STACK_SIZE  4096
+
+extern unsigned long core_stacks[CONFIG_MAX_NUM_NODES][STACK_SIZE / sizeof(unsigned long)] ALIGN(BIT(12));
+void core_entry(uint32_t sp);
+int  is_core_up(int id);
+
+#endif

@@ -18,6 +18,8 @@
 #include <abort.h>
 
 #if CONFIG_MAX_NUM_NODES > 1
+VISIBLE volatile word_t smp_aps_index = 1;
+
 /* System Reset Controller base address */
 #define SRC_BASE 0x30390000
 #define GPC_BASE 0x303a0000

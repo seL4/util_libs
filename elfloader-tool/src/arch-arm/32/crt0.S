@@ -114,7 +114,12 @@ LC2:
 .size LC2, . - LC2
 
 #if CONFIG_MAX_NUM_NODES > 1
-BEGIN_FUNC(non_boot_core)
+BEGIN_FUNC(secondary_startup)
+    /* Invalidate caches before proceeding... */
+    mov     r0, #0
+    mcr     IIALL(r0)
+    dcache  isw
+
     /* Disable Async aborts that might be pending from bootloader */
     cpsid   ifa
 
@@ -126,37 +131,21 @@ BEGIN_FUNC(non_boot_core)
 #endif
     mcr     ACTLR(r0)
 
-    /* Relocate literals */
-    adr     r0, LC3
-    ldmia   r0, {r1, r2, r3}
+    /*
+     * secondary_data is a struct like this:
+     * 0x0 void *entry
+     * 0x4 void *stack
+     */
+    ldr     r0, =secondary_data
+    ldr     r1, [r0, #0x4]         /* load stack */
+    mov     sp, r1
 
-    sub     r0, r0, r1              // relocation offset
-    add     r2, r2, r0              // relocate smp_aps_index
-    add     r3, r3, r0              // relocate core_stack_alloc - 0x10
+    ldr     r2, [r0]               /* load entry point */
 
-    /* Get stack index */
-    mov     r0, r2
-1:  ldrex   r1, [r0]
-    add     r1, r1, #1
-    strex   r2, r1, [r0]
-    teq     r2, #0
-    bne     1b
-
-    /* Set up stack */
-    mov     r0, #0x1000
-    mul     r1, r0
-    add     r3, r1
-    mov     sp, r3
-    b       non_boot_main
-END_FUNC(non_boot_core)
-
-.align 2
-.type LC3, #object
-LC3:
-.word LC3                       // r1
-.word smp_aps_index             // r2
-.word core_stack_alloc - 0x10   // r3
-.size LC3, . - LC3
+    /* core_entry expects sp as its first argument */
+    mov     r0, r1
+    bx r2
+END_FUNC(secondary_startup)
 #endif /* CONFIG_MAX_NUM_NODES */
 
 /*

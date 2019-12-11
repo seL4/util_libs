@@ -12,12 +12,14 @@
 
 #include <types.h>
 
+/* we only care about affinity bits */
+#define MPIDR_MASK  (0x00ffffff)
 /* read MP ID register from CPUID */
-uint32_t read_cpuid_mpidr(void)
+word_t read_cpuid_mpidr(void)
 {
     uint32_t val;
     asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r"(val) :: "cc");
-    return val;
+    return val & MPIDR_MASK;
 }
 
 #define CPSR_MODE_MASK          0x1f

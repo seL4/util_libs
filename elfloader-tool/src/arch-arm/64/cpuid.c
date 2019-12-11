@@ -10,7 +10,18 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <armv/machine.h>
 #include <types.h>
+
+/* we only care about the affinity bits */
+#define MPIDR_MASK (0xff00ffffff)
+
+word_t read_cpuid_mpidr(void)
+{
+    uint64_t val;
+    asm volatile("mrs %0, mpidr_el1" : "=r"(val) :: "cc");
+    return val & MPIDR_MASK;
+}
 
 #define CURRENTEL_EL2           (2 << 2)
 word_t is_hyp_mode(void)

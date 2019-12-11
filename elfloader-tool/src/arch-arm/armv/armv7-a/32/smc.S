@@ -21,3 +21,13 @@ BEGIN_FUNC(smc)
     smc #0
     ldmfd    sp!, {r3-r11, pc}
 END_FUNC(smc)
+
+BEGIN_FUNC(psci_func)
+    .arch_extension sec
+    stmfd    sp!, {r3-r11, lr}
+    dsb
+    smc #0
+    ldmfd    sp!, {r3-r11, pc}
+END_FUNC(psci_func)
+
+
