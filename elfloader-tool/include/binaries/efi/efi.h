@@ -140,18 +140,10 @@ typedef struct {
     uintptr_t padding_3[17];
 } efi_boot_services_t;
 
-typedef struct {
-    uintptr_t padding_1;
-    unsigned long (*output_string)(void *, void *);
-    uintptr_t padding_2;
-} efi_simple_text_output_protocol_t;
-
 int efi_guideq(efi_guid_t a, efi_guid_t b);
 efi_boot_services_t *get_efi_boot_services(void);
-efi_simple_text_output_protocol_t *get_efi_con_out(void);
 
 void efi_early_init(uintptr_t application_handle, uintptr_t efi_system_table);
 unsigned long efi_exit_boot_services(void);
 void *efi_get_fdt(void);
-int efi_fputc(int c, FILE *stream);
 

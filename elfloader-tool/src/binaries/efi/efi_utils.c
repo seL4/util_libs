@@ -26,8 +26,3 @@ efi_boot_services_t *get_efi_boot_services(void)
 {
     return ((efi_boot_services_t *)(__efi_system_table->boottime));
 }
-
-efi_simple_text_output_protocol_t *get_efi_con_out(void)
-{
-    return ((efi_simple_text_output_protocol_t *)(__efi_system_table->con_out));
-}
