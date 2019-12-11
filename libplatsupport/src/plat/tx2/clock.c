@@ -40,7 +40,7 @@ static inline bool check_valid_gate(enum clock_gate gate)
 
 static inline bool check_valid_clk_id(enum clk_id id)
 {
-    return (CLK_FUSE <= id && id < NCLOCKS);
+    return (CLK_PLLC_OUT_ISP <= id && id < NCLOCKS);
 }
 
 static int tx2_car_gate_enable(clock_sys_t *clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
