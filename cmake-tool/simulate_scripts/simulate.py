@@ -99,6 +99,9 @@ if __name__ == "__main__":
         msg = "QEMU failed; resetting terminal in {d} seconds".format(d=delay) \
             + "--interrupt to abort\n"
         notice(msg)
-        time.sleep(delay)
+    else:
+        delay = 2  # in seconds
+
+    time.sleep(delay)
 
     subprocess.call("tput reset", shell=True)
