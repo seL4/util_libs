@@ -27,15 +27,15 @@ typedef enum mux_gpio_dir {
 } mux_gpio_dir_t;
 
 struct mux_sys {
-    int (*feature_enable)(mux_sys_t* mux, mux_feature_t, enum mux_gpio_dir);
-    int (*feature_disable)(mux_sys_t* mux, mux_feature_t);
+    int (*feature_enable)(mux_sys_t *mux, mux_feature_t, enum mux_gpio_dir);
+    int (*feature_disable)(mux_sys_t *mux, mux_feature_t);
     void *(*get_mux_vaddr)(mux_sys_t *mux);
     void *priv;
 };
 
 #include <platsupport/io.h>
 
-static inline int mux_sys_valid(const mux_sys_t* mux_sys)
+static inline int mux_sys_valid(const mux_sys_t *mux_sys)
 {
     return mux_sys && mux_sys->priv;
 }
@@ -44,7 +44,8 @@ static inline int mux_sys_valid(const mux_sys_t* mux_sys)
  * Returns the vaddr of the mux controller so a driver can directly
  * access the MUX controller and bypass the muxc.
  */
-static inline void * mux_sys_get_vaddr(mux_sys_t *mux) {
+static inline void *mux_sys_get_vaddr(mux_sys_t *mux)
+{
     return (mux && mux->get_mux_vaddr) ? mux->get_mux_vaddr(mux) : NULL;
 }
 
@@ -59,7 +60,7 @@ static inline void * mux_sys_get_vaddr(mux_sys_t *mux) {
  *                              pointers here.
  * @return             0 on success.
  */
-int mux_sys_init(ps_io_ops_t* io_ops, void *dependencies, mux_sys_t* mux);
+int mux_sys_init(ps_io_ops_t *io_ops, void *dependencies, mux_sys_t *mux);
 
 /**
  * Enable a SoC feature via the IO MUX
@@ -77,7 +78,7 @@ int mux_sys_init(ps_io_ops_t* io_ops, void *dependencies, mux_sys_t* mux);
  *                          MUX_DIR_NOT_A_GPIO.
  * @return                0 on success
  */
-static inline int mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature,
+static inline int mux_feature_enable(mux_sys_t *mux, mux_feature_t mux_feature,
                                      enum mux_gpio_dir mux_gpio_dir)
 {
     if (mux->feature_enable) {
@@ -100,7 +101,7 @@ static inline int mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature,
  * @param[in] mux_feature A SoC specific feature to enable.
  * @return                0 on success
  */
-static inline int mux_feature_disable(mux_sys_t* mux, mux_feature_t mux_feature)
+static inline int mux_feature_disable(mux_sys_t *mux, mux_feature_t mux_feature)
 {
     if (mux->feature_disable) {
         return mux->feature_disable(mux, mux_feature);

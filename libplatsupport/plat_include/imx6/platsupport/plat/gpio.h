@@ -69,8 +69,8 @@ enum gpio_port {
  * @param[out] gpio_sys  A handle to a gpio subsystem to populate.
  * @return               0 on success
  */
-int imx6_gpio_sys_init(void* bank1, void* bank2, void* bank3,
-                       void* bank4, void* bank5, void* bank6,
-                       void* bank7,
-                       mux_sys_t* mux_sys, gpio_sys_t* gpio_sys);
+int imx6_gpio_sys_init(void *bank1, void *bank2, void *bank3,
+                       void *bank4, void *bank5, void *bank6,
+                       void *bank7,
+                       mux_sys_t *mux_sys, gpio_sys_t *gpio_sys);
 

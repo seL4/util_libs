@@ -125,5 +125,5 @@ enum gpio_port {
  * @param[out] gpio_sys  A handle to a gpio subsystem to populate.
  * @return               0 on success
  */
-int exynos_gpio_sys_init(mux_sys_t* mux_sys, gpio_sys_t* gpio_sys);
+int exynos_gpio_sys_init(mux_sys_t *mux_sys, gpio_sys_t *gpio_sys);
 
