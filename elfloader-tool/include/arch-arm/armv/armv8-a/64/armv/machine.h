@@ -19,7 +19,7 @@ static inline void wfi(void)
 
 static inline void dsb(void)
 {
-    asm volatile("dsb" ::: "memory");
+    asm volatile("dsb sy" ::: "memory");
 }
 
 static inline void dmb(void)
