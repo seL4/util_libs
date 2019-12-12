@@ -19,6 +19,8 @@
 #include <platsupport/plat/sp804.h>
 #include <platsupport/io.h>
 
+#include "../../ltimer.h"
+
 /*
  * We use two sp804 timers: one to keep track of an absolute time, the other for timeouts.
  */
