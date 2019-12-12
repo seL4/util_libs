@@ -84,7 +84,6 @@ macro(find_libgcc_files)
     endif()
 endmacro()
 
-
 # Call check_c_source_runs but set the cache variables
 # that cause the generated executable to not be run
 # on cross_compilation targets.
