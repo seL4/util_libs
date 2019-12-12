@@ -48,7 +48,7 @@ if [ -e "$SCRIPT_PATH/CMakeLists.txt" ]
 then
     # If we have a CMakeLists.txt in the top level project directory,
     # initialize CMake.
-    cmake -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_PATH"/kernel/gcc.cmake -G Ninja "$@" \
+    cmake -G Ninja "$@" \
         -DSEL4_CACHE_DIR="$CACHE_DIR" -C "$SCRIPT_PATH/settings.cmake" "$SCRIPT_PATH"
 else
     # If we don't have a CMakeLists.txt in the top level project directory then
