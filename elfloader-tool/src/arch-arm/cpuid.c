@@ -35,13 +35,17 @@
 #define CPUID_ARCH_ARMv6    0x7
 #define CPUID_ARCH_CPUID    0xF
 
-#pragma GCC push_options
+#if __has_attribute(optimize)
+#define OPTIMIZE_CHANGE __attribute__((optimize(1)))
+#else
+#define OPTIMIZE_CHANGE __attribute__((optnone))
+#endif
+
 /*
  * At O2 the switch gets optimised into a table, (at least on GCC 7.4 and 8.2)
  * which isn't handled properly for position independent code (i.e. when booting on EFI).
  */
-#pragma GCC optimize "-O1"
-static const char *cpuid_get_implementer_str(uint32_t cpuid)
+OPTIMIZE_CHANGE static const char *cpuid_get_implementer_str(uint32_t cpuid)
 {
     switch (CPUID_IMPL(cpuid)) {
     case CPUID_IMPL_ARM:
@@ -61,7 +65,7 @@ static const char *cpuid_get_implementer_str(uint32_t cpuid)
     }
 }
 
-static const char *cpuid_get_arch_str(uint32_t cpuid)
+OPTIMIZE_CHANGE static const char *cpuid_get_arch_str(uint32_t cpuid)
 {
     switch (CPUID_ARCH(cpuid)) {
     case CPUID_ARCH_ARMv4:
@@ -84,7 +88,7 @@ static const char *cpuid_get_arch_str(uint32_t cpuid)
         return "<Reserved>";
     }
 }
-#pragma GCC pop_options
+
 
 void print_cpuid(void)
 {

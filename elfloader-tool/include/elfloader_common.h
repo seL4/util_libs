@@ -26,7 +26,11 @@ typedef uintptr_t vaddr_t;
 #define ROUND_UP(n, b)      (((((n) - 1) >> (b)) + 1) << (b))
 #define ROUND_DOWN(n, b) (((n) >> (b)) << (b))
 #define ALIGN(n)            __attribute__((__aligned__(n)))
+#if __has_attribute(externally_visible)
 #define VISIBLE             __attribute__((externally_visible))
+#else
+#define VISIBLE
+#endif
 #define UNUSED              __attribute__((unused))
 #define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
 #define NULL                ((void *)0)
