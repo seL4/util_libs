@@ -77,9 +77,10 @@
 3:
     orr     r11, r10, r4, lsl r5        //factor way and cache number into r11
     orr     r11, r11, r9, lsl r2        //factor index number into r11
-.if \op == isw
+.ifeqs "\op", "isw"
     mcr     DISW(r11)
-.elseif \op == cisw
+.endif
+.ifeqs "\op", "cisw"
     mcr     DCISW(r11)
 .endif
     subs    r9, r9, #1                  //decrement the index
