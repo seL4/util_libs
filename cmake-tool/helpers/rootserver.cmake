@@ -20,7 +20,7 @@ function(SetSeL4Start target)
     set_property(
         TARGET ${target}
         APPEND_STRING
-        PROPERTY LINK_FLAGS " -u _sel4_start -e _sel4_start "
+        PROPERTY LINK_FLAGS " -Wl,-u_sel4_start -Wl,-e_sel4_start "
     )
 endfunction(SetSeL4Start)
 
@@ -46,7 +46,7 @@ function(DeclareRootserver rootservername)
     set_property(
         TARGET ${rootservername}
         APPEND_STRING
-        PROPERTY LINK_FLAGS " -T ${TLS_ROOTSERVER} "
+        PROPERTY LINK_FLAGS " -Wl,-T ${TLS_ROOTSERVER} "
     )
     if("${KernelArch}" STREQUAL "x86")
         set(

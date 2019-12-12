@@ -349,7 +349,7 @@ if(ElfloaderImageEFI)
             LINK_FLAGS
             # -Bsymbolic forces symbols to bind to their definitions within the elfloader
             # EFI_SUBSYSTEM=0xa indicates that we're building an EFI application.
-            " -T ${linkerScript} -nostdlib -shared -Wl,-Bsymbolic,--defsym=EFI_SUBSYSTEM=0xa -Wl,--build-id=none"
+            " -Wl,-T ${linkerScript} -nostdlib -shared -Wl,-Bsymbolic,--defsym=EFI_SUBSYSTEM=0xa -Wl,--build-id=none"
     )
 else()
     set_target_properties(
@@ -362,7 +362,7 @@ else()
         APPEND_STRING
         PROPERTY
             LINK_FLAGS
-            " -T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none"
+            " -Wl,-T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none"
     )
 endif()
 
