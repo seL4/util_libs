@@ -197,13 +197,3 @@ clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
     ret.req_freq = frequency;
     return ret;
 }
-
-/**
- * Weak symbol definition of clock_sys_init. Platforms should provide
- * their own symbol with an implementation
- */
-WEAK int
-clock_sys_init(ps_io_ops_t* io_ops, clock_sys_t* clk_sys)
-{
-    return 0;
-}
