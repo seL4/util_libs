@@ -121,7 +121,7 @@ int set_timeout(void *data, uint64_t ns, timeout_type_t type)
 
     fvp_ltimer_t *fvp_ltimer = data;
     return sp804_set_timeout(&fvp_ltimer->sp804s[TIMEOUT_SP804], ns,
-            type == TIMEOUT_PERIODIC, true);
+                             type == TIMEOUT_PERIODIC, true);
 }
 
 static int get_resolution(void *data, uint64_t *resolution)
