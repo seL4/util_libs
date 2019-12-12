@@ -16,63 +16,54 @@
 #include "../../services.h"
 
 /* Fixed clocks */
-static freq_t
-_fixed_clk_get_freq(clk_t* clk)
+static freq_t _fixed_clk_get_freq(clk_t *clk)
 {
     return clk->req_freq;
 }
 
-static freq_t
-_fixed_clk_set_freq(clk_t* clk, freq_t hz UNUSED)
+static freq_t _fixed_clk_set_freq(clk_t *clk, freq_t hz UNUSED)
 {
     return clk_get_freq(clk);
 }
 
-void
-_fixed_clk_recal(clk_t* clk UNUSED)
+void _fixed_clk_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-clk_t*
-_fixed_clk_init(clk_t* clk)
+clk_t *_fixed_clk_init(clk_t *clk)
 {
     return clk;
 }
 
 /* Default clocks. Simply report the recorded default frequency */
-freq_t
-_default_clk_get_freq(clk_t* clk)
+freq_t _default_clk_get_freq(clk_t *clk)
 {
     assert(clk->id < NCLOCKS);
     return ps_freq_default[clk->id];
 }
 
-freq_t
-_default_clk_set_freq(clk_t* clk, freq_t hz UNUSED)
+freq_t _default_clk_set_freq(clk_t *clk, freq_t hz UNUSED)
 {
     return clk_get_freq(clk);
 }
 
-void
-_default_clk_recal(clk_t* clk UNUSED)
+void _default_clk_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-clk_t*
-_default_clk_init(clk_t* clk)
+clk_t *_default_clk_init(clk_t *clk)
 {
     return clk;
 }
 
-static clk_t*
-get_clock_default(clock_sys_t* clock_sys UNUSED, enum clk_id id)
+static clk_t *get_clock_default(clock_sys_t *clock_sys UNUSED, enum clk_id id)
 {
     if (id >= NCLOCKS) {
         return NULL;
     } else {
-        clk_t* clk;
+        clk_t *clk;
         clk = ps_clocks[id];
         /* Destroy original clock links */
         clk->clk_sys = clock_sys;
@@ -84,25 +75,23 @@ get_clock_default(clock_sys_t* clock_sys UNUSED, enum clk_id id)
     }
 }
 
-static int
-gate_enable_default(clock_sys_t* clock_sys UNUSED, enum clock_gate gate UNUSED, enum clock_gate_mode mode UNUSED)
+static int gate_enable_default(clock_sys_t *clock_sys UNUSED, enum clock_gate gate UNUSED,
+                               enum clock_gate_mode mode UNUSED)
 {
     /* Assume the gate is already enabled */
     return 0;
 }
 
-int
-clock_sys_init_default(clock_sys_t* clock_sys)
+int clock_sys_init_default(clock_sys_t *clock_sys)
 {
     clock_sys->get_clock = &get_clock_default;
     clock_sys->gate_enable = &gate_enable_default;
     /* Clock subsystem is invalid if there is not private data attached */
-    clock_sys->priv = (void*)0xdeadbeef;
+    clock_sys->priv = (void *)0xdeadbeef;
     return 0;
 }
 
-int
-clock_sys_set_default_freq(enum clk_id id, freq_t hz)
+int clock_sys_set_default_freq(enum clk_id id, freq_t hz)
 {
     if (id >= NCLOCKS) {
         return -1;
@@ -112,13 +101,12 @@ clock_sys_set_default_freq(enum clk_id id, freq_t hz)
     }
 }
 
-clk_t*
-ps_get_clock(clock_sys_t* sys, enum clk_id id)
+clk_t *ps_get_clock(clock_sys_t *sys, enum clk_id id)
 {
     if (id >= NCLOCKS) {
         return NULL;
     } else {
-        clk_t* clk;
+        clk_t *clk;
         clk = ps_clocks[id];
         assert(clk);
         assert(ps_clocks[id]->init);
@@ -127,8 +115,7 @@ ps_get_clock(clock_sys_t* sys, enum clk_id id)
     }
 }
 
-void
-clk_print_tree(clk_t* clk, const char* prefix)
+void clk_print_tree(clk_t *clk, const char *prefix)
 {
     int depth = strlen(prefix);
     char new_prefix[depth + 2];
@@ -136,8 +123,8 @@ clk_print_tree(clk_t* clk, const char* prefix)
     new_prefix[depth] = '|';
     new_prefix[depth + 1] = '\0';
     while (clk != NULL) {
-        const char* units[] = {"hz", "Khz", "Mhz", "Ghz"};
-        const char** u = units;
+        const char *units[] = {"hz", "Khz", "Mhz", "Ghz"};
+        const char **u = units;
         freq_t freq;
         int freqh, freql;
         freq = clk_get_freq(clk);
@@ -164,14 +151,13 @@ clk_print_tree(clk_t* clk, const char* prefix)
     }
 }
 
-void
-clk_register_child(clk_t* parent, clk_t* child)
+void clk_register_child(clk_t *parent, clk_t *child)
 {
     /* Lets make sure that we were initialised correctly
      * to avoid tree loops */
     if (child->parent != NULL) {
         /* If we are registered with a parent */
-        clk_t* sibling = parent->child;
+        clk_t *sibling = parent->child;
         /* Make sure that we are a sibling of the parent's child */
         while (sibling != child) {
             assert(sibling);
@@ -190,8 +176,7 @@ clk_register_child(clk_t* parent, clk_t* child)
     }
 }
 
-clk_t
-clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
+clk_t clk_generate_fixed_clk(enum clk_id id, freq_t frequency)
 {
     clk_t ret = { _CLK_OPS(id, "Fixed clock", fixed_clk, NULL) };
     ret.req_freq = frequency;
