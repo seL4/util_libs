@@ -50,7 +50,7 @@ macro(add_default_compilation_options)
         "${CMAKE_EXE_LINKER_FLAGS} -static -nostdlib -z max-page-size=${LinkPageSize}"
     )
 
-    if(KernelArchX86)
+    if(KernelArchX86 AND NOT LLVM_TOOLCHAIN)
         add_compile_options(-mtls-direct-seg-refs)
     endif()
 
