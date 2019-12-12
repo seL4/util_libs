@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/* warning: use of callbacks is NOT tested with this driver */
+
 #include <platsupport/i2c.h>
 #include <platsupport/pmem.h>
 #include <platsupport/plat/i2c.h>
@@ -25,6 +27,7 @@ struct omap4_i2c_dev {
     size_t buf_len;
     size_t buf_pos;
     bool repeat_start;
+    bool interrupts_enabled;
     volatile bool busy;
 };
 typedef struct omap4_i2c_dev omap4_i2c_dev_t;
@@ -75,6 +78,20 @@ static inline uint16_t omap4_i2c_reg_read(omap4_i2c_dev_t *dev, int addr)
 static inline void omap4_i2c_reg_write(omap4_i2c_dev_t *dev, int addr, uint16_t val)
 {
     *(volatile uint16_t *)(dev->regs + addr) = val;
+}
+
+static void omap4_i2c_enable_interrupts(omap4_i2c_dev_t *dev)
+{
+    dev->interrupts_enabled = true;
+    omap4_i2c_reg_write(dev, OMAP4_I2C_IRQENABLE_SET, IRQENABLE_XDR | IRQENABLE_RDR |
+                        IRQENABLE_XRDY | IRQENABLE_RRDY | IRQENABLE_ARDY | IRQENABLE_NACK);
+}
+
+static void omap4_i2c_disable_interrupts(omap4_i2c_dev_t *dev)
+{
+    dev->interrupts_enabled = false;
+    omap4_i2c_reg_write(dev, OMAP4_I2C_IRQENABLE_CLR, IRQENABLE_XDR | IRQENABLE_RDR |
+                        IRQENABLE_XRDY | IRQENABLE_RRDY | IRQENABLE_ARDY | IRQENABLE_NACK);
 }
 
 static void omap4_i2c_wait_for_bb(i2c_bus_t *bus)
@@ -129,18 +146,25 @@ static int omap4_i2c_controller_init(i2c_bus_t *bus)
     /* enable module */
     omap4_i2c_reg_write(dev, OMAP4_I2C_CON, CON_I2C_EN);
 
-    /* enable interrupts */
-    omap4_i2c_reg_write(dev, OMAP4_I2C_IRQENABLE_SET, IRQENABLE_XDR | IRQENABLE_RDR |
-                        IRQENABLE_XRDY | IRQENABLE_RRDY | IRQENABLE_ARDY | IRQENABLE_NACK);
-
     return 0;
 }
 
-static int omap4_i2c_do_xfer(i2c_slave_t *slave, void *data, size_t size, bool write, bool repeat_start)
+static int omap4_i2c_do_xfer(i2c_slave_t *slave, void *data, size_t size, bool write,
+                             bool repeat_start, i2c_callback_fn cb, void *token)
 {
     ZF_LOGV("%s %zu bytes from slave 0x%x", write ? "writing" : "reading", size, slave->address);
     i2c_bus_t *bus = slave->bus;
     omap4_i2c_dev_t *dev = bus->priv;
+
+    if (dev->busy) {
+        ZF_LOGE("i2c bus is busy ");
+        return -1;
+    }
+
+    if (size == 0) {
+        cb(bus, I2CSTAT_COMPLETE, size, token);
+        return 0;
+    }
 
     /* skip polling for bus-busy if the device is in repeat-start mode */
     if (!dev->repeat_start) {
@@ -183,55 +207,36 @@ static int omap4_i2c_do_xfer(i2c_slave_t *slave, void *data, size_t size, bool w
         con_reg |= CON_TRX;
     }
 
-    dev->busy = true;
     omap4_i2c_reg_write(dev, OMAP4_I2C_CON, con_reg);
+
+    dev->busy = true;
+    if (cb == NULL) {
+        /* synchronous */
+        while (dev->busy) {
+            i2c_handle_irq(bus);
+        }
+        return dev->buf_pos;
+    } else {
+        /* asynchronous */
+        bus->cb = cb;
+        bus->token = token;
+
+        omap4_i2c_enable_interrupts(dev);
+        return size;
+    }
     return 0;
 }
 
 static int omap4_i2c_slave_read(i2c_slave_t *slave, void *data, size_t size,
                                 bool repeat_start, i2c_callback_fn cb, void *token)
 {
-    i2c_bus_t *bus = slave->bus;
-    omap4_i2c_dev_t *dev = bus->priv;
-
-    if (size == 0) {
-        cb(bus, I2CSTAT_COMPLETE, size, token);
-        return 0;
-    }
-
-    bus->cb = cb;
-    bus->token = token;
-    omap4_i2c_do_xfer(slave, data, size, false, repeat_start);
-
-    if (cb == NULL) {
-        while (dev->busy);
-        return dev->buf_pos;
-    } else {
-        return size;
-    }
+    return omap4_i2c_do_xfer(slave, data, size, false, repeat_start, cb, token);
 }
 
 static int omap4_i2c_slave_write(i2c_slave_t *slave, const void *data, size_t size,
                                  bool repeat_start, i2c_callback_fn cb, void *token)
 {
-    i2c_bus_t *bus = slave->bus;
-    omap4_i2c_dev_t *dev = bus->priv;
-
-    if (size == 0) {
-        cb(bus, I2CSTAT_COMPLETE, size, token);
-        return 0;
-    }
-
-    bus->cb = cb;
-    bus->token = token;
-    omap4_i2c_do_xfer(slave, (void *) data, size, true, repeat_start);
-
-    if (cb == NULL) {
-        while (dev->busy);
-        return dev->buf_pos;
-    } else {
-        return size;
-    }
+    return omap4_i2c_do_xfer(slave, (void *) data, size, true, repeat_start, cb, token);
 }
 
 static int omap4_i2c_slave_init(i2c_bus_t *bus, int address, enum i2c_slave_address_size address_size,
@@ -290,11 +295,14 @@ static void omap4_i2c_handle_irq(i2c_bus_t *bus)
     omap4_i2c_dev_t *dev = bus->priv;
     size_t bytes = 0;
 
-    uint16_t irq_status = omap4_i2c_reg_read(dev, OMAP4_I2C_IRQSTATUS);
-    uint16_t irq_enabled = omap4_i2c_reg_read(dev, OMAP4_I2C_IRQENABLE_SET);
+    uint16_t irq_status = omap4_i2c_reg_read(dev, OMAP4_I2C_IRQSTATUS_RAW);
+    if (dev->interrupts_enabled) {
+        uint16_t irq_enabled = omap4_i2c_reg_read(dev, OMAP4_I2C_IRQENABLE_SET);
 
-    /* mask disabled interrupts */
-    irq_status &= irq_enabled;
+        /* mask disabled interrupts */
+        irq_status &= irq_enabled;
+    }
+
     ZF_LOGV("IRQSTATUS = 0x%x", irq_status);
 
     if (irq_status & IRQSTATUS_NACK) {
@@ -318,6 +326,10 @@ static void omap4_i2c_handle_irq(i2c_bus_t *bus)
             bus->cb(bus, dev->status, dev->buf_pos, bus->token);
             bus->cb = NULL;
             bus->token = NULL;
+        }
+
+        if (dev->interrupts_enabled) {
+            omap4_i2c_disable_interrupts(dev);
         }
 
         return;
