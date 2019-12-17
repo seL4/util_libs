@@ -322,6 +322,9 @@ endif()
 
 # Generate linker script
 separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
+if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
+endif()
 add_custom_command(
     OUTPUT "linker.lds_pp"
     COMMAND

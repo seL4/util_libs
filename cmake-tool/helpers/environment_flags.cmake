@@ -50,7 +50,7 @@ macro(add_default_compilation_options)
         "${CMAKE_EXE_LINKER_FLAGS} -static -nostdlib -z max-page-size=${LinkPageSize}"
     )
 
-    if(KernelArchX86 AND NOT LLVM_TOOLCHAIN)
+    if(KernelArchX86)
         add_compile_options(-mtls-direct-seg-refs)
     endif()
 
@@ -62,6 +62,11 @@ endmacro()
 macro(gcc_print_file_name var file)
     if(NOT (DEFINED "${var}"))
         separate_arguments(c_arguments UNIX_COMMAND "${CMAKE_C_FLAGS}")
+        # Append the target flag to the arguments if we are using clang so the
+        # correct crt files are found
+        if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+            list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
+        endif()
         execute_process(
             COMMAND ${CMAKE_C_COMPILER} ${c_arguments} -print-file-name=${file}
             OUTPUT_VARIABLE ${var}
