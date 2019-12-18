@@ -430,7 +430,7 @@ static int exynos_gpio_set_level(gpio_t *gpio, enum gpio_level level)
     if (level == GPIO_LEVEL_HIGH) {
         exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), 1);
     } else {
-        exynos_mux_set_data(cfg, GPIOID_PIN(gpio->id), 0);
+        exynos_mux_set_dat(cfg, GPIOID_PIN(gpio->id), 0);
     }
     return 0;
 }
