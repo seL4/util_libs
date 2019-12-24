@@ -192,21 +192,45 @@ int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_f
         return -FDT_ERR_BADSTRUCTURE;
     }
 
-    uint32_t intr_controller_phandle = READ_CELL(1, intr_parent_prop, 0);
-    ZF_LOGF_IF(intr_controller_phandle == 0,
-               "Failed to get the phandle of the interrupt controller of this node");
-    int intr_controller_offset = fdt_node_offset_by_phandle(dtb_blob, intr_controller_phandle);
-    ZF_LOGF_IF(intr_controller_offset < 0, "Failed to get the offset of the interrupt controller");
+    /* check if this controller is just a interrupt forwarder/not the root interrupt controller,
+     * and if it is, find the root controller
+     */
+    bool is_root_controller = false;
+    int root_intr_controller_offset = 0;
+    uint32_t root_intr_controller_phandle = 0;
+    while (!is_root_controller) {
+        uint32_t intr_controller_phandle = READ_CELL(1, intr_parent_prop, 0);
+        ZF_LOGF_IF(intr_controller_phandle == 0,
+                   "Failed to get the phandle of the interrupt controller of this node");
+        int intr_controller_offset = fdt_node_offset_by_phandle(dtb_blob, intr_controller_phandle);
+        ZF_LOGF_IF(intr_controller_offset < 0, "Failed to get the offset of the interrupt controller");
+        intr_parent_prop = fdt_getprop(dtb_blob, intr_controller_offset, "interrupt-parent", NULL);
+
+        /* The root interrupt controller node has one of two characteristics:
+         *      1. It has a 'interrupt-parent' property that points back to itself
+         *      2. It has no 'interrupt-parent' property
+         */
+        if (intr_parent_prop && intr_controller_phandle == READ_CELL(1, intr_parent_prop, 0)) {
+            is_root_controller = true;
+        } else if (!intr_parent_prop) {
+            is_root_controller = true;
+        }
+
+        if (is_root_controller) {
+            root_intr_controller_offset = intr_controller_offset;
+            root_intr_controller_phandle = intr_controller_phandle;
+        }
+    }
 
     /* check the compatible string against our list of support interrupt controllers */
-    ps_irqchip_t **irqchip = find_compatible_irq_controller(dtb_blob, intr_controller_offset);
+    ps_irqchip_t **irqchip = find_compatible_irq_controller(dtb_blob, root_intr_controller_offset);
     if (irqchip == NULL) {
         ZF_LOGE("Could not find a parser for this particular interrupt controller");
         return -ENOENT;
     }
 
     /* delegate to the interrupt controller specific code */
-    int error = (*irqchip)->parser_fn(dtb_blob, node_offset, intr_controller_phandle, callback, token);
+    int error = (*irqchip)->parser_fn(dtb_blob, node_offset, root_intr_controller_phandle, callback, token);
     if (error) {
         ZF_LOGE("Failed to parse and walk the interrupt field");
         return error;
