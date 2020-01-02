@@ -55,11 +55,8 @@ static pmem_region_t imx_ltimer_paddrs[] = {
 
 typedef struct {
     imx_timers_t timers;
-    void *timer_vaddrs[N_PADDRS];
-    irq_id_t timer_irq_ids[N_IRQS];
-    timer_callback_data_t callback_datas[N_IRQS];
-    ltimer_callback_fn_t user_callback;
-    void *user_callback_token;
+    bool timestamp_initialised;
+    bool timeout_initialised;
     ps_io_ops_t ops;
 } imx_ltimer_t;
 
@@ -159,24 +156,14 @@ static void destroy(void *data)
 
     imx_ltimer_t *imx_ltimer = data;
 
-    int error = 0;
-
-    for (int i = 0; i < N_IRQS; i++) {
-        if (imx_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
-            error = ps_irq_unregister(&imx_ltimer->ops.irq_ops, imx_ltimer->timer_irq_ids[i]);
-            ZF_LOGF_IF(error, "Failed to unregister IRQ!");
-        }
+    if (imx_ltimer->timestamp_initialised) {
+        imx_stop_timestamp(&imx_ltimer->timers);
+        ZF_LOGF_IF(imx_destroy_timestamp(&imx_ltimer->timers), "Failed to destroy the timestamp timer");
     }
 
-    for (int i = 0; i < N_PADDRS; i++) {
-        if (imx_ltimer->timer_vaddrs[i]) {
-            if (i == TIMESTAMP_IDX) {
-                imx_stop_timestamp(&imx_ltimer->timers);
-            } else {
-                imx_stop_timeout(&imx_ltimer->timers);
-            }
-            ps_io_unmap(&imx_ltimer->ops.io_mapper, imx_ltimer->timer_vaddrs[i], PAGE_SIZE_4K);
-        }
+    if (imx_ltimer->timeout_initialised) {
+        imx_stop_timeout(&imx_ltimer->timers);
+        ZF_LOGF_IF(imx_destroy_timeout(&imx_ltimer->timers), "Failed to destroy the timeout timer");
     }
 
     ps_free(&imx_ltimer->ops.malloc_ops, sizeof(imx_ltimer), imx_ltimer);
@@ -197,46 +184,12 @@ static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
     }
     assert(ltimer->data != NULL);
 
-    /* Initialise the IRQ IDs */
-    imx_ltimer_t *imx_ltimer = ltimer->data;
-    for (int i = 0; i < N_IRQS; i++) {
-        imx_ltimer->timer_irq_ids[i] = PS_INVALID_IRQ_ID;
-    }
-
-    return 0;
-}
-
-static int init_ltimer(ltimer_t *ltimer)
-{
-    assert(ltimer != NULL);
-    imx_ltimer_t *imx_ltimer = ltimer->data;
-
-    int error = imx_init_timestamp(&imx_ltimer->timers, imx_ltimer->timer_vaddrs[TIMESTAMP_IDX]);
-    if (error) {
-        ZF_LOGE("Failed to init timestamp timer");
-        ltimer_destroy(ltimer);
-        return error;
-    }
-
-    imx_start_timestamp(&imx_ltimer->timers);
-
-    error = imx_init_timeout(&imx_ltimer->timers, imx_ltimer->timer_vaddrs[TIMEOUT_IDX]);
-    if (error) {
-        ZF_LOGE("Failed to init timeout timer");
-        ltimer_destroy(ltimer);
-        return error;
-    }
     return 0;
 }
 
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
-    error = create_ltimer(ltimer, ops);
+    int error = create_ltimer(ltimer, ops);
     if (error) {
         return error;
     }
@@ -244,36 +197,25 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     imx_ltimer_t *imx_ltimer = ltimer->data;
 
     imx_ltimer->ops = ops;
-    imx_ltimer->user_callback = callback;
-    imx_ltimer->user_callback_token = callback_token;
 
-    /* register the interrupts that we need */
-    for (int i = 0; i < N_IRQS; i++) {
-        imx_ltimer->callback_datas[i] = (timer_callback_data_t) { .ltimer = ltimer,
-                                                                  .irq = &imx_ltimer_irqs[i],
-                                                                  .irq_handler = handle_irq };
-        imx_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, imx_ltimer_irqs[i],
-                                                       handle_irq_wrapper, &imx_ltimer->callback_datas[i]);
-        if (imx_ltimer->timer_irq_ids[i] < 0) {
-            ltimer_destroy(ltimer);
-            return EIO;
-        }
-    }
-
-    /* map the frames we need */
-    for (int i = 0; i < N_PADDRS; i++) {
-        imx_ltimer->timer_vaddrs[i] = ps_pmem_map(&ops, imx_ltimer_paddrs[i], false, PS_MEM_NORMAL);
-        if (imx_ltimer->timer_vaddrs[i] == NULL) {
-            ltimer_destroy(ltimer);
-            return ENOMEM;
-        }
-    }
-
-    init_ltimer(ltimer);
+    error = imx_init_timestamp(&imx_ltimer->timers, ops, callback, callback_token);
     if (error) {
+        ZF_LOGE("Failed to init timestamp timer");
         ltimer_destroy(ltimer);
         return error;
     }
+
+    imx_ltimer->timestamp_initialised = true;
+
+    imx_start_timestamp(&imx_ltimer->timers);
+
+    error = imx_init_timeout(&imx_ltimer->timers, ops, callback, callback_token);
+    if (error) {
+        ZF_LOGE("Failed to init timeout timer");
+        ltimer_destroy(ltimer);
+        return error;
+    }
+    imx_ltimer->timeout_initialised = true;
 
     /* success! */
     return 0;

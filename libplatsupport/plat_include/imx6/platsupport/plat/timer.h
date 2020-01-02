@@ -39,11 +39,6 @@ typedef struct {
     epit_t timeout;
 } imx_timers_t;
 
-static inline void handle_irq_timestamp(imx_timers_t *timers)
-{
-    gpt_handle_irq(&timers->timestamp);
-}
-
 static inline uint64_t imx_get_time(imx_timers_t *timers)
 {
     return gpt_get_time(&timers->timestamp);
@@ -59,18 +54,22 @@ static inline void imx_stop_timestamp(imx_timers_t *timers)
     gpt_stop(&timers->timestamp);
 }
 
-static inline int imx_init_timestamp(imx_timers_t *timers, void *vaddr)
+static inline int imx_init_timestamp(imx_timers_t *timers, ps_io_ops_t io_ops, ltimer_callback_fn_t user_callback,
+                                     void *user_callback_token)
 {
     gpt_config_t config = {
-        .vaddr = vaddr,
+        .io_ops = io_ops,
+        .user_callback = user_callback,
+        .user_callback_token = user_callback_token,
+        .device_path = GPT_PATH,
         .prescaler = GPT_PRESCALER
     };
     return gpt_init(&timers->timestamp, config);
 }
 
-static inline void handle_irq_timeout(imx_timers_t *timers)
+static inline int imx_destroy_timestamp(imx_timers_t *timers)
 {
-	epit_handle_irq(&timers->timeout);
+    return gpt_destroy(&timers->timestamp);
 }
 
 static inline int imx_set_timeout(imx_timers_t *timers, uint64_t ns, bool periodic)
@@ -83,12 +82,20 @@ static inline void imx_stop_timeout(imx_timers_t *timers)
     epit_stop(&timers->timeout);
 }
 
-static inline int imx_init_timeout(imx_timers_t *timers, void *vaddr)
+static inline int imx_init_timeout(imx_timers_t *timers, ps_io_ops_t io_ops, ltimer_callback_fn_t user_callback,
+                                   void *user_callback_token)
 {
     epit_config_t config = {
-        .vaddr = vaddr,
-        .irq = TIMEOUT_INTERRUPT,
+        .io_ops = io_ops,
+        .user_callback = user_callback,
+        .user_callback_token = user_callback_token,
+        .device_path = EPIT_PATH,
         .prescaler = 0
     };
     return epit_init(&timers->timeout, config);
+}
+
+static inline int imx_destroy_timeout(imx_timers_t *timers)
+{
+    return epit_destroy(&timers->timeout);
 }

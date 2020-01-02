@@ -21,6 +21,8 @@
 #include <platsupport/mach/epit.h>
 #include <platsupport/plat/timer.h>
 
+#define CLEANUP_FAIL_TEXT "Failed to cleanup the EPIT after failing to initialise it"
+
 /* EPIT CONTROL REGISTER BITS */
 typedef enum {
     /*
@@ -139,6 +141,9 @@ int epit_set_timeout_ticks(epit_t *epit, uint64_t counterValue, bool periodic)
 
 int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
 {
+    if (epit->is_timestamp) {
+        ZF_LOGW("Using the EPIT as a timeout timer when it is configured as a timestamp timer");
+    }
     ZF_LOGF_IF(epit == NULL, "invalid epit provided");
     ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     /* Set counter modulus - this effectively sets the timeouts to us but doesn't
@@ -148,34 +153,66 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
     return epit_set_timeout_ticks(epit, counterValue, periodic);
 }
 
-bool epit_is_irq_raised(epit_t *epit)
+uint64_t epit_get_time(epit_t *epit)
 {
+    if (!epit->is_timestamp) {
+        ZF_LOGW("Using the EPIT as a timestamp timer when it is configured as a timeout timer");
+    }
     ZF_LOGF_IF(epit == NULL, "invalid epit provided");
     ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
-    /* there is only 1 bit in the epitsr, 1 indicates a compare bit has occured */
-    return !!epit->epit_map->epitsr;
-}
-
-uint32_t epit_read(epit_t *epit) {
-    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
-    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
-    return epit->epit_map->epitcnt;
-}
-
-uint64_t epit_ticks_to_ns(epit_t *epit, uint64_t ticks)
-{
+    uint64_t ticks = (epit->high_bits + !!epit->epit_map->epitsr) << 32llu;
+    ticks += (UINT32_MAX - epit->epit_map->epitcnt);
     return (ticks * 1000llu) / (IPG_FREQ / (epit->prescaler + 1));
 }
 
-int epit_handle_irq(epit_t *epit)
+static void epit_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    ZF_LOGF_IF(epit == NULL, "invalid epit provided");
-    ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
+    assert(data != NULL);
+    epit_t *epit = data;
     if (epit->epit_map->epitsr) {
         /* ack the irq */
         epit->epit_map->epitsr = 1;
+        if (epit->is_timestamp) {
+            epit->high_bits++;
+        }
     }
+    /* acknowledge the interrupt and call the user callback if any */
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the interrupt from the EPIT");
+    if (epit->user_callback) {
+        if (epit->is_timestamp) {
+            epit->user_callback(epit->user_callback_token, LTIMER_OVERFLOW_EVENT);
+        } else {
+            epit->user_callback(epit->user_callback_token, LTIMER_TIMEOUT_EVENT);
+        }
+    }
+}
 
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    assert(token != NULL);
+    /* Should only be called once. I.e. only one register field */
+    assert(curr_num == 0);
+    epit_t *epit = token;
+    epit->epit_map = (volatile struct epit_map *) ps_pmem_map(&epit->io_ops, pmem, false, PS_MEM_NORMAL);
+    if (!epit->epit_map) {
+        ZF_LOGE("Failed to map in registers for the EPIT");
+        return EIO;
+    }
+    epit->timer_pmem = pmem;
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    assert(token != NULL);
+    /* Should only be called once. I.e. only one interrupt field */
+    assert(curr_num == 0);
+    epit_t *epit = token;
+    epit->irq_id = ps_irq_register(&epit->io_ops.irq_ops, irq, epit_handle_irq, epit);
+    if (epit->irq_id < 0) {
+        ZF_LOGE("Failed to register the EPIT interrupt with the IRQ interface");
+        return EIO;
+    }
     return 0;
 }
 
@@ -186,21 +223,61 @@ int epit_init(epit_t *epit, epit_config_t config)
         return EINVAL;
     }
 
-    /* check the irq */
-    if (config.irq != EPIT1_INTERRUPT && config.irq != EPIT2_INTERRUPT) {
-        ZF_LOGE("Invalid irq %u for epit, expected %u or %u\n", config.irq,
-                EPIT1_INTERRUPT, EPIT2_INTERRUPT);
-        return EINVAL;
+    /* Initialise the structure */
+    epit->io_ops = config.io_ops;
+    epit->user_callback = config.user_callback;
+    epit->user_callback_token = config.user_callback_token;
+    epit->irq_id = PS_INVALID_IRQ_ID;
+    epit->prescaler = config.prescaler;
+    epit->is_timestamp = config.is_timestamp;
+
+    /* Read the timer's path in the DTB */
+    ps_fdt_cookie_t *cookie = NULL;
+    int error = ps_fdt_read_path(&epit->io_ops.io_fdt, &epit->io_ops.malloc_ops, config.device_path, &cookie);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&epit->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(epit_destroy(epit), CLEANUP_FAIL_TEXT);
+        return ENODEV;
     }
 
-    epit->epit_map = (volatile struct epit_map*)config.vaddr;
-    epit->prescaler = config.prescaler;
+    /* Walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&epit->io_ops.io_fdt, cookie, allocate_register_callback, epit);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&epit->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(epit_destroy(epit), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    /* Walk the interrupts and allocate the first */
+    error = ps_fdt_walk_irqs(&epit->io_ops.io_fdt, cookie, allocate_irq_callback, epit);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&epit->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(epit_destroy(epit), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    ZF_LOGF_IF(ps_fdt_cleanup_cookie(&epit->io_ops.malloc_ops, cookie),
+               "Failed to cleanup the FDT cookie after initialising the GPT");
 
     /* Disable EPIT. */
     epit->epit_map->epitcr = 0;
 
     /* Interrupt when compare with 0. */
     epit->epit_map->epitcmpr = 0;
+
+    return 0;
+}
+
+int epit_destroy(epit_t *epit)
+{
+    if (epit->epit_map) {
+        ZF_LOGF_IF(epit_stop(epit), "Failed to stop the GPT before de-allocating it");
+        ps_io_unmap(&epit->io_ops.io_mapper, (void *) epit->epit_map, (size_t) epit->timer_pmem.length);
+    }
+
+    if (epit->irq_id != PS_INVALID_IRQ_ID) {
+        ZF_LOGF_IF(ps_irq_unregister(&epit->io_ops.irq_ops, epit->irq_id), "Failed to unregister IRQ");
+    }
 
     return 0;
 }

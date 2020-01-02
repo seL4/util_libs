@@ -12,24 +12,40 @@
 
 #pragma once
 
-#include <platsupport/plat/epit_constants.h>
+#include <platsupport/io.h>
+#include <platsupport/ltimer.h>
+#include <platsupport/fdt.h>
 #include <platsupport/timer.h>
+#include <platsupport/plat/epit_constants.h>
 
 #include <stdint.h>
 
 typedef struct {
-    /* vaddr epit is mapped to */
-    void *vaddr;
-    /* irq for this epit (should be EPIT_INTERRUPT1 or EPIT_INTERRUPT2 depending on the epit */
-    uint32_t irq;
+    /* initialised ps_io_ops_t structure to allocate resources with */
+    ps_io_ops_t io_ops;
+    /* user callback function to be called on interrupt */
+    ltimer_callback_fn_t user_callback;
+    /* token to be passed into the callback function */
+    void *user_callback_token;
+    /* path to the epit node in the DTB */
+    char *device_path;
+    /* flag determining if this timer should be configured as a timestamp timer */
+    bool is_timestamp;
     /* prescaler to scale time by. 0 = divide by 1. 1 = divide by 2. ...*/
     uint32_t prescaler;
 } epit_config_t;
 
 struct epit_map;
 typedef struct epit {
+    ps_io_ops_t io_ops;
+    irq_id_t irq_id;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
+    pmem_region_t timer_pmem;
     volatile struct epit_map *epit_map;
     uint32_t prescaler;
+    bool is_timestamp;
+    uint64_t high_bits;
 } epit_t;
 
 static inline timer_properties_t
@@ -48,17 +64,13 @@ epit_timer_properties(void)
 
 /* initialise an epit struct */
 int epit_init(epit_t *epit, epit_config_t config);
+/* destroy the epit */
+int epit_destroy(epit_t *epit);
 /* turn off any pending irqs */
 int epit_stop(epit_t *epit);
 /* set a relative timeout */
 int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic);
 /* set a relative timeout in ticks */
 int epit_set_timeout_ticks(epit_t *epit, uint64_t ticks, bool periodic);
-/* handle an irq */
-int epit_handle_irq(epit_t *epit);
-/* check if an irq has occured */
-bool epit_is_irq_raised(epit_t *epit);
-/* read the value of the epit counter */
-uint32_t epit_read(epit_t *epit);
 /* convert epit ticks to ns */
-uint64_t epit_ticks_to_ns(epit_t *epit, uint64_t ticks);
+uint64_t epit_get_time(epit_t *epit);

@@ -25,6 +25,8 @@
    status register, so writing the value 0b111111 = 0x3F will clear it. */
 #define GPT_STATUS_REGISTER_CLEAR 0x3F
 
+#define CLEANUP_FAIL_TEXT "Failed to cleanup the GPT after failing to initialise it"
+
 /* GPT CONTROL REGISTER BITS */
 typedef enum {
     /*
@@ -199,10 +201,11 @@ int gpt_stop(gpt_t *gpt)
     return 0;
 }
 
-void gpt_handle_irq(gpt_t *gpt)
+static void gpt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
+    assert(data != NULL);
+    gpt_t *gpt = data;
     /* we've only set the GPT to interrupt on overflow */
-    assert(gpt != NULL);
     if (gpt->gpt_map->gptcr & BIT(FRR)) {
         /* free-run mode, we should only enable the rollover interrupt */
         if (gpt->gpt_map->gptsr & BIT(ROV)) {
@@ -211,6 +214,11 @@ void gpt_handle_irq(gpt_t *gpt)
     }
     /* clear the interrupt status register */
     gpt->gpt_map->gptsr = GPT_STATUS_REGISTER_CLEAR;
+    /* acknowledge the interrupt and call the user callback if any */
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the interrupt from the GPT");
+    if (gpt->user_callback) {
+        gpt->user_callback(gpt->user_callback_token, LTIMER_OVERFLOW_EVENT);
+    }
 }
 
 uint64_t gpt_get_time(gpt_t *gpt)
@@ -228,15 +236,76 @@ uint64_t gpt_get_time(gpt_t *gpt)
     return ns;
 }
 
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    assert(token != NULL);
+    /* Should only be called once. I.e. only one register field */
+    assert(curr_num == 0);
+    gpt_t *gpt = token;
+    gpt->gpt_map = (volatile struct gpt_map *) ps_pmem_map(&gpt->io_ops, pmem, false, PS_MEM_NORMAL);
+    if (!gpt->gpt_map) {
+        ZF_LOGE("Failed to map in registers for the GPT");
+        return EIO;
+    }
+    gpt->timer_pmem = pmem;
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    assert(token != NULL);
+    /* Should only be called once. I.e. only one interrupt field */
+    assert(curr_num == 0);
+    gpt_t *gpt = token;
+    gpt->irq_id = ps_irq_register(&gpt->io_ops.irq_ops, irq, gpt_handle_irq, gpt);
+    if (gpt->irq_id < 0) {
+        ZF_LOGE("Failed to register the GPT interrupt with the IRQ interface");
+        return EIO;
+    }
+    return 0;
+}
+
 int gpt_init(gpt_t *gpt, gpt_config_t config)
 {
+    /* Initialise the structure */
+    gpt->io_ops = config.io_ops;
+    gpt->user_callback = config.user_callback;
+    gpt->user_callback_token = config.user_callback_token;
+    gpt->irq_id = PS_INVALID_IRQ_ID;
+    gpt->prescaler = config.prescaler;
+
+    /* Read the timer's path in the DTB */
+    ps_fdt_cookie_t *cookie = NULL;
+    int error = ps_fdt_read_path(&gpt->io_ops.io_fdt, &gpt->io_ops.malloc_ops, config.device_path, &cookie);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&gpt->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(gpt_destroy(gpt), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    /* Walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&gpt->io_ops.io_fdt, cookie, allocate_register_callback, gpt);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&gpt->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(gpt_destroy(gpt), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    /* Walk the interrupts and allocate the first */
+    error = ps_fdt_walk_irqs(&gpt->io_ops.io_fdt, cookie, allocate_irq_callback, gpt);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&gpt->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(gpt_destroy(gpt), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    ZF_LOGF_IF(ps_fdt_cleanup_cookie(&gpt->io_ops.malloc_ops, cookie),
+               "Failed to cleanup the FDT cookie after initialising the GPT");
+
     uint32_t gptcr = 0;
     if (gpt == NULL) {
         return EINVAL;
     }
-
-    gpt->gpt_map = config.vaddr;
-    gpt->prescaler = config.prescaler;
 
     /* Disable GPT. */
     gpt->gpt_map->gptcr = 0;
@@ -275,6 +344,20 @@ int gpt_init(gpt_t *gpt, gpt_config_t config)
 #endif
 
     gpt->high_bits = 0;
+
+    return 0;
+}
+
+int gpt_destroy(gpt_t *gpt)
+{
+    if (gpt->gpt_map) {
+        ZF_LOGF_IF(gpt_stop(gpt), "Failed to stop the GPT before de-allocating it");
+        ps_io_unmap(&gpt->io_ops.io_mapper, (void *) gpt->gpt_map, (size_t) gpt->timer_pmem.length);
+    }
+
+    if (gpt->irq_id != PS_INVALID_IRQ_ID) {
+        ZF_LOGF_IF(ps_irq_unregister(&gpt->io_ops.irq_ops, gpt->irq_id), "Failed to unregister IRQ");
+    }
 
     return 0;
 }
