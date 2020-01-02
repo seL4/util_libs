@@ -50,17 +50,17 @@ typedef struct gpt {
  * but this driver can only count up
  * currently.
  */
-static inline timer_properties_t
-gpt_get_properies(void) {
+static inline timer_properties_t gpt_get_properies(void)
+{
     return (timer_properties_t) {
-		.upcounter = true,
+        .upcounter = true,
         .timeouts = true,
         .absolute_timeouts = false,
         .relative_timeouts = true,
         .periodic_timeouts = true,
         .bit_width = 32,
         .irqs = 1,
-	};
+    };
 }
 
 /*

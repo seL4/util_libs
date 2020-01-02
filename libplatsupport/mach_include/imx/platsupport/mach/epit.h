@@ -48,18 +48,17 @@ typedef struct epit {
     uint64_t high_bits;
 } epit_t;
 
-static inline timer_properties_t
-epit_timer_properties(void)
+static inline timer_properties_t epit_timer_properties(void)
 {
-   return (timer_properties_t) {
-     .upcounter = false,
-     .timeouts = true,
-     .relative_timeouts = true,
-     .absolute_timeouts = false,
-     .periodic_timeouts = true,
-     .bit_width = 32,
-     .irqs = 1,
-   };
+    return (timer_properties_t) {
+        .upcounter = false,
+        .timeouts = true,
+        .relative_timeouts = true,
+        .absolute_timeouts = false,
+        .periodic_timeouts = true,
+        .bit_width = 32,
+        .irqs = 1,
+    };
 }
 
 /* initialise an epit struct */

@@ -148,7 +148,7 @@ int epit_set_timeout(epit_t *epit, uint64_t ns, bool periodic)
     ZF_LOGF_IF(epit->epit_map == NULL, "uninitialised epit provided");
     /* Set counter modulus - this effectively sets the timeouts to us but doesn't
      * overflow as fast. */
-    uint64_t counterValue =  (uint64_t) (IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
+    uint64_t counterValue = (uint64_t)(IPG_FREQ / (epit->prescaler + 1)) * (ns / 1000ULL);
 
     return epit_set_timeout_ticks(epit, counterValue, periodic);
 }
