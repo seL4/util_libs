@@ -12,18 +12,6 @@
 
 #pragma once
 
-/**
- * Address at which the EPIT2 should be in the initial
- * device space. Map a frame, uncached, to this address
- * to access the gpt. Pass the virtual address of
- * this frame onto timer_init to use the gpt.
- */
-#define EPIT1_DEVICE_PADDR 0x53f94000
-#define EPIT1_INTERRUPT 28
-
-#define EPIT2_DEVICE_PADDR 0x53f98000
-#define EPIT2_INTERRUPT 27
-
 #define EPIT1_PATH "/soc/aips@53f00000/timer@53f94000"
 #define EPIT2_PATH "/soc/aips@53f00000/timer@53f98000"
 #define GPT_PATH "/soc/aips@53f00000/timer@53f90000"

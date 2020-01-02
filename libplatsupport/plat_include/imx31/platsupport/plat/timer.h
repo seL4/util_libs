@@ -21,8 +21,6 @@
 
 #ifdef CONFIG_KERNEL_MCS
 /* for RT, we use the EPIT as timestamp timer as the kernel is using the GPT */
-#define TIMESTAMP_INTERRUPT EPIT1_INTERRUPT
-#define TIMESTAMP_DEVICE_PADDR EPIT1_DEVICE_PADDR
 
 typedef struct {
     epit_t timestamp;
@@ -64,8 +62,6 @@ static inline int imx_destroy_timestamp(imx_timers_t *timers)
 }
 #else
 /* for baseline, the timestamp timer is the GPT as the kernel is using EPIT1 */
-#define TIMESTAMP_INTERRUPT GPT1_INTERRUPT
-#define TIMESTAMP_DEVICE_PADDR GPT1_DEVICE_PADDR
 
 typedef struct {
     gpt_t timestamp;
@@ -107,8 +103,6 @@ static inline int imx_destroy_timestamp(imx_timers_t *timers)
 #endif
 
 /* for both kernel versions, we use EPIT2 as the timeout timer */
-#define TIMEOUT_INTERRUPT EPIT2_INTERRUPT
-#define TIMEOUT_DEVICE_PADDR EPIT2_DEVICE_PADDR
 
 static inline int imx_set_timeout(imx_timers_t *timers, uint64_t ns, bool periodic)
 {

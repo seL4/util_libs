@@ -12,15 +12,6 @@
 
 #pragma once
 
-/**
- * Address at which the GPT should be in the initial
- * device space. Map a frame, uncached, to this address
- * to access the gpt. Pass the virtual address of
- * this frame onto timer_init to use the gpt.
- */
-#define GPT1_DEVICE_PADDR 0x02098000
-#define GPT1_INTERRUPT 87
-
 #define GPT_PRESCALER (1)
 
 #define GPT_PATH "/soc/aips-bus@2000000/gpt@2098000"

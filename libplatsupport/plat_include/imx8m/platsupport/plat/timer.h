@@ -20,12 +20,6 @@
 
 #include <platsupport/mach/gpt.h>
 
-#define TIMESTAMP_INTERRUPT GPT1_INTERRUPT
-#define TIMEOUT_INTERRUPT GPT2_INTERRUPT
-
-#define TIMESTAMP_DEVICE_PADDR     GPT1_DEVICE_PADDR
-#define TIMEOUT_DEVICE_PADDR     GPT2_DEVICE_PADDR
-
 typedef struct {
     gpt_t timestamp;
     gpt_t timeout;

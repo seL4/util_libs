@@ -27,13 +27,6 @@
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 
-/* use the GPT as the timestamp timer */
-#define TIMESTAMP_INTERRUPT GPT1_INTERRUPT
-#define TIMESTAMP_DEVICE_PADDR GPT1_DEVICE_PADDR
-/* use EPIT2 as the timeout timer */
-#define TIMEOUT_INTERRUPT EPIT2_INTERRUPT
-#define TIMEOUT_DEVICE_PADDR EPIT2_DEVICE_PADDR
-
 typedef struct {
     gpt_t timestamp;
     epit_t timeout;

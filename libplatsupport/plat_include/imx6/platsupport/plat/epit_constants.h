@@ -12,10 +12,4 @@
 
 #pragma once
 
-#define EPIT2_DEVICE_PADDR 0x020D4000
-#define EPIT1_DEVICE_PADDR 0x020D0000
-
-#define EPIT1_INTERRUPT 88
-#define EPIT2_INTERRUPT 89
-
 #define EPIT_PATH "/soc/aips-bus@2000000/epit@20d4000"

@@ -23,91 +23,12 @@
 
 #include "../../ltimer.h"
 
-#define TIMESTAMP_IDX 0
-#define TIMEOUT_IDX 1
-
-static ps_irq_t imx_ltimer_irqs[] = {
-    {
-        .type = PS_INTERRUPT,
-        .irq.number = TIMESTAMP_INTERRUPT,
-    },
-    {
-        .type = PS_INTERRUPT,
-        .irq.number = TIMEOUT_INTERRUPT,
-    }
-};
-
-static pmem_region_t imx_ltimer_paddrs[] = {
-    {
-        .type = PMEM_TYPE_DEVICE,
-        .base_addr = TIMESTAMP_DEVICE_PADDR,
-        .length = PAGE_SIZE_4K
-    },
-    {
-        .type = PMEM_TYPE_DEVICE,
-        .base_addr = TIMEOUT_DEVICE_PADDR,
-        .length = PAGE_SIZE_4K
-    }
-};
-
-#define N_IRQS ARRAY_SIZE(imx_ltimer_irqs)
-#define N_PADDRS ARRAY_SIZE(imx_ltimer_paddrs)
-
 typedef struct {
     imx_timers_t timers;
     bool timestamp_initialised;
     bool timeout_initialised;
     ps_io_ops_t ops;
 } imx_ltimer_t;
-
-static size_t get_num_irqs(void *data)
-{
-    return N_IRQS;
-}
-
-static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
-{
-    assert(n < N_IRQS);
-    *irq = imx_ltimer_irqs[n];
-    return 0;
-}
-
-static size_t get_num_pmems(void *data)
-{
-    return N_PADDRS;
-}
-
-static int get_nth_pmem(void *data, size_t n, pmem_region_t *paddr)
-{
-    *paddr = imx_ltimer_paddrs[n];
-    return 0;
-}
-
-static int handle_irq(void *data, ps_irq_t *irq)
-{
-    assert(data != NULL);
-    imx_ltimer_t *imx_ltimer = data;
-    ltimer_event_t event;
-    switch (irq->irq.number) {
-        case TIMESTAMP_INTERRUPT:
-            handle_irq_timestamp(&imx_ltimer->timers);
-            event = LTIMER_OVERFLOW_EVENT;
-            break;
-        case TIMEOUT_INTERRUPT:
-            handle_irq_timeout(&imx_ltimer->timers);
-            event = LTIMER_TIMEOUT_EVENT;
-            break;
-        default:
-            ZF_LOGE("Unknown irq");
-            return EINVAL;
-    }
-
-    if (imx_ltimer->user_callback) {
-        imx_ltimer->user_callback(imx_ltimer->user_callback_token, event);
-    }
-
-    return 0;
-}
 
 static int get_time(void *data, uint64_t *time)
 {
@@ -221,16 +142,10 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     return 0;
 }
 
+/* This function is intended to be deleted,
+ * this is just left here for now so that stuff can compile */
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-    if (ltimer == NULL) {
-        ZF_LOGE("Timer is NULL!");
-        return EINVAL;
-    }
-
-    ltimer->get_num_irqs = get_num_irqs;
-    ltimer->get_nth_irq = get_nth_irq;
-    ltimer->get_num_pmems = get_num_pmems;
-    ltimer->get_nth_pmem = get_nth_pmem;
-    return 0;
+    ZF_LOGE("get_(nth/num)_(irqs/pmems) are not valid");
+    return EINVAL;
 }
