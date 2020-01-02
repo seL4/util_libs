@@ -23,3 +23,4 @@
 
 #define GPT_PRESCALER (1)
 
+#define GPT_PATH "/soc/aips-bus@2000000/gpt@2098000"

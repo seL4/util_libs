@@ -18,3 +18,4 @@
 #define EPIT1_INTERRUPT 88
 #define EPIT2_INTERRUPT 89
 
+#define EPIT_PATH "/soc/aips-bus@2000000/epit@20d4000"

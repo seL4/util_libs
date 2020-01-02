@@ -24,3 +24,6 @@
 #define EPIT2_DEVICE_PADDR 0x53f98000
 #define EPIT2_INTERRUPT 27
 
+#define EPIT1_PATH "/soc/aips@53f00000/timer@53f94000"
+#define EPIT2_PATH "/soc/aips@53f00000/timer@53f98000"
+#define GPT_PATH "/soc/aips@53f00000/timer@53f90000"
