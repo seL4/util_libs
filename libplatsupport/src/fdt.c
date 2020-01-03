@@ -164,15 +164,8 @@ int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_f
         }
     }
 
-    /* NOTE: apparently fdt_parent_offset is expensive to use,
-     * maybe manipulate the path to get the parent's node path instead? */
-    int parent_offset = fdt_parent_offset(dtb_blob, node_offset);
-    if (parent_offset < 0) {
-        return parent_offset;
-    }
-
     /* get the interrupt controller of the node */
-    int curr_offset = parent_offset;
+    int curr_offset = node_offset;
     bool found_controller = false;
     const void *intr_parent_prop;
     while (curr_offset >= 0 && !found_controller) {
