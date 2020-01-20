@@ -121,6 +121,14 @@ typedef void (*ethif_raw_tx_complete)(void *cb_cookie, void *cookie);
  */
 typedef int (*ethif_driver_init)(struct eth_driver *driver, ps_io_ops_t io_ops, void *config);
 
+/**
+ * Get the device MAC address
+ * 
+ * @param driver    Pointer to ethernet driver
+ * @param mac       Pointer to 6 byte array to be filled in device MAC address
+ */
+typedef void (*ethif_get_mac)(struct eth_driver *driver, uint8_t *mac);
+
 /* Structure defining the set of functions an ethernet driver
  * must implement and expose */
 struct raw_iface_funcs {
@@ -129,6 +137,7 @@ struct raw_iface_funcs {
     ethif_raw_poll        raw_poll;
     ethif_print_state_t print_state;
     ethif_low_level_init_t low_level_init;
+    ethif_get_mac get_mac;
 };
 
 /* Structure defining the set of functions an ethernet driver
@@ -160,7 +169,6 @@ struct dma_buf_cookie {
  */
 struct arm_eth_plat_config {
     void* buffer_addr;
-    uint8_t mac_addr[6];
     uint8_t prom_mode;
 };
 

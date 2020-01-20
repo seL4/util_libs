@@ -344,12 +344,19 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     return ETHIF_TX_ENQUEUED;
 }
 
+static void get_mac(struct eth_driver *driver, uint8_t *mac)
+{
+    struct enet *enet = ((struct imx6_eth_data *)driver->eth_data)->enet;
+    enet_get_mac(enet, (unsigned char *)mac);
+}
+
 static struct raw_iface_funcs iface_fns = {
     .raw_handleIRQ = handle_irq,
     .print_state = print_state,
     .low_level_init = low_level_init,
     .raw_tx = raw_tx,
-    .raw_poll = raw_poll
+    .raw_poll = raw_poll,
+    .get_mac = get_mac
 };
 
 int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
@@ -414,13 +421,13 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     eth_data->enet = enet;
 
     if (plat_config->prom_mode) {
-        if (ocotp == NULL || ocotp_get_mac(ocotp, mac)) {
-            memcpy(mac, DEFAULT_MAC, 6);
-        }
         enet_prom_enable(enet);
     } else {
-        memcpy(mac, plat_config->mac_addr, 6);
         enet_prom_disable(enet);
+    }
+
+    if (ocotp == NULL || ocotp_get_mac(ocotp, mac)) {
+        memcpy(mac, DEFAULT_MAC, 6);
     }
 
     enet_set_mac(enet, mac);

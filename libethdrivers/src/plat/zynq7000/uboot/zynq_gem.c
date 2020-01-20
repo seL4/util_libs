@@ -431,8 +431,23 @@ struct eth_device *zynq_gem_initialize(phys_addr_t base_addr,
 
 	dev->iobase = base_addr;
 
-	/* TODO: Get MAC Address from CAmkES Configuration */
-	memcpy(dev->enetaddr, ZYNQ_DEFAULT_MAC, 6);
+    /* fill enetaddr */
+    struct zynq_gem_regs *regs = (struct zynq_gem_regs *)base_addr;
+	u32 maclow = readl(&regs->laddr[0][LADDR_LOW]);
+	u32 machigh = readl(&regs->laddr[0][LADDR_HIGH]);
+
+	if (maclow | machigh) {
+		dev->enetaddr[0] = maclow;
+		dev->enetaddr[1] = maclow >> 8;
+		dev->enetaddr[2] = maclow >> 16;
+		dev->enetaddr[3] = maclow >> 24;
+
+		dev->enetaddr[4] = machigh;
+		dev->enetaddr[5] = machigh >> 8;
+	} else {
+		memcpy(dev->enetaddr, ZYNQ_DEFAULT_MAC, 6);
+	}
+
 
 	miiphy_register(dev->name, zynq_gem_miiphyread, zynq_gem_miiphy_write);
 	priv->bus = miiphy_get_dev_by_name(dev->name);

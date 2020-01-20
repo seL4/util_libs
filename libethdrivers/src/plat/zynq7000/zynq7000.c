@@ -353,12 +353,20 @@ static void raw_poll(struct eth_driver *driver)
     fill_rx_bufs(driver);
 }
 
+static void get_mac(struct eth_driver *driver, uint8_t *mac)
+{
+    struct eth_device *eth_dev = ((struct zynq7000_eth_data *)driver->eth_data)->eth_dev;
+    memcpy(mac, eth_dev->enetaddr, 6);
+}
+
+
 static struct raw_iface_funcs iface_fns = {
     .raw_handleIRQ = handle_irq,
     .print_state = print_state,
     .low_level_init = low_level_init,
     .raw_tx = raw_tx,
-    .raw_poll = raw_poll
+    .raw_poll = raw_poll,
+    .get_mac = get_mac
 };
 
 int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
@@ -414,8 +422,6 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     }
     eth_data->eth_dev = eth_dev;
 
-    zynq_gem_setup_mac(eth_dev);
-
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)eth_dev->iobase;
 
     /* Initialize the buffer descriptor registers */
@@ -427,8 +433,6 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     if (plat_config->prom_mode) {
         zynq_gem_prom_enable(eth_dev);
     } else {
-        memcpy(eth_dev->enetaddr, plat_config->mac_addr, 6);
-        zynq_gem_setup_mac(eth_dev);
         zynq_gem_prom_disable(eth_dev);
     }
 
