@@ -38,7 +38,8 @@ struct eth_driver;
                     inline and buffer can be freed. ETHIF_TX_FAILED if transmit could not
                     be done
  */
-typedef int (*ethif_raw_tx)(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie);
+typedef int (*ethif_raw_tx)(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len,
+                            void *cookie);
 
 /**
  * Handle an IRQ event
@@ -59,7 +60,7 @@ typedef void (*ethif_raw_handleIRQ_t)(struct eth_driver *driver, int irq);
 typedef void (*ethif_low_level_init_t)(struct eth_driver *driver, uint8_t *mac, int *mtu);
 
 /* Debug method for printing internal driver state */
-typedef void (*ethif_print_state_t)(struct eth_driver* driver);
+typedef void (*ethif_print_state_t)(struct eth_driver *driver);
 
 /**
  * Request the driver to poll for any changes. This can
@@ -123,7 +124,7 @@ typedef int (*ethif_driver_init)(struct eth_driver *driver, ps_io_ops_t io_ops, 
 
 /**
  * Get the device MAC address
- * 
+ *
  * @param driver    Pointer to ethernet driver
  * @param mac       Pointer to 6 byte array to be filled in device MAC address
  */
@@ -151,7 +152,7 @@ struct raw_iface_callbacks {
 
 /* Structure to hold the interface for an ethernet driver */
 struct eth_driver {
-    void* eth_data;
+    void *eth_data;
     struct raw_iface_funcs i_fn;
     struct raw_iface_callbacks i_cb;
     void *cb_cookie;
@@ -160,15 +161,15 @@ struct eth_driver {
 };
 
 struct dma_buf_cookie {
-    void* vbuf;
-    void* pbuf;
+    void *vbuf;
+    void *pbuf;
 };
 
 /* Structure for i.MX6 and Zynq7000 Drivers
  * TODO: Move to ARCH Specific Folder
  */
 struct arm_eth_plat_config {
-    void* buffer_addr;
+    void *buffer_addr;
     uint8_t prom_mode;
 };
 
