@@ -80,6 +80,7 @@ static int parse_arm_gic_interrupts(char *dtb_blob, int node_offset, int intr_co
 }
 
 char *arm_gic_compatible_list[] = {
+    "arm,gic-400",
     "arm,cortex-a9-gic",
     "arm,cortex-a15-gic",
     NULL
