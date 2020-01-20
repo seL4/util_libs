@@ -34,6 +34,11 @@ typedef enum irq_type {
     PS_OTHER,
 } irq_type_t;
 
+typedef enum irq_trigger_type {
+    PS_LEVEL_TRIGGERED,
+    PS_EDGE_TRIGGERED,
+} irq_trigger_type_t;
+
 typedef struct {
     irq_type_t type;
     union {
