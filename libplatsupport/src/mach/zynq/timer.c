@@ -23,6 +23,8 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
+#define CLEANUP_FAIL_TEXT "Failed to cleanup the TTC after failing to initialise it"
+
 #define CLKCTRL_EXT_NEDGE           BIT(6)
 #define CLKCTRL_EXT_SRC_EN          BIT(5)
 #define CLKCTRL_PRESCALE_VAL(N)     (((N) & 0xf) << 1) /* rate = clk_src/[2^(N+1)] */
@@ -110,6 +112,10 @@
 #define TTCX_TIMER2_OFFSET 0x4
 #define TTCX_TIMER3_OFFSET 0x8
 
+#define TTCX_TIMER1_IRQ_POS 0
+#define TTCX_TIMER2_IRQ_POS 1
+#define TTCX_TIMER3_IRQ_POS 2
+
 struct ttc_tmr_regs {
     /* Controls prescaler, selects clock input, edge */
     uint32_t clk_ctrl[3];   /* +0x00 */
@@ -143,6 +149,93 @@ static inline ttc_tmr_regs_t*
 ttc_get_regs(ttc_t *ttc)
 {
     return ttc->regs;
+}
+
+static inline size_t ttc_get_timer_shift(ttc_id_t id)
+{
+    switch (id) {
+    case TTC0_TIMER1:
+    case TTC1_TIMER1:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER1:
+    case TTC3_TIMER1:
+#endif
+        return TTCX_TIMER1_OFFSET;
+    case TTC0_TIMER2:
+    case TTC1_TIMER2:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER2:
+    case TTC3_TIMER2:
+#endif
+        return TTCX_TIMER2_OFFSET;
+    case TTC0_TIMER3:
+    case TTC1_TIMER3:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER3:
+    case TTC3_TIMER3:
+#endif
+        return TTCX_TIMER3_OFFSET;
+    default:
+        ZF_LOGF("Invalid ttc_id_t!");
+        return 0;
+    }
+}
+
+static inline unsigned ttc_get_irq_pos(ttc_id_t id)
+{
+    switch (id) {
+    case TTC0_TIMER1:
+    case TTC1_TIMER1:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER1:
+    case TTC3_TIMER1:
+#endif
+        return TTCX_TIMER1_IRQ_POS;
+    case TTC0_TIMER2:
+    case TTC1_TIMER2:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER2:
+    case TTC3_TIMER2:
+#endif
+        return TTCX_TIMER2_IRQ_POS;
+    case TTC0_TIMER3:
+    case TTC1_TIMER3:
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER3:
+    case TTC3_TIMER3:
+#endif
+        return TTCX_TIMER3_IRQ_POS;
+    default:
+        ZF_LOGF("Invalid ttc_id_t!");
+        return 0;
+    }
+}
+
+static inline char *ttc_get_device_path(ttc_id_t id)
+{
+    switch (id) {
+    case TTC0_TIMER1:
+    case TTC0_TIMER2:
+    case TTC0_TIMER3:
+        return TTC0_PATH;
+    case TTC1_TIMER1:
+    case TTC1_TIMER2:
+    case TTC1_TIMER3:
+        return TTC1_PATH;
+#ifdef CONFIG_PLAT_ZYNQMP
+    case TTC2_TIMER1:
+    case TTC2_TIMER2:
+    case TTC2_TIMER3:
+        return TTC2_PATH;
+    case TTC3_TIMER1:
+    case TTC3_TIMER2:
+    case TTC3_TIMER3:
+        return TTC3_PATH;
+#endif /* CONFIG_PLAT_ZYNQMP */
+    default:
+        ZF_LOGF("Invalid ttc_id_t!");
+        return NULL;
+    }
 }
 
 /****************** Clocks ******************/
@@ -233,6 +326,23 @@ _ttc_set_freq(ttc_t *ttc, freq_t hz)
     return ttc->freq;
 }
 
+static inline bool
+_ttc_check_interrupt(ttc_t *ttc)
+{
+    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    /* The int_sts register is being accessed through typedef ttc_tmr_regs_t
+     * which is marked volatile, so the compiler will not elide this read.
+     */
+    uint32_t res = *regs->int_sts;
+    /* There are no data dependencies within this function that imply that the
+     * CPU cannot reorder this read in the pipeline. Use a CPU read barrier to
+     * inform the CPU that it should stall reads until this read has completed.
+     */
+    THREAD_MEMORY_RELEASE();
+
+    return !!res;
+}
+
 /********************************************/
 
 /* Computes the optimal clock frequency for interrupting after
@@ -292,7 +402,6 @@ int ttc_stop(ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl |= CNTCTRL_STOP;
-    ttc_handle_irq(ttc);
     return 0;
 }
 
@@ -324,25 +433,36 @@ _ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
     return 0;
 }
 
-int ttc_handle_irq(ttc_t *ttc)
+static void ttc_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
+    assert(data != NULL);
+    ttc_t *ttc = data;
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
 
-    /* The MATCH0 interrupt is used in oneshot mode. It is enabled when a
-     * oneshot function is called, and disabled here so only one interrupt
-     * is triggered per call. */
-    *regs->int_en &= ~INT_MATCH0;
+    bool interrupt_pending = _ttc_check_interrupt(ttc);
 
-    /* The int_sts register is being accessed through typedef ttc_tmr_regs_t
-     * which is marked volatile, so the compiler will not elide this read.
-     */
-    uint32_t res = regs->int_sts[0];
-    /* There are no data dependencies within this function that imply that the
-     * CPU cannot reorder this read in the pipeline. Use a CPU read barrier to
-     * inform the CPU that it should stall reads until this read has completed.
-     */
-    THREAD_MEMORY_RELEASE();
-    return res;
+    if (ttc->is_timestamp) {
+        /* Check if we already updated the timestamp when reading the time,
+         * the interrupt status register should be empty if we did */
+        if (interrupt_pending) {
+            ttc->hi_time += ttc_ticks_to_ns(ttc, CNT_MAX);
+        }
+    } else {
+        /* The MATCH0 interrupt is used in oneshot mode. It is enabled when a
+         * oneshot function is called, and disabled here so only one interrupt
+         * is triggered per call. */
+        *regs->int_en &= ~INT_MATCH0;
+    }
+
+    /* Acknowledge the interrupt and call the user callback if any */
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the interrupt from the TTC");
+    if (ttc->user_callback) {
+        if (ttc->is_timestamp) {
+            ttc->user_callback(ttc->user_callback_token, LTIMER_OVERFLOW_EVENT);
+        } else {
+            ttc->user_callback(ttc->user_callback_token, LTIMER_TIMEOUT_EVENT);
+        }
+    }
 }
 
 uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
@@ -357,8 +477,16 @@ uint64_t ttc_get_time(ttc_t *ttc)
 {
     ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
     uint32_t cnt = *regs->cnt_val;
+    bool interrupt_pending = _ttc_check_interrupt(ttc);
+    /* Check if there is an interrupt pending, i.e. counter overflowed */
+    if (interrupt_pending) {
+        /* Re-read the counter again */
+        cnt = *regs->cnt_val;
+        /* Bump the hi_time counter now, as there may be latency in serving the interrupt */
+        ttc->hi_time += ttc_ticks_to_ns(ttc, CNT_MAX);
+    }
     uint32_t fin = _ttc_get_freq(ttc);
-    return freq_cycles_and_hz_to_ns(cnt, fin);
+    return ttc->hi_time + freq_cycles_and_hz_to_ns(cnt, fin);
 }
 
 /* Set up the ttc to fire an interrupt ns nanoseconds after this
@@ -413,44 +541,83 @@ int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic)
     }
 }
 
-int ttc_init(ttc_t *ttc, ttc_config_t config)
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
 {
+    assert(token != NULL);
+    ttc_t *ttc = token;
+    ttc->regs = ps_pmem_map(&ttc->io_ops, pmem, false, PS_MEM_NORMAL);
+    if (ttc->regs == NULL) {
+        ZF_LOGE("Failed to map in registers for the TTC");
+        return EIO;
+    }
     /* This sets the base of the ttc_tmr_regs_t pointer to
      * an offset into the ttc's mmio region such that
      * ((ttc_tmr_regs_t*)vaddr)->clk_ctrl
      * (and all other registers) refers to the address of the
      * register relevant for the specified ttc device. */
-    switch (config.id) {
-    case TTC0_TIMER1:
-    case TTC1_TIMER1:
-#ifdef CONFIG_PLAT_ZYNQMP
-    case TTC2_TIMER1:
-    case TTC3_TIMER1:
-#endif
-        config.vaddr += TTCX_TIMER1_OFFSET;
-        break;
-    case TTC0_TIMER2:
-    case TTC1_TIMER2:
-#ifdef CONFIG_PLAT_ZYNQMP
-    case TTC2_TIMER2:
-    case TTC3_TIMER2:
-#endif
-        config.vaddr += TTCX_TIMER2_OFFSET;
-        break;
-    case TTC0_TIMER3:
-    case TTC1_TIMER3:
-#ifdef CONFIG_PLAT_ZYNQMP
-    case TTC2_TIMER3:
-    case TTC3_TIMER3:
-#endif
-        config.vaddr += TTCX_TIMER3_OFFSET;
-        break;
-    default:
+    ttc->regs += ttc_get_timer_shift(ttc->id);
+    ttc->timer_pmem = pmem;
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    assert(token != NULL);
+    ttc_t *ttc = token;
+    assert(num_irqs == IRQS_PER_TTC);
+    /* Get the corresponding IRQ position and register the IRQ if it matches */
+    unsigned irq_pos = ttc_get_irq_pos(ttc->id);
+    if (irq_pos == curr_num) {
+        ttc->irq_id = ps_irq_register(&ttc->io_ops.irq_ops, irq, ttc_handle_irq, ttc);
+        if (ttc->irq_id < 0) {
+            ZF_LOGE("Failed to register the IRQ for TTC timer %d", ttc->id);
+            return EIO;
+        }
+    }
+    return 0;
+}
+
+int ttc_init(ttc_t *ttc, ttc_config_t config)
+{
+    if (ttc == NULL) {
+        ZF_LOGE("ttc is NULL");
         return EINVAL;
     }
 
-    ttc->regs = config.vaddr;
+    /* Initialise all the struct members */
+    ttc->io_ops = config.io_ops;
+    ttc->user_callback = config.user_callback;
+    ttc->user_callback_token = config.user_callback_token;
+    ttc->irq_id = PS_INVALID_IRQ_ID;
+    ttc->is_timestamp = config.is_timestamp;
     ttc->id = config.id;
+
+    char *device_path = ttc_get_device_path(config.id);
+
+    /* Read the timer's path in the DTB */
+    ps_fdt_cookie_t *cookie = NULL;
+    int error = ps_fdt_read_path(&ttc->io_ops.io_fdt, &ttc->io_ops.malloc_ops, device_path, &cookie);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&ttc->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(ttc_destroy(ttc), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    /* Walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&ttc->io_ops.io_fdt, cookie, allocate_register_callback, ttc);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&ttc->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(ttc_destroy(ttc), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
+
+    /* Walk the interrupts and allocate the corresponding interrupt for this timer */
+    error = ps_fdt_walk_irqs(&ttc->io_ops.io_fdt, cookie, allocate_irq_callback, ttc);
+    if (error) {
+        ZF_LOGF_IF(ps_fdt_cleanup_cookie(&ttc->io_ops.malloc_ops, cookie), CLEANUP_FAIL_TEXT);
+        ZF_LOGF_IF(ttc_destroy(ttc), CLEANUP_FAIL_TEXT);
+        return ENODEV;
+    }
 
     /* Configure clock source */
     memset(&ttc->clk, 0, sizeof(ttc->clk));
@@ -473,6 +640,22 @@ int ttc_init(ttc_t *ttc, ttc_config_t config)
     *regs->clk_ctrl = 0;
     *regs->int_en = INT_INTERVAL;
     *regs->interval = CNT_MAX;
+
+    return 0;
+}
+
+int ttc_destroy(ttc_t *ttc)
+{
+    assert(ttc != NULL);
+
+    if (ttc->regs) {
+        ZF_LOGF_IF(ttc_stop(ttc), "Failed to stop the TTC before de-allocating it");
+        ps_io_unmap(&ttc->io_ops.io_mapper, ttc->regs, (size_t) ttc->timer_pmem.length);
+    }
+
+    if (ttc->irq_id != PS_INVALID_IRQ_ID) {
+        ZF_LOGF_IF(ps_irq_unregister(&ttc->io_ops.irq_ops, ttc->irq_id), "Failed to unregister IRQ");
+    }
 
     return 0;
 }

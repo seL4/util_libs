@@ -18,6 +18,10 @@
  */
 
 #pragma once
+
+#include <platsupport/io.h>
+#include <platsupport/ltimer.h>
+#include <platsupport/fdt.h>
 #include <platsupport/timer.h>
 #include <platsupport/clock.h>
 
@@ -31,6 +35,8 @@
 #define TTC0_PADDR               0xF8001000
 #define TTC1_PADDR               0xF8002000
 #endif
+
+#define IRQS_PER_TTC 3
 
 #define TTC_TIMER_SIZE           0x1000
 #define TTC0_TIMER_SIZE          TTC_TIMER_SIZE
@@ -65,6 +71,7 @@
 #define TTC1_TIMER1_IRQ          69
 #define TTC1_TIMER2_IRQ          70
 #define TTC1_TIMER3_IRQ          71
+/* zynq7000 */
 #define TTC0_PATH "/amba/timer@f8001000"
 #define TTC1_PATH "/amba/timer@f8002000"
 #endif /* CONFIG_PLAT_ZYNQMP */
@@ -128,14 +135,24 @@ static const int zynq_timer_irqs[] = {
 };
 
 typedef struct {
-    /* vaddr pwm is mapped to */
-    void *vaddr;
-    clk_t* clk_src;
+    bool is_timestamp;
+    ps_io_ops_t io_ops;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
+    char *device_path;
+    clk_t *clk_src;
     ttc_id_t id;
 } ttc_config_t;
 
 typedef struct {
     void *regs;
+    ps_io_ops_t io_ops;
+    irq_id_t irq_id;
+    pmem_region_t timer_pmem;
+    ltimer_callback_fn_t user_callback;
+    void *user_callback_token;
+    bool is_timestamp;
+    uint64_t hi_time;
     clk_t clk;
     freq_t freq;
     ttc_id_t id;
@@ -169,15 +186,13 @@ static inline int ttc_irq(ttc_id_t id)
 }
 
 int ttc_init(ttc_t *ttc, ttc_config_t config);
+int ttc_destroy(ttc_t *ttc);
 int ttc_start(ttc_t *ttc);
 int ttc_stop(ttc_t *ttc);
 int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic);
 /* set the ttc to 0 and start free running, where the timer will
  * continually increment and trigger irqs on each overflow and reload to 0 */
 void ttc_freerun(ttc_t *tcc);
-/* read the ttc status bit, which will clear any pending irqs. A high return value
- * indicates that and interrupt was pending */
-int ttc_handle_irq(ttc_t *ttc);
 uint64_t ttc_get_time(ttc_t *ttc);
 /* convert from a ticks value to ns for a configured ttc */
 uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks);
