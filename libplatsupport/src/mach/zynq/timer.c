@@ -140,13 +140,12 @@ struct ttc_tmr_regs {
 };
 typedef volatile struct ttc_tmr_regs ttc_tmr_regs_t;
 
-static freq_t _ttc_clk_get_freq(clk_t* clk);
-static freq_t _ttc_clk_set_freq(clk_t* clk, freq_t hz);
-static void _ttc_clk_recal(clk_t* clk);
-static clk_t* _ttc_clk_init(clk_t* clk);
+static freq_t _ttc_clk_get_freq(clk_t *clk);
+static freq_t _ttc_clk_set_freq(clk_t *clk, freq_t hz);
+static void _ttc_clk_recal(clk_t *clk);
+static clk_t *_ttc_clk_init(clk_t *clk);
 
-static inline ttc_tmr_regs_t*
-ttc_get_regs(ttc_t *ttc)
+static inline ttc_tmr_regs_t *ttc_get_regs(ttc_t *ttc)
 {
     return ttc->regs;
 }
@@ -240,18 +239,16 @@ static inline char *ttc_get_device_path(ttc_id_t id)
 
 /****************** Clocks ******************/
 
-static ttc_t*
-ttc_clk_get_priv(clk_t* clk)
+static ttc_t *ttc_clk_get_priv(clk_t *clk)
 {
-    return (ttc_t*)clk->priv;
+    return (ttc_t *)clk->priv;
 }
 
 /* FPGA PL Clocks */
-static freq_t
-_ttc_clk_get_freq(clk_t* clk)
+static freq_t _ttc_clk_get_freq(clk_t *clk)
 {
     ttc_t *ttc = ttc_clk_get_priv(clk);
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     uint32_t clk_ctrl;
     freq_t fin, fout;
     /* Get the parent frequency */
@@ -271,11 +268,10 @@ _ttc_clk_get_freq(clk_t* clk)
     return fout;
 }
 
-static freq_t
-_ttc_clk_set_freq(clk_t* clk, freq_t hz)
+static freq_t _ttc_clk_set_freq(clk_t *clk, freq_t hz)
 {
     ttc_t *ttc = ttc_clk_get_priv(clk);
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     uint32_t v;
     freq_t fin;
     int ps;
@@ -301,35 +297,30 @@ _ttc_clk_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-static void
-_ttc_clk_recal(clk_t* clk UNUSED)
+static void _ttc_clk_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_ttc_clk_init(clk_t* clk)
+static clk_t *_ttc_clk_init(clk_t *clk)
 {
     return clk;
 }
 
-static inline freq_t
-_ttc_get_freq(ttc_t *ttc)
+static inline freq_t _ttc_get_freq(ttc_t *ttc)
 {
     return ttc->freq;
 }
 
-static inline freq_t
-_ttc_set_freq(ttc_t *ttc, freq_t hz)
+static inline freq_t _ttc_set_freq(ttc_t *ttc, freq_t hz)
 {
     ttc->freq = clk_set_freq(&ttc->clk, hz);
     return ttc->freq;
 }
 
-static inline bool
-_ttc_check_interrupt(ttc_t *ttc)
+static inline bool _ttc_check_interrupt(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     /* The int_sts register is being accessed through typedef ttc_tmr_regs_t
      * which is marked volatile, so the compiler will not elide this read.
      */
@@ -358,8 +349,7 @@ _ttc_check_interrupt(ttc_t *ttc)
  * at that frequency. The number of ticks it will take for the
  * requested time to pass (ie. the interval) is computed and
  * returned via an argument (interval). */
-static inline int
-_ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
+static inline int _ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
 {
     freq_t fin, f;
     uint64_t interval_value;
@@ -375,7 +365,7 @@ _ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
          * rate it can run at, and we can use that to calculate a maximum time.
          */
         ZF_LOGE("Timeout too big for timer, max %"PRIu64", got %"PRIu64"\n",
-                            freq_cycles_and_hz_to_ns(CNT_MAX, fin), ns);
+                freq_cycles_and_hz_to_ns(CNT_MAX, fin), ns);
 
         return ETIME;
     }
@@ -393,21 +383,21 @@ _ttc_set_freq_for_ns(ttc_t *ttc, uint64_t ns, uint64_t *interval)
 
 int ttc_start(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl &= ~CNTCTRL_STOP;
     return 0;
 }
 
 int ttc_stop(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl |= CNTCTRL_STOP;
     return 0;
 }
 
 void ttc_freerun(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     *regs->cnt_ctrl = CNTCTRL_RST;
     *regs->int_en = INT_EVENT_OVR | INT_CNT_OVR;
 }
@@ -415,8 +405,7 @@ void ttc_freerun(ttc_t *ttc)
 /* Set up the ttc to fire an interrupt every ns nanoseconds.
  * The first such interrupt may arrive before ns nanoseconds
  * have passed since calling. */
-static int
-_ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
+static int _ttc_periodic(ttc_tmr_regs_t *regs, uint64_t interval)
 {
     *regs->interval = interval;
 
@@ -437,7 +426,7 @@ static void ttc_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, v
 {
     assert(data != NULL);
     ttc_t *ttc = data;
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
 
     bool interrupt_pending = _ttc_check_interrupt(ttc);
 
@@ -465,7 +454,8 @@ static void ttc_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, v
     }
 }
 
-uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
+uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks)
+{
     if (!ttc) {
         return 0;
     }
@@ -475,7 +465,7 @@ uint64_t ttc_ticks_to_ns(ttc_t *ttc, uint32_t ticks) {
 
 uint64_t ttc_get_time(ttc_t *ttc)
 {
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     uint32_t cnt = *regs->cnt_val;
     bool interrupt_pending = _ttc_check_interrupt(ttc);
     /* Check if there is an interrupt pending, i.e. counter overflowed */
@@ -491,8 +481,7 @@ uint64_t ttc_get_time(ttc_t *ttc)
 
 /* Set up the ttc to fire an interrupt ns nanoseconds after this
  * function is called. */
-static int
-_ttc_oneshot_relative(ttc_tmr_regs_t *regs, uint64_t interval)
+static int _ttc_oneshot_relative(ttc_tmr_regs_t *regs, uint64_t interval)
 {
 
     /* In overflow mode the ttc will continuously count up to 0xffff and reset to 0.
@@ -533,7 +522,7 @@ int ttc_set_timeout(ttc_t *ttc, uint64_t ns, bool periodic)
         return error;
     }
 
-    ttc_tmr_regs_t* regs = ttc_get_regs(ttc);
+    ttc_tmr_regs_t *regs = ttc_get_regs(ttc);
     if (periodic) {
         return _ttc_periodic(regs, interval);
     } else {
