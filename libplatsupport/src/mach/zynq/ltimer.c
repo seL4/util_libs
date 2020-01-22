@@ -27,9 +27,6 @@
 /* Use ttc1_timer1 to keep running for timestamp/gettime */
 #define TTC_TIMESTAMP TTC1_TIMER1
 
-#define N_IRQS 2
-#define N_PADDRS 2
-
 #define N_TTCS 2
 #define TIMEOUT_IDX 0
 #define TIMESTAMP_IDX 1
@@ -40,55 +37,6 @@ typedef struct {
     bool timeout_initialised;
     bool timestamp_initialised;
 } ttc_ltimer_t;
-
-static size_t get_num_irqs(void *data)
-{
-    return N_IRQS;
-}
-
-static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
-{
-    assert(n < get_num_irqs(data));
-
-    irq->type = PS_INTERRUPT;
-
-    switch (n) {
-    case TIMEOUT_IDX:
-        irq->irq.number = ttc_irq(TTC_TIMEOUT);
-        break;
-    case TIMESTAMP_IDX:
-        irq->irq.number = ttc_irq(TTC_TIMESTAMP);
-        break;
-    default:
-        ZF_LOGE("Invalid irq\n");
-        return EINVAL;
-    }
-
-    return 0;
-}
-
-static size_t get_num_pmems(void *data)
-{
-    return N_PADDRS;
-}
-
-static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
-{
-    assert(n < get_num_pmems(data));
-    region->length = PAGE_SIZE_4K;
-
-    switch(n) {
-    case TIMEOUT_IDX:
-        region->base_addr = ttc_paddr(TTC_TIMEOUT);
-        break;
-    case TIMESTAMP_IDX:
-        region->base_addr = ttc_paddr(TTC_TIMESTAMP);
-        break;
-    default:
-        ZF_LOGE("Invalid timer number");
-    }
-    return 0;
-}
 
 static int get_time(void *data, uint64_t *time)
 {
@@ -236,16 +184,10 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     return 0;
 }
 
+/* This function is intended to be deleted,
+ * this is just left here for now so that stuff can compile */
 int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
 {
-    if (ltimer == NULL) {
-        ZF_LOGE("Timer is NULL!");
-        return EINVAL;
-    }
-
-    ltimer->get_num_irqs = get_num_irqs;
-    ltimer->get_nth_irq = get_nth_irq;
-    ltimer->get_num_pmems = get_num_pmems;
-    ltimer->get_nth_pmem = get_nth_pmem;
-    return 0;
+    ZF_LOGE("get_(nth/num)_(irqs/pmems) are not valid");
+    return EINVAL;
 }
