@@ -16,7 +16,7 @@
 #include <platsupport/mach/gpt.h>
 #include <platsupport/mach/epit.h>
 
-#define IPG_FREQ (532/16) /*x10^5 */
+#define IPG_FREQ (500/8) /* 62.5MHz */
 #define GPT_FREQ IPG_FREQ
 
 #ifdef CONFIG_KERNEL_MCS
@@ -109,7 +109,7 @@ static inline int imx_init_timestamp(imx_timers_t *timers, void *vaddr)
 
 static inline void handle_irq_timeout(imx_timers_t *timers)
 {
-	epit_handle_irq(&timers->timeout);
+    epit_handle_irq(&timers->timeout);
 }
 
 static inline int imx_set_timeout(imx_timers_t *timers, uint64_t ns, bool periodic)
