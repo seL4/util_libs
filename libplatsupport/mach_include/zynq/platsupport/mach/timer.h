@@ -54,6 +54,10 @@
 #define TTC3_TIMER1_IRQ          77
 #define TTC3_TIMER2_IRQ          78
 #define TTC3_TIMER3_IRQ          79
+#define TTC0_PATH "/amba/timer@ff110000"
+#define TTC1_PATH "/amba/timer@ff120000"
+#define TTC2_PATH "/amba/timer@ff130000"
+#define TTC3_PATH "/amba/timer@ff140000"
 #else
 #define TTC0_TIMER1_IRQ          42
 #define TTC0_TIMER2_IRQ          43
@@ -61,7 +65,9 @@
 #define TTC1_TIMER1_IRQ          69
 #define TTC1_TIMER2_IRQ          70
 #define TTC1_TIMER3_IRQ          71
-#endif
+#define TTC0_PATH "/amba/timer@f8001000"
+#define TTC1_PATH "/amba/timer@f8002000"
+#endif /* CONFIG_PLAT_ZYNQMP */
 
 /* Timers */
 typedef enum {
