@@ -17,6 +17,7 @@
 
 typedef struct ethif_intel_config {
     void *bar0;
+    uint8_t prom_mode;
 } ethif_intel_config_t;
 
 /**

@@ -430,12 +430,14 @@ static void initialize_RCTL(e1000_dev_t *dev) {
     }
     /* Enable receive */
     temp |= RCTL_EN;
-    /* Enable promiscuous mode and accept broadcast packets */
-    temp |= RCTL_UPE;
-    temp |= RCTL_MPE;
+    /* Accept broadcast packets */
     temp |= RCTL_BAM;
     /* defaults for everything else will give us 2K pages, which is what we want */
     REG_RCTL(dev) = temp;
+}
+
+static void enable_prom_mode(e1000_dev_t *dev) {
+    REG_RCTL(dev) |= RCTL_UPE | RCTL_MPE;
 }
 
 static void initialize_RXDCTL(e1000_dev_t *dev) {
@@ -971,6 +973,11 @@ common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config, e1000_d
      * that we have setup descriptor rings for the transmit receive queues */
     initialize_transmit(dev);
     initialize_receive(dev);
+
+    if (eth_config->prom_mode) {
+        enable_prom_mode(dev);
+    }
+
     /* fill up the receive ring as much as possible */
     fill_rx_bufs(driver);
     /* turn interrupts on */
