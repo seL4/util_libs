@@ -49,6 +49,8 @@ typedef enum e1000_family {
 #define REG_RCTL(x) REG(x, 0x100)
 #define REG_EERD(x) REG(x, 0x14)
 #define REG_TCTL(x) REG(x, 0x0400)
+#define REG_RAL(x, y) REG(x, 0x05400 + (y) * 0x8)
+#define REG_RAH(x, y) REG(x, 0x05404 + (y) * 0x8)
 #define REG_82580_TDBAL(x, y) REG(x, 0xE000 + (y) * 0x40)
 #define REG_82574_TDBAL(x, y) REG(x, 0x3800 + (y) * 0x100)
 #define REG_82580_TDBAH(x, y) REG(x, 0xE004 + (y) * 0x40)
@@ -552,6 +554,20 @@ void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu) {
     *mtu = 1500;
 }
 
+void get_mac(struct eth_driver *driver, uint8_t *mac) {
+    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+    uint32_t maclow = REG_RAL(dev, 0);
+    uint32_t machigh = REG_RAH(dev, 0);
+
+    mac[0] = maclow;
+    mac[1] = maclow >> 8;
+    mac[2] = maclow >> 16;
+    mac[3] = maclow >> 24;
+
+    mac[4] = machigh;
+    mac[5] = machigh >> 8;
+}
+
 static void set_tx_ring(e1000_dev_t *dev, uintptr_t phys) {
     uint32_t phys_low = (uint32_t)phys;
     uint32_t phys_high = (uint32_t)(sizeof(phys) > 4 ? phys >> 32 : 0);
@@ -924,7 +940,8 @@ static struct raw_iface_funcs iface_fns = {
     .print_state = print_state,
     .low_level_init = low_level_init,
     .raw_tx = raw_tx,
-    .raw_poll = raw_poll
+    .raw_poll = raw_poll,
+    .get_mac = get_mac
 };
 
 static int
