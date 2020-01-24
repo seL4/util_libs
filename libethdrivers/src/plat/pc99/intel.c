@@ -211,10 +211,11 @@ typedef struct e1000_dev {
     uint32_t tx_cmd_bits;
     /* whether we believe the link is up or not */
     int link_up;
-}e1000_dev_t;
+} e1000_dev_t;
 
-static void disable_all_interrupts(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void disable_all_interrupts(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_IMC(dev) = ~IMC_82580_RESERVED_BITS;
         break;
@@ -224,7 +225,8 @@ static void disable_all_interrupts(e1000_dev_t *dev) {
     }
 }
 
-static void reset_device(e1000_dev_t *dev) {
+static void reset_device(e1000_dev_t *dev)
+{
     uint32_t val = CTRL_RST;
     if (dev->family == e1000_82574) {
         /* 82574 docs say that bit 3 must be set, so set it and perform the reset */
@@ -232,23 +234,26 @@ static void reset_device(e1000_dev_t *dev) {
     }
     REG_CTRL(dev) = val;
     /* wait approximately 1us before checking for reset completion */
-    for(volatile int i = 0; i < 10000000; i++);
+    for (volatile int i = 0; i < 10000000; i++);
     /* wait for reset to complete */
     while (REG_CTRL(dev) & CTRL_RST);
 }
 
-static void set_link_up(e1000_dev_t *dev) {
+static void set_link_up(e1000_dev_t *dev)
+{
     uint32_t temp = REG_CTRL(dev);
     temp |= CTRL_SLU;
     REG_CTRL(dev) = temp;
 }
 
-static void check_link_status(e1000_dev_t *dev) {
+static void check_link_status(e1000_dev_t *dev)
+{
     dev->link_up = !!(REG_STATUS(dev) & STATUS_LU);
 }
 
-static void configure_pba(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void configure_pba(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         /* Leave at defaults */
         break;
@@ -261,21 +266,24 @@ static void configure_pba(e1000_dev_t *dev) {
     }
 }
 
-static void phy_write(e1000_dev_t *dev, int phy, int reg, uint16_t data) {
+static void phy_write(e1000_dev_t *dev, int phy, int reg, uint16_t data)
+{
     REG_MDIC(dev) = data | (reg << 16) | (phy << 21) | (BIT(26));
-    while((REG_MDIC(dev) & BIT(28)) == 0);
+    while ((REG_MDIC(dev) & BIT(28)) == 0);
 }
 
-static uint16_t phy_read(e1000_dev_t *dev, int phy, int reg) {
+static uint16_t phy_read(e1000_dev_t *dev, int phy, int reg)
+{
     uint32_t mdi;
     REG_MDIC(dev) = (reg << 16) | (phy << 21) | (2 << 26);
-    while(( (mdi = REG_MDIC(dev)) & BIT(28)) == 0);
+    while (((mdi = REG_MDIC(dev)) & BIT(28)) == 0);
     return mdi & MASK(16);
 }
 
-static void reset_phy(e1000_dev_t *dev) {
+static void reset_phy(e1000_dev_t *dev)
+{
     uint32_t temp;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         /* Don't reset the phy for now */
         break;
@@ -289,15 +297,16 @@ static void reset_phy(e1000_dev_t *dev) {
         /* write a reset */
         phy_write(dev, 1, 0, BIT(15) | BIT(12));
         /* wait until it completes */
-        while(phy_read(dev, 1, 0) & BIT(15));
+        while (phy_read(dev, 1, 0) & BIT(15));
         break;
     default:
         assert(!"Unknown device");
     }
 }
 
-static void configure_flow_control(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void configure_flow_control(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         /* Nothing to setup. Default values will allow us to receive
          * pause frames, we don't send them however */
@@ -313,7 +322,8 @@ static void configure_flow_control(e1000_dev_t *dev) {
     }
 }
 
-static void initialize(e1000_dev_t *dev) {
+static void initialize(e1000_dev_t *dev)
+{
     disable_all_interrupts(dev);
     reset_device(dev);
     disable_all_interrupts(dev);
@@ -331,9 +341,10 @@ static void initialize(e1000_dev_t *dev) {
     configure_pba(dev);
 }
 
-static void initialise_TXDCTL(e1000_dev_t *dev) {
+static void initialise_TXDCTL(e1000_dev_t *dev)
+{
     uint32_t temp;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         /* Enable transmit queue */
         temp = REG_82580_TXDCTL(dev, 0);
@@ -364,7 +375,7 @@ static void initialise_TXDCTL(e1000_dev_t *dev) {
 static void initialise_TCTL(e1000_dev_t *dev)
 {
     uint32_t temp = 0;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         break;
     case e1000_82574:
@@ -382,8 +393,9 @@ static void initialise_TCTL(e1000_dev_t *dev)
     REG_TCTL(dev) = temp;
 }
 
-static void initialise_TIPG(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void initialise_TIPG(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         /* use defaults */
         break;
@@ -396,8 +408,9 @@ static void initialise_TIPG(e1000_dev_t *dev) {
     }
 }
 
-static void initialise_transmit_timers(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void initialise_transmit_timers(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         break;
     case e1000_82574:
@@ -411,16 +424,18 @@ static void initialise_transmit_timers(e1000_dev_t *dev) {
     }
 }
 
-static void initialize_transmit(e1000_dev_t *dev) {
+static void initialize_transmit(e1000_dev_t *dev)
+{
     initialise_TXDCTL(dev);
     initialise_TIPG(dev);
     initialise_transmit_timers(dev);
     initialise_TCTL(dev);
 }
 
-static void initialize_RCTL(e1000_dev_t *dev) {
+static void initialize_RCTL(e1000_dev_t *dev)
+{
     uint32_t temp = 0;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         break;
     case e1000_82574:
@@ -436,13 +451,15 @@ static void initialize_RCTL(e1000_dev_t *dev) {
     REG_RCTL(dev) = temp;
 }
 
-static void enable_prom_mode(e1000_dev_t *dev) {
+static void enable_prom_mode(e1000_dev_t *dev)
+{
     REG_RCTL(dev) |= RCTL_UPE | RCTL_MPE;
 }
 
-static void initialize_RXDCTL(e1000_dev_t *dev) {
+static void initialize_RXDCTL(e1000_dev_t *dev)
+{
     uint32_t temp;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         temp = REG_82580_RXDCTL(dev, 0);
         temp &= ~RXDCTL_82580_RESERVED_BITS;
@@ -467,8 +484,9 @@ static void initialize_RXDCTL(e1000_dev_t *dev) {
     }
 }
 
-static void initialize_receive_timers(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void initialize_receive_timers(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         break;
     case e1000_82574:
@@ -483,7 +501,8 @@ static void initialize_receive_timers(e1000_dev_t *dev) {
     }
 }
 
-static void initialize_receive(e1000_dev_t *dev) {
+static void initialize_receive(e1000_dev_t *dev)
+{
     /* zero the MTA */
     int i;
     for (i = 0; i < MTA_LENGTH; i++) {
@@ -494,15 +513,17 @@ static void initialize_receive(e1000_dev_t *dev) {
     initialize_RCTL(dev);
 }
 
-static void enable_interrupts(e1000_dev_t *dev) {
-    switch(dev->family) {
+static void enable_interrupts(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_IMS(dev) = IMS_82580_RXDW | IMS_82580_TXDW | IMS_82580_GPHY;
         /* enable link status change interrupts in the phy */
         phy_write(dev, 0, 24, BIT(2));
         break;
     case e1000_82574:
-        REG_82574_IMS(dev) = IMS_82574_RXQ0 | IMS_82574_RXTO | IMS_82574_RXDMT0 | IMS_82574_ACK | IMS_82574_TXDW | IMS_82574_LSC;
+        REG_82574_IMS(dev) = IMS_82574_RXQ0 | IMS_82574_RXTO | IMS_82574_RXDMT0 | IMS_82574_ACK | IMS_82574_TXDW |
+                             IMS_82574_LSC;
         break;
     default:
         assert(!"Unknown device");
@@ -510,21 +531,24 @@ static void enable_interrupts(e1000_dev_t *dev) {
     }
 }
 
-void print_state(struct eth_driver *eth_driver) {
+void print_state(struct eth_driver *eth_driver)
+{
 }
 
-static uint16_t read_eeprom(e1000_dev_t *dev, uint16_t reg) {
+static uint16_t read_eeprom(e1000_dev_t *dev, uint16_t reg)
+{
     REG_EERD(dev) = EERD_START | (reg << EERD_ADDR_OFFSET);
     uint32_t val;
-    while ( ((val = REG_EERD(dev)) & EERD_DONE) == 0);
+    while (((val = REG_EERD(dev)) & EERD_DONE) == 0);
     return val >> 16;
 }
 
-void eth_get_mac(e1000_dev_t *dev, uint8_t *hwaddr) {
+void eth_get_mac(e1000_dev_t *dev, uint8_t *hwaddr)
+{
     /* read the first 3 shorts of the eeprom */
     uint16_t mac[3];
     uint16_t base = 0x00;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580: {
         /* read our LAN ID so we know what port we are */
         int id = (REG_STATUS(dev) & STATUS_82580_LAN_ID_MASK) >> STATUS_82580_LAN_ID_OFFSET;
@@ -549,15 +573,17 @@ void eth_get_mac(e1000_dev_t *dev, uint8_t *hwaddr) {
     hwaddr[5] = mac[2] >> 8;
 }
 
-void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     eth_get_mac(dev, mac);
     /* hardcode MTU for now */
     *mtu = 1500;
 }
 
-void get_mac(struct eth_driver *driver, uint8_t *mac) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+void get_mac(struct eth_driver *driver, uint8_t *mac)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     uint32_t maclow = REG_RAL(dev, 0);
     uint32_t machigh = REG_RAH(dev, 0);
 
@@ -570,10 +596,11 @@ void get_mac(struct eth_driver *driver, uint8_t *mac) {
     mac[5] = machigh >> 8;
 }
 
-static void set_tx_ring(e1000_dev_t *dev, uintptr_t phys) {
+static void set_tx_ring(e1000_dev_t *dev, uintptr_t phys)
+{
     uint32_t phys_low = (uint32_t)phys;
     uint32_t phys_high = (uint32_t)(sizeof(phys) > 4 ? phys >> 32 : 0);
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_TDBAL(dev, 0) = phys_low;
         REG_82580_TDBAH(dev, 0) = phys_high;
@@ -587,8 +614,9 @@ static void set_tx_ring(e1000_dev_t *dev, uintptr_t phys) {
     }
 }
 
-static void set_tdh(e1000_dev_t *dev, uint32_t val) {
-    switch(dev->family) {
+static void set_tdh(e1000_dev_t *dev, uint32_t val)
+{
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_TDH(dev, 0) = val;
         break;
@@ -600,8 +628,9 @@ static void set_tdh(e1000_dev_t *dev, uint32_t val) {
     }
 }
 
-static void set_tdt(e1000_dev_t *dev, uint32_t val) {
-    switch(dev->family) {
+static void set_tdt(e1000_dev_t *dev, uint32_t val)
+{
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_TDT(dev, 0) = val;
         break;
@@ -613,10 +642,11 @@ static void set_tdt(e1000_dev_t *dev, uint32_t val) {
     }
 }
 
-static void set_tdlen(e1000_dev_t *dev, uint32_t val) {
+static void set_tdlen(e1000_dev_t *dev, uint32_t val)
+{
     /* tdlen must be multiple of 128 */
     assert(val % 128 == 0);
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_TDLEN(dev, 0) = val;
         break;
@@ -628,10 +658,11 @@ static void set_tdlen(e1000_dev_t *dev, uint32_t val) {
     }
 }
 
-static void set_rx_ring(e1000_dev_t *dev, uint64_t phys) {
+static void set_rx_ring(e1000_dev_t *dev, uint64_t phys)
+{
     uint32_t phys_low = (uint32_t)phys;
     uint32_t phys_high = (uint32_t)(sizeof(phys) > 4 ? phys >> 32 : 0);
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_RDBAL(dev, 0) = phys_low;
         REG_82580_RDBAH(dev, 0) = phys_high;
@@ -645,10 +676,11 @@ static void set_rx_ring(e1000_dev_t *dev, uint64_t phys) {
     }
 }
 
-static void set_rdlen(e1000_dev_t *dev, uint32_t val) {
+static void set_rdlen(e1000_dev_t *dev, uint32_t val)
+{
     /* rdlen must be multiple of 128 */
     assert(val % 128 == 0);
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_RDLEN(dev, 0) = val;
         break;
@@ -660,8 +692,9 @@ static void set_rdlen(e1000_dev_t *dev, uint32_t val) {
     }
 }
 
-static void set_rdt(e1000_dev_t *dev, uint32_t val) {
-    switch(dev->family) {
+static void set_rdt(e1000_dev_t *dev, uint32_t val)
+{
+    switch (dev->family) {
     case e1000_82580:
         REG_82580_RDT(dev, 0) = val;
         break;
@@ -673,8 +706,9 @@ static void set_rdt(e1000_dev_t *dev, uint32_t val) {
     }
 }
 
-static uint32_t read_rdh(e1000_dev_t *dev) {
-    switch(dev->family) {
+static uint32_t read_rdh(e1000_dev_t *dev)
+{
+    switch (dev->family) {
     case e1000_82580:
         return REG_82580_RDH(dev, 0);
     case e1000_82574:
@@ -685,13 +719,14 @@ static uint32_t read_rdh(e1000_dev_t *dev) {
     }
 }
 
-static void free_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man) {
+static void free_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man)
+{
     if (dev->rx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->rx_ring, sizeof(struct legacy_rx_ldesc) * dev->rx_size);
+        dma_unpin_free(dma_man, (void *)dev->rx_ring, sizeof(struct legacy_rx_ldesc) * dev->rx_size);
         dev->rx_ring = NULL;
     }
     if (dev->tx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->tx_ring, sizeof(struct legacy_tx_ldesc) * dev->tx_size);
+        dma_unpin_free(dma_man, (void *)dev->tx_ring, sizeof(struct legacy_tx_ldesc) * dev->tx_size);
         dev->tx_ring = NULL;
     }
     if (dev->rx_cookies) {
@@ -708,7 +743,8 @@ static void free_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man) {
     }
 }
 
-static int initialize_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man) {
+static int initialize_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man)
+{
     dma_addr_t rx_ring = dma_alloc_pin(dma_man, sizeof(struct legacy_rx_ldesc) * dev->rx_size, 1, DMA_ALIGN);
     if (!rx_ring.phys) {
         LOG_ERROR("Failed to allocate rx_ring");
@@ -721,8 +757,8 @@ static int initialize_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man) {
         free_desc_ring(dev, dma_man);
         return -1;
     }
-    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
+    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
+    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
         if (dev->rx_cookies) {
@@ -762,8 +798,9 @@ static int initialize_desc_ring(e1000_dev_t *dev, ps_dma_man_t *dma_man) {
     return 0;
 }
 
-static void complete_rx(struct eth_driver *driver) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+static void complete_rx(struct eth_driver *driver)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     if (dev->rdh == dev->rdt) {
         /* We haven't enqueued anything */
         return;
@@ -796,8 +833,9 @@ static void complete_rx(struct eth_driver *driver) {
     }
 }
 
-static void complete_tx(struct eth_driver *driver) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+static void complete_tx(struct eth_driver *driver)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     while (dev->tdh != dev->tdt) {
         unsigned int i;
         for (i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
@@ -817,8 +855,9 @@ static void complete_tx(struct eth_driver *driver) {
     }
 }
 
-static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     if (!dev->link_up) {
         return ETHIF_TX_FAILED;
     }
@@ -836,7 +875,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
             .bufferAddress = phys[i],
             .length = len[i],
             .CSO = 0,
-            .CMD = dev->tx_cmd_bits | (i + 1 == num ? TX_CMD_EOP: 0),
+            .CMD = dev->tx_cmd_bits | (i + 1 == num ? TX_CMD_EOP : 0),
             .STA = 0,
             .ExtCMD = 0,
             .CSS = 0,
@@ -853,12 +892,15 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     return ETHIF_TX_ENQUEUED;
 }
 
-static int fill_rx_bufs(struct eth_driver *driver) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+static int fill_rx_bufs(struct eth_driver *driver)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     int rdt = dev->rdt;
     /* We want to install buffers in bursts for performance reasons.
      * constantly enqueueing single buffers is expensive */
-    if (dev->rx_remain < 32) return 0;
+    if (dev->rx_remain < 32) {
+        return 0;
+    }
     while (dev->rx_remain > 0) {
         /* request a buffer */
         void *cookie;
@@ -887,17 +929,19 @@ static int fill_rx_bufs(struct eth_driver *driver) {
     return dev->rx_remain != 0;
 }
 
-static void raw_poll(struct eth_driver *driver) {
+static void raw_poll(struct eth_driver *driver)
+{
     complete_rx(driver);
     complete_tx(driver);
     fill_rx_bufs(driver);
     check_link_status(driver->eth_data);
 }
 
-static void handle_irq(struct eth_driver *driver, int irq) {
-    e1000_dev_t *dev = (e1000_dev_t*)driver->eth_data;
+static void handle_irq(struct eth_driver *driver, int irq)
+{
+    e1000_dev_t *dev = (e1000_dev_t *)driver->eth_data;
     uint32_t icr;
-    switch(dev->family) {
+    switch (dev->family) {
     case e1000_82580:
         icr = REG_82580_ICR(dev);
         if (icr & ICR_82580_RXDW) {
@@ -918,7 +962,7 @@ static void handle_irq(struct eth_driver *driver, int irq) {
         icr = REG_82574_ICR(dev);
         /* ack */
         REG_82574_ICR(dev) = icr;
-        if(icr & (ICR_82574_RXQ0 | ICR_82574_RXTO | ICR_82574_ACK | ICR_82574_RXDMT0)) {
+        if (icr & (ICR_82574_RXQ0 | ICR_82574_RXTO | ICR_82574_ACK | ICR_82574_RXDMT0)) {
             complete_rx(driver);
             fill_rx_bufs(driver);
         }
@@ -946,10 +990,10 @@ static struct raw_iface_funcs iface_fns = {
     .get_mac = get_mac
 };
 
-static int
-common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config, e1000_dev_t *dev) {
+static int common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config, e1000_dev_t *dev)
+{
     int err;
-    ethif_intel_config_t *eth_config = (ethif_intel_config_t*) config;
+    ethif_intel_config_t *eth_config = (ethif_intel_config_t *) config;
     dev->iobase = eth_config->bar0;
     dev->tx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
     dev->rx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
@@ -987,8 +1031,8 @@ common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config, e1000_d
     return 0;
 }
 
-int
-ethif_e82580_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config) {
+int ethif_e82580_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
+{
     e1000_dev_t *dev = malloc(sizeof(*dev));
     if (!dev) {
         LOG_ERROR("Failed to malloc");
@@ -999,8 +1043,8 @@ ethif_e82580_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config) {
     return common_init(driver, io_ops, config, dev);
 }
 
-int
-ethif_e82574_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config) {
+int ethif_e82574_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
+{
     e1000_dev_t *dev = malloc(sizeof(*dev));
     if (!dev) {
         LOG_ERROR("Failed to malloc");
