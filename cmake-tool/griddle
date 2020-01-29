@@ -331,7 +331,19 @@ show_platform_help () {
     #
     # This function can be greatly simplified once JIRA SELFOUR-2369 is fixed.
     TEMP=$(mktemp)
-    trap 'rm -f "$TEMP"' HUP INT QUIT TERM
+
+    # In our trap handler, we have to (1) do our cleanup work; (2) clear the
+    # trap handler (restoring the default signal handler); and (3) commit
+    # suicide so that the shell knows we exited abnormally.  Unfortunately POSIX
+    # shell offers no way of knowing which signal we are handling, short of
+    # writing the trap handler multiple times (once for each signal); we choose
+    # INT as our final disposition somewhat arbitrarily.  (XXX: ensure accuracy
+    # of this discussion; re-review URL below)
+    #
+    # See <https://www.cons.org/cracauer/sigint.html> for a detailed exploration
+    # of this issue.
+    trap 'rm -f "$TEMP"; trap - HUP INT QUIT TERM; kill -s INT $$' \
+        HUP INT QUIT TERM
 
     cat >> "$TEMP" <<EOF
 include(configs/seL4Config.cmake)
