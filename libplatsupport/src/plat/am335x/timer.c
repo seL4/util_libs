@@ -80,7 +80,10 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic)
     }
     /* TODO: add functionality for 64 bit timeouts
      */
-    assert((ticks <= UINT32_MAX));
+    if (ticks > UINT32_MAX) {
+        ZF_LOGE("Timeout too far in future");
+        return ETIME;
+    }
 
     /* reload value */
     dmt->hw->tldr = 0xffffffff - (ticks);
