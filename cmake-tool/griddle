@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright 2019, Data61
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -9,6 +9,12 @@
 # See "LICENSE_GPLv2.txt" for details.
 #
 # @TAG(DATA61_GPL)
+
+# Note: This script uses bash for its execution, but not because it uses any
+# Bashisms; instead, it is to work around a POSIX-violating bug in signal
+# handling in dash, which is the /bin/sh on most Debian-based systems.  See
+# <https://bugs.debian.org/bug=683671>, filed in 2012 and still not fixed (posh
+# has the same problem; ksh, mksh, yash, and zsh do not).
 
 # Note: This is _not_ a legitimate parser for CMakeLists!  It is quite crude.
 
@@ -337,8 +343,7 @@ show_platform_help () {
     # suicide so that the shell knows we exited abnormally.  Unfortunately POSIX
     # shell offers no way of knowing which signal we are handling, short of
     # writing the trap handler multiple times (once for each signal); we choose
-    # INT as our final disposition somewhat arbitrarily.  (XXX: ensure accuracy
-    # of this discussion; re-review URL below)
+    # INT as our final disposition somewhat arbitrarily.
     #
     # See <https://www.cons.org/cracauer/sigint.html> for a detailed exploration
     # of this issue.
