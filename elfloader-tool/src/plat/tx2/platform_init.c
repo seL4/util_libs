@@ -54,7 +54,7 @@ static __attribute__((noinline)) int send_smc(uint8_t func, struct mce_regs *reg
         "ldp    x5, x6, [%1, #16 * 2] \n"
         "isb\n"
         "smc #0\n"
-        "mov %0, x0\n"
+        "mov %x0, x0\n"
         "stp x0, x1, [%1, #16 * 0]\n"
         "stp x2, x3, [%1, #16 * 1]\n"
         : "+r"(ret)
