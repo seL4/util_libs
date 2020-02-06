@@ -10,7 +10,30 @@
 # @TAG(DATA61_BSD)
 #
 
-function(check_arch_compiler)
+function(check_arch_clang)
+    if("${KernelSel4Arch}" STREQUAL "ia32")
+        string(REGEX MATCH "^x86_64" correct_triple ${TRIPLE})
+    elseif("${KernelSel4Arch}" STREQUAL "x86_64")
+        string(REGEX MATCH "^x86_64" correct_triple ${TRIPLE})
+    elseif("${KernelSel4Arch}" STREQUAL "aarch32" OR "${KernelSel4Arch}" STREQUAL "arm_hyp")
+        string(REGEX MATCH "^arm" correct_triple ${TRIPLE})
+    elseif("${KernelSel4Arch}" STREQUAL "aarch64")
+        string(REGEX MATCH "^aarch64" correct_triple ${TRIPLE})
+    elseif("${KernelSel4Arch}" STREQUAL "riscv32")
+        string(REGEX MATCH "^riscv32" correct_triple ${TRIPLE})
+    elseif("${KernelSel4Arch}" STREQUAL "riscv64")
+        string(REGEX MATCH "^riscv64" correct_triple ${TRIPLE})
+    else()
+        message(SEND_ERROR "KernelSel4Arch is not set to a valid arch")
+    endif()
+
+    if(NOT correct_triple)
+        message(SEND_ERROR "Clang Triple: ${TRIPLE} isn't for seL4_arch: ${KernelSel4Arch}")
+    endif()
+
+endfunction()
+
+function(check_arch_gcc)
     if("${KernelSel4Arch}" STREQUAL "ia32")
         set(compiler_variable "defined(__i386)")
     elseif("${KernelSel4Arch}" STREQUAL "x86_64")
@@ -45,5 +68,14 @@ function(check_arch_compiler)
 
     if(NOT compiler_arch_test)
         message(SEND_ERROR "Compiler: ${CMAKE_C_COMPILER} isn't for seL4_arch: ${KernelSel4Arch}")
+    endif()
+
+endfunction()
+
+function(check_arch_compiler)
+    if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        check_arch_clang()
+    else()
+        check_arch_gcc()
     endif()
 endfunction()
