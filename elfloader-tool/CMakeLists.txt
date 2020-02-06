@@ -187,7 +187,7 @@ if(ElfloaderImageEFI)
         set(gnuefiArch "arm")
         # on aarch32 building with -fno-pie results in the compiler generating
         # movt/movw pairs that we can't easily relocate.
-        add_compile_options(-fpie -mno-single-pic-base)
+        add_compile_options(-fpie)
     else()
         set(gnuefiArch "aarch64")
         # on aarch64 building with -fno-pie will just use pc-relative addressing.
