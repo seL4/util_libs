@@ -106,3 +106,7 @@ endif()
 if(LibPicotcp)
     target_link_libraries(ethdrivers picotcp)
 endif()
+
+if("${KernelPlatform}" STREQUAL "tx2")
+    target_link_libraries(ethdrivers platsupportports)
+endif()

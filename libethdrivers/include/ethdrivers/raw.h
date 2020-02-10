@@ -165,7 +165,7 @@ struct dma_buf_cookie {
     void *pbuf;
 };
 
-/* Structure for i.MX6 and Zynq7000 Drivers
+/* Structure for i.MX6, Zynq7000 and Tx2 Drivers
  * TODO: Move to ARCH Specific Folder
  */
 struct arm_eth_plat_config {
