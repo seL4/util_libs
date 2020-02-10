@@ -50,8 +50,7 @@ macro(add_default_compilation_options)
         "${CMAKE_EXE_LINKER_FLAGS} -static -nostdlib -z max-page-size=${LinkPageSize}"
     )
 
-    # TODO: Remove the Clang check when clang-8 is on Bamboo
-    if(KernelArchX86 AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    if(KernelArchX86)
         add_compile_options(-mtls-direct-seg-refs)
     endif()
 
