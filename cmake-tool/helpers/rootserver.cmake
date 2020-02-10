@@ -96,11 +96,6 @@ function(DeclareRootserver rootservername)
         )
         set(elf_target_file $<TARGET_FILE:elfloader>)
         if(KernelArchRiscV)
-
-            if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
-                message(FATAL_ERROR "Riscv is not yet supported with Clang")
-            endif()
-
             # On RISC-V we need to package up our final elf image into the Berkeley boot loader
             # which is what the following custom command is achieving
 
