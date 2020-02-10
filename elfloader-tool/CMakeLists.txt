@@ -188,6 +188,10 @@ if(ElfloaderImageEFI)
         # on aarch32 building with -fno-pie results in the compiler generating
         # movt/movw pairs that we can't easily relocate.
         add_compile_options(-fpie)
+        # This flag is not supported by clang but add it in for gcc
+        if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+            add_compile_options(-mno-single-pic-base)
+        endif()
     else()
         set(gnuefiArch "aarch64")
         # on aarch64 building with -fno-pie will just use pc-relative addressing.
