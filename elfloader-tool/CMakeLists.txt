@@ -189,7 +189,7 @@ if(ElfloaderImageEFI)
         # movt/movw pairs that we can't easily relocate.
         add_compile_options(-fpie)
         # This flag is not supported by clang but add it in for gcc
-        if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        if(NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
             add_compile_options(-mno-single-pic-base)
         endif()
     else()
@@ -327,7 +327,7 @@ endif()
 # Generate linker script
 separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 # Add extra compilation flags required for clang
-if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
 
     # Apply optimisation levels for specific files that were causing
@@ -335,12 +335,11 @@ if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set_source_files_properties(
         ./src/binaries/elf/elf64.c
         ./src/binaries/elf/elf.c
-        PROPERTIES COMPILE_FLAGS -O0
+        PROPERTIES
+        COMPILE_FLAGS
+        -O0
     )
-    set_source_files_properties(
-        ./src/plat/tk1/platform_init.c
-        PROPERTIES COMPILE_FLAGS -O1
-    )
+    set_source_files_properties(./src/plat/tk1/platform_init.c PROPERTIES COMPILE_FLAGS -O1)
 endif()
 add_custom_command(
     OUTPUT "linker.lds_pp"
