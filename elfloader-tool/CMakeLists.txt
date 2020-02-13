@@ -386,6 +386,18 @@ else()
     )
 endif()
 
+if("${KernelPlatform}" STREQUAL "imx31")
+    # Apply optimisation levels for specific files that are causing problems on
+    # the KZM and with gcc8
+    set_source_files_properties(
+        ./src/arch-arm/sys_boot.c
+        ./src/common.c
+        PROPERTIES
+        COMPILE_FLAGS
+        -O0
+    )
+endif()
+
 target_include_directories(
     elfloader
     PRIVATE
