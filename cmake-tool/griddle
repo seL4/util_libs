@@ -13,7 +13,7 @@
 # Note: This script uses bash for its execution, but not because it uses any
 # Bashisms; instead, it is to work around a POSIX-violating bug in signal
 # handling in dash, which is the /bin/sh on most Debian-based systems.  See
-# <https://bugs.debian.org/683671>, filed in 2012 and still not fixed (posh has
+# <https://bugs.debian.org/779416>, filed in 2015 and still not fixed (posh has
 # the same problem; ksh, mksh, yash, and zsh do not).
 
 # Note: This is _not_ a legitimate parser for CMakeLists!  It is quite crude.
