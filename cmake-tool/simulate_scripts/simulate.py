@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('-i', '--initrd', dest='qemu_sim_initrd_file', type=str,
                         help="Initrd file to pass onto QEMU", default="@QEMU_SIM_INITRD_FILE@")
     parser.add_argument('--extra-qemu-args', dest='qemu_sim_extra_args', type=str,
-                        help="Additional arguments to pass onto QEMU", default="")
+                        help="Additional arguments to pass onto QEMU", default="@QEMU_SIM_EXTRA_ARGS@")
     parser.add_argument('--extra-cpu-opts', dest='qemu_sim_extra_cpu_opts', type=str,
                         help="Additional cpu options to append onto the existing CPU options",
                         default="")

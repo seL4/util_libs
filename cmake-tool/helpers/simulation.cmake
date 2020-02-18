@@ -173,7 +173,8 @@ function(GenerateSimulateScript)
                 -DQEMU_SIM_CPU=${sim_cpu} -DQEMU_SIM_MACHINE=${sim_machine}
                 -DQEMU_SIM_CPU_OPT=${sim_cpu_opt} -DQEMU_SIM_GRAPHIC_OPT=${sim_graphic_opt}
                 -DQEMU_SIM_SERIAL_OPT=${sim_serial_opt} -DQEMU_SIM_MEM_SIZE_OPT=${QemuMemSize}
-                -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME} -P
+                -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME}
+                -DQEMU_SIM_EXTRA_ARGS=${qemu_sim_extra_args} -P
                 ${CONFIGURE_FILE_SCRIPT}
             COMMAND chmod u+x "${sim_path}"
             VERBATIM COMMAND_EXPAND_LISTS
