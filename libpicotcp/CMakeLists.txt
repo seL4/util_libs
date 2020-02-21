@@ -88,6 +88,11 @@ if(LibPicotcp)
         <SOURCE_DIR>
         UPDATE_COMMAND
         ""
+        PATCH_COMMAND
+        sed
+        -i
+        "s/(CROSS_COMPILE)gcc/(C_COMPILER)/g"
+        picotcp/Makefile
         CONFIGURE_COMMAND
         ""
         BUILD_COMMAND
