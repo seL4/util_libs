@@ -51,6 +51,13 @@ if(LibPicotcp)
         " -I$<JOIN:$<TARGET_PROPERTY:muslc,INTERFACE_INCLUDE_DIRECTORIES>, -I>"
     )
 
+    if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        list(APPEND compile_options "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
+        set(C_COMPILER clang)
+    else()
+        set(C_COMPILER ${CROSS_COMPILER_PREFIX}gcc)
+    endif()
+
     # generate a build.sh script to avoid nasty escape issues, we then invoke this in ExternalProject_Add
     file(
         GENERATE
@@ -60,6 +67,7 @@ if(LibPicotcp)
         "${CMAKE_COMMAND} -E env \
         \"PLATFORM_CFLAGS=$<JOIN:${compile_options}, >\" \
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
+        \"C_COMPILER=${C_COMPILER}\" \
         make -s -j"
     )
 
