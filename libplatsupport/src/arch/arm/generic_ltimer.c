@@ -20,7 +20,6 @@
 #include <platsupport/ltimer.h>
 #include <platsupport/arch/generic_timer.h>
 #include <platsupport/io.h>
-#include <platsupport/plat/timer.h>
 
 #include "../../ltimer.h"
 
