@@ -63,6 +63,12 @@ elseif(${KernelArch} STREQUAL "x86")
     list(APPEND deps src/arch/x86/tsc.c)
 endif()
 
+if(KernelPlatformQEMUArmVirt)
+    if(KernelArmExportPCNTUser AND KernelArmExportPTMRUser)
+        list(APPEND deps src/arch/arm/generic_ltimer.c)
+    endif()
+endif()
+
 if(KernelPlatformExynos5422)
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_5422_clock.c)
 elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos5250)
