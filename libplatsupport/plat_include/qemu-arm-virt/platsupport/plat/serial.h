@@ -14,7 +14,7 @@
 
 #define UART0_PADDR  0x9000000
 
-#define UART0_IRQ    1
+#define UART0_IRQ    33
 
 enum chardev_id {
     PL001_UART0,
