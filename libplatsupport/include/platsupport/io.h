@@ -26,6 +26,7 @@ typedef struct ps_io_ops ps_io_ops_t;
 #include <platsupport/mux.h>
 #endif
 #include <platsupport/irq.h>
+#include <platsupport/interface_registration.h>
 
 /**
  * Memory usage hints. These indicate how memory is expected to be used
@@ -415,6 +416,7 @@ struct ps_io_ops {
     clock_sys_t clock_sys;
     mux_sys_t mux_sys;
 #endif
+    ps_interface_registration_ops_t interface_registration_ops;
     ps_malloc_ops_t malloc_ops;
     ps_irq_ops_t irq_ops;
 };
