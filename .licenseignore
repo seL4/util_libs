@@ -1,6 +1,6 @@
-.git*
-LICENSE.txt
-*LICENSE_*.txt
+.git
+LICENSES/*.txt
 .licenseignore
 kbuild-tool/*
 *.json
+*.pyc
