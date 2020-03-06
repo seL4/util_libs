@@ -1,12 +1,9 @@
 /*
- * @TAG(OTHER_GPL)
- */
-
-/* Some code in here loosely derived from Linux */
-
-/*
- * This software may be distributed and modified according to the terms of
- * the GNU General Public License version 2. Note that NO WARRANTY is provided.
+ * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright: Linux Kernel team
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * The code in here is derived from the Linux kernel
  */
 
 #include <autoconf.h>

@@ -1,6 +1,11 @@
 /*
- * @TAG(OTHER_GPL)
+ * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright: Linux Kernel team
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * The code in here is derived from the Linux kernel
  */
+
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_gnuefi_start)

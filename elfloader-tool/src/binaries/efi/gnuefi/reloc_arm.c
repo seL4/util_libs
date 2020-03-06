@@ -1,6 +1,5 @@
-/*
- * @TAG(OTHER_GPL)
- */
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 /*
  * reloc_arm.c - position independent x86 ELF shared object relocator
  * Copyright (C) 2014 Linaro Ltd. <ard.biesheuvel@linaro.org>

@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: BSD-3-Clause or GPL-2.0-or-later */
+
 /*
  * crt0-efi-aarch64.S - PE/COFF header for AArch64 EFI applications
  *
- * Copright (C) 2014 Linaro Ltd. <ard.biesheuvel@linaro.org>
+ * Copyright (C) 2014 Linaro Ltd. <ard.biesheuvel@linaro.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -14,9 +16,6 @@
  * Alternatively, this software may be distributed under the terms of the
  * GNU General Public License as published by the Free Software Foundation;
  * either version 2 of the License, or (at your option) any later version.
- *
- * @TAG(OTHER_BSD)
- * @TAG(OTHER_GPL)
  */
 
 	.section	.text.head
