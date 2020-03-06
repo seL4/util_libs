@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: seL4_tools
+Upstream-Contact: seL4 team <support@sel4.systems>
+Source: https://github.com/seL4/seL4_tools
+
+Files: cmake-tool/rust_targets/*.json
+Copyright: 2020, Data61, CSIRO (ABN 41 687 119 230)
+License: BSD-2-Clause
+
+Files: .licenseignore
+Copyright: 2020, Data61, CSIRO (ABN 41 687 119 230)
+License: BSD-2-Clause
