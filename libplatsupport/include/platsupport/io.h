@@ -50,7 +50,7 @@ typedef enum ps_mem_flags {
  * @param flags Memory usage flags
  * @return the virtual address at which the data at paddr can be accessed or NULL on failure
  */
-typedef void *(*ps_io_map_fn_t)(void* cookie, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags);
+typedef void *(*ps_io_map_fn_t)(void *cookie, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags);
 
 /**
  * Unmap a previously mapped I/O memory region
@@ -67,16 +67,14 @@ typedef struct ps_io_mapper {
     ps_io_unmap_fn_t io_unmap_fn;
 } ps_io_mapper_t;
 
-static inline void *
-ps_io_map(ps_io_mapper_t *io_mapper, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)
+static inline void *ps_io_map(ps_io_mapper_t *io_mapper, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)
 {
     assert(io_mapper);
     assert(io_mapper->io_map_fn);
     return io_mapper->io_map_fn(io_mapper->cookie, paddr, size, cached, flags);
 }
 
-static inline void
-ps_io_unmap(ps_io_mapper_t *io_mapper, void *vaddr, size_t size)
+static inline void ps_io_unmap(ps_io_mapper_t *io_mapper, void *vaddr, size_t size)
 {
     assert(io_mapper);
     assert(io_mapper->io_unmap_fn);
@@ -93,7 +91,7 @@ ps_io_unmap(ps_io_mapper_t *io_mapper, void *vaddr, size_t size)
  *
  * @return Returns 0 on success
  */
-typedef int (*ps_io_port_in_fn_t) (void* cookie, uint32_t port, int io_size, uint32_t *result);
+typedef int (*ps_io_port_in_fn_t)(void *cookie, uint32_t port, int io_size, uint32_t *result);
 
 /**
  * Perform an architectural I/O 'out' operation (aka I/O ports on x86)
@@ -105,7 +103,7 @@ typedef int (*ps_io_port_in_fn_t) (void* cookie, uint32_t port, int io_size, uin
  *
  * @return Returns 0 on success
  */
-typedef int (*ps_io_port_out_fn_t)(void* cookie, uint32_t port, int io_size, uint32_t val);
+typedef int (*ps_io_port_out_fn_t)(void *cookie, uint32_t port, int io_size, uint32_t val);
 
 typedef struct ps_io_port_ops {
     void *cookie;
@@ -113,16 +111,14 @@ typedef struct ps_io_port_ops {
     ps_io_port_out_fn_t io_port_out_fn;
 } ps_io_port_ops_t;
 
-static inline int
-ps_io_port_in(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t *result)
+static inline int ps_io_port_in(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t *result)
 {
     assert(port_ops);
     assert(port_ops->io_port_in_fn);
     return port_ops->io_port_in_fn(port_ops->cookie, port, io_size, result);
 }
 
-static inline int
-ps_io_port_out(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t val)
+static inline int ps_io_port_out(ps_io_port_ops_t *port_ops, uint32_t port, int io_size, uint32_t val)
 {
     assert(port_ops);
     assert(port_ops->io_port_out_fn);
@@ -148,7 +144,7 @@ typedef enum dma_cache_op {
  *
  * @return NULL on failure, otherwise virtual address of allocation
  */
-typedef void* (*ps_dma_alloc_fn_t)(void *cookie, size_t size, int align, int cached, ps_mem_flags_t flags);
+typedef void *(*ps_dma_alloc_fn_t)(void *cookie, size_t size, int align, int cached, ps_mem_flags_t flags);
 
 /**
  * Free a previously allocated dma memory buffer
@@ -204,60 +200,52 @@ typedef struct ps_dma_man {
     ps_dma_cache_op_fn_t dma_cache_op_fn;
 } ps_dma_man_t;
 
-static inline void *
-ps_dma_alloc(ps_dma_man_t *dma_man, size_t size, int align, int cache, ps_mem_flags_t flags)
+static inline void *ps_dma_alloc(ps_dma_man_t *dma_man, size_t size, int align, int cache, ps_mem_flags_t flags)
 {
     assert(dma_man);
     assert(dma_man->dma_alloc_fn);
     return dma_man->dma_alloc_fn(dma_man->cookie, size, align, cache, flags);
 }
 
-static inline void
-ps_dma_free(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline void ps_dma_free(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_free_fn);
     dma_man->dma_free_fn(dma_man->cookie, addr, size);
 }
 
-static inline uintptr_t
-ps_dma_pin(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline uintptr_t ps_dma_pin(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_pin_fn);
     return dma_man->dma_pin_fn(dma_man->cookie, addr, size);
 }
 
-static inline void
-ps_dma_unpin(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline void ps_dma_unpin(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     assert(dma_man);
     assert(dma_man->dma_unpin_fn);
     dma_man->dma_unpin_fn(dma_man->cookie, addr, size);
 }
 
-static inline void
-ps_dma_cache_op(ps_dma_man_t *dma_man, void *addr, size_t size, dma_cache_op_t op)
+static inline void ps_dma_cache_op(ps_dma_man_t *dma_man, void *addr, size_t size, dma_cache_op_t op)
 {
     assert(dma_man);
     assert(dma_man->dma_cache_op_fn);
     dma_man->dma_cache_op_fn(dma_man->cookie, addr, size, op);
 }
 
-static inline void
-ps_dma_cache_clean(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline void ps_dma_cache_clean(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_CLEAN);
 }
 
-static inline void
-ps_dma_cache_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline void ps_dma_cache_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_INVALIDATE);
 }
 
-static inline void
-ps_dma_cache_clean_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
+static inline void ps_dma_cache_clean_invalidate(ps_dma_man_t *dma_man, void *addr, size_t size)
 {
     ps_dma_cache_op(dma_man, addr, size, DMA_CACHE_OP_CLEAN_INVALIDATE);
 }
@@ -431,23 +419,20 @@ struct ps_io_ops {
  * read_bits(&var, 8, 4) ==> 0x6
  * write_bits(&var, 8, 4, 0xC) ==> var = 0x12345C78
  */
-static inline uint32_t
-read_masked(volatile uint32_t* addr, uint32_t mask)
+static inline uint32_t read_masked(volatile uint32_t *addr, uint32_t mask)
 {
     assert(addr);
     return *addr & mask;
 }
 
-static inline void
-write_masked(volatile uint32_t* addr, uint32_t mask, uint32_t value)
+static inline void write_masked(volatile uint32_t *addr, uint32_t mask, uint32_t value)
 {
     assert(addr);
     assert((value & mask) == value);
     *addr = read_masked(addr, ~mask) | value;
 }
 
-static inline uint32_t
-read_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits)
+static inline uint32_t read_bits(volatile uint32_t *addr, unsigned int first_bit, unsigned int nbits)
 {
     assert(addr);
     assert(first_bit < 32);
@@ -455,8 +440,7 @@ read_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits)
     return (*addr >> first_bit) & MASK(nbits);
 }
 
-static inline void
-write_bits(volatile uint32_t* addr, unsigned int first_bit, unsigned int nbits, uint32_t value)
+static inline void write_bits(volatile uint32_t *addr, unsigned int first_bit, unsigned int nbits, uint32_t value)
 {
     assert(addr);
     assert(first_bit < 32);
