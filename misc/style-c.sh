@@ -7,14 +7,9 @@
 
 # Format (in place) a list of files as C code.
 astyle --options="${0%/*}/astylerc" "$@"
-REPO=$(git rev-parse --show-toplevel)
-REPO=${REPO##*/}
 
-if [ "$REPO" != "kernel" ] && [ "$REPO" != "seL4" ]
-# we cannot use #pragma once in the kernel
-then
-    for f
-    do
-        python -m guardonce.guard2once -s "$f"
-    done
-fi
+
+for f
+do
+    python -m guardonce.guard2once -s "$f"
+done
