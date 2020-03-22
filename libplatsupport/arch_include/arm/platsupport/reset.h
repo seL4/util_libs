@@ -23,7 +23,7 @@ typedef struct reset_sys {
     void *data;
 } reset_sys_t;
 
-int reset_sys_init(ps_io_ops_t *io_ops, void *dependecies, reset_sys_t *reset);
+int reset_sys_init(ps_io_ops_t *io_ops, void *dependencies, reset_sys_t *reset);
 
 static inline int reset_sys_assert(reset_sys_t *reset, reset_id_t id)
 {
