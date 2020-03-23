@@ -253,9 +253,10 @@ struct eqos_priv {
     unsigned char enetaddr[ARP_HLEN];
     bool reg_access_ok;
     ps_io_ops_t *tx2_io_ops;
-    gpio_sys_t gpio_sys;
+    gpio_sys_t *gpio_sys;
     gpio_t gpio;
-    reset_sys_t reset_sys;
+    reset_sys_t *reset_sys;
+    clock_sys_t *clock_sys;
 };
 
 #define REG_DWCEQOS_DMA_CH0_STA          0x1160
@@ -442,38 +443,38 @@ static int eqos_start_clks_tegra186(struct eqos_priv *eqos)
 {
     int ret;
 
-    assert(clock_sys_valid(&eqos->tx2_io_ops->clock_sys));
+    assert(clock_sys_valid(eqos->clock_sys));
 
-    eqos->clk_slave_bus = clk_get_clock(&eqos->tx2_io_ops->clock_sys, CLK_AXI_CBB);
+    eqos->clk_slave_bus = clk_get_clock(eqos->clock_sys, CLK_AXI_CBB);
     if (eqos->clk_slave_bus == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_SLAVE_BUS");
     }
-    clk_gate_enable(&eqos->tx2_io_ops->clock_sys, CLK_AXI_CBB, CLKGATE_ON);
+    clk_gate_enable(eqos->clock_sys, CLK_AXI_CBB, CLKGATE_ON);
 
 
-    eqos->clk_master_bus = clk_get_clock(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_AXI);
+    eqos->clk_master_bus = clk_get_clock(eqos->clock_sys, CLK_GATE_EQOS_AXI);
     if (eqos->clk_master_bus == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_MASTER_BUS");
     }
-    clk_gate_enable(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_AXI, CLKGATE_ON);
+    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_AXI, CLKGATE_ON);
 
-    eqos->clk_rx = clk_get_clock(&eqos->tx2_io_ops->clock_sys, CLK_EQOS_RX_INPUT);
+    eqos->clk_rx = clk_get_clock(eqos->clock_sys, CLK_EQOS_RX_INPUT);
     if (eqos->clk_rx == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_RX");
     }
-    clk_gate_enable(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_RX, CLKGATE_ON);
+    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_RX, CLKGATE_ON);
 
-    eqos->clk_ptp_ref = clk_get_clock(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_PTP_REF);
+    eqos->clk_ptp_ref = clk_get_clock(eqos->clock_sys, CLK_GATE_EQOS_PTP_REF);
     if (eqos->clk_ptp_ref == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_PTP_REF");
     }
-    clk_gate_enable(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_PTP_REF, CLKGATE_ON);
+    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_PTP_REF, CLKGATE_ON);
 
-    eqos->clk_tx = clk_get_clock(&eqos->tx2_io_ops->clock_sys, CLK_EQOS_TX);
+    eqos->clk_tx = clk_get_clock(eqos->clock_sys, CLK_EQOS_TX);
     if (eqos->clk_tx == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_TX");
     }
-    clk_gate_enable(&eqos->tx2_io_ops->clock_sys, CLK_GATE_EQOS_TX, CLKGATE_ON);
+    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_TX, CLKGATE_ON);
 
     return 0;
 }
@@ -707,7 +708,7 @@ static int eqos_start_resets_tegra186(struct eqos_priv *eqos)
         return ret;
     }
 
-    ret = reset_sys_assert(&eqos->reset_sys, RESET_EQOS);
+    ret = reset_sys_assert(eqos->reset_sys, RESET_EQOS);
     if (ret < 0) {
         ZF_LOGF("reset_assert() failed: %d", ret);
         return ret;
@@ -715,7 +716,7 @@ static int eqos_start_resets_tegra186(struct eqos_priv *eqos)
 
     udelay(2);
 
-    ret = reset_sys_deassert(&eqos->reset_sys, RESET_EQOS);
+    ret = reset_sys_deassert(eqos->reset_sys, RESET_EQOS);
     if (ret < 0) {
         ZF_LOGF("reset_deassert() failed: %d", ret);
         return ret;
@@ -1021,6 +1022,112 @@ err:
     return ret;
 }
 
+static int hardware_interface_searcher(void *handler_data, void *interface_instance, char **properties)
+{
+
+    /* For now, just take the first one that appears, note that we pass the
+     * pointer of each individual subsystem as the cookie. */
+    *((void **) handler_data) = interface_instance;
+    return PS_INTERFACE_FOUND_MATCH;
+}
+
+static int tx2_initialise_hardware(struct eqos_priv *eqos)
+{
+    if (!eqos) {
+        ZF_LOGE("eqos is NULL");
+        return -EINVAL;
+    }
+
+    bool found_clock_interface = false;
+    bool found_reset_interface = false;
+    bool found_gpio_interface = false;
+
+    /* Check if a clock, reset, and gpio interface was registered, if not
+     * initialise them ourselves */
+    int error = ps_interface_find(&eqos->tx2_io_ops->interface_registration_ops,
+                                  PS_CLOCK_INTERFACE, hardware_interface_searcher, &eqos->clock_sys);
+    if (!error) {
+        found_clock_interface = true;
+    }
+
+    error = ps_interface_find(&eqos->tx2_io_ops->interface_registration_ops,
+                              PS_RESET_INTERFACE, hardware_interface_searcher, &eqos->reset_sys);
+    if (!error) {
+        found_reset_interface = true;
+    }
+
+    error = ps_interface_find(&eqos->tx2_io_ops->interface_registration_ops,
+                              PS_GPIO_INTERFACE, hardware_interface_searcher, &eqos->gpio_sys);
+    if (!error) {
+        found_gpio_interface = true;
+    }
+
+    if (found_clock_interface && found_reset_interface && found_gpio_interface) {
+        return 0;
+    }
+
+    if (!found_clock_interface) {
+        ZF_LOGW("Did not found a suitable clock interface, going to be initialising our own");
+        error = ps_calloc(&eqos->tx2_io_ops->malloc_ops, 1, sizeof(*(eqos->clock_sys)),
+                          (void **) &eqos->clock_sys);
+        if (error) {
+            /* Too early to be cleaning up anything */
+            return error;
+        }
+        error = clock_sys_init(eqos->tx2_io_ops, eqos->clock_sys);
+        if (error) {
+            goto fail;
+        }
+    }
+
+    if (!found_reset_interface) {
+        ZF_LOGW("Did not found a suitable reset interface, going to be initialising our own");
+        error = ps_calloc(&eqos->tx2_io_ops->malloc_ops, 1, sizeof(*(eqos->reset_sys)),
+                          (void **) &eqos->reset_sys);
+        if (error) {
+            goto fail;
+        }
+        error = reset_sys_init(eqos->tx2_io_ops, NULL, eqos->reset_sys);
+        if (error) {
+            goto fail;
+        }
+    }
+
+    if (!found_gpio_interface) {
+        ZF_LOGW("Did not found a suitable gpio interface, going to be initialising our own");
+        error = ps_calloc(&eqos->tx2_io_ops->malloc_ops, 1, sizeof(*(eqos->gpio_sys)),
+                          (void **) &eqos->gpio_sys);
+        if (error) {
+            goto fail;
+        }
+        error = gpio_sys_init(eqos->tx2_io_ops, eqos->gpio_sys);
+        if (error) {
+            goto fail;
+        }
+    }
+
+    return 0;
+
+fail:
+
+    if (eqos->clock_sys) {
+        ZF_LOGF_IF(ps_free(&eqos->tx2_io_ops->malloc_ops, sizeof(*(eqos->clock_sys)), eqos->clock_sys),
+                   "Failed to clean up the clock interface after a failed initialisation process");
+    }
+
+    if (eqos->reset_sys) {
+        ZF_LOGF_IF(ps_free(&eqos->tx2_io_ops->malloc_ops, sizeof(*(eqos->reset_sys)), eqos->reset_sys),
+                   "Failed to clean up the reset interface after a failed initialisation process");
+    }
+
+    if (eqos->gpio_sys) {
+        ZF_LOGF_IF(ps_free(&eqos->tx2_io_ops->malloc_ops, sizeof(*(eqos->gpio_sys)), eqos->gpio_sys),
+                   "Failed to clean up the gpio interface after a failed initialisation process");
+    }
+
+    return error;
+}
+
 void *tx2_initialise(uintptr_t base_addr, ps_io_ops_t *io_ops)
 {
     struct eqos_priv *eqos;
@@ -1046,26 +1153,15 @@ void *tx2_initialise(uintptr_t base_addr, ps_io_ops_t *io_ops)
         ZF_LOGF("failed to initialise phy");
     }
 
-    /* initialise clock subsystem */
-    ret = clock_sys_init(eqos->tx2_io_ops, &eqos->tx2_io_ops->clock_sys);
-    if (ret != 0) {
-        ZF_LOGF("failed to initialise clock sub system");
+    ret = tx2_initialise_hardware(eqos);
+    if (ret) {
+        return NULL;
     }
 
-    /* initialise gpio subsystem */
-    ret = gpio_sys_init(eqos->tx2_io_ops, &eqos->gpio_sys);
-    if (ret != 0) {
-        ZF_LOGF("failed to initialise gpio sub system");
-    }
-    ret = eqos->gpio_sys.init(&eqos->gpio_sys, GPIO_PM4, GPIO_DIR_OUT, &eqos->gpio);
+    /* initialise the phy reset gpio gpio */
+    ret = eqos->gpio_sys->init(eqos->gpio_sys, GPIO_PM4, GPIO_DIR_OUT, &eqos->gpio);
     if (ret != 0) {
         ZF_LOGF("failed to init phy reset gpio pin");
-    }
-
-    /* initialise resets */
-    ret = reset_sys_init(eqos->tx2_io_ops, NULL, &eqos->reset_sys);
-    if (ret != 0) {
-        ZF_LOGF("failed to initialise resets");
     }
 
     eqos->config = &eqos_tegra186_config;
