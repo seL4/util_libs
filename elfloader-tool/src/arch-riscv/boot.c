@@ -145,7 +145,7 @@ static inline void enable_virtual_memory(void)
 {
     sfence_vma();
     asm volatile(
-        "csrw sptbr, %0\n"
+        "csrw satp, %0\n"
         :
         : "r"(vm_mode | (uintptr_t)l1pt >> RISCV_PGSHIFT)
         :
