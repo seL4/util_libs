@@ -57,11 +57,11 @@ typedef enum gpio_dir {
     GPIO_DIR_IRQ_EDGE
 } gpio_dir_t;
 
-enum gpio_level {
+typedef enum gpio_level {
     /* GPIO input/output levels */
     GPIO_LEVEL_LOW,
     GPIO_LEVEL_HIGH
-};
+} gpio_level_t;
 
 struct gpio_sys {
     /** Initialize a GPIO pin.
