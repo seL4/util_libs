@@ -42,7 +42,7 @@ static void free_buf_pool(pico_device_eth *pico_iface, int buf_no) {
         ZF_LOGE("Attempted to return a buffer outside of the pool %d.", buf_no);
         return;
     }
-    pico_iface->buf_pool[pico_iface->next_free_buf] = pico_iface->next_free_buf;
+    pico_iface->buf_pool[buf_no] = pico_iface->next_free_buf;
     pico_iface->next_free_buf = buf_no;
 }
 
