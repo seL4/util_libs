@@ -50,6 +50,7 @@ struct eqos_desc {
 #define EQOS_DESCRIPTORS_RX 256
 
 /* descriptor flags */
+#define EQOS_DESC2_IOC      BIT(31)
 #define EQOS_DESC3_OWN      BIT(31)
 #define EQOS_DESC3_FD       BIT(29)
 #define EQOS_DESC3_LD       BIT(28)

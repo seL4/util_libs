@@ -670,7 +670,7 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
 
     tx_desc->des0 = (uintptr_t)packet;
     tx_desc->des1 = 0;
-    tx_desc->des2 = length;
+    tx_desc->des2 |= EQOS_DESC2_IOC | length;
 
     __sync_synchronize();
 
@@ -678,15 +678,7 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
 
     eqos->dma_regs->ch0_txdesc_tail_pointer = tail;
 
-    /* Currenly we use a polling approach, later we can move to interrupt driven tx */
-    for (i = 0; i < 100000000; i++) {
-        if (!(tx_desc->des3 & EQOS_DESC3_OWN)) {
-            return 0;
-        }
-        udelay(1);
-    }
-
-    return -ETIMEDOUT;
+    return 0;
 }
 
 static const struct eqos_config eqos_tegra186_config = {
@@ -1005,7 +997,7 @@ int eqos_start(struct tx2_eth_data *d)
 
     /* Enable everything */
     dma_ie = (uint32_t *)(eqos->regs + 0x1134);
-    *dma_ie = DWCEQOS_DMA_CH0_IE_RIE | DWCEQOS_DMA_CH0_IE_TIE | DWCEQOS_DMA_CH0_IE_NIE | DWCEQOS_DMA_CH0_IE_RBUE |
+    *dma_ie = DWCEQOS_DMA_CH0_IE_RIE | DWCEQOS_DMA_CH0_IE_TIE | DWCEQOS_DMA_CH0_IE_NIE |
               DWCEQOS_DMA_CH0_IE_AIE | DWCEQOS_DMA_CH0_IE_FBEE;
 
     udelay(100);
