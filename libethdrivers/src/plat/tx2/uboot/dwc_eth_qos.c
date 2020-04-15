@@ -338,13 +338,13 @@ int eqos_handle_irq(struct tx2_eth_data *dev, int irq)
 
         /* Transmit Interrupt currently polling tx so should never get here */
         if (*dma_status & DWCEQOS_DMA_CH0_IS_TI) {
-            ret = 1;
+            ret |= TX_IRQ;
         }
 
         /* Receive Interrupt */
         if (*dma_status & DWCEQOS_DMA_CH0_IS_RI) {
             dwceqos_dma_disable_rxirq(eqos);
-            ret = 2;
+            ret |= RX_IRQ;
         }
 
         /* Ack */

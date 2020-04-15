@@ -202,13 +202,17 @@ static void handle_irq(struct eth_driver *driver, int irq)
     struct tx2_eth_data *eth_data = (struct tx2_eth_data *)driver->eth_data;
     uint32_t val = eqos_handle_irq(eth_data, irq);
 
-    if (val == TXIRQ) {
+    if (val & TX_IRQ) {
         complete_tx(driver);
     }
 
-    if (val == RXIRQ) {
+    if (val & RX_IRQ) {
         complete_rx(driver);
         fill_rx_bufs(driver);
+        /*
+         * RX IRQ is was disabled when checking the IRQ, and thus need to be
+         * re-enabled
+         */
         eqos_dma_enable_rxirq(eth_data);
     }
 

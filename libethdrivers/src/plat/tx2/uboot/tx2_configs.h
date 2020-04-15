@@ -57,9 +57,6 @@ struct eqos_desc {
 #define EQOS_DESC3_BUF1V    BIT(24)
 #define DWCEQOS_DMA_RDES3_INTE    BIT(30)
 
-#define TXIRQ 1
-#define RXIRQ 2
-
 #define EQOS_ALIGN(x,a)      __ALIGN_MASK((x),(typeof(x))(a)-1)
 #define EQOS_MAX_PACKET_SIZE    EQOS_ALIGN(1568, ARCH_DMA_MINALIGN)
 
