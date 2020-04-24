@@ -331,7 +331,7 @@ int eqos_handle_irq(struct tx2_eth_data *dev, int irq)
 
     uint32_t cause = eqos->dma_regs->dma_control[0];
     uint32_t *dma_status;
-    int ret = -1;
+    int ret = 0;
 
     if (cause & DWCEQOS_DMA_IS_DC0IS) {
         dma_status = (uint32_t *)(eqos->regs + REG_DWCEQOS_DMA_CH0_STA);

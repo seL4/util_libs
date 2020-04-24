@@ -216,8 +216,8 @@ static void handle_irq(struct eth_driver *driver, int irq)
         eqos_dma_enable_rxirq(eth_data);
     }
 
-    if (val == -1) {
-        ZF_LOGF("Something went wrong");
+    if (val == 0) {
+        ZF_LOGD("No TX or RX IRQ, ignoring this interrupt");
     }
 }
 
