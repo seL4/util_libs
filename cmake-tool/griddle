@@ -53,6 +53,7 @@ NCOLORS=$(tput colors)
 RED=
 GREEN=
 YELLOW=
+CYAN=
 
 # We want different foreground color numbers if we have a terminal capable of
 # more than 8, because generally the contrast is bad if we use the low-numbered
