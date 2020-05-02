@@ -30,7 +30,13 @@ mark_as_advanced(TLS_ROOTSERVER)
 find_file(UIMAGE_TOOL make-uimage PATHS "${CMAKE_CURRENT_LIST_DIR}" CMAKE_FIND_ROOT_PATH_BOTH)
 mark_as_advanced(UIMAGE_TOOL)
 
-if(KernelArchRiscV)
+config_option(
+    UseRiscVBBL RISCV_BBL "Use the Berkeley Boot Loader."
+    DEFAULT ON
+    DEPENDS "KernelArchRiscV"
+)
+
+if(UseRiscVBBL)
     set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
     mark_as_advanced(FORCE BBL_PATH)
 endif()
@@ -90,48 +96,43 @@ function(DeclareRootserver rootservername)
         )
         set(elf_target_file $<TARGET_FILE:elfloader>)
         if(KernelArchRiscV)
-            # On RISC-V we need to package up our final elf image into the Berkeley boot loader
-            # which is what the following custom command is achieving
-
-            # TODO: Currently we do not support native RISC-V builds, because there
-            # is no native environment to test this. Thus CROSS_COMPILER_PREFIX is
-            # always set and the BBL build below uses it to create the
-            # "--host=..." parameter. For now, make the build fail if
-            # CROSS_COMPILER_PREFIX if not set. It seems that native builds can
-            # simply omit the host parameter.
-            if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
-                message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
-            endif()
-
-            # Get host string which is our cross compiler minus the trailing '-'
-            string(
-                REGEX
-                REPLACE
-                    "^(.*)-$"
-                    "\\1"
-                    host
-                    ${CROSS_COMPILER_PREFIX}
-            )
-            get_filename_component(host ${host} NAME)
             if(KernelSel4ArchRiscV32)
                 set(march rv32imafdc)
             else()
                 set(march rv64imafdc)
             endif()
-            file(GLOB_RECURSE deps)
-            add_custom_command(
-                OUTPUT "${CMAKE_BINARY_DIR}/bbl/bbl"
-                COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
-                COMMAND
-                    cd ${CMAKE_BINARY_DIR}/bbl && ${BBL_PATH}/configure
-                    --quiet
-                    --host=${host}
-                    --with-arch=${march}
-                    --with-payload=${elf_target_file}
-                        && make -s clean && make -s > /dev/null
-                DEPENDS ${elf_target_file} elfloader ${USES_TERMINAL_DEBUG}
-            )
-            set(elf_target_file "${CMAKE_BINARY_DIR}/bbl/bbl")
+            if(UseRiscVBBL)
+                # Package up our final elf image into the Berkeley boot loader.
+                # The host string is extracted from the cross compiler setting
+                # minus the trailing '-'
+                if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
+                    message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
+                endif()
+
+                string(
+                    REGEX
+                    REPLACE
+                        "^(.*)-$"
+                        "\\1"
+                        host
+                        "${CROSS_COMPILER_PREFIX}"
+                )
+                get_filename_component(host ${host} NAME)
+                file(GLOB_RECURSE deps)
+                add_custom_command(
+                    OUTPUT "${CMAKE_BINARY_DIR}/bbl/bbl"
+                    COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
+                    COMMAND
+                        cd ${CMAKE_BINARY_DIR}/bbl && ${BBL_PATH}/configure
+                        --quiet
+                        --host=${host}
+                        --with-arch=${march}
+                        --with-payload=${elf_target_file}
+                            && make -s clean && make -s > /dev/null
+                    DEPENDS ${elf_target_file} elfloader ${USES_TERMINAL_DEBUG}
+                )
+                set(elf_target_file "${CMAKE_BINARY_DIR}/bbl/bbl")
+            endif()
         endif()
         set(binary_efi_list "binary;efi")
         if(${ElfloaderImage} IN_LIST binary_efi_list)
