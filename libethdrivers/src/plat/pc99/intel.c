@@ -904,7 +904,7 @@ static int fill_rx_bufs(struct eth_driver *driver)
     while (dev->rx_remain > 0) {
         /* request a buffer */
         void *cookie;
-        uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie);
+        uintptr_t phys = driver->i_cb.allocate_rx_buf ? driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie) : 0;
         if (!phys) {
             break;
         }
@@ -990,6 +990,20 @@ static struct raw_iface_funcs iface_fns = {
     .get_mac = get_mac
 };
 
+static void eth_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
+{
+
+    struct eth_driver *eth = data;
+
+    handle_irq(eth, 0);
+
+    int error = acknowledge_fn(ack_data);
+    if (error) {
+        LOG_ERROR("Failed to acknowledge IRQ");
+    }
+
+}
+
 static int common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config, e1000_dev_t *dev)
 {
     int err;
@@ -1013,6 +1027,19 @@ static int common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *conf
         free(dev);
         return -1;
     }
+
+    /* If num_irqs are 0 then we assume that this driver is either polled or some external environment
+     * will call raw_handleIRQ.
+     */
+    if (eth_config->num_irqs == 1) {
+        irq_id_t irq_id = ps_irq_register(&io_ops.irq_ops, eth_config->irq_info[0], eth_irq_handle, driver);
+        if (irq_id < 0) {
+            LOG_ERROR("Failed to register IRQ");
+            return -1;
+        }
+
+    }
+
     /* the transmit and receive initialization functions assume
      * that we have setup descriptor rings for the transmit receive queues */
     initialize_transmit(dev);
@@ -1028,7 +1055,7 @@ static int common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *conf
     enable_interrupts(dev);
     /* check the current status of the link */
     check_link_status(dev);
-    return 0;
+    return ps_interface_register(&io_ops.interface_registration_ops, PS_ETHERNET_INTERFACE, driver, NULL);
 }
 
 int ethif_e82580_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)

@@ -18,6 +18,8 @@
 typedef struct ethif_intel_config {
     void *bar0;
     uint8_t prom_mode;
+    size_t num_irqs;
+    ps_irq_t irq_info[];
 } ethif_intel_config_t;
 
 /**

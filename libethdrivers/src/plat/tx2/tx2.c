@@ -10,6 +10,8 @@
  * @TAG(DATA61_GPL)
  */
 
+#include <platsupport/fdt.h>
+#include <platsupport/driver_module.h>
 #include <ethdrivers/tx2.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
@@ -119,7 +121,9 @@ static void fill_rx_bufs(struct eth_driver *driver)
 
         void *cookie = NULL;
         /* request a buffer */
-        uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, EQOS_MAX_PACKET_SIZE, &cookie);
+        uintptr_t phys = driver->i_cb.allocate_rx_buf ? driver->i_cb.allocate_rx_buf(driver->cb_cookie, EQOS_MAX_PACKET_SIZE,
+                                                                                     &cookie) : 0;
+
         if (!phys) {
             break;
         }
@@ -339,3 +343,120 @@ error:
     free_desc_ring(eth_data, &io_ops.dma_manager);
     return -1;
 }
+
+static void eth_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
+{
+
+    struct eth_driver *eth = data;
+
+    handle_irq(eth, 0);
+
+    int error = acknowledge_fn(ack_data);
+    if (error) {
+        LOG_ERROR("Failed to acknowledge IRQ");
+    }
+
+}
+
+typedef struct {
+    void *addr;
+    ps_io_ops_t *io_ops;
+    struct eth_driver *eth_driver;
+} callback_args_t;
+
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    if (token == NULL) {
+        return -EINVAL;
+    }
+
+    callback_args_t *args = token;
+    if (curr_num == 0) {
+        args->addr = ps_pmem_map(args->io_ops, pmem, false, PS_MEM_NORMAL);
+        if (!args->addr) {
+            ZF_LOGE("Failed to map the Eth device");
+            return -EIO;
+        }
+
+    }
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    if (token == NULL) {
+        return -EINVAL;
+    }
+    callback_args_t *args = token;
+    /* Skip all interrupts except the first */
+    if (curr_num != 0) {
+        return 0;
+    }
+
+    int res = ps_irq_register(&args->io_ops->irq_ops, irq, eth_irq_handle, args->eth_driver);
+    if (res < 0) {
+        return -EIO;
+    }
+
+    return 0;
+}
+
+
+int ethif_tx2_init_module(ps_io_ops_t *io_ops, const char *device_path)
+{
+
+    struct arm_eth_plat_config plat_config;
+    struct eth_driver *eth_driver;
+    int error = ps_calloc(&io_ops->malloc_ops, 1, sizeof(*eth_driver), (void **)&eth_driver);
+    if (error) {
+        ZF_LOGE("Failed to allocate struct for eth_driver");
+        return -1;
+    }
+
+    ps_fdt_cookie_t *cookie = NULL;
+    callback_args_t args = {.io_ops = io_ops, .eth_driver = eth_driver};
+    /* read the ethernet's path in the DTB */
+    error = ps_fdt_read_path(&io_ops->io_fdt, &io_ops->malloc_ops, device_path, &cookie);
+    if (error) {
+        return -ENODEV;
+    }
+
+
+    /* walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&io_ops->io_fdt, cookie, allocate_register_callback, &args);
+    if (error) {
+        return -ENODEV;
+    }
+    if (args.addr == NULL) {
+        return -ENODEV;
+    }
+
+    /* walk the interrupts and allocate the first */
+    error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, allocate_irq_callback, &args);
+    if (error) {
+        return -ENODEV;
+    }
+
+    error = ps_fdt_cleanup_cookie(&io_ops->malloc_ops, cookie);
+    if (error) {
+        return -ENODEV;
+    }
+    plat_config.buffer_addr = args.addr;
+    plat_config.prom_mode = 1;
+
+
+    error = ethif_tx2_init(eth_driver, *io_ops, &plat_config);
+    if (error) {
+        return -ENODEV;
+    }
+
+    return ps_interface_register(&io_ops->interface_registration_ops, PS_ETHERNET_INTERFACE, eth_driver, NULL);
+
+}
+
+static const char *compatible_strings[] = {
+    "nvidia,eqos",
+    NULL
+};
+
+PS_DRIVER_MODULE_DEFINE(tx2_ether_qos, compatible_strings, ethif_tx2_init_module);

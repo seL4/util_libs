@@ -19,7 +19,9 @@ typedef enum ps_interface_type {
     /* These IDs represent the respective interfaces inside libplatsupport */
     PS_GPIO_INTERFACE,
     PS_CLOCK_INTERFACE,
-    PS_RESET_INTERFACE
+    PS_RESET_INTERFACE,
     /* There are plans to add more interface types, but we need to first define
      * the interfaces. */
+    PS_ETHERNET_INTERFACE /* Interface is defined as a reference to struct eth_driver defined in
+                             libethdrivers */
 } ps_interface_type_t;
