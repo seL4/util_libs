@@ -62,7 +62,7 @@ typedef struct ps_fdt_cookie ps_fdt_cookie_t;
  *
  * @returns 0 on success, otherwise -EINVAL, -ENOMEM, or one of the error codes in libfdt
  */
-int ps_fdt_read_path(ps_io_fdt_t *io_fdt, ps_malloc_ops_t *malloc_ops, char *path, ps_fdt_cookie_t **ret_cookie);
+int ps_fdt_read_path(ps_io_fdt_t *io_fdt, ps_malloc_ops_t *malloc_ops, const char *path, ps_fdt_cookie_t **ret_cookie);
 
 /*
  * Cleans up a cookie that was initialised by ps_fdt_read_path.

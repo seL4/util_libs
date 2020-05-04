@@ -28,7 +28,7 @@ struct ps_fdt_cookie {
     int node_offset;
 };
 
-int ps_fdt_read_path(ps_io_fdt_t *io_fdt, ps_malloc_ops_t *malloc_ops, char *path, ps_fdt_cookie_t **ret_cookie)
+int ps_fdt_read_path(ps_io_fdt_t *io_fdt, ps_malloc_ops_t *malloc_ops, const char *path, ps_fdt_cookie_t **ret_cookie)
 {
     if (!path || !ret_cookie) {
         return -EINVAL;
