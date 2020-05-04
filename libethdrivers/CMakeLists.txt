@@ -108,5 +108,9 @@ if(LibPicotcp)
 endif()
 
 if("${KernelPlatform}" STREQUAL "tx2")
-    target_link_libraries(ethdrivers platsupportports "-Wl,--undefined=tx2_ether_qos_ptr")
+    target_link_libraries(ethdrivers platsupportports)
 endif()
+target_link_libraries(
+    ethdrivers
+    "-Wl,--undefined=tx2_ether_qos_ptr,--undefined=zynq7000_gem_ptr,--undefined=imx_fec_ptr"
+)

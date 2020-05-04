@@ -13,6 +13,8 @@
 
 #include "unimplemented.h"
 #include "io.h"
+#include <platsupport/driver_module.h>
+#include <platsupport/fdt.h>
 #include <ethdrivers/gen_config.h>
 #include <ethdrivers/zynq7000.h>
 #include <ethdrivers/raw.h>
@@ -283,6 +285,21 @@ static void handle_irq(struct eth_driver *driver, int irq)
     }
 }
 
+/* This is a platsuport IRQ interface IRQ handler wrapper for handle_irq() */
+static void eth_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
+{
+    ZF_LOGF_IF(data == NULL, "Passed in NULL for the data");
+    struct eth_driver *driver = data;
+
+    /* handle_irq doesn't really expect an IRQ number */
+    handle_irq(driver, 0);
+
+    int error = acknowledge_fn(ack_data);
+    if (error) {
+        LOG_ERROR("Failed to acknowledge the Ethernet device's IRQ");
+    }
+}
+
 static void print_state(struct eth_driver *eth_driver)
 {
     printf("Zynq7000: print_state not implemented\n");
@@ -447,3 +464,106 @@ error:
     free_desc_ring(eth_data, &io_ops.dma_manager);
     return -1;
 }
+
+typedef struct {
+    void *addr;
+    ps_io_ops_t *io_ops;
+    struct eth_driver *eth_driver;
+    int irq_id;
+} callback_args_t;
+
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    if (token == NULL) {
+        ZF_LOGE("Expected a token!");
+        return -EINVAL;
+    }
+
+    callback_args_t *args = token;
+    if (curr_num == 0) {
+        args->addr = ps_pmem_map(args->io_ops, pmem, false, PS_MEM_NORMAL);
+        if (!args->addr) {
+            ZF_LOGE("Failed to map the Ethernet device");
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    if (token == NULL) {
+        ZF_LOGE("Expected a token!");
+        return -EINVAL;
+    }
+
+    callback_args_t *args = token;
+    if (curr_num == 0) {
+        args->irq_id = ps_irq_register(&args->io_ops->irq_ops, irq, eth_irq_handle, args->eth_driver);
+        if (args->irq_id < 0) {
+            ZF_LOGE("Failed to register the Ethernet device's IRQ");
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
+int ethif_zynq7000_init_module(ps_io_ops_t *io_ops, const char *dev_path)
+{
+    struct arm_eth_plat_config plat_config;
+    struct eth_driver *eth_driver;
+
+    int error = ps_calloc(&io_ops->malloc_ops, 1, sizeof(*eth_driver), (void **) &eth_driver);
+    if (error) {
+        ZF_LOGE("Failed to allocate memory for the Ethernet driver");
+        return -ENOMEM;
+    }
+
+    ps_fdt_cookie_t *cookie = NULL;
+    callback_args_t args = { .io_ops = io_ops, .eth_driver = eth_driver };
+    error = ps_fdt_read_path(&io_ops->io_fdt, &io_ops->malloc_ops, (char *) dev_path, &cookie);
+    if (error) {
+        ZF_LOGE("Failed to read the path of the Ethernet device");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_walk_registers(&io_ops->io_fdt, cookie, allocate_register_callback, &args);
+    if (error) {
+        ZF_LOGE("Failed to walk the Ethernet device's registers and allocate them");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, allocate_irq_callback, &args);
+    if (error) {
+        ZF_LOGE("Failed to walk the Ethernet device's IRQs and allocate them");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_cleanup_cookie(&io_ops->malloc_ops, cookie);
+    if (error) {
+        ZF_LOGE("Failed to free the cookie used to allocate resources");
+        return -ENODEV;
+    }
+
+    /* Setup the config and hand initialisation off to the proper
+     * initialisation method */
+    plat_config.buffer_addr = args.addr;
+    plat_config.prom_mode = 1;
+
+    error = ethif_zynq7000_init(eth_driver, *io_ops, &plat_config);
+    if (error) {
+        ZF_LOGE("Failed to initialise the Ethernet driver");
+        return -ENODEV;
+    }
+
+    return ps_interface_register(&io_ops->interface_registration_ops, PS_ETHERNET_INTERFACE, eth_driver, NULL);
+}
+
+static const char *compatible_strings[] = {
+    "cdns,zynq-gem",
+    "cdns,gem",
+    NULL
+};
+PS_DRIVER_MODULE_DEFINE(zynq7000_gem, compatible_strings, ethif_zynq7000_init_module);
