@@ -13,6 +13,7 @@
 #pragma once
 
 #include <utils/util.h>
+#include <platsupport/io.h>
 
 #define PS_DRIVER_MODULE_DEFINE(name, compat_list, init_func)                   \
     static_assert(compat_list != NULL, "Supplied compatible_list is NULL!");    \
