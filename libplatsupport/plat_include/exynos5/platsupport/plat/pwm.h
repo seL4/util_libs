@@ -11,10 +11,4 @@
  */
 #pragma once
 
-#define PWM_TIMER_PADDR   0x12DD0000
-
-#define PWM_T4_INTERRUPT 72
-#define PWM_T3_INTERRUPT 71
-#define PWM_T2_INTERRUPT 70
-#define PWM_T1_INTERRUPT 69
-#define PWM_T0_INTERRUPT 68
+#define PWM_TIMER_PATH      "/soc/pwm@12dd0000"

@@ -14,15 +14,13 @@
 
 #include <platsupport/timer.h>
 #include <platsupport/plat/pwm.h>
+#include <platsupport/io.h>
+#include <platsupport/pmem.h>
+#include <platsupport/ltimer.h>
 
 #include <utils/util.h>
 #include <stdint.h>
 #include <stdbool.h>
-
-typedef struct {
-    /* vaddr pwm is mapped to */
-    void *vaddr;
-} pwm_config_t;
 
 /* Memory map for pwm */
 struct pwm_map {
@@ -47,8 +45,19 @@ struct pwm_map {
 };
 
 typedef struct pwm {
+    /* set upon entering init */
+    ps_io_ops_t ops;
+    ltimer_callback_fn_t user_cb_fn;
+    void *user_cb_token;
+
+    /* set during init callbacks */
     volatile struct pwm_map *pwm_map;
-    uint64_t time_h;
+    pmem_region_t pmem;                 /* mapping for pwm_map */
+    irq_id_t t0_irq;                    /* irq for timer 0 */
+    irq_id_t t4_irq;
+
+    /* set during device start */
+    uint64_t time_h;                   /* track overflows for get_time */
 } pwm_t;
 
 static UNUSED timer_properties_t pwm_properties = {
@@ -61,9 +70,8 @@ static UNUSED timer_properties_t pwm_properties = {
     .timeouts = true,
 };
 
-int pwm_start(pwm_t *pwm);
-int pwm_stop(pwm_t *pwm);
-void pwm_handle_irq(pwm_t *pwm, uint32_t irq);
 uint64_t pwm_get_time(pwm_t *pwm);
 int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic);
-int pwm_init(pwm_t *pwm, pwm_config_t config);
+int pwm_init(pwm_t *pwm, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token);
+void pwm_destroy(pwm_t *pwm);
+int pwm_reset(pwm_t *pwm);
