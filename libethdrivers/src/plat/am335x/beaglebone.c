@@ -48,7 +48,7 @@ static void fill_rx_bufs(struct eth_driver *driver)
         /* request a buffer */
         void *cookie;
         int next_rdt = (dev->rdt + 1) % dev->rx_size;
-        uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, MAX_PKT_SIZE, &cookie);
+        uintptr_t phys = driver->i_cb.allocate_rx_buf ? driver->i_cb.allocate_rx_buf(driver->cb_cookie, MAX_PKT_SIZE, &cookie) : 0;
         if (!phys) {
             break;
         }

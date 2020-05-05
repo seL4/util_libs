@@ -110,7 +110,7 @@ static void fill_rx_bufs(struct eth_driver *driver)
         int next_rdt = (dev->rdt + 1) % dev->rx_size;
 
         // This fn ptr is either lwip_allocate_rx_buf or lwip_pbuf_allocate_rx_buf (in src/lwip.c)
-        uintptr_t phys = driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie);
+        uintptr_t phys = driver->i_cb.allocate_rx_buf? driver->i_cb.allocate_rx_buf(driver->cb_cookie, BUF_SIZE, &cookie): 0;
         if (!phys) {
             // NOTE: This condition could happen if
             //       CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS < CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT
