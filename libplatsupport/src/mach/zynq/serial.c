@@ -164,29 +164,29 @@ struct zynq_uart_regs {
 };
 typedef volatile struct zynq_uart_regs zynq_uart_regs_t;
 
-static inline zynq_uart_regs_t*
-zynq_uart_get_priv(ps_chardevice_t *d)
+static inline zynq_uart_regs_t *zynq_uart_get_priv(ps_chardevice_t *d)
 {
-    return (zynq_uart_regs_t*)d->vaddr;
+    return (zynq_uart_regs_t *)d->vaddr;
 }
 
-static inline void
-zynq_uart_enable_tx(zynq_uart_regs_t* regs)
+static inline void zynq_uart_enable_tx(
+    zynq_uart_regs_t *regs)
 {
     regs->cr &= ~UART_CR_TXDIS;
     regs->cr |= UART_CR_TXEN;
 }
 
-static inline void
-zynq_uart_enable_rx(zynq_uart_regs_t* regs)
+static inline void zynq_uart_enable_rx(
+    zynq_uart_regs_t *regs)
 {
     regs->cr &= ~UART_CR_RXDIS;
     regs->cr |= UART_CR_RXEN;
 }
 
-int uart_getchar(ps_chardevice_t *d)
+int uart_getchar(
+    ps_chardevice_t *d)
 {
-    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
     int c = -1;
 
     uint32_t imr = regs->imr;
@@ -206,10 +206,12 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(
+    ps_chardevice_t *d,
+    int c)
 {
     int ret = -1;
-    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
 
     uint32_t imr = regs->imr;
     regs->idr = imr;
@@ -237,10 +239,10 @@ int uart_putchar(ps_chardevice_t* d, int c)
     return ret;
 }
 
-static void
-uart_handle_irq(ps_chardevice_t* d UNUSED)
+static void uart_handle_irq(
+    ps_chardevice_t *d UNUSED)
 {
-    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
     regs->isr = UART_IER_RTRIG;
 }
 
@@ -253,8 +255,12 @@ uart_handle_irq(ps_chardevice_t* d UNUSED)
  * @param  rbdiv: Calculated BAUDDIV[BDIV] baud rate divider value (returned)
  * @return      : The actual baud rate based on the calculated values
  */
-static long
-zynq_uart_calc_baud_divs(long clk, long baud, unsigned int* rdiv8, uint32_t* rcd, uint32_t* rbdiv)
+static long zynq_uart_calc_baud_divs(
+    long clk,
+    long baud,
+    unsigned int *rdiv8,
+    uint32_t *rcd,
+    uint32_t *rbdiv)
 {
     /* Safety checks */
     assert(rdiv8 != NULL);
@@ -308,10 +314,11 @@ zynq_uart_calc_baud_divs(long clk, long baud, unsigned int* rdiv8, uint32_t* rcd
  * baud rate = clk / BAUDGEN.CD * (BAUDDIV.BDIV + 1)
  * BAUDGEN.CD is 16 bit, BAUDDIV.BDIV is 8 bit
  */
-static void
-zynq_uart_set_baud(ps_chardevice_t* d, long bps)
+static void zynq_uart_set_baud(
+    ps_chardevice_t *d,
+    long bps)
 {
-    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
     uint32_t cd = 0;
     uint32_t bdiv = 0;
     unsigned int div8;
@@ -345,10 +352,14 @@ zynq_uart_set_baud(ps_chardevice_t* d, long bps)
     zynq_uart_enable_tx(regs);
 }
 
-int
-serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
+int serial_configure(
+    ps_chardevice_t *d,
+    long bps,
+    int char_size,
+    enum serial_parity parity,
+    int stop_bits)
 {
-    zynq_uart_regs_t* regs = zynq_uart_get_priv(d);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(d);
     uint32_t mr;
 
     /* Character size */
@@ -401,7 +412,9 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     return 0;
 }
 
-static void zynq_uart_dev_init(ps_chardevice_t* dev, const ps_io_ops_t* ops)
+static void zynq_uart_dev_init(
+    ps_chardevice_t *dev,
+    const ps_io_ops_t *ops)
 {
     memset(dev, 0, sizeof(*dev));
 
@@ -413,11 +426,10 @@ static void zynq_uart_dev_init(ps_chardevice_t* dev, const ps_io_ops_t* ops)
     dev->flags      = SERIAL_AUTO_CR;
 }
 
-static int zynq_uart_init(ps_chardevice_t* dev)
+static int zynq_uart_init(
+    ps_chardevice_t *dev)
 {
-    zynq_uart_regs_t* regs;
-
-    regs = zynq_uart_get_priv(dev);
+    zynq_uart_regs_t *regs = zynq_uart_get_priv(dev);
 
     /* Software reset */
     // TODO - UART software reset is done through a different register (UART_RST_CTRL)
@@ -457,9 +469,10 @@ static int zynq_uart_init(ps_chardevice_t* dev)
     return 0;
 }
 
-int uart_static_init(void *vaddr,
-                     const ps_io_ops_t* ops,
-                     ps_chardevice_t* dev)
+int uart_static_init(
+    void *vaddr,
+    const ps_io_ops_t *ops,
+    ps_chardevice_t *dev)
 {
     zynq_uart_dev_init(dev, ops);
     dev->vaddr = vaddr;
@@ -469,12 +482,13 @@ int uart_static_init(void *vaddr,
 
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(
+    const struct dev_defn *defn,
+    const ps_io_ops_t *ops,
+    ps_chardevice_t *dev)
 {
     /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
+    void *vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
         return -1;
     }
@@ -482,7 +496,7 @@ int uart_init(const struct dev_defn* defn,
     zynq_uart_dev_init(dev, ops);
     /* Set up the remaining device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*)vaddr;
+    dev->vaddr      = (void *)vaddr;
     dev->irqs       = defn->irqs;
 
     int error = zynq_uart_init(dev);
