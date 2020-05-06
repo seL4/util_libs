@@ -23,8 +23,7 @@ ssize_t uart_write(
     void *token UNUSED)
 {
     const unsigned char *data = (const unsigned char *)vdata;
-    int i;
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         if (uart_putchar(d, data[i]) < 0) {
             return i;
         }
@@ -39,17 +38,13 @@ ssize_t uart_read(
     chardev_callback_t rcb UNUSED,
     void *token UNUSED)
 {
-    char *data;
-    int ret;
-    int i;
-    data = (char *)vdata;
-    for (i = 0; i < count; i++) {
-        ret = uart_getchar(d);
-        if (ret != EOF) {
-            data[i] = ret;
-        } else {
+    char *data = (char *)vdata;
+    for (int i = 0; i < count; i++) {
+        int ret = uart_getchar(d);
+        if (EOF == ret) {
             return i;
         }
+        data[i] = ret;
     }
     return count;
 }
