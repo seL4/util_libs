@@ -20,6 +20,9 @@
 
 #include <platsupport/timer.h>
 #include <platsupport/mach/gpt.h>
+#include <platsupport/io.h>
+#include <platsupport/ltimer.h>
+#include <platsupport/fdt.h>
 
 typedef enum {
 
@@ -118,7 +121,7 @@ typedef enum {
      * 0x0: Configures the pin as an output (needed when PWMmode is required)
      * 0x1: Configures the pin as an input (needed when capture mode is required)
      */
-     AUTOIDLE = 0,
+    AUTOIDLE = 0,
 
     /* Software reset. This bit is automatically reset by the hardware.
      * During reads, it always returns 0.
@@ -161,27 +164,45 @@ struct gpt_map {
     uint32_t towr;   // GPTIMER_TOWR 0x58
 };
 
-int gpt_start(gpt_t *gpt)
+void gpt_start(gpt_t *gpt)
 {
+    assert(gpt != NULL && gpt->gpt_map != NULL);
     gpt->gpt_map->tclr |= BIT(ST);
-    return 0;
 }
 
-int gpt_stop(gpt_t *gpt)
+void gpt_stop(gpt_t *gpt)
 {
+    assert(gpt != NULL && gpt->gpt_map != NULL);
     /* Disable timer. */
     gpt->gpt_map->tclr &= ~BIT(ST);
-    return 0;
 }
 
-void gpt_handle_irq(gpt_t *gpt)
+static void gpt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    if (gpt->gpt_map->tisr & BIT(OVF_IT_FLAG)) {
+    gpt_t *gpt = data;
+    uint32_t tisr = gpt->gpt_map->tisr;
+
+    /* track timekeeping overflow */
+    if (tisr & BIT(OVF_IT_FLAG)) {
         gpt->high_bits++;
     }
 
     /* ack any possible irqs */
     gpt->gpt_map->tisr = (BIT(OVF_IT_FLAG) | BIT(MAT_IT_FLAG) | BIT(TCAR_IT_FLAG));
+
+    if (acknowledge_fn(ack_data)) {
+        ZF_LOGE("Failed to acknowledge ps_irq");
+    }
+
+    if (gpt->user_callback) {
+        if (tisr & BIT(OVF_IT_FLAG)) {
+            gpt->user_callback(gpt->user_callback_token, LTIMER_OVERFLOW_EVENT);
+        } else if (tisr & BIT(MAT_IT_FLAG)) {
+            gpt->user_callback(gpt->user_callback_token, LTIMER_TIMEOUT_EVENT);
+        } else {
+            ZF_LOGE("Unknown interrupt neither overflow or match");
+        }
+    }
 }
 
 static bool gpt_ok_prescaler(uint32_t prescaler)
@@ -204,7 +225,8 @@ static uint64_t gpt_ns_to_ticks(uint64_t ns)
     return ns / NS_IN_US * CLK_MHZ;
 }
 
-uint64_t gpt_get_max(void) {
+uint64_t gpt_get_max(void)
+{
     return gpt_ticks_to_ns(UINT32_MAX - 1);
 }
 
@@ -275,8 +297,6 @@ int rel_gpt_init(gpt_t *gpt, gpt_config_t config)
         return EINVAL;
     }
 
-    gpt->id = config.id;
-    gpt->gpt_map = (volatile struct gpt_map*) config.vaddr;
     gpt->prescaler = config.prescaler;
 
     gpt_init(gpt);
@@ -291,7 +311,7 @@ uint64_t abs_gpt_get_time(gpt_t *gpt)
 
     overflow = !!(gpt->gpt_map->tisr & OVF_IT_FLAG);
     /* high bits */
-    ticks = ((uint64_t) (gpt->high_bits + overflow)) << 32llu;
+    ticks = ((uint64_t)(gpt->high_bits + overflow)) << 32llu;
     /* low bits */
     ticks += gpt->gpt_map->tcrr;
     ticks = ticks * BIT(gpt->prescaler + 1);
@@ -305,9 +325,7 @@ int abs_gpt_init(gpt_t *gpt, gpt_config_t config)
         return EINVAL;
     }
 
-    gpt->id = config.id;
     gpt->prescaler = config.prescaler;
-    gpt->gpt_map = (volatile struct gpt_map*) config.vaddr;
 
     /* enable interrupt on overflow. */
     gpt->gpt_map->tier |= BIT(OVF_IT_ENA);
@@ -324,6 +342,100 @@ int abs_gpt_init(gpt_t *gpt, gpt_config_t config)
     gpt->gpt_map->tclr |= (BIT(CE) | BIT(AR));
 
     gpt_init(gpt);
+
+    return 0;
+}
+
+static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    gpt_t *gpt = token;
+    assert(num_regs == 1 && curr_num == 0);
+    void *vaddr = ps_pmem_map(&gpt->ops, pmem, false, PS_MEM_NORMAL);
+    if (vaddr == NULL) {
+        return EIO;
+    }
+    gpt->gpt_map = vaddr;
+    gpt->timer_pmem = pmem;
+    return 0;
+}
+
+static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    gpt_t *gpt = token;
+    /* Device should only have one interrupt */
+    if (num_irqs != 1) {
+        return ENODEV;
+    }
+    assert(curr_num == 0);
+    irq_id_t irq_id = ps_irq_register(&gpt->ops.irq_ops, irq, gpt_handle_irq, gpt);
+    if (irq_id < 0) {
+        return EIO;
+    }
+    gpt->irq_id = irq_id;
+    return 0;
+}
+
+void gpt_destroy(gpt_t *gpt)
+{
+    int error;
+
+    /* pre-set INVALID_IRQ_ID before init and do not run if not initialised */
+    if (gpt->irq_id != PS_INVALID_IRQ_ID) {
+        error = ps_irq_unregister(&gpt->ops.irq_ops, gpt->irq_id);
+        ZF_LOGE_IF(error, "Unable to un-register timer gpt irq")
+    }
+
+    /* check if pwm_map is NULL and do not run if not initialised */
+    if (gpt->gpt_map != NULL) {
+        gpt_stop(gpt);
+        ps_pmem_unmap(&gpt->ops, gpt->timer_pmem, (void *) gpt->gpt_map);
+    }
+}
+
+int gpt_create(gpt_t *gpt, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token)
+{
+    int error;
+
+    if (gpt == NULL || fdt_path == NULL) {
+        return EINVAL;
+    }
+
+    /* Set up gpt */
+    gpt->ops = ops;
+    gpt->user_callback = user_cb_fn;
+    gpt->user_callback_token = user_cb_token;
+
+    /* Set up variables that will be set by callback */
+    gpt->gpt_map = NULL;
+    gpt->irq_id = PS_INVALID_IRQ_ID;
+
+    /* Gather FDT info */
+    ps_fdt_cookie_t *cookie = NULL;
+    error = ps_fdt_read_path(&ops.io_fdt, &ops.malloc_ops, fdt_path, &cookie);
+    if (error) {
+        gpt_destroy(gpt);
+        return error;
+    }
+
+    /* walk the registers and allocate them */
+    error = ps_fdt_walk_registers(&ops.io_fdt, cookie, allocate_register_callback, gpt);
+    if (error) {
+        gpt_destroy(gpt);
+        return error;
+    }
+
+    /* walk the interrupts and allocate the first */
+    error = ps_fdt_walk_irqs(&ops.io_fdt, cookie, allocate_irq_callback, gpt);
+    if (error) {
+        gpt_destroy(gpt);
+        return error;
+    }
+
+    error = ps_fdt_cleanup_cookie(&ops.malloc_ops, cookie);
+    if (error) {
+        gpt_destroy(gpt);
+        return error;
+    }
 
     return 0;
 }
