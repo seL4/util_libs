@@ -52,11 +52,13 @@ if(${KernelArch} STREQUAL "arm")
     list(APPEND deps src/arch/arm/irqchip/tegra.c)
     list(APPEND deps src/arch/arm/irqchip/gicv3.c)
     list(APPEND deps src/arch/arm/irqchip/avic.c)
+    list(APPEND deps src/arch/arm/irqchip/omap3.c)
     # Link the IRQ chip parser modules
     list(
         APPEND
             irqchip_modules
-            "-Wl,--undefined=arm_gic_ptr,--undefined=tegra_ictlr_ptr,--undefined=arm_gicv3_ptr,--undefined=fsl_avic_ptr"
+            "-Wl,--undefined=arm_gic_ptr,--undefined=tegra_ictlr_ptr,--undefined=arm_gicv3_ptr,\
+--undefined=fsl_avic_ptr,--undefined=ti_omap3_ptr"
     )
 elseif(${KernelArch} STREQUAL "x86")
     list(APPEND deps src/arch/x86/delay.c)
