@@ -250,6 +250,8 @@ struct eqos_priv {
     struct clock *clk_slave_bus;
     struct mii_dev *mii;
     struct phy_device *phy;
+    uintptr_t last_rx_desc;
+    uintptr_t last_tx_desc;
     unsigned char enetaddr[ARP_HLEN];
     bool reg_access_ok;
     ps_io_ops_t *tx2_io_ops;
@@ -322,7 +324,7 @@ void ack_rx(struct tx2_eth_data *dev)
     uint32_t *dma_status = (uint32_t *)(eqos->regs + REG_DWCEQOS_DMA_CH0_STA);
     *dma_status = DWCEQOS_DMA_CH0_IS_RI;
 
-    uintptr_t last_rx_desc = (dev->rx_ring_phys + ((EQOS_DESCRIPTORS_RX - 1) * (uintptr_t)(sizeof(struct eqos_desc))));
+    uintptr_t last_rx_desc = (dev->rx_ring_phys + ((EQOS_DESCRIPTORS_RX) * (uintptr_t)(sizeof(struct eqos_desc))));
     eqos->dma_regs->ch0_rxdesc_tail_pointer = last_rx_desc;
 }
 
@@ -664,20 +666,20 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
     volatile struct eqos_desc *tx_desc;
     int i;
 
-    uintptr_t tail = (dev->tx_ring_phys + (uintptr_t)(sizeof(struct eqos_desc) * ((dev->tdt + 1) % EQOS_DESCRIPTORS_TX)));
-    tx_desc =  &(dev->tx_ring[dev->tdt]);
+    tx_desc = &(dev->tx_ring[dev->tdt]);
     dev->tdt++;
     dev->tdt %= EQOS_DESCRIPTORS_TX;
 
     tx_desc->des0 = (uintptr_t)packet;
     tx_desc->des1 = 0;
-    tx_desc->des2 |= EQOS_DESC2_IOC | length;
+    tx_desc->des2 = EQOS_DESC2_IOC | length;
+    tx_desc->des3 = EQOS_DESC3_FD | EQOS_DESC3_LD | length;
 
     __sync_synchronize();
 
-    tx_desc->des3 = EQOS_DESC3_OWN | EQOS_DESC3_FD | EQOS_DESC3_LD | length;
+    tx_desc->des3 |= EQOS_DESC3_OWN;
 
-    eqos->dma_regs->ch0_txdesc_tail_pointer = tail;
+    eqos->dma_regs->ch0_txdesc_tail_pointer = eqos->last_tx_desc;
 
     return 0;
 }
@@ -1006,8 +1008,11 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->dma_regs->ch0_tx_control = EQOS_DMA_CH0_TX_CONTROL_ST;
     eqos->dma_regs->ch0_rx_control = EQOS_DMA_CH0_RX_CONTROL_SR;
 
-    last_rx_desc = (d->rx_ring_phys + ((EQOS_DESCRIPTORS_RX - 1) * (uintptr_t)(sizeof(struct eqos_desc))));
-    eqos->dma_regs->ch0_rxdesc_tail_pointer = last_rx_desc;
+    eqos->last_rx_desc = (d->rx_ring_phys + ((EQOS_DESCRIPTORS_RX) * (uintptr_t)(sizeof(struct eqos_desc))));
+    eqos->last_tx_desc = (d->tx_ring_phys + ((EQOS_DESCRIPTORS_TX) * (uintptr_t)(sizeof(struct eqos_desc))));
+
+    eqos->dma_regs->ch0_rxdesc_tail_pointer = eqos->last_rx_desc;
+    eqos->dma_regs->ch0_txdesc_tail_pointer = eqos->last_tx_desc;
 
     return 0;
 

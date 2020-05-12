@@ -74,9 +74,9 @@ static int initialize_desc_ring(struct tx2_eth_data *dev, ps_dma_man_t *dma_man,
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct eqos_desc) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct eqos_desc) * dev->tx_size);
 
-    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
-    dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
+    dev->rx_cookies = calloc(1, sizeof(void *) * dev->rx_size);
+    dev->tx_cookies = calloc(1, sizeof(void *) * dev->tx_size);
+    dev->tx_lengths = calloc(1, sizeof(unsigned int) * dev->tx_size);
 
     if (dev->rx_cookies == NULL || dev->tx_cookies == NULL || dev->tx_lengths == NULL) {
 
@@ -99,8 +99,8 @@ static int initialize_desc_ring(struct tx2_eth_data *dev, ps_dma_man_t *dma_man,
 
     /* Remaining needs to be 2 less than size as we cannot actually enqueue size many descriptors,
      * since then the head and tail pointers would be equal, indicating empty. */
-    dev->rx_remain = dev->rx_size - 1;
-    dev->tx_remain = dev->tx_size - 1;
+    dev->rx_remain = dev->rx_size;
+    dev->tx_remain = dev->tx_size;
 
     dev->rdt = dev->rdh = dev->tdt = dev->tdh = 0;
 
@@ -128,6 +128,10 @@ static void fill_rx_bufs(struct eth_driver *driver)
             break;
         }
 
+        if (dev->rx_cookies[dev->rdt] != NULL) {
+            ZF_LOGF("Overwriting a descriptor at dev->rdt %d", dev->rdt);
+        }
+
         dev->rx_cookies[dev->rdt] = cookie;
         dev->rx_ring[dev->rdt].des0 = phys;
         dev->rx_ring[dev->rdt].des1 = 0;
@@ -147,9 +151,10 @@ static void fill_rx_bufs(struct eth_driver *driver)
 static void complete_rx(struct eth_driver *eth_driver)
 {
     struct tx2_eth_data *dev = (struct tx2_eth_data *)eth_driver->eth_data;
-    unsigned int rdt = dev->rdt;
+    unsigned int num_in_ring = dev->rx_size - dev->rx_remain;
+    bool did_rx = false;
 
-    while (dev->rdh != rdt) {
+    for (int i = 0; i < num_in_ring; i++) {
         unsigned int status = dev->rx_ring[dev->rdh].des3;
 
         /* Ensure no memory references get ordered before we checked the descriptor was written back */
@@ -161,6 +166,7 @@ static void complete_rx(struct eth_driver *eth_driver)
 
         /* TBD: Need to handle multiple buffers for single frame? */
         void *cookie = dev->rx_cookies[dev->rdh];
+        dev->rx_cookies[dev->rdh] = 0;
         unsigned int len = status & 0x7fff;
 
         dev->rx_remain++;
@@ -176,8 +182,10 @@ static void complete_tx(struct eth_driver *driver)
 {
     struct tx2_eth_data *dev = (struct tx2_eth_data *)driver->eth_data;
     volatile struct eqos_desc *tx_desc;
+    unsigned int num_in_ring = dev->tx_size - dev->tx_remain;
+    bool did_tx = false;
 
-    while (dev->tdh != dev->tdt) {
+    for (int i = 0; i < num_in_ring; i++) {
         uint32_t i;
         for (i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
             uint32_t ring_pos = (i + dev->tdh) % dev->tx_size;
