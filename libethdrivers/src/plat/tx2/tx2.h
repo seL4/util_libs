@@ -21,6 +21,10 @@ void eqos_dma_disable_rxirq(struct tx2_eth_data *dev);
 
 void eqos_dma_enable_rxirq(struct tx2_eth_data *dev);
 
+void eqos_dma_disable_txirq(struct tx2_eth_data *dev);
+
+void eqos_dma_enable_txirq(struct tx2_eth_data *dev);
+
 void eqos_stop(struct tx2_eth_data *dev);
 
 int eqos_start(struct tx2_eth_data *dev);

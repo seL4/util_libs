@@ -318,6 +318,25 @@ void eqos_dma_enable_rxirq(struct tx2_eth_data *dev)
     regval |= DWCEQOS_DMA_CH0_IE_RIE;
     eqos->dma_regs->ch0_dma_ie = regval;
 }
+
+void eqos_dma_disable_txirq(struct tx2_eth_data *dev)
+{
+    struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
+    uint32_t regval;
+
+    regval = eqos->dma_regs->ch0_dma_ie;
+    regval &= ~DWCEQOS_DMA_CH0_IE_TIE;
+    eqos->dma_regs->ch0_dma_ie = regval;
+}
+
+void eqos_dma_enable_txirq(struct tx2_eth_data *dev)
+{
+    struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
+    uint32_t regval;
+
+    regval = eqos->dma_regs->ch0_dma_ie;
+    regval |= DWCEQOS_DMA_CH0_IE_TIE;
+    eqos->dma_regs->ch0_dma_ie = regval;
 }
 
 void ack_rx(struct tx2_eth_data *dev)

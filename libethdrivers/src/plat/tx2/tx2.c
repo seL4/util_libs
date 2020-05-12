@@ -215,7 +215,9 @@ static void handle_irq(struct eth_driver *driver, int irq)
     uint32_t val = eqos_handle_irq(eth_data, irq);
 
     if (val & TX_IRQ) {
+        eqos_dma_disable_txirq(eth_data);
         complete_tx(driver);
+        eqos_dma_enable_txirq(eth_data);
     }
 
     if (val & RX_IRQ) {
