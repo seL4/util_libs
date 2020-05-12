@@ -17,6 +17,8 @@
 #define TX_IRQ BIT(0)
 #define RX_IRQ BIT(1)
 
+void eqos_dma_disable_rxirq(struct tx2_eth_data *dev);
+
 void eqos_dma_enable_rxirq(struct tx2_eth_data *dev);
 
 void eqos_stop(struct tx2_eth_data *dev);

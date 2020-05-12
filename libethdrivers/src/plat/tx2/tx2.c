@@ -219,8 +219,10 @@ static void handle_irq(struct eth_driver *driver, int irq)
     }
 
     if (val & RX_IRQ) {
+        eqos_dma_disable_rxirq(eth_data);
         complete_rx(driver);
         fill_rx_bufs(driver);
+        ack_rx(eth_data);
         /*
          * RX IRQ is was disabled when checking the IRQ, and thus need to be
          * re-enabled

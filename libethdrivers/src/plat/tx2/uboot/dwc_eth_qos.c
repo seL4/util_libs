@@ -172,7 +172,7 @@ struct eqos_dma_regs {
     uint32_t ch0_rxdesc_tail_pointer;       /* 0x1128 */
     uint32_t ch0_txdesc_ring_length;        /* 0x112c */
     uint32_t ch0_rxdesc_ring_length;        /* 0x1130 */
-    uint32_t rx_dma;                        /* 0x1134 */
+    uint32_t ch0_dma_ie;                    /* 0x1134 */
 };
 
 #define EQOS_DMA_MODE_SWR               BIT(0)
@@ -299,13 +299,14 @@ struct eqos_priv {
 #define DWCEQOS_MAC_CFG_IPC              BIT(27)
 #define DWCEQOS_MAC_CFG_RE               BIT(0)
 
-static void dwceqos_dma_disable_rxirq(struct eqos_priv *eqos)
+void eqos_dma_disable_rxirq(struct tx2_eth_data *dev)
 {
+    struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     uint32_t regval;
 
-    regval = eqos->dma_regs->rx_dma;
+    regval = eqos->dma_regs->ch0_dma_ie;
     regval &= ~DWCEQOS_DMA_CH0_IE_RIE;
-    eqos->dma_regs->rx_dma = regval;
+    eqos->dma_regs->ch0_dma_ie = regval;
 }
 
 void eqos_dma_enable_rxirq(struct tx2_eth_data *dev)
@@ -313,16 +314,17 @@ void eqos_dma_enable_rxirq(struct tx2_eth_data *dev)
     struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     uint32_t regval;
 
-    regval = eqos->dma_regs->rx_dma;
+    regval = eqos->dma_regs->ch0_dma_ie;
     regval |= DWCEQOS_DMA_CH0_IE_RIE;
-    eqos->dma_regs->rx_dma = regval;
+    eqos->dma_regs->ch0_dma_ie = regval;
+}
 }
 
 void ack_rx(struct tx2_eth_data *dev)
 {
     struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     uint32_t *dma_status = (uint32_t *)(eqos->regs + REG_DWCEQOS_DMA_CH0_STA);
-    *dma_status = DWCEQOS_DMA_CH0_IS_RI;
+    *dma_status |= DWCEQOS_DMA_CH0_IS_RI;
 
     uintptr_t last_rx_desc = (dev->rx_ring_phys + ((EQOS_DESCRIPTORS_RX) * (uintptr_t)(sizeof(struct eqos_desc))));
     eqos->dma_regs->ch0_rxdesc_tail_pointer = last_rx_desc;
@@ -346,7 +348,6 @@ int eqos_handle_irq(struct tx2_eth_data *dev, int irq)
 
         /* Receive Interrupt */
         if (*dma_status & DWCEQOS_DMA_CH0_IS_RI) {
-            dwceqos_dma_disable_rxirq(eqos);
             ret |= RX_IRQ;
         }
 
@@ -995,13 +996,10 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->dma_regs->ch0_rxdesc_list_address = d->rx_ring_phys;
     eqos->dma_regs->ch0_rxdesc_ring_length = EQOS_DESCRIPTORS_RX - 1;
 
-    dma_ie = (uint32_t *)(eqos->regs + 0x1134);
-    *dma_ie = 0;
-
-    /* Enable everything */
-    dma_ie = (uint32_t *)(eqos->regs + 0x1134);
-    *dma_ie = DWCEQOS_DMA_CH0_IE_RIE | DWCEQOS_DMA_CH0_IE_TIE | DWCEQOS_DMA_CH0_IE_NIE |
-              DWCEQOS_DMA_CH0_IE_AIE | DWCEQOS_DMA_CH0_IE_FBEE;
+    eqos->dma_regs->ch0_dma_ie = 0;
+    eqos->dma_regs->ch0_dma_ie = DWCEQOS_DMA_CH0_IE_RIE | DWCEQOS_DMA_CH0_IE_TIE |
+                                 DWCEQOS_DMA_CH0_IE_NIE | DWCEQOS_DMA_CH0_IE_AIE |
+                                 DWCEQOS_DMA_CH0_IE_FBEE;
 
     udelay(100);
 
