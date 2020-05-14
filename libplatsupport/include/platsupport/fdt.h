@@ -111,3 +111,35 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
  *  - the error returned by the callback function
  */
 int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_fn_t callback, void *token);
+
+/*
+ * Convenience function for ps_fdt_walk_registers which does not require a callback but instead
+ * uses an offset to map in the desired registers from a device's registers property. Useful
+ * for when you know the exact structure of the devicetree blob.
+ *  @param io_ops An initialised IO ops interface.
+ *  @param cookie A pointer to an initialised FDT interface cookie.
+ *  @param offset The offset to the desired registers in the device's (that the cookie points to)
+ *  registers property.
+ *  @param ret_pmem A pointer that will have the details of the mapped registered block written to.
+ *  Can be NULL.
+ *
+ *  @returns The virtual address of the registers that were mapped in, NULL on error.
+ */
+void *ps_fdt_index_map_register(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, unsigned offset,
+                                pmem_region_t *ret_pmem);
+
+/*
+ * Convenience function for ps_fdt_walk_irqs which does not require a callback but instead
+ * uses an offset to map in the desired interrupt from a device's interrupts property. Useful
+ * for when you know the exact structure of the devicetree blob.
+ *  @param io_ops An initialised IO ops interface.
+ *  @param cookie A pointer to an initialised FDT interface cookie.
+ *  @param offset The offset to the desired interrupt in the device's (that the cookie points to)
+ *  interrupt property.
+ *  @param irq_callback Callback function that will be associated with the registered interrupt.
+ *  @param irq_callback_data Token that will be passed to the callback function.
+ *
+ *  @returns The IRQ ID of the registered interrupt, a negative error code on error.
+ */
+irq_id_t ps_fdt_index_register_irq(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, unsigned offset,
+                                   irq_callback_fn_t irq_callback, void *irq_callback_data);

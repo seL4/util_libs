@@ -28,6 +28,20 @@ struct ps_fdt_cookie {
     int node_offset;
 };
 
+/* Used for the ps_fdt_index_* helper functions */
+
+typedef struct index_helper_token {
+    ps_io_ops_t *io_ops;
+    unsigned desired_offset;
+    /* These are used for the 'register index' helper */
+    void *mapped_addr;
+    pmem_region_t region;
+    /* These are used for the 'IRQ index' helper */
+    irq_id_t irq_id;
+    irq_callback_fn_t irq_callback;
+    void *irq_callback_data;
+} index_helper_token_t;
+
 int ps_fdt_read_path(ps_io_fdt_t *io_fdt, ps_malloc_ops_t *malloc_ops, const char *path, ps_fdt_cookie_t **ret_cookie)
 {
     if (!path || !ret_cookie) {
@@ -230,4 +244,102 @@ int ps_fdt_walk_irqs(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, irq_walk_cb_f
     }
 
     return 0;
+}
+
+static int register_index_helper_walker(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    index_helper_token_t *helper_token = token;
+    if (helper_token->desired_offset >= num_regs) {
+        /* Bail early if we will never find it */
+        return -ENOENT;
+    }
+
+    if (helper_token->desired_offset == curr_num) {
+        void *ret_addr = ps_pmem_map(helper_token->io_ops, pmem, false, PS_MEM_NORMAL);
+        if (ret_addr == NULL) {
+            return -ENOMEM;
+        } else {
+            helper_token->mapped_addr = ret_addr;
+            helper_token->region = pmem;
+        }
+    }
+
+    return 0;
+}
+
+void *ps_fdt_index_map_register(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, size_t offset,
+                                pmem_region_t *ret_pmem)
+{
+    if (io_ops == NULL) {
+        ZF_LOGE("io_ops is NULL!");
+        return NULL;
+    }
+
+    if (cookie == NULL) {
+        ZF_LOGE("cookie is NULL");
+        return NULL;
+    }
+
+    index_helper_token_t token = { .io_ops = io_ops, .desired_offset = offset };
+
+    int error = ps_fdt_walk_registers(&io_ops->io_fdt, cookie, register_index_helper_walker,
+                                      &token);
+    if (error) {
+        return NULL;
+    }
+
+    if (ret_pmem) {
+        *ret_pmem = token.region;
+    }
+
+    return token.mapped_addr;
+}
+
+static int irq_index_helper_walker(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    index_helper_token_t *helper_token = token;
+    if (helper_token->desired_offset > num_irqs) {
+        /* Bail early if we will never find it */
+        return -ENOENT;
+    }
+
+    if (helper_token->desired_offset == curr_num) {
+        irq_id_t registered_id = ps_irq_register(&helper_token->io_ops->irq_ops,
+                                                 irq, helper_token->irq_callback,
+                                                 helper_token->irq_callback_data);
+        if (registered_id >= 0) {
+            helper_token->irq_id = registered_id;
+        } else {
+            /* Bail on error */
+            return registered_id;
+        }
+    }
+
+    return 0;
+}
+
+irq_id_t ps_fdt_index_register_irq(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, unsigned offset,
+                                   irq_callback_fn_t irq_callback, void *irq_callback_data)
+{
+    if (io_ops == NULL) {
+        ZF_LOGE("io_ops is NULL!");
+        return -EINVAL;
+    }
+
+    if (cookie == NULL) {
+        ZF_LOGE("cookie is NULL");
+        return -EINVAL;
+    }
+
+    index_helper_token_t token = { .io_ops = io_ops, .desired_offset = offset,
+                                   .irq_callback = irq_callback,
+                                   .irq_callback_data = irq_callback_data
+                                 };
+
+    int error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, irq_index_helper_walker, &token);
+    if (error) {
+        return error;
+    }
+
+    return token.irq_id;
 }
