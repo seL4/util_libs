@@ -637,7 +637,7 @@ static struct imx6_mux {
     volatile struct imx6_iomuxc_regs* iomuxc;
 } _mux;
 
-static inline struct imx6_mux* get_mux_priv(mux_sys_t* mux) {
+static inline struct imx6_mux* get_mux_priv(const mux_sys_t* mux) {
     return (struct imx6_mux*)mux->priv;
 }
 
@@ -649,7 +649,7 @@ static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux)
 }
 
 static int
-imx6_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
+imx6_mux_feature_enable(const mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
     struct imx6_mux* m;
     if (mux == NULL || mux->priv == NULL) {
@@ -791,7 +791,7 @@ imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
     return 0;
 }
 
-static void *imx6_mux_get_vaddr(mux_sys_t *mux) {
+static void *imx6_mux_get_vaddr(const mux_sys_t *mux) {
     struct imx6_mux* m;
     if (mux == NULL || mux->priv == NULL) {
         return NULL;
