@@ -57,6 +57,10 @@ unsigned long l2pt_elf[PTES_PER_PT] __attribute__((aligned(4096)));
 
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
+/* first HART will initialise these */
+void *dtb = NULL;
+uint32_t dtb_size = 0;
+
 void map_kernel_window(struct image_info *kernel_info)
 {
     uint32_t index;
@@ -156,9 +160,6 @@ static inline void enable_virtual_memory(void)
 int num_apps = 0;
 void main(UNUSED int hartid, void *bootloader_dtb)
 {
-    void *dtb = NULL;
-    uint32_t dtb_size = 0;
-
     printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);
 
     printf("  paddr=[%p..%p]\n", _text, _end - 1);
@@ -182,10 +183,10 @@ void main(UNUSED int hartid, void *bootloader_dtb)
 
     enable_virtual_memory();
 
-    /* TODO: pass DTB to kernel. */
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                                   user_info.phys_region_end, user_info.phys_virt_offset,
-                                                  user_info.virt_entry
+                                                  user_info.virt_entry,
+                                                  (paddr_t) dtb, dtb_size
 #if CONFIG_MAX_NUM_NODES > 1
                                                   ,
                                                   hartid,
@@ -207,10 +208,10 @@ void secondary_entry(int hart_id, int core_id)
 
     enable_virtual_memory();
 
-    /* TODO: pass DTB to kernel. */
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                                   user_info.phys_region_end, user_info.phys_virt_offset,
-                                                  user_info.virt_entry
+                                                  user_info.virt_entry,
+                                                  (paddr_t) dtb, dtb_size
                                                   ,
                                                   hart_id,
                                                   core_id
