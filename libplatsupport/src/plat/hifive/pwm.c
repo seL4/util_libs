@@ -18,8 +18,10 @@
 #include <utils/util.h>
 
 #include <platsupport/timer.h>
+#include <platsupport/ltimer.h>
 #include <platsupport/plat/pwm.h>
 
+#include "../../ltimer.h"
 
 #define PWMSCALE_MASK MASK(4)
 #define PWMSTICKY BIT(8)
@@ -37,25 +39,24 @@
 #define MAX_TIMEOUT_NS (BIT(31) * (NS_IN_S / PWM_INPUT_FREQ))
 
 
-int pwm_start(pwm_t *pwm)
+void pwm_start(pwm_t *pwm)
 {
+    assert(pwm != NULL && pwm->pwm_map != NULL);
     pwm->pwm_map->pwmcfg |= PWMENALWAYS;
-    return 0;
 }
 
-int pwm_stop(pwm_t *pwm)
+void pwm_stop(pwm_t *pwm)
 {
+    assert(pwm != NULL && pwm->pwm_map != NULL);
     /* Disable timer. */
     pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
-    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS|PWMENONESHOT|PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
+    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS | PWMENONESHOT | PWMCMP0IP | PWMCMP1IP | PWMCMP2IP | PWMCMP3IP);
     pwm->pwm_map->pwmcount = 0;
-
-    return 0;
 }
 
 int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 {
-    if(pwm->mode == UPCOUNTER) {
+    if (pwm->mode == UPCOUNTER) {
         ZF_LOGE("pwm is in UPCOUNTER mode and doesn't support setting timeouts.");
         return -1;
     }
@@ -75,7 +76,7 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
      */
     size_t prescale = num_ticks >> (PWMCMP_WIDTH);
     size_t base_2 = LOG_BASE_2(prescale);
-    if (BIT(base_2)< prescale) {
+    if (BIT(base_2) < prescale) {
         base_2++;
     }
     assert(prescale < BIT(PWMSCALE_MASK));
@@ -83,9 +84,9 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
     /* There will be a loss of resolution by this shift.
      * We add 1 so that we sleep for at least as long as needed.
      */
-    pwm->pwm_map->pwmcmp0 = (num_ticks >> base_2) +1;
+    pwm->pwm_map->pwmcmp0 = (num_ticks >> base_2) + 1;
     /* assert we didn't overflow... */
-    assert((num_ticks >> base_2) +1);
+    assert((num_ticks >> base_2) + 1);
     /* Reset the counter mode and prescaler, for some reason this doesn't work in pwm_stop */
     pwm->pwm_map->pwmcfg &= ~(PWMSCALE_MASK);
     if (periodic) {
@@ -97,13 +98,20 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
     return 0;
 }
 
-void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
+static void pwm_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    if(pwm->mode == UPCOUNTER) {
+    pwm_t *pwm = data;
+    if (pwm->mode == UPCOUNTER) {
         pwm->time_h++;
     }
-
-    pwm->pwm_map->pwmcfg &= ~(PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
+    pwm->pwm_map->pwmcfg &= ~(PWMCMP0IP | PWMCMP1IP | PWMCMP2IP | PWMCMP3IP);
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the timer's interrupts");
+    if (pwm->user_cb_fn) {
+        pwm->user_cb_fn(
+            pwm->user_cb_token,
+            pwm->mode == UPCOUNTER ? LTIMER_OVERFLOW_EVENT : LTIMER_TIMEOUT_EVENT
+        );
+    }
 }
 
 uint64_t pwm_get_time(pwm_t *pwm)
@@ -119,19 +127,61 @@ uint64_t pwm_get_time(pwm_t *pwm)
     return time;
 }
 
-int pwm_init(pwm_t *pwm, pwm_config_t config)
+static void pwm_setup(pwm_t *pwm)
 {
-    pwm->pwm_map = (volatile struct pwm_map*) config.vaddr;
+    assert(pwm != NULL);
+    pwm->time_h = 0;
     uint8_t scale = 0;
-    if (config.mode == UPCOUNTER) {
+    if (pwm->mode == UPCOUNTER) {
         scale = PWMSCALE_MASK;
     }
-    pwm->mode = config.mode;
     pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp1 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp2 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp3 = PWMCMP_MASK;
-    pwm->pwm_map->pwmcfg =  (scale & PWMSCALE_MASK) | PWMZEROCMP | PWMSTICKY;
+    pwm->pwm_map->pwmcfg = (scale & PWMSCALE_MASK) | PWMZEROCMP | PWMSTICKY;
+}
+
+void pwm_destroy(pwm_t *pwm)
+{
+    int error;
+    if (pwm->irq_id != PS_INVALID_IRQ_ID) {
+        error = ps_irq_unregister(&pwm->ops.irq_ops, pwm->irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister IRQ");
+    }
+    if (pwm->pwm_map != NULL) {
+        pwm_stop(pwm);
+        ps_pmem_unmap(&pwm->ops, pwm->pmem, (void *) pwm->pwm_map);
+    }
+}
+
+int pwm_init(pwm_t *pwm, ps_io_ops_t ops, pwm_config_t config)
+{
+    int error;
+
+    if (pwm == NULL) {
+        return EINVAL;
+    }
+
+    /* Set up pwm */
+    pwm->ops = ops;
+    pwm->mode = config.mode;
+    pwm->user_cb_fn = config.user_cb_fn;
+    pwm->user_cb_token = config.user_cb_token;
+
+    error = helper_fdt_alloc_simple(
+                &ops, config.fdt_path,
+                PWM_REG_CHOICE, PWM_IRQ_CHOICE,
+                (void *) &pwm->pwm_map, &pwm->pmem, &pwm->irq_id,
+                pwm_handle_irq, pwm
+            );
+    if (error) {
+        ZF_LOGE("Failed to init pwm timer using simple helper");
+        pwm_destroy(pwm);
+        return error;
+    }
+
+    pwm_setup(pwm);
 
     return 0;
 }
