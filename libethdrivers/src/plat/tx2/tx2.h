@@ -37,4 +37,4 @@ int eqos_recv(struct tx2_eth_data *dev, uintptr_t packetp);
 
 void *tx2_initialise(uintptr_t base_addr, ps_io_ops_t *io_ops);
 
-void ack_rx(struct tx2_eth_data *dev);
+void eqos_set_rx_tail_pointer(struct tx2_eth_data *dev);

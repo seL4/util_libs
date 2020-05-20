@@ -339,14 +339,17 @@ void eqos_dma_enable_txirq(struct tx2_eth_data *dev)
     eqos->dma_regs->ch0_dma_ie = regval;
 }
 
-void ack_rx(struct tx2_eth_data *dev)
+void eqos_set_rx_tail_pointer(struct tx2_eth_data *dev)
 {
     struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     uint32_t *dma_status = (uint32_t *)(eqos->regs + REG_DWCEQOS_DMA_CH0_STA);
     *dma_status |= DWCEQOS_DMA_CH0_IS_RI;
+    size_t num_buffers_in_ring = dev->rx_size - dev->rx_remain;
 
-    uintptr_t last_rx_desc = (dev->rx_ring_phys + ((EQOS_DESCRIPTORS_RX) * (uintptr_t)(sizeof(struct eqos_desc))));
-    eqos->dma_regs->ch0_rxdesc_tail_pointer = last_rx_desc;
+    if (num_buffers_in_ring > 0) {
+        uintptr_t last_rx_desc = (dev->rx_ring_phys + ((dev->rdh + num_buffers_in_ring) * sizeof(struct eqos_desc)));
+        eqos->dma_regs->ch0_rxdesc_tail_pointer = last_rx_desc;
+    }
 }
 
 int eqos_handle_irq(struct tx2_eth_data *dev, int irq)
@@ -707,8 +710,6 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
     int i;
 
     tx_desc = &(dev->tx_ring[dev->tdt]);
-    dev->tdt++;
-    dev->tdt %= EQOS_DESCRIPTORS_TX;
 
     tx_desc->des0 = (uintptr_t)packet;
     tx_desc->des1 = 0;
@@ -719,7 +720,8 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
 
     tx_desc->des3 |= EQOS_DESC3_OWN;
 
-    eqos->dma_regs->ch0_txdesc_tail_pointer = eqos->last_tx_desc;
+    eqos->dma_regs->ch0_txdesc_tail_pointer = (uintptr_t)(&(dev->tx_ring[dev->tdt + 1])) +
+                                              sizeof(struct eqos_desc);
 
     return 0;
 }
@@ -1021,8 +1023,6 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->last_rx_desc = (d->rx_ring_phys + ((EQOS_DESCRIPTORS_RX) * (uintptr_t)(sizeof(struct eqos_desc))));
     eqos->last_tx_desc = (d->tx_ring_phys + ((EQOS_DESCRIPTORS_TX) * (uintptr_t)(sizeof(struct eqos_desc))));
 
-    eqos->dma_regs->ch0_rxdesc_tail_pointer = eqos->last_rx_desc;
-    eqos->dma_regs->ch0_txdesc_tail_pointer = eqos->last_tx_desc;
 
     return 0;
 

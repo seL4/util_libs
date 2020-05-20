@@ -116,7 +116,7 @@ static int initialize_desc_ring(struct tx2_eth_data *dev, ps_dma_man_t *dma_man,
 static void fill_rx_bufs(struct eth_driver *driver)
 {
     struct tx2_eth_data *dev = (struct tx2_eth_data *)driver->eth_data;
-    __sync_synchronize();
+
     while (dev->rx_remain > 0) {
 
         void *cookie = NULL;
@@ -136,16 +136,19 @@ static void fill_rx_bufs(struct eth_driver *driver)
         dev->rx_ring[dev->rdt].des0 = phys;
         dev->rx_ring[dev->rdt].des1 = 0;
         dev->rx_ring[dev->rdt].des2 = 0;
-        __sync_synchronize();
         dev->rx_ring[dev->rdt].des3 = EQOS_DESC3_OWN | EQOS_DESC3_BUF1V | DWCEQOS_DMA_RDES3_INTE;
 
         dev->rdt = (dev->rdt + 1) % dev->rx_size;
         dev->rx_remain--;
     }
+    __sync_synchronize();
+
+    if (dev->rx_remain != dev->rx_size) {
+        /* We've refilled some buffers, so set the tail pointer so that the DMA controller knows */
+        eqos_set_rx_tail_pointer(dev);
+    }
 
     __sync_synchronize();
-    ack_rx(dev);
-
 }
 
 static void complete_rx(struct eth_driver *eth_driver)
@@ -224,7 +227,6 @@ static void handle_irq(struct eth_driver *driver, int irq)
         eqos_dma_disable_rxirq(eth_data);
         complete_rx(driver);
         fill_rx_bufs(driver);
-        ack_rx(eth_data);
         /*
          * RX IRQ is was disabled when checking the IRQ, and thus need to be
          * re-enabled
@@ -273,6 +275,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
         if (err == -ETIMEDOUT) {
             ZF_LOGF("send timed out");
         }
+        dev->tdt = (dev->tdt + 1) % dev->tx_size;
     }
 
     dev->tx_remain -= num;
