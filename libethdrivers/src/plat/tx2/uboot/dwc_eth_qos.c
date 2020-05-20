@@ -678,6 +678,12 @@ static int eqos_adjust_link(struct eqos_priv *eqos)
         return ret;
     }
 
+    ret = eqos_set_tx_clk_speed_tegra186(eqos);
+    if (ret < 0) {
+        ZF_LOGE("eqos_set_tx_clk_speed() failed: %d", ret);
+        return ret;
+    }
+
     if (en_calibration) {
         ret = eqos_calibrate_pads_tegra186(eqos);
         if (ret < 0) {
@@ -689,11 +695,6 @@ static int eqos_adjust_link(struct eqos_priv *eqos)
         if (ret < 0) {
             return ret;
         }
-    }
-    ret = eqos_set_tx_clk_speed_tegra186(eqos);
-    if (ret < 0) {
-        ZF_LOGE("eqos_set_tx_clk_speed() failed: %d", ret);
-        return ret;
     }
 
     return 0;
