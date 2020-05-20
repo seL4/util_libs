@@ -267,7 +267,7 @@ static int register_index_helper_walker(pmem_region_t pmem, unsigned curr_num, s
     return 0;
 }
 
-void *ps_fdt_index_map_register(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, size_t offset,
+void *ps_fdt_index_map_register(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, unsigned offset,
                                 pmem_region_t *ret_pmem)
 {
     if (io_ops == NULL) {
