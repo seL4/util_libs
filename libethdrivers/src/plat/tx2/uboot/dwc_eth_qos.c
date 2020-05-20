@@ -804,10 +804,6 @@ int eqos_start(struct tx2_eth_data *d)
         goto err_stop_resets;
     }
 
-    rate = eqos_get_tick_clk_rate_tegra186(eqos);
-    val = (rate / 1000000) - 1;
-    writel(val, &eqos->mac_regs->us_tic_counter);
-
     /*
      * if PHY was already connected and configured,
      * don't need to reconnect/reconfigure again
@@ -927,13 +923,6 @@ int eqos_start(struct tx2_eth_data *d)
     dma_ie = (uint32_t *)(eqos->regs + 0xc30);
     *dma_ie = 0x3020100;
 
-    /* Virt channel stuff from the l4t driver
-     * dma_ie = (eqos->regs + 0x8600);
-     * *dma_ie = 3;
-     * dma_ie = (eqos->regs + 0x8604);
-     * *dma_ie = 3;
-     */
-
     /* Configure MAC, not sure if L4T is the same */
     eqos->mac_regs->rxq_ctrl0 =
         (eqos->config->config_mac <<
@@ -942,14 +931,8 @@ int eqos_start(struct tx2_eth_data *d)
     /* Set TX flow control parameters */
     /* Set Pause Time */
     eqos->mac_regs->q0_tx_flow_ctrl = (0xffff << EQOS_MAC_Q0_TX_FLOW_CTRL_PT_SHIFT);
-    /* Assign priority for TX flow control */
-    eqos->mac_regs->txq_prty_map0 =
-        (EQOS_MAC_TXQ_PRTY_MAP0_PSTQ0_MASK <<
-         EQOS_MAC_TXQ_PRTY_MAP0_PSTQ0_SHIFT);
     /* Assign priority for RX flow control */
-    eqos->mac_regs->rxq_ctrl2 =
-        (EQOS_MAC_RXQ_CTRL2_PSRQ0_MASK <<
-         EQOS_MAC_RXQ_CTRL2_PSRQ0_SHIFT);
+    eqos->mac_regs->rxq_ctrl2 = (1 << EQOS_MAC_RXQ_CTRL2_PSRQ0_SHIFT);
 
     /* Enable flow control */
     eqos->mac_regs->q0_tx_flow_ctrl |= (EQOS_MAC_Q0_TX_FLOW_CTRL_TFE);
@@ -980,17 +963,7 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->mac_regs->address0_low = val1;
 
     eqos->mac_regs->configuration &= 0xffcfff7c;
-    eqos->mac_regs->configuration |= DWCEQOS_MAC_CFG_ACS | BIT(21)
-                                     | DWCEQOS_MAC_CFG_TE | DWCEQOS_MAC_CFG_RE;
-
-    /* Enable interrupts mac */
-    dma_ie = (uint32_t *)(eqos->regs + 0x00b4);
-    uint32_t mac_imr_val = 0;
-    mac_imr_val = *dma_ie;
-    mac_imr_val &= (uint32_t)(0x1008);
-    mac_imr_val |= ((0x1) << 0) | ((0x1) << 1) | ((0x1) << 2) |
-                   ((0x1) << 4) | ((0x1) << 5);
-    *dma_ie = mac_imr_val;
+    eqos->mac_regs->configuration |=  DWCEQOS_MAC_CFG_TE | DWCEQOS_MAC_CFG_RE;
 
     /* Configure DMA */
     /* Enable OSP mode */
@@ -1019,12 +992,12 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->dma_regs->ch0_rx_control &=
         ~(EQOS_DMA_CH0_RX_CONTROL_RXPBL_MASK <<
           EQOS_DMA_CH0_RX_CONTROL_RXPBL_SHIFT);
-    eqos->dma_regs->ch0_rx_control |= (8 << EQOS_DMA_CH0_RX_CONTROL_RXPBL_SHIFT);
+    eqos->dma_regs->ch0_rx_control |= (1 << EQOS_DMA_CH0_RX_CONTROL_RXPBL_SHIFT);
 
     /* DMA performance configuration */
     val = (2 << EQOS_DMA_SYSBUS_MODE_RD_OSR_LMT_SHIFT) |
           EQOS_DMA_SYSBUS_MODE_EAME | EQOS_DMA_SYSBUS_MODE_BLEN16 |
-          EQOS_DMA_SYSBUS_MODE_BLEN8 | EQOS_DMA_SYSBUS_MODE_BLEN4;
+          EQOS_DMA_SYSBUS_MODE_BLEN8;
     eqos->dma_regs->sysbus_mode = val;
 
     eqos->dma_regs->ch0_txdesc_list_haddress = 0;
