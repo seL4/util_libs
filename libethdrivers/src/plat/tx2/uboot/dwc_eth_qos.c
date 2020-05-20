@@ -470,33 +470,52 @@ static int eqos_start_clks_tegra186(struct eqos_priv *eqos)
     eqos->clk_slave_bus = clk_get_clock(eqos->clock_sys, CLK_AXI_CBB);
     if (eqos->clk_slave_bus == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_SLAVE_BUS");
+        return -ENODEV;
     }
-    clk_gate_enable(eqos->clock_sys, CLK_AXI_CBB, CLKGATE_ON);
-
-
-    eqos->clk_master_bus = clk_get_clock(eqos->clock_sys, CLK_GATE_EQOS_AXI);
-    if (eqos->clk_master_bus == NULL) {
-        ZF_LOGE("clk_get_clock failed CLK_MASTER_BUS");
+    ret = clk_gate_enable(eqos->clock_sys, CLK_GATE_AXI_CBB, CLKGATE_ON);
+    if (ret) {
+        ZF_LOGE("Failed to enable CLK_GATE_AXI_CBB") ;
+        return -EIO;
     }
-    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_AXI, CLKGATE_ON);
+
+    ret = clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_AXI, CLKGATE_ON);
+    if (ret) {
+        ZF_LOGE("Failed to enable CLK_GATE_EQOS_AXI");
+        return -EIO;
+    }
 
     eqos->clk_rx = clk_get_clock(eqos->clock_sys, CLK_EQOS_RX_INPUT);
     if (eqos->clk_rx == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_RX");
+        return -ENODEV;
     }
-    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_RX, CLKGATE_ON);
+    ret = clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_RX, CLKGATE_ON);
+    if (ret) {
+        ZF_LOGE("Failed to enable CLK_GATE_EQOS_RX");
+        return -EIO;
+    }
 
-    eqos->clk_ptp_ref = clk_get_clock(eqos->clock_sys, CLK_GATE_EQOS_PTP_REF);
+    eqos->clk_ptp_ref = clk_get_clock(eqos->clock_sys, CLK_EQOS_PTP_REF);
     if (eqos->clk_ptp_ref == NULL) {
-        ZF_LOGE("clk_get_clock failed CLK_PTP_REF");
+        ZF_LOGE("clk_get_clock failed CLK_EQOS_PTP_REF");
+        return -ENODEV;
     }
-    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_PTP_REF, CLKGATE_ON);
+    ret = clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_PTP_REF, CLKGATE_ON);
+    if (ret) {
+        ZF_LOGE("Failed to enable CLK_GATE_EQOS_PTP_REF");
+        return -EIO;
+    }
 
     eqos->clk_tx = clk_get_clock(eqos->clock_sys, CLK_EQOS_TX);
     if (eqos->clk_tx == NULL) {
         ZF_LOGE("clk_get_clock failed CLK_TX");
+        return -ENODEV;
     }
-    clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_TX, CLKGATE_ON);
+    ret = clk_gate_enable(eqos->clock_sys, CLK_GATE_EQOS_TX, CLKGATE_ON);
+    if (ret) {
+        ZF_LOGE("Failed to enable CLK_GATE_EQOS_TX");
+        return -EIO;
+    }
 
     return 0;
 }
