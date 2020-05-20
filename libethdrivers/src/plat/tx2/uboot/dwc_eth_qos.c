@@ -363,7 +363,7 @@ int eqos_handle_irq(struct tx2_eth_data *dev, int irq)
     if (cause & DWCEQOS_DMA_IS_DC0IS) {
         dma_status = (uint32_t *)(eqos->regs + REG_DWCEQOS_DMA_CH0_STA);
 
-        /* Transmit Interrupt currently polling tx so should never get here */
+        /* Transmit Interrupt */
         if (*dma_status & DWCEQOS_DMA_CH0_IS_TI) {
             ret |= TX_IRQ;
         }
