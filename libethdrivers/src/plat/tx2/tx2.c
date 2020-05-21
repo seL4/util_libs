@@ -106,7 +106,7 @@ static int initialize_desc_ring(struct tx2_eth_data *dev, ps_dma_man_t *dma_man,
 
     /* zero both rings */
     memset((void *)dev->tx_ring, 0, sizeof(struct eqos_desc) * dev->tx_size);
-    memset((void *)dev->rx_ring, 0, sizeof(struct eqos_desc) * dev->tx_size);
+    memset((void *)dev->rx_ring, 0, sizeof(struct eqos_desc) * dev->rx_size);
 
     __sync_synchronize();
 

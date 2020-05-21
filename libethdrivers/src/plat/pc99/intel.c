@@ -1017,8 +1017,8 @@ static int common_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *conf
     int err;
     ethif_intel_config_t *eth_config = (ethif_intel_config_t *) config;
     dev->iobase = eth_config->bar0;
-    dev->tx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
-    dev->rx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    dev->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    dev->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
 
     /* technically we support alignemtn of 1, but get better performance with some alignment */
     driver->dma_alignment = 16;
