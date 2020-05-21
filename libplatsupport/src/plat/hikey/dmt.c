@@ -16,7 +16,11 @@
 #include <utils/util.h>
 #include <utils/time.h>
 
+#include <platsupport/fdt.h>
+#include <platsupport/io.h>
 #include <platsupport/plat/dmt.h>
+
+#include "../../ltimer.h"
 
 /* Driver for the HiSilison hi6220 hikey Dual-timer devices.
  *
@@ -29,8 +33,8 @@
  * We have numbered the downcounters from 0-17 as distinct logical devices.
  */
 
-#define TCLR_ONESHOT	BIT(0)
-#define TCLR_VALUE_32	BIT(1)
+#define TCLR_ONESHOT    BIT(0)
+#define TCLR_VALUE_32   BIT(1)
 #define TCLR_INTENABLE  BIT(5)
 #define TCLR_AUTORELOAD BIT(6)
 #define TCLR_STARTTIMER BIT(7)
@@ -39,25 +43,13 @@
 
 #define HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET (0x20)
 
-typedef volatile struct dmt_regs {
-	uint32_t load;
-	uint32_t value;
-	uint32_t control;
-	uint32_t intclr;
-	uint32_t ris;
-	uint32_t mis;
-	uint32_t bgload;
-} dmt_regs_t;
-
-static dmt_regs_t *get_regs(dmt_t *dmt)
-{
-    return dmt->regs;
-}
-
 static void dmt_timer_reset(dmt_t *dmt)
 {
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+    assert(dmt != NULL && dmt->dmt_map != NULL);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     dmt_regs->control = 0;
+
+    dmt->time_h = 0;
 }
 
 int dmt_stop(dmt_t *dmt)
@@ -65,7 +57,8 @@ int dmt_stop(dmt_t *dmt)
     if (dmt == NULL) {
         return EINVAL;
     }
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+    assert(dmt != NULL && dmt->dmt_map != NULL);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     dmt_regs->control = dmt_regs->control & ~TCLR_STARTTIMER;
     return 0;
 }
@@ -75,18 +68,22 @@ int dmt_start(dmt_t *dmt)
     if (dmt == NULL) {
         return EINVAL;
     }
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+    assert(dmt != NULL && dmt->dmt_map != NULL);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     dmt_regs->control = dmt_regs->control | TCLR_STARTTIMER;
     return 0;
 }
 
-uint64_t dmt_ticks_to_ns(uint64_t ticks) {
+uint64_t dmt_ticks_to_ns(uint64_t ticks)
+{
     return ticks / TICKS_PER_MS * NS_IN_MS;
 }
 
-bool dmt_is_irq_pending(dmt_t *dmt) {
+bool dmt_is_irq_pending(dmt_t *dmt)
+{
     if (dmt) {
-       return !!get_regs(dmt)->ris;
+        assert(dmt != NULL && dmt->dmt_map != NULL);
+        return !!dmt->dmt_map->ris;
     }
     return false;
 }
@@ -102,14 +99,15 @@ int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic, bool irqs)
 
 int dmt_set_timeout_ticks(dmt_t *dmt, uint32_t ticks, bool periodic, bool irqs)
 {
-
     if (dmt == NULL) {
         return EINVAL;
     }
+    assert(dmt != NULL && dmt->dmt_map != NULL);
+
     int flags = periodic ? TCLR_AUTORELOAD : TCLR_ONESHOT;
     flags |= irqs ? TCLR_INTENABLE : 0;
 
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     dmt_regs->control = 0;
 
     /* No need to check for ticks == 0, because 0 is a valid value:
@@ -143,56 +141,152 @@ int dmt_set_timeout_ticks(dmt_t *dmt, uint32_t ticks, bool periodic, bool irqs)
     dmt_regs->load = ticks;
 
     /* The TIMERN_VALUE register is read-only. */
-    dmt_regs->control = TCLR_STARTTIMER| TCLR_VALUE_32
+    dmt_regs->control = TCLR_STARTTIMER | TCLR_VALUE_32
                         | flags;
 
     return 0;
 }
 
-void dmt_handle_irq(dmt_t *dmt)
+static void dmt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    if (dmt == NULL) {
-        return;
+    assert(data != NULL);
+    dmt_t *dmt = data;
+
+    /* if we are being used for timestamps */
+    if (dmt->user_cb_event == LTIMER_OVERFLOW_EVENT) {
+        dmt->time_h++;
     }
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+
+    assert(dmt->dmt_map != NULL);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     dmt_regs->intclr = 0x1;
+
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the timer's interrupts");
+    if (dmt->user_cb_fn) {
+        dmt->user_cb_fn(dmt->user_cb_token, dmt->user_cb_event);
+    }
 }
 
 uint64_t dmt_get_ticks(dmt_t *dmt)
 {
-    if (dmt == NULL) {
-        return 0;
-    }
-    dmt_regs_t *dmt_regs = get_regs(dmt);
+    assert(dmt != NULL && dmt->dmt_map != NULL);
+    dmt_regs_t *dmt_regs = dmt->dmt_map;
     return dmt_regs->value;
 }
 
 uint64_t dmt_get_time(dmt_t *dmt)
 {
-    return dmt_ticks_to_ns(dmt_get_ticks(dmt));
+    uint32_t high, low;
+
+    /* timer must be being used for timekeeping */
+    assert(dmt->user_cb_event == LTIMER_OVERFLOW_EVENT);
+
+    /* dmt is a down counter, invert the result */
+    high = dmt->time_h;
+    low = UINT32_MAX - dmt_get_ticks(dmt);
+
+    /* check after fetching low to see if we've missed a high bit */
+    if (dmt_is_irq_pending(dmt)) {
+        high += 1;
+        assert(high != 0);
+    }
+
+    uint64_t ticks = (((uint64_t) high << 32llu) | low);
+    return dmt_ticks_to_ns(ticks);
 }
 
-int dmt_init(dmt_t *dmt, dmt_config_t config)
+void dmt_destroy(dmt_t *dmt)
 {
-    if (config.id > DMTIMER17) {
-        ZF_LOGE("Invalid timer device ID for a hikey dual-timer.");
+    int error;
+    if (dmt->irq_id != PS_INVALID_IRQ_ID) {
+        error = ps_irq_unregister(&dmt->ops.irq_ops, dmt->irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister IRQ");
+    }
+    if (dmt->dmt_map != NULL) {
+        dmt_stop(dmt);
+    }
+    if (dmt->dmt_map_base != NULL) {
+        /* use base because dmt_map is adjusted based on whether secondary */
+        ps_pmem_unmap(&dmt->ops, dmt->pmem, (void *) dmt->dmt_map_base);
+    }
+}
+
+int dmt_init(dmt_t *dmt, ps_io_ops_t ops, dmt_config_t config)
+{
+    int error;
+
+    if (dmt == NULL) {
+        ZF_LOGE("dmt cannot be null");
         return EINVAL;
     }
 
-    if (config.vaddr == NULL || dmt == NULL) {
-        ZF_LOGE("Vaddr for the mapped dual-timer device register frame is"
-                " required.");
+    dmt->ops = ops;
+    dmt->user_cb_fn = config.user_cb_fn;
+    dmt->user_cb_token = config.user_cb_token;
+    dmt->user_cb_event = config.user_cb_event;
+
+    error = helper_fdt_alloc_simple(
+                &ops, config.fdt_path,
+                DMT_REG_CHOICE, DMT_IRQ_CHOICE,
+                &dmt->dmt_map_base, &dmt->pmem, &dmt->irq_id,
+                dmt_handle_irq, dmt
+            );
+    if (error) {
+        ZF_LOGE("Simple fdt alloc helper failed");
+        return error;
+    }
+
+    dmt->dmt_map = dmt->dmt_map_base;
+
+    dmt_timer_reset(dmt);
+    return 0;
+}
+
+/* initialise dmt using the base address of dmtp, so that we do not attempt to map
+ * that base address again but instead re-use it. */
+int dmt_init_secondary(dmt_t *dmt, dmt_t *dmtp, ps_io_ops_t ops, dmt_config_t config)
+{
+    int error;
+
+    if (dmt == NULL || dmtp == NULL) {
+        ZF_LOGE("dmt or dmtp cannot be null");
         return EINVAL;
     }
 
-    /* Even numbered device IDs are at offset 0, odd-numbered device IDs are
-     * at offset 0x20 within the same page.
-     */
-    if (config.id % 2 == 0) {
-        dmt->regs = config.vaddr;
-    } else {
-        dmt->regs = (void *) ((uintptr_t ) config.vaddr) + HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET;
+    dmt->ops = ops;
+    dmt->user_cb_fn = config.user_cb_fn;
+    dmt->user_cb_token = config.user_cb_token;
+    dmt->user_cb_event = config.user_cb_event;
+
+    /* so that destroy does not try to unmap twice */
+    dmt->dmt_map_base = NULL;
+    /* First sub-device is at offset 0, second sub-device is
+     * at offset 0x20 within the same page. */
+    dmt->dmt_map = (void *)((uintptr_t) dmtp->dmt_map_base) + HIKEY_DUALTIMER_SECONDARY_TIMER_OFFSET;
+    dmt->irq_id = PS_INVALID_IRQ_ID;
+
+    /* Gather FDT info */
+    ps_fdt_cookie_t *cookie = NULL;
+    error = ps_fdt_read_path(&ops.io_fdt, &ops.malloc_ops, config.fdt_path, &cookie);
+    if (error) {
+        ZF_LOGE("Failed to read path (%d, %s)", error, config.fdt_path);
+        return error;
     }
+
+    /* choose irq 1 because secondary */
+    irq_id_t irq_id = ps_fdt_index_register_irq(&ops, cookie, 1, dmt_handle_irq, dmt);
+    if (irq_id <= PS_INVALID_IRQ_ID) {
+        ZF_LOGE("Failed to register irqs (%d)", irq_id);
+        return irq_id;
+    }
+
+    error = ps_fdt_cleanup_cookie(&ops.malloc_ops, cookie);
+    if (error) {
+        ZF_LOGE("Failed to clean up cookie (%d)", error);
+        return error;
+    }
+
+    dmt->irq_id = irq_id;
 
     dmt_timer_reset(dmt);
     return 0;

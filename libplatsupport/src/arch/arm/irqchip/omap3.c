@@ -32,6 +32,7 @@ static int parse_ti_omap3_interrupts(char *dtb_blob, int node_offset, int intr_c
     }
     int total_cells = prop_len / sizeof(uint32_t);
     /* There's only one interrupt cell for this IRQ chip */
+    /* TODO: rebase on riscv/plic.c and allow multiple callbacks */
     assert(total_cells == TI_OMAP3_INT_CELL_COUNT);
     ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = READ_CELL(1, interrupts_prop, 0) }};
     int error = callback(irq, 0, TI_OMAP3_INT_CELL_COUNT, token);
@@ -43,6 +44,8 @@ static int parse_ti_omap3_interrupts(char *dtb_blob, int node_offset, int intr_c
 
 char *ti_omap3_compatible_list[] = {
     "ti,omap3-intc",
+    /* in the kernel's hardware.yml, these are equivalent */
+    "ti,am33xx-intc",
     NULL
 };
 DEFINE_IRQCHIP_PARSER(ti_omap3, ti_omap3_compatible_list, parse_ti_omap3_interrupts);

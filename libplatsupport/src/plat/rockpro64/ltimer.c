@@ -23,68 +23,11 @@
 
 #include "../../ltimer.h"
 
-#define NUM_RK 2
-#define RK_ID RKTIMER0
-
 typedef struct {
-    rk_t rks[NUM_RK];
-    void *base;
-    irq_id_t timer_irq_ids[NUM_RK];
-    timer_callback_data_t callback_datas[NUM_RK];
-    ltimer_callback_fn_t user_callback;
-    void *user_callback_token;
+    rk_t rk_timeout;
+    rk_t rk_timestamp;
     ps_io_ops_t ops;
 } rk_ltimer_t;
-
-static size_t get_num_irqs(void *data)
-{
-    return NUM_RK;
-}
-
-static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
-{
-    assert(n < get_num_irqs(data));
-
-    irq->type = PS_INTERRUPT;
-    irq->irq.number = rk_irq(n + RK_ID);
-    return 0;
-}
-
-static size_t get_num_pmems(void *data)
-{
-    return NUM_RK;
-}
-
-static int get_nth_pmem(void *data, size_t n, pmem_region_t *region)
-{
-    assert(n < NUM_RK);
-    region->length = PAGE_SIZE_4K;
-    region->base_addr = (uintptr_t) rk_paddr(n + RK_ID);
-    return 0;
-}
-
-static int handle_irq(void *data, ps_irq_t *irq)
-{
-    assert(data != NULL);
-    rk_ltimer_t *rk_ltimer = data;
-    ltimer_event_t event;
-    if (irq->irq.number == RKTIMER1_INTERRUPT) {
-        rk_handle_irq(&rk_ltimer->rks[TIMEOUT_RK]);
-        event = LTIMER_TIMEOUT_EVENT;
-    } else if (irq->irq.number == RKTIMER0_INTERRUPT) {
-        rk_handle_irq(&rk_ltimer->rks[TIMER_RK]);
-        event = LTIMER_OVERFLOW_EVENT;
-    } else {
-        ZF_LOGE("Unknown irq");
-        return EINVAL;
-    }
-
-    if (rk_ltimer->user_callback) {
-        rk_ltimer->user_callback(rk_ltimer->user_callback_token, event);
-    }
-
-    return 0;
-}
 
 static int get_time(void *data, uint64_t *time)
 {
@@ -92,13 +35,7 @@ static int get_time(void *data, uint64_t *time)
     assert(time != NULL);
 
     rk_ltimer_t *rk_ltimer = data;
-    *time = rk_get_time(&rk_ltimer->rks[TIMER_RK]);
-    return 0;
-}
-
-static int get_resolution(void *data, uint64_t *resolution)
-{
-    ZF_LOGF("Not implemented");
+    *time = rk_get_time(&rk_ltimer->rk_timestamp);
     return 0;
 }
 
@@ -114,7 +51,7 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         ns -= current_time;
     }
 
-    return rk_set_timeout(&rk_ltimer->rks[TIMEOUT_RK], ns, type == TIMEOUT_PERIODIC);
+    return rk_set_timeout(&rk_ltimer->rk_timeout, ns, type == TIMEOUT_PERIODIC);
 }
 
 static int reset(void *data)
@@ -122,122 +59,84 @@ static int reset(void *data)
     assert(data != NULL);
     rk_ltimer_t *rk_ltimer = data;
     /* just reset the timeout timer */
-    rk_stop(&rk_ltimer->rks[TIMEOUT_RK]);
+    rk_stop(&rk_ltimer->rk_timeout);
+    /* no need to start it again, that is done by
+     * set_timeout automatically */
     return 0;
 }
 
 static void destroy(void *data)
 {
-    assert(data);
-
+    assert(data != NULL);
     rk_ltimer_t *rk_ltimer = data;
-
-    for (int i = 0; i < NUM_RK; i++) {
-        if (rk_ltimer->base) {
-            rk_stop(&rk_ltimer->rks[i]);
-        }
-        if (rk_ltimer->callback_datas[i].irq) {
-            ps_free(&rk_ltimer->ops.malloc_ops, sizeof(ps_irq_t), rk_ltimer->callback_datas[i].irq);
-        }
-        if (rk_ltimer->timer_irq_ids[i] > PS_INVALID_IRQ_ID) {
-            int error = ps_irq_unregister(&rk_ltimer->ops.irq_ops, rk_ltimer->timer_irq_ids[i]);
-            ZF_LOGF_IF(error, "Failed to unregister IRQ");
-        }
-    }
-
-    if (rk_ltimer->base) {
-        ps_io_unmap(&rk_ltimer->ops.io_mapper, rk_ltimer->base, PAGE_SIZE_4K);
-    }
-
-    ps_free(&rk_ltimer->ops.malloc_ops, sizeof(rk_ltimer), rk_ltimer);
+    rk_destroy(&rk_ltimer->rk_timeout);
+    rk_destroy(&rk_ltimer->rk_timestamp);
+    ps_free(&rk_ltimer->ops.malloc_ops, sizeof(rk_ltimer_t), rk_ltimer);
 }
 
 int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
 {
+    /* mostly copied from dmt.c */
+    int error;
 
-    int error = ltimer_default_describe(ltimer, ops);
-    if (error) {
-        return error;
-    }
-
-    ltimer->get_time = get_time;
-    ltimer->get_resolution = get_resolution;
-    ltimer->set_timeout = set_timeout;
-    ltimer->reset = reset;
-    ltimer->destroy = destroy;
-
-    error = ps_calloc(&ops.malloc_ops, 1, sizeof(rk_ltimer_t), &ltimer->data);
-    if (error) {
-        return error;
-    }
-    assert(ltimer->data != NULL);
-    rk_ltimer_t *rk_ltimer = ltimer->data;
-    rk_ltimer->ops = ops;
-    rk_ltimer->user_callback = callback;
-    rk_ltimer->user_callback_token = callback_token;
-
-    /* map the frame we need */
-    pmem_region_t region;
-    error = get_nth_pmem(ltimer->data, 0, &region);
-    assert(error == 0);
-    void * base = ps_pmem_map(&ops, region, false, PS_MEM_NORMAL);
-    if (base == NULL) {
-        error = ENOMEM;
-        destroy(rk_ltimer);
-    }
-    rk_ltimer->base = base;
-
-    /* register the IRQs that we need */
-    for (int i = 0; i < NUM_RK; i++) {
-        error = ps_calloc(&ops.malloc_ops, 1, sizeof(ps_irq_t), (void **) &rk_ltimer->callback_datas[i].irq);
-        if (error) {
-            destroy(rk_ltimer);
-            return error;
-        }
-        rk_ltimer->callback_datas[i].ltimer = ltimer;
-        rk_ltimer->callback_datas[i].irq_handler = handle_irq;
-        error = get_nth_irq(ltimer->data, i, rk_ltimer->callback_datas[i].irq);
-        assert(error == 0);
-        rk_ltimer->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, *rk_ltimer->callback_datas[i].irq,
-                                                      handle_irq_wrapper, &rk_ltimer->callback_datas[i]);
-        if (rk_ltimer->timer_irq_ids[i] < 0) {
-            destroy(rk_ltimer);
-            return EIO;
-        }
-    }
-
-    rk_config_t config = {
-        .vaddr = base,
-        .id = RK_ID
-    };
-    error = rk_init(&rk_ltimer->rks[TIMER_RK], config);
-    
-    rk_config_t config1 = {
-        .vaddr = (base + 0x20),
-        .id = RK_ID + 1
-    };
-    error = rk_init(&rk_ltimer->rks[TIMEOUT_RK], config1);
-
-    /* start the timer rk */
-    if (!error) {
-       error = rk_start(&rk_ltimer->rks[TIMER_RK], TIMER_RK);
-    } else {
-        destroy(rk_ltimer);
-    }
-
-    return error;
-}
-
-int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
-{
     if (ltimer == NULL) {
-        ZF_LOGE("Timer is NULL!");
+        ZF_LOGE("ltimer cannot be NULL");
         return EINVAL;
     }
 
-    ltimer->get_num_irqs = get_num_irqs;
-    ltimer->get_nth_irq = get_nth_irq;
-    ltimer->get_num_pmems = get_num_pmems;
-    ltimer->get_nth_pmem = get_nth_pmem;
+    error = create_ltimer_simple(
+                ltimer, ops, sizeof(rk_ltimer_t),
+                get_time, set_timeout, reset, destroy
+            );
+    if (error) {
+        ZF_LOGE("Failed to create ltimer for rk");
+        return error;
+    }
+
+    rk_ltimer_t *rk_ltimer = ltimer->data;
+    rk_ltimer->ops = ops;
+
+    /* set up a timer for timeouts */
+    rk_config_t rk_config = {
+        .fdt_path = RK_TIMER_PATH,
+        .user_cb_fn = callback,
+        .user_cb_token = callback_token,
+        .user_cb_event = LTIMER_TIMEOUT_EVENT
+    };
+
+    error = rk_init(&rk_ltimer->rk_timeout, ops, rk_config);
+    if (error) {
+        ZF_LOGE("Failed to initialise timer (timeout)");
+        destroy(rk_ltimer);
+        return error;
+    }
+
+    /* no start for timeout timer */
+
+    /* set up a timer for timestamps */
+    rk_config.user_cb_event = LTIMER_OVERFLOW_EVENT;
+
+    error = rk_init_secondary(&rk_ltimer->rk_timestamp, &rk_ltimer->rk_timeout, ops, rk_config);
+    if (error) {
+        ZF_LOGE("Failed to initialise timer (timestamp)");
+        destroy(rk_ltimer);
+        return error;
+    }
+
+    error = rk_start_timestamp_timer(&rk_ltimer->rk_timestamp);
+    if (error) {
+        ZF_LOGE("Failed to start timestamp timer");
+        destroy(rk_ltimer);
+        return error;
+    }
+
     return 0;
+}
+
+/* This function is intended to be deleted,
+ * this is just left here for now so that stuff can compile */
+int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
+{
+    ZF_LOGE("get_(nth/num)_(irqs/pmems) are not valid");
+    return EINVAL;
 }

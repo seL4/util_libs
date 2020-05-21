@@ -19,6 +19,8 @@
 #include <platsupport/timer.h>
 #include <platsupport/plat/timer.h>
 
+#include "../../ltimer.h"
+
 #define TIOCP_CFG_SOFTRESET BIT(0)
 
 #define TIER_MATCHENABLE BIT(0)
@@ -43,6 +45,9 @@ static void dmt_reset(dmt_t *dmt)
     dmt->hw->cfg = TIOCP_CFG_SOFTRESET;
     while (dmt->hw->cfg & TIOCP_CFG_SOFTRESET);
     dmt->hw->tier = TIER_OVERFLOWENABLE;
+
+    /* reset timekeeping */
+    dmt->time_h = 0;
 }
 
 int dmt_stop(dmt_t *dmt)
@@ -126,14 +131,23 @@ int dmt_start_ticking_timer(dmt_t *dmt)
     return 0;
 }
 
-void dmt_handle_irq(dmt_t *dmt)
+void dmt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
-    if (dmt == NULL) {
-        ZF_LOGE("DMT is NULL");
-        return;
-    }
+    assert(data != NULL);
+    dmt_t *dmt = data;
+
     /* ack any pending irqs */
     dmt->hw->tisr = TISR_IRQ_CLEAR;
+
+    /* if timer is being used for timekeeping, track overflows */
+    if (dmt->user_cb_event == LTIMER_OVERFLOW_EVENT) {
+        dmt->time_h++;
+    }
+
+    ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the timer's interrupts");
+    if (dmt->user_cb_fn) {
+        dmt->user_cb_fn(dmt->user_cb_token, dmt->user_cb_event);
+    }
 }
 
 bool dmt_pending_overflow(dmt_t *dmt)
@@ -141,23 +155,64 @@ bool dmt_pending_overflow(dmt_t *dmt)
     return dmt->hw->tisr & TISR_OVF_IT_FLAG;
 }
 
-uint32_t dmt_get_time(dmt_t *dmt)
+uint64_t dmt_get_time(dmt_t *dmt)
 {
-    return dmt->hw->tcrr;
+    uint32_t high, low;
+
+    /* should be a timer being used for timekeeping */
+    assert(dmt->user_cb_event == LTIMER_OVERFLOW_EVENT);
+
+    high = dmt->time_h;
+    low = dmt->hw->tcrr;
+
+    /* check after fetching low to see if we've missed a high bit */
+    if (dmt_pending_overflow(dmt)) {
+        high += 1;
+        assert(high != 0);
+    }
+
+    uint64_t ticks = (((uint64_t)high << 32llu) | low);
+    return freq_cycles_and_hz_to_ns(ticks, 24000000llu);
 }
 
-int dmt_init(dmt_t *dmt, dmt_config_t config)
+void dmt_destroy(dmt_t *dmt)
 {
-    if (dmt == NULL) {
-        return EINVAL;
+    int error;
+    if (dmt->irq_id != PS_INVALID_IRQ_ID) {
+        error = ps_irq_unregister(&dmt->ops.irq_ops, dmt->irq_id);
+        ZF_LOGF_IF(error, "Failed to unregister IRQ");
     }
-    if (config.id < DMTIMER2 || config.id >= NTIMERS) {
-        ZF_LOGE("Invalid timer id");
+    if (dmt->hw != NULL) {
+        dmt_stop(dmt);
+        ps_pmem_unmap(&dmt->ops, dmt->pmem, (void *) dmt->hw);
+    }
+}
+
+int dmt_init(dmt_t *dmt, ps_io_ops_t ops, dmt_config_t config)
+{
+    int error;
+
+    if (dmt == NULL) {
+        ZF_LOGE("dmt cannot be null");
         return EINVAL;
     }
 
-    dmt->hw = (struct dmt_map *)config.vaddr;
-    // XXX support config->prescaler.
+    dmt->ops = ops;
+    dmt->user_cb_fn = config.user_cb_fn;
+    dmt->user_cb_token = config.user_cb_token;
+    dmt->user_cb_event = config.user_cb_event;
+
+    error = helper_fdt_alloc_simple(
+                &ops, config.fdt_path,
+                DMT_REG_CHOICE, DMT_IRQ_CHOICE,
+                (void *) &dmt->hw, &dmt->pmem, &dmt->irq_id,
+                dmt_handle_irq, dmt
+            );
+    if (error) {
+        ZF_LOGE("Failed fdt simple alloc helper");
+        dmt_destroy(dmt);
+        return error;
+    }
 
     dmt_reset(dmt);
     return 0;

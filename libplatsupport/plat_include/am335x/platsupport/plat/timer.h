@@ -12,52 +12,13 @@
 #pragma once
 
 #include <platsupport/timer.h>
+#include <platsupport/ltimer.h>
 
-/* Memory maps */
-#define DMTIMER2_PADDR 0x48040000
-#define DMTIMER3_PADDR 0x48042000
-#define DMTIMER4_PADDR 0x48044000
-#define DMTIMER5_PADDR 0x48046000
-#define DMTIMER6_PADDR 0x48048000
-#define DMTIMER7_PADDR 0x4804A000
+#define DMTIMER2_PATH "/ocp/timer@48040000"
+#define DMTIMER3_PATH "/ocp/timer@48042000"
 
-/* IRQs */
-#define DMTIMER2_INTERRUPT 68
-#define DMTIMER3_INTERRUPT 69
-#define DMTIMER4_INTERRUPT 92
-#define DMTIMER5_INTERRUPT 93
-#define DMTIMER6_INTERRUPT 94
-#define DMTIMER7_INTERRUPT 95
-
-/* Timers */
-typedef enum timer_id {
-    DMTIMER2,
-    DMTIMER3,
-    DMTIMER4,
-    DMTIMER5,
-    DMTIMER6,
-    DMTIMER7,
-    NTIMERS
-} dmt_id_t;
-#define TMR_DEFAULT DMTIMER2
-
-static const uintptr_t dmt_paddrs[] = {
-    [DMTIMER2] = DMTIMER2_PADDR,
-    [DMTIMER3] = DMTIMER3_PADDR,
-    [DMTIMER4] = DMTIMER4_PADDR,
-    [DMTIMER5] = DMTIMER5_PADDR,
-    [DMTIMER6] = DMTIMER6_PADDR,
-    [DMTIMER7] = DMTIMER7_PADDR,
-};
-
-static const int dmt_irqs[] = {
-    [DMTIMER2] = DMTIMER2_INTERRUPT,
-    [DMTIMER3] = DMTIMER3_INTERRUPT,
-    [DMTIMER4] = DMTIMER4_INTERRUPT,
-    [DMTIMER5] = DMTIMER5_INTERRUPT,
-    [DMTIMER6] = DMTIMER6_INTERRUPT,
-    [DMTIMER7] = DMTIMER7_INTERRUPT,
-};
+#define DMT_REG_CHOICE 0
+#define DMT_IRQ_CHOICE 0
 
 static UNUSED timer_properties_t dmt_properties = {
     .upcounter = false,
@@ -69,9 +30,10 @@ static UNUSED timer_properties_t dmt_properties = {
 };
 
 typedef struct {
-    /* vaddr pwm is mapped to */
-    void *vaddr;
-    dmt_id_t id;
+    char *fdt_path;
+    ltimer_callback_fn_t user_cb_fn;
+    void *user_cb_token;
+    ltimer_event_t user_cb_event;
 } dmt_config_t;
 
 struct dmt_map {
@@ -97,36 +59,31 @@ struct dmt_map {
 };
 
 typedef struct dmt {
+    /* set in init */
+    ps_io_ops_t ops;
+    ltimer_callback_fn_t user_cb_fn;
+    void *user_cb_token;
+    ltimer_event_t user_cb_event;  /* what are we being used for? */
+
+    /* set in fdt helper */
     volatile struct dmt_map *hw;
+    pmem_region_t pmem;
+    irq_id_t irq_id;
+
+    /* set in setup */
+    uint32_t time_h;
 } dmt_t;
 
-static inline void *dmt_paddr(dmt_id_t id)
-{
-    if (id <= DMTIMER7 && id >= DMTIMER2) {
-        return (void *) dmt_paddrs[id];
-    } else {
-        return NULL;
-    }
-}
-
-static inline long dmt_irq(dmt_id_t id)
-{
-    if (id <= DMTIMER7 && id >= DMTIMER2) {
-        return dmt_irqs[id];
-    } else {
-        return 0;
-    }
-}
-
-int dmt_init(dmt_t *dmt, dmt_config_t config);
+int dmt_init(dmt_t *dmt, ps_io_ops_t ops, dmt_config_t config);
 int dmt_start(dmt_t *dmt);
 int dmt_stop(dmt_t *dmt);
 /* configure a timeout */
 int dmt_set_timeout(dmt_t *dmt, uint64_t ns, bool periodic);
 /* start the ticking timer */
 int dmt_start_ticking_timer(dmt_t *dmt);
-void dmt_handle_irq(dmt_t *dmt);
+void dmt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data);
 /* return true if an overflow is pending */
 bool dmt_pending_overflow(dmt_t *dmt);
-/* return ticks */
-uint32_t dmt_get_time(dmt_t *dmt);
+/* return time */
+uint64_t dmt_get_time(dmt_t *dmt);
+void dmt_destroy(dmt_t *dmt);
