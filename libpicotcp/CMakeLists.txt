@@ -68,6 +68,8 @@ if(LibPicotcp)
         \"PLATFORM_CFLAGS=$<JOIN:${compile_options}, >\" \
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
         \"C_COMPILER=${C_COMPILER}\" \
+        \"PERF=1\" \
+        \"DEBUG=0\" \
         make -s -j"
     )
 

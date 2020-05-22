@@ -769,7 +769,7 @@ static int eqos_start_resets_tegra186(struct eqos_priv *eqos)
     return 0;
 }
 
-int eqos_start(struct tx2_eth_data *d)
+__attribute__ ((optimize(1))) int eqos_start(struct tx2_eth_data *d) 
 {
     struct eqos_priv *eqos = (struct eqos_priv *)d->eth_dev;
     int ret, i;

@@ -493,9 +493,9 @@ static void initialize_receive_timers(e1000_dev_t *dev)
         break;
     case e1000_82574:
         /* set a base delay of 20 microseconds */
-        REG_82574_RDTR(dev) = 20;
+        REG_82574_RDTR(dev) = 100;
         /* force descriptor write back after 20 microseconds */
-        REG_82574_RADV(dev) = 20;
+        REG_82574_RADV(dev) = 100;
         REG_82574_RAID(dev) = 0;
         break;
     default:

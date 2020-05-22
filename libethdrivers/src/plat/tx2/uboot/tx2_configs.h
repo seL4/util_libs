@@ -46,8 +46,8 @@ struct eqos_desc {
     uint32_t des3; /* flags (interrupt, own, ld, etc) and length of packet */
 };
 
-#define EQOS_DESCRIPTORS_TX 256
-#define EQOS_DESCRIPTORS_RX 256
+#define EQOS_DESCRIPTORS_TX 128
+#define EQOS_DESCRIPTORS_RX 128
 
 /* descriptor flags */
 #define EQOS_DESC2_IOC      BIT(31)
