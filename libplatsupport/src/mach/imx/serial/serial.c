@@ -103,20 +103,50 @@ int uart_getchar(
     return c;
 }
 
+static int internal_is_tx_fifo_busy(
+    imx_uart_regs_t *regs)
+{
+    /* check the TXFE (transmit buffer FIFO empty) flag, which is cleared
+     * automatically when data is written to the TxFIFO. Even though the flag
+     * is set, the actual data transmission via the UART's 32 byte FIFO buffer
+     * might still be in progress.
+     */
+    return (0 == (regs->sr2 & UART_SR2_TXFIFO_EMPTY));
+}
+
 int uart_putchar(
     ps_chardevice_t *d,
     int c)
 {
     imx_uart_regs_t *regs = imx_uart_get_priv(d);
-    if (regs->sr2 & UART_SR2_TXFIFO_EMPTY) {
-        if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
-            uart_putchar(d, '\r');
-        }
-        regs->txd = c;
-        return c;
-    } else {
+
+    if (internal_is_tx_fifo_busy(regs)) {
         return -1;
     }
+
+    if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
+        /* write CR first */
+        regs->txd = '\r';
+        /* if we transform a '\n' (LF) into '\r\n' (CR+LF) this shall become an
+         * atom, ie we don't want CR to be sent and then fail at sending LF
+         * because the TX FIFO is full. Basically there are two options:
+         *   - check if the FIFO can hold CR+LF and either send both or none
+         *   - send CR, then block until the FIFO has space and send LF.
+         * Assuming that if SERIAL_AUTO_CR is set, it's likely this is a serial
+         * console for logging, so blocking seems acceptable in this special
+         * case. The IMX6's TX FIFO size is 32 byte and TXFIFO_EMPTY is cleared
+         * automatically as soon as data is written from regs->txd into the
+         * FIFO. Thus the worst case blocking is roughly the time it takes to
+         * send 1 byte to have room in the FIFO again. At 115200 baud with 8N1
+         * this takes 10 bit-times, which is 10/115200 = 86,8 usec.
+         */
+        while (internal_is_tx_fifo_busy(regs)) {
+            /* busy loop */
+        }
+    }
+
+    regs->txd = c;
+    return c;
 }
 
 static void uart_handle_irq(ps_chardevice_t *d UNUSED)
