@@ -14,6 +14,8 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(libplatsupport C)
 
+include(${PLATSUPPORT_HELPERS})
+
 set(configure_string "")
 
 config_choice(
