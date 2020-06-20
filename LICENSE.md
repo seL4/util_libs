@@ -13,4 +13,4 @@ materials. The directory [`LICENSES`][2] contains the text for all licenses
 that are mentioned by files in this repository.
 
 [1]: https://spdx.org
-[2]: ../LICENSES/
+[2]: LICENSES/
