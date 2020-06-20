@@ -6,8 +6,16 @@
 
 # seL4\_tools
 
-Provides tools used to build seL4 projects
+Provides tools used to build seL4 projects.
+Also collects common config and tools for style checks.
 
-* elfloader-tool: loads the arm kernel.
-* common-tool: most of the build system.
-* misc: miscellaneous extra tools.
+* [elfloader-tool](elfloader-tool/): loads the arm kernel.
+* [cmake-tool](cmake-tool/): most of the build system.
+* [misc](misc/): miscellaneous extra tools, including code style checks.
+
+
+## Contributing
+
+Contributions welcome!
+
+See the [CONTRIBUTING](.github/CONTRIBUTING.md) file for more.
