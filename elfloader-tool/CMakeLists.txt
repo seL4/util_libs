@@ -144,6 +144,14 @@ if(KernelSel4ArchAarch64)
     add_compile_options(-mgeneral-regs-only)
 endif()
 
+# Don't allow unaligned data store/load instructions as this will cause an alignment
+# fault before the MMU is turned on.
+if(KernelSel4ArchAarch64)
+    add_compile_options(-mstrict-align)
+elseif(KernelSel4ArchAarch32)
+    add_compile_options(-mno-unaligned-access)
+endif()
+
 file(
     GLOB
         files
