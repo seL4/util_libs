@@ -331,17 +331,6 @@ separate_arguments(c_arguments NATIVE_COMMAND "${CMAKE_C_FLAGS}")
 # Add extra compilation flags required for clang
 if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
-
-    # Apply optimisation levels for specific files that were causing
-    # elf loader errors on particular architectures (tx2 & tk1)
-    set_source_files_properties(
-        ./src/binaries/elf/elf64.c
-        ./src/binaries/elf/elf.c
-        PROPERTIES
-        COMPILE_FLAGS
-        -O0
-    )
-    set_source_files_properties(./src/plat/tk1/platform_init.c PROPERTIES COMPILE_FLAGS -O1)
 endif()
 add_custom_command(
     OUTPUT "linker.lds_pp"
@@ -384,18 +373,6 @@ else()
         PROPERTY
             LINK_FLAGS
             " -Wl,-T ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp -nostdlib -static -Wl,--build-id=none"
-    )
-endif()
-
-if("${KernelPlatform}" STREQUAL "imx31")
-    # Apply optimisation levels for specific files that are causing problems on
-    # the KZM and with gcc8
-    set_source_files_properties(
-        ./src/arch-arm/sys_boot.c
-        ./src/common.c
-        PROPERTIES
-        COMPILE_FLAGS
-        -O0
     )
 endif()
 
