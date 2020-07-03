@@ -65,7 +65,11 @@ elseif(${KernelArch} STREQUAL "x86")
     list(APPEND deps src/arch/x86/tsc.c)
 elseif(${KernelArch} STREQUAL "riscv")
     list(APPEND deps src/arch/riscv/irqchip/plic.c)
-    list(APPEND irqchip_modules "-Wl,--undefined=riscv_plic_ptr")
+    list(
+        APPEND
+            irqchip_modules
+            "-Wl,--undefined=riscv_plic_ptr"
+    )
 endif()
 
 if(KernelPlatformQEMUArmVirt)

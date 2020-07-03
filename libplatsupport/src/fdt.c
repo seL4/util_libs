@@ -298,7 +298,7 @@ void *ps_fdt_index_map_register(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie, un
 static int irq_index_helper_walker(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
 {
     index_helper_token_t *helper_token = token;
-    if (helper_token->desired_offset >= num_irqs) {
+    if (helper_token->desired_offset > num_irqs) {
         /* Bail early if we will never find it */
         return -ENOENT;
     }
@@ -338,7 +338,6 @@ irq_id_t ps_fdt_index_register_irq(ps_io_ops_t *io_ops, ps_fdt_cookie_t *cookie,
 
     int error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, irq_index_helper_walker, &token);
     if (error) {
-        assert(error <= PS_INVALID_IRQ_ID);
         return error;
     }
 
