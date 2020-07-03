@@ -69,8 +69,12 @@ static void destroy(void *data)
 {
     assert(data != NULL);
     rk_ltimer_t *rk_ltimer = data;
-    rk_destroy(&rk_ltimer->rk_timeout);
+    /* NOTE: Note that timeout is primary, timestamp is secondary.
+     *  this means that timeout holds the region mapping.
+     *  We must first destroy timestamp before destroying timeout
+     *  so that the region is freed last. */
     rk_destroy(&rk_ltimer->rk_timestamp);
+    rk_destroy(&rk_ltimer->rk_timeout);
     ps_free(&rk_ltimer->ops.malloc_ops, sizeof(rk_ltimer_t), rk_ltimer);
 }
 

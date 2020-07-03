@@ -73,8 +73,12 @@ static void destroy(void *data)
 {
     assert(data != NULL);
     hikey_ltimer_t *hikey_ltimer = data;
-    dmt_destroy(&hikey_ltimer->dmt_timeout);
+    /* NOTE: Note that timeout is primary, timestamp is secondary.
+     *  this means that timeout holds the region mapping.
+     *  We must first destroy timestamp before destroying timeout
+     *  so that the region is freed last. */
     dmt_destroy(&hikey_ltimer->dmt_timestamp);
+    dmt_destroy(&hikey_ltimer->dmt_timeout);
     ps_free(&hikey_ltimer->ops.malloc_ops, sizeof(hikey_ltimer_t), hikey_ltimer);
 }
 

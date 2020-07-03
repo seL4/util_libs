@@ -189,7 +189,14 @@ int rk_init_secondary(rk_t *rk, rk_t *rkp, ps_io_ops_t ops, rk_config_t config)
     /* just like dmt, rockpro64 has another timer in the same page at 0x20 offset */
     rk->hw = (void *)((uintptr_t) rkp->rk_map_base) + 0x20;
     /* similarly, the IRQ for this secondary timer is offset by 1 */
-    rk->irq_id = rkp->irq_id + 1;
+    rk->irq_id = PS_INVALID_IRQ_ID;
+    ps_irq_t irq2 = { .type = PS_INTERRUPT, .irq.number = rkp->irq_id + 1 };
+    irq_id_t irq2_id = ps_irq_register(&ops.irq_ops, irq2, rk_handle_irq, rk);
+    if (irq2_id < 0) {
+        ZF_LOGE("Failed to register secondary irq for rk timer");
+        return irq2_id;
+    }
+    rk->irq_id = irq2_id;
 
     return 0;
 }
