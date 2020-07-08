@@ -22,6 +22,7 @@
 #include <lwip/netif.h>
 #include <netif/etharp.h>
 #include <lwip/stats.h>
+#include <lwip/snmp.h>
 #include "debug.h"
 
 static void initialize_free_bufs(lwip_iface_t *iface) {
