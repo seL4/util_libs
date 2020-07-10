@@ -51,6 +51,15 @@ macro(add_default_compilation_options)
     if(KernelSel4ArchAarch32)
         add_compile_options(-mtp=soft)
     endif()
+
+    # Don't allow unaligned data store/load instructions as this will cause an alignment
+    # fault on any seL4 memory regions that are uncached as the mapping attributes the kernel
+    # uses causes alignment checks to be enabled.
+    if(KernelSel4ArchAarch64)
+        add_compile_options(-mstrict-align)
+    elseif(KernelSel4ArchAarch32)
+        add_compile_options(-mno-unaligned-access)
+    endif()
 endmacro()
 
 macro(gcc_print_file_name var file)
