@@ -151,16 +151,7 @@ static void install_monitor_hook(void)
 #ifdef CONFIG_ARM_HYPERVISOR_MODE
 static void switch_to_hyp_mode(void)
 {
-    register uint32_t scr asm("r4") = 0;
-    register uint32_t sp asm("r5");
-    register uint32_t fp asm("r6");
-
-    /*
-     * Frame and Stack pointers are banked; save them
-     * in current state; restore in final state
-     */
-    asm volatile("mov %0, sp" : "=r"(sp));
-    asm volatile("mov %0, fp" : "=r"(fp));
+    uint32_t scr = 0;
 
     /*
      * Need to make sure anything in the write buffer is
@@ -177,11 +168,20 @@ static void switch_to_hyp_mode(void)
     scr |= BIT(SCR_NS);
     scr &= ~BIT(SCR_SIF);
     asm volatile("mcr p15, 0, %0, c1, c1, 0"::"r"(scr));
-    asm volatile("cps %0\n\t"
+    /* now switch to hypervisor mode. restoring our stack and link register in the process
+     * as these two registers are banked. */
+    uint32_t sp_temp = 0;
+    uint32_t lr_temp = 0;
+    asm volatile("mov %[SP_TEMP], sp\n"
+                 "mov %[LR_TEMP], lr\n"
+                 "cps %[HYP_MODE]\n\t"
                  "isb\n"
-                 ::"I"(HYPERVISOR_MODE));
-    asm volatile("mov sp, %0" : "+r"(sp));
-    asm volatile("mov fp, %0" : "+r"(fp));
+                 "mov sp, %[SP_TEMP]\n"
+                 "mov lr, %[LR_TEMP]\n"
+                 : [SP_TEMP]"+r"(sp_temp),
+                 [LR_TEMP]"+r"(lr_temp)
+                 : [HYP_MODE]"I"(HYPERVISOR_MODE));
+
     asm volatile("mrs %0, cpsr":"=r"(scr));
     printf("Load seL4 in nonsecure HYP mode %x", scr);
 }
