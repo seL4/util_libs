@@ -137,7 +137,7 @@ static void fill_rx_bufs(struct eth_driver *driver)
         dev->rx_ring[dev->rdt].des0 = phys;
         dev->rx_ring[dev->rdt].des1 = 0;
         dev->rx_ring[dev->rdt].des2 = 0;
-        dev->rx_ring[dev->rdt].des3 = EQOS_DESC3_OWN | EQOS_DESC3_BUF1V | DWCEQOS_DMA_RDES3_INTE;
+        dev->rx_ring[dev->rdt].des3 = EQOS_DESC3_OWN | EQOS_DESC3_BUF1V;
 
         dev->rdt = (dev->rdt + 1) % dev->rx_size;
         dev->rx_remain--;

@@ -763,8 +763,8 @@ int eqos_start(struct tx2_eth_data *d)
     eqos->dma_regs->ch0_dma_ie = 0;
     eqos->dma_regs->ch0_dma_ie = DWCEQOS_DMA_CH0_IE_RIE | DWCEQOS_DMA_CH0_IE_TIE |
                                  DWCEQOS_DMA_CH0_IE_NIE | DWCEQOS_DMA_CH0_IE_AIE |
-                                 DWCEQOS_DMA_CH0_IE_FBEE;
-
+                                 DWCEQOS_DMA_CH0_IE_FBEE | DWCEQOS_DMA_CH0_IE_RWTE;
+    eqos->dma_regs->ch0_dma_rx_int_wd_timer = 120;
     udelay(100);
 
     eqos->dma_regs->ch0_tx_control = EQOS_DMA_CH0_TX_CONTROL_ST;
