@@ -458,12 +458,15 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
     struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     volatile struct eqos_desc *tx_desc;
     int i;
-
+    uint32_t ioc = 0;
+    if (dev->tdt % 32 == 0) {
+        ioc = EQOS_DESC2_IOC;
+    }
     tx_desc = &(dev->tx_ring[dev->tdt]);
 
     tx_desc->des0 = (uintptr_t)packet;
     tx_desc->des1 = 0;
-    tx_desc->des2 = EQOS_DESC2_IOC | length;
+    tx_desc->des2 = ioc | length;
     tx_desc->des3 = EQOS_DESC3_FD | EQOS_DESC3_LD | length;
 
     __sync_synchronize();
