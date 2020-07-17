@@ -43,7 +43,7 @@ static inline int wait_for_bit_##sfx(const void *reg,           \
                      const bool breakable)      \
 {                                   \
     type val;                           \
-    volatile unsigned long count; \
+    volatile unsigned long count = 0; \
                                     \
     while (count != timeout_ms) {                           \
         val = *((type *)reg);                   \
