@@ -263,7 +263,7 @@ int hpet_init(hpet_t *hpet, hpet_config_t config)
 
     /* read the period of the timer (its in femptoseconds) and calculate no of ticks per ns */
     uint32_t tick_period_fs = (uint32_t) (*hpet_get_cap_id(hpet->base_addr) >> 32llu);
-    hpet->period_ns = tick_period_fs / 1000000.0f;
+    hpet->period_ns = tick_period_fs / 1000000;
 
     return 0;
 }
