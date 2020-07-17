@@ -22,6 +22,7 @@
 #include "tx2.h"
 #include "io.h"
 
+#include "uboot/dwc_eth_qos.h"
 static void free_desc_ring(struct tx2_eth_data *dev, ps_dma_man_t *dma_man)
 {
     if (dev->rx_ring != NULL) {
