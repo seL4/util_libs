@@ -58,6 +58,9 @@ if(LibPicotcp)
         set(C_COMPILER ${CROSS_COMPILER_PREFIX}gcc)
     endif()
 
+    if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(perf_flags "\"PERF=1\" \"DEBUG=0\"")
+    endif()
     # generate a build.sh script to avoid nasty escape issues, we then invoke this in ExternalProject_Add
     file(
         GENERATE
@@ -68,6 +71,7 @@ if(LibPicotcp)
         \"PLATFORM_CFLAGS=$<JOIN:${compile_options}, >\" \
         \"CROSS_COMPILE=${CROSS_COMPILER_PREFIX}\" \
         \"C_COMPILER=${C_COMPILER}\" \
+        ${perf_flags} \
         make -s -j"
     )
 
