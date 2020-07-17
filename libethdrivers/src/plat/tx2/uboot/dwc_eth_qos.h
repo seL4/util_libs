@@ -261,10 +261,13 @@ struct eqos_priv {
     clock_sys_t *clock_sys;
 };
 
+#define REG_DWCEQOS_ETH_MMC_CONTROL      0x0700
+#define REG_DWCEQOS_MMC_CNTFREEZ         BIT(3)
+
 #define REG_DWCEQOS_DMA_CH0_STA          0x1160
 #define DWCEQOS_DMA_IS_DC0IS             BIT(0)
 #define DWCEQOS_DMA_IS_MTLIS             BIT(16)
-#define DWCEQOS_DMA_IS_MACIS             BIT(17)
+#define DWCEQOS_DDWCEQOSMA_IS_MACIS             BIT(17)
 #define DWCEQOS_DMA_CH0_IS_TI            BIT(0)
 #define DWCEQOS_DMA_CH0_IS_RI            BIT(6)
 #define DWCEQOS_MAC_IS_MMC_INT           BIT(8)
