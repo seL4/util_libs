@@ -189,7 +189,7 @@ static void complete_tx(struct eth_driver *driver)
     unsigned int num_in_ring = dev->tx_size - dev->tx_remain;
     bool did_tx = false;
 
-    for (int i = 0; i < num_in_ring; i++) {
+    while ((dev->tx_size - dev->tx_remain) > 0) {
         uint32_t i;
         for (i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
             uint32_t ring_pos = (i + dev->tdh) % dev->tx_size;
@@ -258,11 +258,11 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     struct eth_device *enet = dev->eth_dev;
     int err;
     /* Ensure we have room */
-    if (dev->tx_remain < num) {
+    if ((dev->tx_size - dev->tx_remain) > 32) {
         /* try and complete some */
         complete_tx(driver);
         if (dev->tx_remain < num) {
-            ZF_LOGF("Raw TX failed");
+            ZF_LOGE("Raw TX failed");
             return ETHIF_TX_FAILED;
         }
     }
