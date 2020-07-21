@@ -313,7 +313,7 @@ static int eqos_disable_calibration_tegra186(struct eqos_priv *eqos)
     return 0;
 }
 
-static freq_t eqos_get_tick_clk_rate_tegra186(struct eqos_priv *eqos)
+static UNUSED freq_t eqos_get_tick_clk_rate_tegra186(struct eqos_priv *eqos)
 {
     return clk_get_freq(eqos->clk_slave_bus);
 }
@@ -457,7 +457,6 @@ int eqos_send(struct tx2_eth_data *dev, void *packet, int length)
 {
     struct eqos_priv *eqos = (struct eqos_priv *)dev->eth_dev;
     volatile struct eqos_desc *tx_desc;
-    int i;
     uint32_t ioc = 0;
     if (dev->tdt % 32 == 0) {
         ioc = EQOS_DESC2_IOC;
@@ -525,22 +524,22 @@ static int eqos_start_resets_tegra186(struct eqos_priv *eqos)
 int eqos_start(struct tx2_eth_data *d)
 {
     struct eqos_priv *eqos = (struct eqos_priv *)d->eth_dev;
-    int ret, i;
-    ulong rate;
+    int ret;
     u32 val, tx_fifo_sz, rx_fifo_sz, tqs, rqs, pbl;
-    uintptr_t last_rx_desc;
 
     eqos->reg_access_ok = true;
     uint32_t *dma_ie;
 
     ret = eqos_start_clks_tegra186(eqos);
     if (ret) {
-        ZF_LOGF("clocks start failed");
+        ZF_LOGE("eqos_start_clks_tegra186 failed");
+        goto err;
     }
 
     ret = eqos_start_resets_tegra186(eqos);
     if (ret) {
-        ZF_LOGF("clocks start failed");
+        ZF_LOGE("eqos_start_resets_tegra186 failed");
+        goto err_stop_clks;
     }
 
     udelay(10);
@@ -788,7 +787,6 @@ err_stop_resets:
 err_stop_clks:
     // eqos_stop_clks_tegra186(dev);
 err:
-    ZF_LOGE("FAILED: %d", ret);
     return ret;
 }
 

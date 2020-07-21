@@ -156,7 +156,6 @@ static void complete_rx(struct eth_driver *eth_driver)
 {
     struct tx2_eth_data *dev = (struct tx2_eth_data *)eth_driver->eth_data;
     unsigned int num_in_ring = dev->rx_size - dev->rx_remain;
-    bool did_rx = false;
 
     for (int i = 0; i < num_in_ring; i++) {
         unsigned int status = dev->rx_ring[dev->rdh].des3;
@@ -186,8 +185,6 @@ static void complete_tx(struct eth_driver *driver)
 {
     struct tx2_eth_data *dev = (struct tx2_eth_data *)driver->eth_data;
     volatile struct eqos_desc *tx_desc;
-    unsigned int num_in_ring = dev->tx_size - dev->tx_remain;
-    bool did_tx = false;
 
     while ((dev->tx_size - dev->tx_remain) > 0) {
         uint32_t i;
@@ -255,7 +252,6 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
 {
     assert(num == 1);
     struct tx2_eth_data *dev = (struct tx2_eth_data *)driver->eth_data;
-    struct eth_device *enet = dev->eth_dev;
     int err;
     /* Ensure we have room */
     if ((dev->tx_size - dev->tx_remain) > 32) {
