@@ -279,6 +279,7 @@ int do_fdtget(struct display_info *disp, const char *filename,
 	int i, node;
 
 	//blob = utilfdt_read(filename);
+	blob = NULL;
 	if (!blob)
 		return -1;
 

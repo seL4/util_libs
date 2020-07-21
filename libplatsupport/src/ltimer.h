@@ -40,7 +40,7 @@ static inline void handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknow
     ps_irq_t *irq = callback_data->irq;
     ltimer_handle_irq_fn_t irq_handler = callback_data->irq_handler;
 
-    int error = irq_handler(ltimer->data, irq);
+    int UNUSED error = irq_handler(ltimer->data, irq);
     assert(!error);
 
     error = acknowledge_fn(ack_data);

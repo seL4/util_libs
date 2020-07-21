@@ -26,7 +26,7 @@ static int parse_fsl_avic_interrupts(char *dtb_blob, int node_offset, int intr_c
     int prop_len = 0;
     const void *interrupts_prop = get_interrupts_prop(dtb_blob, node_offset, &is_extended, &prop_len);
     assert(interrupts_prop != NULL);
-    int total_cells = prop_len / sizeof(uint32_t);
+    int UNUSED total_cells = prop_len / sizeof(uint32_t);
     /* There's only one interrupt cell for this IRQ chip */
     assert(total_cells == FSL_AVIC_INT_CELL_COUNT);
     ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = READ_CELL(1, interrupts_prop, 0) }};

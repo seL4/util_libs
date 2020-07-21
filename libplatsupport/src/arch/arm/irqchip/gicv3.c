@@ -90,8 +90,8 @@ static int parse_arm_gicv3_interrupts(char *dtb_blob, int node_offset, int intr_
         const void *curr = interrupts_prop + (i * stride * sizeof(uint32_t));
         uint32_t irq_type = 0;
         uint32_t irq = 0;
-        uint32_t irq_flag = 0;
-        uint32_t irq_core_affinity_phandle = 0;
+        uint32_t UNUSED irq_flag = 0;
+        uint32_t UNUSED irq_core_affinity_phandle = 0;
 
         if (is_extended) {
             if (READ_CELL(1, curr, EXT_INT_CONTROLLER_OFFSET) != intr_controller_phandle) {

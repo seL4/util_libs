@@ -30,7 +30,7 @@ static int parse_ti_omap3_interrupts(char *dtb_blob, int node_offset, int intr_c
         ZF_LOGE("ti omap3 extended interrupts property not supported");
         return ENODEV;
     }
-    int total_cells = prop_len / sizeof(uint32_t);
+    int UNUSED total_cells = prop_len / sizeof(uint32_t);
     /* There's only one interrupt cell for this IRQ chip */
     /* TODO: rebase on riscv/plic.c and allow multiple callbacks */
     assert(total_cells == TI_OMAP3_INT_CELL_COUNT);

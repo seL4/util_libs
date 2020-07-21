@@ -553,6 +553,6 @@ static inline void i2c_handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t ac
     i2c_bus_t *bus = data;
     i2c_handle_irq(bus);
 
-    int error = ack(ack_data);
+    int UNUSED error = ack(ack_data);
     assert(!error);
 }

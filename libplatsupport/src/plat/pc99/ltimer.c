@@ -150,7 +150,7 @@ static void handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void 
     pc99_ltimer_t *pc99_ltimer = data;
 
     /* pc99 timer interrupts are edge triggered so acknowledge now */
-    int error = acknowledge_fn(ack_data);
+    int UNUSED error = acknowledge_fn(ack_data);
     assert(!error);
 
     error = pc99_ltimer->type == PIT ? pit_ltimer_handle_irq(pc99_ltimer)
