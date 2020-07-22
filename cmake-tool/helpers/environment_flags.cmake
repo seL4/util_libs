@@ -11,7 +11,7 @@ macro(add_default_compilation_options)
     # Setup base flags as defined by the kernel before including the rest
     include(${KERNEL_FLAGS_PATH})
 
-    if((${CMAKE_BUILD_TYPE} STREQUAL "Release") OR (${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel"))
+    if(("${CMAKE_BUILD_TYPE}" STREQUAL "Release") OR ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel"))
         option(UserLinkerGCSections "Perform dead code and data removal
             Build user level with -ffunction-sections and -fdata-sections and
             link with --gc-sections. The first two options place each function
