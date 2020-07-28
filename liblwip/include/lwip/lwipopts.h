@@ -35,6 +35,7 @@
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */
 #define NO_SYS                          1
 #define NO_SYS_NO_TIMERS                0
+#define LWIP_TIMERS                     1
 #define LWIP_NETCONN                    0
 #define LWIP_SOCKET                     0
 #define LWIP_IGMP                       1
@@ -55,5 +56,9 @@
 #define LWIP_WND_SCALE 1
 #define TCP_RCV_SCALE 10
 #define PBUF_POOL_SIZE 1000
+#define MEMP_NUM_SYS_TIMEOUT 512
+
+/* Set this to 0 for performance */
+#define LWIP_STATS 0
 
 #endif /* __LWIPOPTS_H__ */
