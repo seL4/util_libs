@@ -30,7 +30,9 @@ function(DeclareExternalProjObjectFiles external_proj_target external_proj_outpu
         set(file_path ${external_proj_output_dir}/${obj_file})
         list(APPEND objfiles ${file_path})
     endforeach()
-    ExternalProject_Add_StepTargets(${external_proj_target} install)
+    if(NOT (TARGET ${external_proj_target}-install))
+        ExternalProject_Add_StepTargets(${external_proj_target} install)
+    endif()
     add_custom_command(
         OUTPUT ${objfiles}
         COMMAND true
