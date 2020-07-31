@@ -14,7 +14,13 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(libplatsupport C)
 
-include(${PLATSUPPORT_HELPERS})
+# HACK: This is a stop-gap measure for now to allow projects that don't
+# use the CMake modules feature of our build system to build properly.
+# Some projects in particular that need to be fixed:
+#   - rumprun-sel4-demoapps
+if(NOT ${PLATSUPPORT_HELPERS} STREQUAL "")
+    include(${PLATSUPPORT_HELPERS})
+endif()
 
 set(configure_string "")
 
