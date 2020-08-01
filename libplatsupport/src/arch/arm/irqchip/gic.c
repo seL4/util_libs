@@ -24,12 +24,12 @@
 
 /* These offsets are in the context of the normal 'interrupts' property,
  * for the 'interrupts-extended' property, we add one to each */
-enum {
+typedef enum {
     INT_TYPE_OFFSET,
     INT_OFFSET
 } interrupt_cell_offset;
 
-enum {
+typedef enum {
     EXT_INT_CONTROLLER_OFFSET,
     EXT_INT_TYPE_OFFSET,
     EXT_INT_OFFSET
