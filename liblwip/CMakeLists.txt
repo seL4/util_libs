@@ -51,7 +51,7 @@ if(LibLwip)
             include include/lwip
     )
 
-    target_link_libraries(lwip muslc)
+    target_link_libraries(lwip muslc liblwip_config)
 
     target_compile_options(lwip PRIVATE ${compile_options})
 endif()

@@ -1,2 +1,2 @@
 libfdt
-liblwip/include/lwip/lwipopts.h
+liblwip/default_opts/lwipopts.h
