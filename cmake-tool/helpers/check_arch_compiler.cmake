@@ -6,17 +6,53 @@
 
 function(check_arch_clang)
     if("${KernelSel4Arch}" STREQUAL "ia32")
-        string(REGEX MATCH "^x86_64" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^x86_64"
+                correct_triple
+                ${TRIPLE}
+        )
     elseif("${KernelSel4Arch}" STREQUAL "x86_64")
-        string(REGEX MATCH "^x86_64" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^x86_64"
+                correct_triple
+                ${TRIPLE}
+        )
     elseif("${KernelSel4Arch}" STREQUAL "aarch32" OR "${KernelSel4Arch}" STREQUAL "arm_hyp")
-        string(REGEX MATCH "^arm" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^arm"
+                correct_triple
+                ${TRIPLE}
+        )
     elseif("${KernelSel4Arch}" STREQUAL "aarch64")
-        string(REGEX MATCH "^aarch64" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^aarch64"
+                correct_triple
+                ${TRIPLE}
+        )
     elseif("${KernelSel4Arch}" STREQUAL "riscv32")
-        string(REGEX MATCH "^riscv(32|64)" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^riscv(32|64)"
+                correct_triple
+                ${TRIPLE}
+        )
     elseif("${KernelSel4Arch}" STREQUAL "riscv64")
-        string(REGEX MATCH "^riscv64" correct_triple ${TRIPLE})
+        string(
+            REGEX
+                MATCH
+                "^riscv64"
+                correct_triple
+                ${TRIPLE}
+        )
     else()
         message(SEND_ERROR "KernelSel4Arch is not set to a valid arch")
     endif()
@@ -67,7 +103,7 @@ function(check_arch_gcc)
 endfunction()
 
 function(check_arch_compiler)
-    if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
         check_arch_clang()
     else()
         check_arch_gcc()
