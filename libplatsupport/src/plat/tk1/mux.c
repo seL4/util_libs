@@ -251,13 +251,13 @@ typedef struct tegra_mux_state {
     gpio_sys_t *gpio_sys;
 } tegra_mux_state_t;
 
-static const tegra_mux_state_t *tk1_mux_get_priv(mux_sys_t *mux_sys)
+static const tegra_mux_state_t *tk1_mux_get_priv(const mux_sys_t *mux_sys)
 {
     assert(mux_sys != NULL);
     return (const tegra_mux_state_t *)mux_sys->priv;
 }
 
-static volatile uint32_t *tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, int mux_reg_index)
+static volatile uint32_t *tk1_mux_get_group_reg_handle_for_pin(const mux_sys_t *ms, int mux_reg_index)
 {
     volatile uint32_t   *ret;
     int                 group_offset;
@@ -269,7 +269,7 @@ static volatile uint32_t *tk1_mux_get_group_reg_handle_for_pin(mux_sys_t *ms, in
     return &ret[group_offset / sizeof(uint32_t)];
 }
 
-static void tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
+static void tk1_mux_set_drive_strength_for_pin(const mux_sys_t *ms,
                                                int mux_reg_index,
                                                uint8_t drive_up_strength,
                                                uint8_t drive_down_strength)
@@ -301,7 +301,7 @@ static void tk1_mux_set_drive_strength_for_pin(mux_sys_t *ms,
     ZF_LOGD("Group off 0x%x: new val: 0x%x.", group_offset, *reg);
 }
 
-static int tk1_mux_set_pin_params(mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
+static int tk1_mux_set_pin_params(const mux_sys_t *mux, struct tk1_mux_pin_desc *desc,
                                   enum mux_gpio_dir mux_gpio_dir)
 {
     uint32_t regval, requiredval;
@@ -509,7 +509,7 @@ static void tk1_mux_set_pin_unused(volatile uint32_t *regs, uint16_t mux_reg_ind
                           | pupd_val << MUX_REG_PUPD_SHIFT;
 }
 
-static int tk1_mux_feature_enable(mux_sys_t *mux, mux_feature_t feat,
+static int tk1_mux_feature_enable(const mux_sys_t *mux, mux_feature_t feat,
                                   enum mux_gpio_dir mux_gpio_dir)
 {
     int error;
@@ -590,7 +590,7 @@ static int tk1_mux_feature_enable(mux_sys_t *mux, mux_feature_t feat,
     return 0;
 }
 
-static int tk1_mux_feature_disable(mux_sys_t *mux, mux_feature_t feat)
+static int tk1_mux_feature_disable(const mux_sys_t *mux, mux_feature_t feat)
 {
     tk1_mux_feature_pinmap_t *map;
     const tegra_mux_state_t *s = tk1_mux_get_priv(mux);

@@ -302,7 +302,7 @@ static void gpio_interrupt_enable(gpio_sys_t *gpio_sys,
     assert(*reg_vaddr == val);
 }
 
-static void tegra_set_level(gpio_t *gpio, enum gpio_level level)
+static int tegra_set_level(gpio_t *gpio, enum gpio_level level)
 {
     gpio_sys_t *gpio_sys = gpio->gpio_sys;
     enum gpio_pin pin = gpio->id;
@@ -329,9 +329,10 @@ static void tegra_set_level(gpio_t *gpio, enum gpio_level level)
 
     *reg_vaddr = val;
     assert(*reg_vaddr == val);
+    return 0;
 }
 
-static bool tegra_read_level(gpio_t *gpio)
+static int tegra_read_level(gpio_t *gpio)
 {
     gpio_sys_t *gpio_sys = gpio->gpio_sys;
     enum gpio_pin pin = gpio->id;

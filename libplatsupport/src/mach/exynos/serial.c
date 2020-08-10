@@ -599,8 +599,8 @@ ps_cdev_static_init(const ps_io_ops_t *o, ps_chardevice_t* d, void *params)
     if (vaddr == NULL) {
         return NULL;
     }
-    clk = clk_init(clock_id, o);
+    clk = clk_init(clock_id, (ps_io_ops_t *)o);
     mux_uart_init(uart_mux_feature,(mux_sys_t*) &o->mux_sys);
     chardevice_init(d, vaddr, NULL);
-    return exynos_serial_init(0, vaddr, &o->mux_sys, clk, d) ? NULL : d;
+    return exynos_serial_init(0, vaddr, (mux_sys_t*) &o->mux_sys, clk, d) ? NULL : d;
 }
