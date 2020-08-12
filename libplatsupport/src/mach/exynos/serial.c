@@ -98,11 +98,11 @@
 static clk_t *clk;
 
 enum mux_feature uart_mux[] = {
-                                  [PS_SERIAL0] = MUX_UART0,
-                                  [PS_SERIAL1] = MUX_UART1,
-                                  [PS_SERIAL2] = MUX_UART2,
-                                  [PS_SERIAL3] = MUX_UART3
-                              };
+    [PS_SERIAL0] = MUX_UART0,
+    [PS_SERIAL1] = MUX_UART1,
+    [PS_SERIAL2] = MUX_UART2,
+    [PS_SERIAL3] = MUX_UART3
+};
 
 static const int uart_irqs[][2] = {
     [PS_SERIAL0] = {EXYNOS_UART0_IRQ, -1},
@@ -119,11 +119,11 @@ static const uint32_t uart_paddr[] = {
 };
 
 static const enum clk_id uart_clk[] = {
-                                          [PS_SERIAL0] = CLK_UART0,
-                                          [PS_SERIAL1] = CLK_UART1,
-                                          [PS_SERIAL2] = CLK_UART2,
-                                          [PS_SERIAL3] = CLK_UART3
-                                      };
+    [PS_SERIAL0] = CLK_UART0,
+    [PS_SERIAL1] = CLK_UART1,
+    [PS_SERIAL2] = CLK_UART2,
+    [PS_SERIAL3] = CLK_UART3
+};
 
 #define UART_DEFN(devid) {                     \
         .id      = PS_SERIAL##devid,           \
@@ -140,8 +140,7 @@ static const struct dev_defn dev_defn[] = {
     UART_DEFN(3),
 };
 
-static int
-exynos_uart_putchar(ps_chardevice_t *d, int c)
+static int exynos_uart_putchar(ps_chardevice_t *d, int c)
 {
     if (*REG_PTR(d->vaddr, UFRSTAT) & FRSTAT_TX_FULL) {
         /* abort: no room in FIFO */
@@ -163,8 +162,7 @@ exynos_uart_putchar(ps_chardevice_t *d, int c)
     }
 }
 
-static int
-uart_fill_fifo(ps_chardevice_t *d, const char* data, size_t len)
+static int uart_fill_fifo(ps_chardevice_t *d, const char *data, size_t len)
 {
     int i;
     for (i = 0; i < len; i++) {
@@ -175,18 +173,17 @@ uart_fill_fifo(ps_chardevice_t *d, const char* data, size_t len)
     return len;
 }
 
-static void
-uart_drain_tx_fifo(ps_chardevice_t *d)
+static void uart_drain_tx_fifo(ps_chardevice_t *d)
 {
     if (d->write_descriptor.data) {
         exynos_handle_tx_irq(d);
     }
 }
 
-static ssize_t
-exynos_uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t wcb, void* token)
+static ssize_t exynos_uart_write(ps_chardevice_t *d, const void *vdata, size_t count, chardev_callback_t wcb,
+                                 void *token)
 {
-    const char* data = (const char*)vdata;
+    const char *data = (const char *)vdata;
     int sent;
 
     /*
@@ -209,7 +206,7 @@ exynos_uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_c
         d->write_descriptor.token = token;
         d->write_descriptor.bytes_transfered = sent;
         d->write_descriptor.bytes_requested = count;
-        d->write_descriptor.data = (void*)data + sent;
+        d->write_descriptor.data = (void *)data + sent;
         /* Enable TX IRQ */
         *REG_PTR(d->vaddr, UINTP) = INT_TX;
         *REG_PTR(d->vaddr, UINTM) &= ~INT_TX;
@@ -217,8 +214,7 @@ exynos_uart_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_c
     return sent;
 }
 
-static void
-uart_handle_tx_irq(ps_chardevice_t* d)
+static void uart_handle_tx_irq(ps_chardevice_t *d)
 {
     int sent;
     int to_send;
@@ -243,8 +239,7 @@ uart_handle_tx_irq(ps_chardevice_t* d)
     *REG_PTR(d->vaddr, UINTP) = INT_TX;
 }
 
-static int
-exynos_uart_getchar(ps_chardevice_t *d)
+static int exynos_uart_getchar(ps_chardevice_t *d)
 {
     if (*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_RXBUF_READY) {
         return *REG_PTR(d->vaddr, URXH);
@@ -253,8 +248,7 @@ exynos_uart_getchar(ps_chardevice_t *d)
     }
 }
 
-static int
-uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
+static int uart_read_fifo(ps_chardevice_t *d, char *data, size_t len)
 {
     int i;
     for (i = 0; i < len; i++) {
@@ -270,8 +264,7 @@ uart_read_fifo(ps_chardevice_t *d, char* data, size_t len)
     return i;
 }
 
-static ssize_t
-exynos_uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb, void* token)
+static ssize_t exynos_uart_read(ps_chardevice_t *d, void *vdata, size_t count, chardev_callback_t rcb, void *token)
 {
     if (d->read_descriptor.data) {
         /* Transaction is already in progress */
@@ -283,17 +276,16 @@ exynos_uart_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback
         d->read_descriptor.token = token;
         d->read_descriptor.bytes_transfered = 0;
         d->read_descriptor.bytes_requested = count;
-        d->read_descriptor.data = (void*)vdata;
+        d->read_descriptor.data = (void *)vdata;
         /* Dont need to enable the RX IRQ because it is always enabled */
         return 0;
     } else {
         /* Read what we can into the buffer and return */
-        return uart_read_fifo(d, (char*)vdata, count);
+        return uart_read_fifo(d, (char *)vdata, count);
     }
 }
 
-static void
-uart_handle_rx_irq(ps_chardevice_t* d)
+static void uart_handle_rx_irq(ps_chardevice_t *d)
 {
     int timeout;
     uint32_t v;
@@ -331,7 +323,7 @@ uart_handle_rx_irq(ps_chardevice_t* d)
 
 static void uart_flush(ps_chardevice_t *d)
 {
-    while ( !(*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_TX_EMPTY) );
+    while (!(*REG_PTR(d->vaddr, UTRSTAT) & TRSTAT_TX_EMPTY));
 }
 
 int exynos_check_irq(ps_chardevice_t *d)
@@ -359,8 +351,7 @@ void exynos_handle_tx_irq(ps_chardevice_t *d)
     }
 }
 
-static void
-uart_handle_irq(ps_chardevice_t *d)
+static void uart_handle_irq(ps_chardevice_t *d)
 {
     uint32_t sts;
     sts = *REG_PTR(d->vaddr, UINTP);
@@ -403,8 +394,7 @@ static int uart_set_baud(const ps_chardevice_t *d, long bps)
     return 0;
 }
 
-static int
-uart_set_charsize(ps_chardevice_t* d, int char_size)
+static int uart_set_charsize(ps_chardevice_t *d, int char_size)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -429,8 +419,7 @@ uart_set_charsize(ps_chardevice_t* d, int char_size)
     return 0;
 }
 
-static int
-uart_set_stop(ps_chardevice_t *d, int stop_bits)
+static int uart_set_stop(ps_chardevice_t *d, int stop_bits)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -449,8 +438,7 @@ uart_set_stop(ps_chardevice_t *d, int stop_bits)
     return 0;
 }
 
-static int
-uart_set_parity(ps_chardevice_t *d, enum serial_parity parity)
+static int uart_set_parity(ps_chardevice_t *d, enum serial_parity parity)
 {
     uint32_t v;
     v = *REG_PTR(d->vaddr, ULCON);
@@ -472,9 +460,8 @@ uart_set_parity(ps_chardevice_t *d, enum serial_parity parity)
     return 0;
 }
 
-int
-serial_configure(ps_chardevice_t *d, long bps, int char_size,
-                 enum serial_parity parity, int stop_bits)
+int serial_configure(ps_chardevice_t *d, long bps, int char_size,
+                     enum serial_parity parity, int stop_bits)
 {
     return uart_set_baud(d, bps)
            || uart_set_parity(d, parity)
@@ -482,8 +469,7 @@ serial_configure(ps_chardevice_t *d, long bps, int char_size,
            || uart_set_stop(d, stop_bits);
 }
 
-static void
-mux_uart_init(enum mux_feature feature, mux_sys_t* mux_sys)
+static void mux_uart_init(enum mux_feature feature, mux_sys_t *mux_sys)
 {
     if (mux_sys_valid(mux_sys)) {
         if (mux_feature_enable(mux_sys, feature, MUX_DIR_NOT_A_GPIO)) {
@@ -492,8 +478,7 @@ mux_uart_init(enum mux_feature feature, mux_sys_t* mux_sys)
     }
 }
 
-static void
-chardevice_init(ps_chardevice_t* dev, void* vaddr, const int* irqs)
+static void chardevice_init(ps_chardevice_t *dev, void *vaddr, const int *irqs)
 {
     assert(dev != NULL);
     memset(dev, 0, sizeof(*dev));
@@ -507,9 +492,8 @@ chardevice_init(ps_chardevice_t* dev, void* vaddr, const int* irqs)
     dev->clk        = NULL;
 }
 
-int
-exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
-                   clk_t* clk_src, ps_chardevice_t* dev)
+int exynos_serial_init(enum chardev_id id, void *vaddr, mux_sys_t *mux_sys,
+                       clk_t *clk_src, ps_chardevice_t *dev)
 {
     int v;
     uart_flush(dev);
@@ -537,8 +521,7 @@ exynos_serial_init(enum chardev_id id, void* vaddr, mux_sys_t* mux_sys,
     return 0;
 }
 
-static clk_t*
-clk_init(enum clk_id clock_id, ps_io_ops_t* ops)
+static clk_t *clk_init(enum clk_id clock_id, ps_io_ops_t *ops)
 {
     assert(ops != NULL);
     if (clock_sys_valid(&ops->clock_sys)) {
@@ -547,31 +530,28 @@ clk_init(enum clk_id clock_id, ps_io_ops_t* ops)
     return NULL;
 }
 
-int
-serial_init(enum chardev_id id, ps_io_ops_t* ops,
-            ps_chardevice_t* dev)
+int serial_init(enum chardev_id id, ps_io_ops_t *ops,
+                ps_chardevice_t *dev)
 {
-    void* vaddr;
-    clk_t* clk;
+    void *vaddr;
+    clk_t *clk;
     vaddr = ps_io_map(&ops->io_mapper, uart_paddr[id], BIT(12), 0, PS_MEM_NORMAL);
     if (vaddr == NULL) {
         return -1;
     }
     clk = clk_init(uart_clk[id], ops);
-    mux_uart_init(uart_mux[id], (mux_sys_t*)&ops->mux_sys);
+    mux_uart_init(uart_mux[id], (mux_sys_t *)&ops->mux_sys);
     chardevice_init(dev, vaddr, &uart_irqs[id][0]);
     dev->id = id;
     return exynos_serial_init(id, vaddr, &ops->mux_sys, clk, dev);
 }
 
-int
-uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_chardevice_t *dev)
 {
-    return serial_init(defn->id, (ps_io_ops_t*)ops, dev);
+    return serial_init(defn->id, (ps_io_ops_t *)ops, dev);
 }
 
-ps_chardevice_t*
-ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)
+ps_chardevice_t *ps_cdev_init(enum chardev_id id, const ps_io_ops_t *o, ps_chardevice_t *d)
 {
     unsigned int i;
     for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
@@ -582,25 +562,24 @@ ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, ps_chardevice_t* d)
     return NULL;
 }
 
-ps_chardevice_t*
-ps_cdev_static_init(const ps_io_ops_t *o, ps_chardevice_t* d, void *params)
+ps_chardevice_t *ps_cdev_static_init(const ps_io_ops_t *o, ps_chardevice_t *d, void *params)
 {
 
     if (params == NULL) {
         return NULL;
     }
 
-    static_serial_params_t *serial_params = (static_serial_params_t*) params;
-    clk_t* clk;
+    static_serial_params_t *serial_params = (static_serial_params_t *) params;
+    clk_t *clk;
 
     enum clk_id clock_id = serial_params->clock_id;
     enum mux_feature uart_mux_feature = serial_params->uart_mux_feature;
-    void* vaddr = serial_params->vaddr;
+    void *vaddr = serial_params->vaddr;
     if (vaddr == NULL) {
         return NULL;
     }
     clk = clk_init(clock_id, (ps_io_ops_t *)o);
-    mux_uart_init(uart_mux_feature,(mux_sys_t*) &o->mux_sys);
+    mux_uart_init(uart_mux_feature, (mux_sys_t *) &o->mux_sys);
     chardevice_init(d, vaddr, NULL);
-    return exynos_serial_init(0, vaddr, (mux_sys_t*) &o->mux_sys, clk, d) ? NULL : d;
+    return exynos_serial_init(0, vaddr, (mux_sys_t *) &o->mux_sys, clk, d) ? NULL : d;
 }
