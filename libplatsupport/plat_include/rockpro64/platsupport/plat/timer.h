@@ -51,6 +51,7 @@ typedef struct {
     volatile struct rk_map *hw;
     void *rk_map_base;
     pmem_region_t pmem;
+    ps_irq_t irq;
     irq_id_t irq_id;
 } rk_t;
 

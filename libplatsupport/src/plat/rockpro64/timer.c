@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <utils/util.h>
 #include <platsupport/timer.h>
+#include <platsupport/fdt.h>
 #include <platsupport/plat/timer.h>
 #include <utils/frequency.h>
 
@@ -138,6 +139,24 @@ void rk_destroy(rk_t *rk)
     }
 }
 
+static int irq_index_walker(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    rk_t *rk = token;
+
+    if (RK_IRQ_CHOICE == curr_num) {
+        irq_id_t registered_id = ps_irq_register(&rk->ops.irq_ops, irq, rk_handle_irq, rk);
+        if (registered_id >= 0) {
+            rk->irq_id = registered_id;
+            rk->irq = irq;
+        } else {
+            /* Bail on error */
+            return registered_id;
+        }
+    }
+
+    return 0;
+}
+
 int rk_init(rk_t *rk, ps_io_ops_t ops, rk_config_t config)
 {
     int error;
@@ -152,15 +171,29 @@ int rk_init(rk_t *rk, ps_io_ops_t ops, rk_config_t config)
     rk->user_cb_token = config.user_cb_token;
     rk->user_cb_event = config.user_cb_event;
 
-    error = helper_fdt_alloc_simple(
-                &ops, config.fdt_path,
-                RK_REG_CHOICE, RK_IRQ_CHOICE,
-                &rk->rk_map_base, &rk->pmem, &rk->irq_id,
-                rk_handle_irq, rk
-            );
+    ps_fdt_cookie_t *cookie = NULL;
+    error = ps_fdt_read_path(&ops.io_fdt, &ops.malloc_ops, config.fdt_path, &cookie);
     if (error) {
-        ZF_LOGE("Simple fdt alloc helper failed");
+        ZF_LOGE("rockpro64 timer failed to read path (%d, %s)", error, config.fdt_path);
         return error;
+    }
+
+    rk->rk_map_base = ps_fdt_index_map_register(&ops, cookie, RK_REG_CHOICE, &rk->pmem);
+    if (rk->rk_map_base == NULL) {
+        ZF_LOGE("rockpro64 timer failed to map registers");
+        return ENODEV;
+    }
+
+    error = ps_fdt_walk_irqs(&ops.io_fdt, cookie, irq_index_walker, rk);
+    if (error) {
+        ZF_LOGE("rockpro64 timer failed to register irqs (%d)", error);
+        return error;
+    }
+
+    rk->irq_id = ps_fdt_cleanup_cookie(&ops.malloc_ops, cookie);
+    if (rk->irq_id) {
+        ZF_LOGE("rockpro64 timer to clean up cookie (%d)", error);
+        return rk->irq_id;
     }
 
     rk->hw = rk->rk_map_base;
@@ -190,7 +223,7 @@ int rk_init_secondary(rk_t *rk, rk_t *rkp, ps_io_ops_t ops, rk_config_t config)
     rk->hw = (void *)((uintptr_t) rkp->rk_map_base) + 0x20;
     /* similarly, the IRQ for this secondary timer is offset by 1 */
     rk->irq_id = PS_INVALID_IRQ_ID;
-    ps_irq_t irq2 = { .type = PS_INTERRUPT, .irq.number = rkp->irq_id + 1 };
+    ps_irq_t irq2 = { .type = PS_INTERRUPT, .irq.number = rkp->irq.irq.number + 1 };
     irq_id_t irq2_id = ps_irq_register(&ops.irq_ops, irq2, rk_handle_irq, rk);
     if (irq2_id < 0) {
         ZF_LOGE("Failed to register secondary irq for rk timer");
