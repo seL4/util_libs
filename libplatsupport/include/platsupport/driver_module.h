@@ -15,9 +15,29 @@
 #include <utils/util.h>
 #include <platsupport/io.h>
 
+/*
+ * These macros are used to check if compat_list or init_func
+ * passed to PS_DRIVER_MODULE_DEFINE are not NULL or 0
+ */
+#define PS_INVALID_ADDR_0 0,
+#define PS_INVALID_ADDR_NULL 0,
+#define __third_arg(_, __, val, ...) val
+#define IS_NULL(compat_list, init_func) \
+    __IS_NULL(PS_INVALID_##compat_list, PS_INVALID_##init_func)
+// arg1 and arg2 will expand to real argument only when the pointers are NULL or 0
+// thus selecting the thrid arg will tell us whether one of them is NULL
+#define __IS_NULL(arg1, arg2) __third_arg(arg1 arg2 INVALID, INVALID, VALID)
+
 #define PS_DRIVER_MODULE_DEFINE(name, compat_list, init_func)                   \
-    static_assert(compat_list != NULL, "Supplied compatible_list is NULL!");    \
-    static_assert(init_func != NULL, "Supplied init_func is NULL!");            \
+    __PS_DRIVER_MODULE_DEFINE(IS_NULL(ADDR_##compat_list, ADDR_##init_func),    \
+            name, compat_list, init_func)
+#define __PS_DRIVER_MODULE_DEFINE(null, name, compat_list, init_func)           \
+    ____PS_DRIVER_MODULE_DEFINE(null, name, compat_list, init_func)
+#define ____PS_DRIVER_MODULE_DEFINE(null, name, compat_list, init_func)         \
+    PS_DRIVER_MODULE_DEFINE_##null(name, compat_list, init_func)
+#define PS_DRIVER_MODULE_DEFINE_INVALID(name, compat_list, init_func)           \
+    "compat_list and init_func must not be NULL"
+#define PS_DRIVER_MODULE_DEFINE_VALID(name, compat_list, init_func)             \
     static ps_driver_module_t name = {                                          \
         .compatible_list = compat_list,                                         \
         .init = init_func                                                       \
