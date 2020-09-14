@@ -22,10 +22,33 @@
 #define SLCR_BASE                 0xF8000000
 #define SLCR_LOCK_OFFSET          0x004
 #define SLCR_UNLOCK_OFFSET        0x008
+#define SLCR_UART_CLK_CTRL_OFFSET 0x154
 #define SLCR_OCM_CFG_OFFSET       0x910
 
 #define SLCR_LOCK_KEY             0x767B
 #define SLCR_UNLOCK_KEY           0xDF0D
+
+/* SLCR register UART_CLK_CTRL
+ *
+ *  bits  | name     | reset val | description
+ * -------+----------+-------------------------------------------------------
+ *  31:14 | reserved | 0x0       |
+ *  13:8  | DIVISOR  | 0x3F      | Divisor for UART Controller source clock
+ *  7:6   | reserved | 0x0       |
+ *  5:4   | SRCSEL   | 0x0       | PLL source to generate the clock
+ *        |          |           |   b0x: IO PLL (default)
+ *        |          |           |   b10: ARM PLL
+ *        |          |           |   b11: DDR PLL
+ *  3:2   | reserved | 0x0       |
+ *  1     | CLKACT1  | 0x1       | UART 1 reference clock
+ *        |          |           |   b0: disabled
+ *        |          |           |   b1: enabled (default)
+ *  0     | CLKACT0  | 0x1       | UART 0 Reference clock
+ *        |          |           |   b0: disable
+ *                   |           |   b1: enable (default)
+ */
+#define SLCR_UART_CLK_CTRL_DEFAULT  0x3f03
+
 
 #define SLCR_OCM_CFG_RAMHI(x)     BIT(x)
 #define SLCR_OCM_CFG_RAMHI_ALL    ( SLCR_OCM_CFG_RAMHI(0) \
@@ -66,7 +89,24 @@ void remap_ram(void)
     asm volatile("dmb");
 }
 
+
+/* Re-write the reset value into the UART clock control register to trigger
+ * proper clock initialization. This is necessary as some QEMU versions (e.g.
+ * 5.1) set the initial register values correctly but fail to set up clocks
+ * properly in the course of bringing up the system. Rewriting the values
+ * outside a reset condition succeeds in setting up the clocks correctly. It
+ * does not do any harm on real hardware, basically we switch from implicit
+ * to explicit initialization.
+ */
+void reinitialize_uart_clk(void)
+{
+    SLCR(UNLOCK) = SLCR_UNLOCK_KEY;
+    SLCR(UART_CLK_CTRL) = SLCR_UART_CLK_CTRL_DEFAULT;
+    SLCR(LOCK) = SLCR_LOCK_KEY;
+}
+
 void platform_init(void)
 {
     remap_ram();
+    reinitialize_uart_clk();
 }
