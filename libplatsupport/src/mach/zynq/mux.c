@@ -32,7 +32,7 @@ static inline void set_mux_priv(
 }
 
 static int zynq_mux_feature_enable(
-    mux_sys_t *mux,
+    const mux_sys_t *mux,
     mux_feature_t mux_feature,
     UNUSED enum mux_gpio_dir mgd)
 {
