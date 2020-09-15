@@ -19,39 +19,44 @@
 struct slcr;
 
 static struct zynq_mux {
-    struct slcr* slcr;
+    struct slcr *slcr;
 } _mux;
 
-static inline void set_mux_priv(mux_sys_t* mux, struct zynq_mux* zynq_mux)
+static inline void set_mux_priv(
+    mux_sys_t *mux,
+    struct zynq_mux *zynq_mux)
 {
     assert(mux != NULL);
     assert(zynq_mux != NULL);
     mux->priv = zynq_mux;
 }
 
-static int
-zynq_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature,
-                        UNUSED enum mux_gpio_dir mgd)
+static int zynq_mux_feature_enable(
+    mux_sys_t *mux,
+    mux_feature_t mux_feature,
+    UNUSED enum mux_gpio_dir mgd)
 {
     return 0;
 }
 
-static int
-zynq_mux_init_common(mux_sys_t* mux)
+static int zynq_mux_init_common(
+    mux_sys_t *mux)
 {
     set_mux_priv(mux, &_mux);
     mux->feature_enable = &zynq_mux_feature_enable;
     return 0;
 }
 
-int
-zynq_mux_init(mux_sys_t* mux)
+int zynq_mux_init(
+    mux_sys_t *mux)
 {
     return zynq_mux_init_common(mux);
 }
 
-int
-mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
+int mux_sys_init(
+    ps_io_ops_t *io_ops,
+    UNUSED void *dependencies,
+    mux_sys_t *mux)
 {
     return zynq_mux_init_common(mux);
 }
