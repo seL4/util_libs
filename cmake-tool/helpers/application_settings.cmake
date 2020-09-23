@@ -41,6 +41,9 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         # This is preserving what the Hikey's bootloader requires.
         set(IMAGE_START_ADDR 0x1000 CACHE INTERNAL "" FORCE)
     endif()
+    if(KernelPlatformZynqmp AND KernelSel4ArchAarch32)
+        set(IMAGE_START_ADDR 0x8000000 CACHE INTERNAL "" FORCE)
+    endif()
 endfunction()
 
 function(ApplyCommonSimulationSettings kernel_arch)
