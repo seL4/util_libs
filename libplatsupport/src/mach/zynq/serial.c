@@ -148,14 +148,14 @@ struct zynq_uart_regs {
     uint32_t mr;            /* 0x04 Mode Register */
     uint32_t ier;           /* 0x08 Interrupt Enable Register */
     uint32_t idr;           /* 0x0C Interrupt Disable Register */
-    uint32_t imr;           /* 0x10 Interrupt Mask Register */
-    uint32_t isr;           /* 0x14 Channel Interrupt Status Register */
+    uint32_t imr;           /* 0x10 Interrupt Mask Register (read-only) */
+    uint32_t isr;           /* 0x14 Channel Interrupt Status Register (write a 1 to clear) */
     uint32_t baudgen;       /* 0x18 Baud Rate Generator Register */
     uint32_t rxtout;        /* 0x1C Receiver Timeout Register */
     uint32_t rxwm;          /* 0x20 Receiver FIFO Trigger Level Register */
     uint32_t modemcr;       /* 0x24 Modem Control Register */
     uint32_t modemsr;       /* 0x28 Modem Status Register */
-    uint32_t sr;            /* 0x2C Channel Status Register */
+    uint32_t sr;            /* 0x2C Channel Status Register (read-only) */
     uint32_t fifo;          /* 0x30 Transmit and Receive FIFO */
     uint32_t bauddiv;       /* 0x34 Baud Rate Divider Register */
     uint32_t flowdel;       /* 0x38 Flow Control Delay Register */
@@ -195,9 +195,11 @@ int uart_getchar(
     if (!(regs->sr & UART_SR_REMPTY)) {
         c = regs->fifo;
 
-        /* Clear the Rx timeout interrupt status bit if set */
+        /* Clear the Rx timeout interrupt status bit if set. Register
+         * implements the "write a 1 to clear" semantic.
+         */
         if (regs->isr & UART_ISR_TIMEOUT) {
-            regs->isr &= ~UART_ISR_TIMEOUT;
+            regs->isr = UART_ISR_TIMEOUT;
         }
     }
 
