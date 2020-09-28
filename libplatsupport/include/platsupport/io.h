@@ -76,7 +76,7 @@ typedef struct ps_io_mapper {
 } ps_io_mapper_t;
 
 static inline void *ps_io_map(
-    ps_io_mapper_t *io_mapper,
+    const ps_io_mapper_t *io_mapper,
     uintptr_t paddr,
     size_t size,
     int cached,
@@ -88,7 +88,7 @@ static inline void *ps_io_map(
 }
 
 static inline void ps_io_unmap(
-    ps_io_mapper_t *io_mapper,
+    const ps_io_mapper_t *io_mapper,
     void *vaddr,
     size_t size)
 {
@@ -136,7 +136,7 @@ typedef struct ps_io_port_ops {
 } ps_io_port_ops_t;
 
 static inline int ps_io_port_in(
-    ps_io_port_ops_t *port_ops,
+    const ps_io_port_ops_t *port_ops,
     uint32_t port,
     int io_size,
     uint32_t *result)
@@ -147,7 +147,7 @@ static inline int ps_io_port_in(
 }
 
 static inline int ps_io_port_out(
-    ps_io_port_ops_t *port_ops,
+    const ps_io_port_ops_t *port_ops,
     uint32_t port,
     int io_size,
     uint32_t val)
@@ -251,7 +251,7 @@ typedef struct ps_dma_man {
 } ps_dma_man_t;
 
 static inline void *ps_dma_alloc(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     size_t size,
     int align,
     int cache,
@@ -263,7 +263,7 @@ static inline void *ps_dma_alloc(
 }
 
 static inline void ps_dma_free(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -273,7 +273,7 @@ static inline void ps_dma_free(
 }
 
 static inline uintptr_t ps_dma_pin(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -283,7 +283,7 @@ static inline uintptr_t ps_dma_pin(
 }
 
 static inline void ps_dma_unpin(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -293,7 +293,7 @@ static inline void ps_dma_unpin(
 }
 
 static inline void ps_dma_cache_op(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size,
     dma_cache_op_t op)
@@ -304,7 +304,7 @@ static inline void ps_dma_cache_op(
 }
 
 static inline void ps_dma_cache_clean(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -312,7 +312,7 @@ static inline void ps_dma_cache_clean(
 }
 
 static inline void ps_dma_cache_invalidate(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -320,7 +320,7 @@ static inline void ps_dma_cache_invalidate(
 }
 
 static inline void ps_dma_cache_clean_invalidate(
-    ps_dma_man_t *dma_man,
+    const ps_dma_man_t *dma_man,
     void *addr,
     size_t size)
 {
@@ -379,7 +379,7 @@ typedef struct {
 } ps_malloc_ops_t;
 
 static inline int ps_malloc(
-    ps_malloc_ops_t *ops,
+    const ps_malloc_ops_t *ops,
     size_t size,
     void **ptr)
 {
@@ -408,7 +408,7 @@ static inline int ps_malloc(
 }
 
 static inline int ps_calloc(
-    ps_malloc_ops_t *ops,
+    const ps_malloc_ops_t *ops,
     size_t nmemb,
     size_t size,
     void **ptr)
@@ -439,7 +439,7 @@ static inline int ps_calloc(
 }
 
 static inline int ps_free(
-    ps_malloc_ops_t *ops,
+    const ps_malloc_ops_t *ops,
     size_t size, void *ptr)
 {
     if (ops == NULL) {
@@ -476,7 +476,7 @@ typedef struct ps_fdt {
 } ps_io_fdt_t;
 
 static inline char *ps_io_fdt_get(
-    ps_io_fdt_t *io_fdt)
+    const  ps_io_fdt_t *io_fdt)
 {
     if (io_fdt == NULL) {
         ZF_LOGE("fdt cannot be NULL");
