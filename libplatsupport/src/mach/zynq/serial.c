@@ -416,15 +416,25 @@ int serial_configure(
 
 static void zynq_uart_dev_init(
     ps_chardevice_t *dev,
-    const ps_io_ops_t *ops)
+    const ps_io_ops_t *ops,
+    enum chardev_id id,
+    void *vaddr,
+    const int *irqs)
 {
+    assert(NULL != dev);
+
     memset(dev, 0, sizeof(*dev));
 
     /* Set up all the  device properties. */
+    dev->id         = id;
+    dev->vaddr      = vaddr;
+    dev->irqs       = irqs;
+
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->ioops      = *ops;
+
     dev->flags      = SERIAL_AUTO_CR;
 }
 
@@ -476,11 +486,20 @@ int uart_static_init(
     const ps_io_ops_t *ops,
     ps_chardevice_t *dev)
 {
-    zynq_uart_dev_init(dev, ops);
-    dev->vaddr = vaddr;
+    assert(NULL != vaddr);
+    assert(NULL != ops);
+    assert(NULL != dev);
 
-    int error = zynq_uart_init(dev);
-    return error;
+    /* There is a design quirk here, no context information is passed which
+     * UART this is and what interrupt it uses. So we have set something now
+     * to make this well defined. ZYNQ_UART0 seem a good choice, because this
+     * is what the callers usually want. The contents of the interrupt field
+     * are not used in the driver, so we set this to NULL.
+     */
+
+    zynq_uart_dev_init(dev, ops, ZYNQ_UART0, vaddr, NULL);
+
+    return zynq_uart_init(dev);
 
 }
 
@@ -489,18 +508,17 @@ int uart_init(
     const ps_io_ops_t *ops,
     ps_chardevice_t *dev)
 {
+    assert(NULL != defn);
+    assert(NULL != ops);
+    assert(NULL != dev);
+
     /* Attempt to map the virtual address, assure this works */
     void *vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
         return -1;
     }
 
-    zynq_uart_dev_init(dev, ops);
-    /* Set up the remaining device properties. */
-    dev->id         = defn->id;
-    dev->vaddr      = (void *)vaddr;
-    dev->irqs       = defn->irqs;
+    zynq_uart_dev_init(dev, ops, defn->id, vaddr, defn->irqs);
 
-    int error = zynq_uart_init(dev);
-    return error;
+    return zynq_uart_init(dev);
 }
