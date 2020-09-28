@@ -30,8 +30,8 @@ static inline void *chardev_map(
     const ps_io_ops_t *ops)
 {
     return ps_io_map(
-               (ps_io_mapper_t *)&ops->io_mapper,
-               (uintptr_t)dev->paddr,
+               &ops->io_mapper,
+               dev->paddr,
                dev->size,
                0, // map uncached
                PS_MEM_NORMAL);
