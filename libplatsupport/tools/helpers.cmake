@@ -19,9 +19,6 @@ function(get_device_list var device_type platform)
         PATHS "${platsupport_tools}/device_lists/${device_type}"
         CMAKE_FIND_ROOT_PATH_BOTH
     )
-    if("${${platform}_${device_type}_LIST}" STREQUAL "${platform}_${device_type}_LIST-NOTFOUND")
-        message(WARNING "Could not find device list for device type ${device_type} for ${platform}")
-    endif()
     set(${var} ${${platform}_${device_type}_LIST} PARENT_SCOPE)
 endfunction()
 
