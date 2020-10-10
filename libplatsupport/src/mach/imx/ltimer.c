@@ -87,7 +87,7 @@ static void destroy(void *data)
         ZF_LOGF_IF(imx_destroy_timeout(&imx_ltimer->timers), "Failed to destroy the timeout timer");
     }
 
-    ps_free(&imx_ltimer->ops.malloc_ops, sizeof(imx_ltimer), imx_ltimer);
+    ps_free(&imx_ltimer->ops.malloc_ops, sizeof(*imx_ltimer), imx_ltimer);
 }
 
 static int create_ltimer(ltimer_t *ltimer, ps_io_ops_t ops)
