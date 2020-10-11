@@ -296,7 +296,7 @@ if(DEFINED platform_yaml)
             OUTPUT ${IMAGE_START_ADDR_H}
             COMMAND sh -c "${SHOEHORN_COMMAND}"
             VERBATIM
-            DEPENDS archive.o ${ELF_SIFT} ${SHOEHORN}
+            DEPENDS ${ARCHIVE_O} ${ELF_SIFT} ${SHOEHORN}
         )
     endif()
 else()
