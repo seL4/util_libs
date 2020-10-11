@@ -269,7 +269,7 @@ MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 # Now, instead, we compute a reasonable image start address, using a tool called
 # `shoehorn`, based on knowledge of how where and how big the extracted payloads
 # will be, obtained by a tool called `elf_sift`.
-set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/")
+set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers")
 if(DEFINED platform_yaml)
     set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
     set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
