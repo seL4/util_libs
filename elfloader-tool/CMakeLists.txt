@@ -281,20 +281,19 @@ if(DEFINED platform_yaml)
     )
     set_property(SOURCE src/common.c PROPERTY OBJECT_DEPENDS ${PLATFORM_INFO_H})
 
-    # Construct the `shoehorn` command line.
     set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
     # `shoehorn` calls `elf_sift`, so we'll need to depend on it.
     set(ELF_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/elf_sift.py")
     set(SHOEHORN "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/shoehorn.py")
 
     set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
-    set(SHOEHORN_COMMAND "${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} > ${IMAGE_START_ADDR_H}")
     if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
         file(WRITE ${IMAGE_START_ADDR_H} "#define IMAGE_START_ADDR ${IMAGE_START_ADDR}")
     else()
         add_custom_command(
             OUTPUT ${IMAGE_START_ADDR_H}
-            COMMAND sh -c "${SHOEHORN_COMMAND}"
+            COMMAND
+                ${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} > ${IMAGE_START_ADDR_H}
             VERBATIM
             DEPENDS ${ARCHIVE_O} ${ELF_SIFT} ${SHOEHORN}
         )
