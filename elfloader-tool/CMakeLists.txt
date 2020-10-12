@@ -270,8 +270,10 @@ MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 # `shoehorn`, based on knowledge of how where and how big the extracted payloads
 # will be, obtained by a tool called `elf_sift`.
 set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers")
+set(CMAKE_TOOL_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake-tool/helpers")
+
 if(DEFINED platform_yaml)
-    set(PLATFORM_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/platform_sift.py")
+    set(PLATFORM_SIFT "${CMAKE_TOOL_HELPERS_DIR}/platform_sift.py")
     set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
     add_custom_command(
         OUTPUT ${PLATFORM_INFO_H}
@@ -286,8 +288,8 @@ if(DEFINED platform_yaml)
         file(WRITE ${IMAGE_START_ADDR_H} "#define IMAGE_START_ADDR ${IMAGE_START_ADDR}")
     else()
         # `shoehorn` calls `elf_sift`, so we'll need to depend on it.
-        set(ELF_SIFT "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/elf_sift.py")
-        set(SHOEHORN "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-tool/helpers/shoehorn.py")
+        set(ELF_SIFT "${CMAKE_TOOL_HELPERS_DIR}/elf_sift.py")
+        set(SHOEHORN "${CMAKE_TOOL_HELPERS_DIR}/shoehorn.py")
         set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
         add_custom_command(
             OUTPUT ${IMAGE_START_ADDR_H}
