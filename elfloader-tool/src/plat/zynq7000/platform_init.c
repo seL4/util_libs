@@ -45,18 +45,23 @@ void remap_ram(void)
     /* 1: Complete outstanding transactions */
     asm volatile("dsb");
     asm volatile("isb");
+
     /* 2-4: prime the icache with this function
      *      skipped because icache is disabled and our remapping does not
      *      affect .text section */
-    /* 5-7: Modify OCM_CFG */
+
+    /* 5-7: unlock SLCR, Modify OCM_CFG, lock SLCR */
     SLCR(UNLOCK) = SLCR_UNLOCK_KEY;
     SLCR(OCM_CFG) |= SLCR_OCM_CFG_RAMHI_ALL;
     SLCR(LOCK) = SLCR_LOCK_KEY;
+
     /* 8-9: Modify address filtering */
     SCU(FILTADDR_START) = 0x00000000;
     SCU(FILTADDR_END) = 0xFFE00000;
+
     /* 10: Enable filtering */
     SCU(CTRL) |= (SCU_CTRL_EN | SCU_CTRL_ADDRFILT_EN);
+
     /* Ensure completion */
     asm volatile("dmb");
 }
