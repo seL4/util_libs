@@ -294,7 +294,11 @@ if(DEFINED platform_yaml)
             COMMAND
                 ${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} > ${IMAGE_START_ADDR_H}
             VERBATIM
-            DEPENDS ${ARCHIVE_O} ${ELF_SIFT} ${SHOEHORN}
+            DEPENDS
+                ${ARCHIVE_O}
+                ${platform_yaml}
+                ${ELF_SIFT}
+                ${SHOEHORN}
         )
     endif()
 else()
