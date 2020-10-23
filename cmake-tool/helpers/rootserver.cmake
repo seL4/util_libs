@@ -30,15 +30,11 @@ mark_as_advanced(TLS_ROOTSERVER)
 find_file(UIMAGE_TOOL make-uimage PATHS "${CMAKE_CURRENT_LIST_DIR}" CMAKE_FIND_ROOT_PATH_BOTH)
 mark_as_advanced(UIMAGE_TOOL)
 
-config_option(
-    UseRiscVBBL RISCV_BBL "Use the Berkeley Boot Loader."
-    DEFAULT ON
-    DEPENDS "KernelArchRiscV"
-)
+config_option(UseRiscVOpenSBI RISCV_OPENSBI "Use OpenSBI." DEFAULT ON DEPENDS "KernelArchRiscV")
 
-if(UseRiscVBBL)
-    set(BBL_PATH ${CMAKE_SOURCE_DIR}/tools/riscv-pk CACHE STRING "BBL Folder location")
-    mark_as_advanced(FORCE BBL_PATH)
+if(UseRiscVOpenSBI)
+    set(OPENSBI_PATH ${"CMAKE_SOURCE_DIR}/tools/opensbi" CACHE STRING "OpenSBI Folder location")
+    mark_as_advanced(FORCE OPENSBI_PATH)
 endif()
 
 function(DeclareRootserver rootservername)
@@ -101,37 +97,37 @@ function(DeclareRootserver rootservername)
             else()
                 set(march rv64imafdc)
             endif()
-            if(UseRiscVBBL)
-                # Package up our final elf image into the Berkeley boot loader.
+            if(UseRiscVOpenSBI)
+                # Package up our final elf image into OpenSBI.
                 # The host string is extracted from the cross compiler setting
                 # minus the trailing '-'
                 if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
                     message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
                 endif()
 
-                string(
-                    REGEX
-                    REPLACE
-                        "^(.*)-$"
-                        "\\1"
-                        host
-                        "${CROSS_COMPILER_PREFIX}"
-                )
-                get_filename_component(host ${host} NAME)
+                if("${PLATFORM}" STREQUAL "hifive" OR "${PLATFORM}" STREQUAL "polarfire")
+                    set(OPENSBI_PLATFORM "sifive/fu540")
+                elseif("${PLATFORM}" STREQUAL "ariane")
+                    set(OPENSBI_PLATFORM "fpga/ariane")
+                else()
+                    set(OPENSBI_PLATFORM "generic")
+                endif()
+
                 file(GLOB_RECURSE deps)
                 add_custom_command(
-                    OUTPUT "${CMAKE_BINARY_DIR}/bbl/bbl"
-                    COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bbl
+                    OUTPUT
+                        "${OPENSBI_PATH}/build/platform/${KernelOpenSBIPlatform}/firmware/fw_payload.elf"
+                    COMMAND mkdir -p "${CMAKE_BINARY_DIR}/opensbi"
                     COMMAND
-                        cd ${CMAKE_BINARY_DIR}/bbl && ${BBL_PATH}/configure
-                        --quiet
-                        --host=${host}
-                        --with-arch=${march}
-                        --with-payload=${elf_target_file}
-                            && make -s clean && make -s > /dev/null
+                        cd "${OPENSBI_PATH}" && ${CMAKE_OBJCOPY} -O binary "${elf_target_file}"
+                        "payload" && make -s clean && CROSS_COMPILE=${CROSS_COMPILER_PREFIX} make
+                        PLATFORM="${OPENSBI_PLATFORM}" FW_PAYLOAD_PATH=payload
                     DEPENDS ${elf_target_file} elfloader ${USES_TERMINAL_DEBUG}
                 )
-                set(elf_target_file "${CMAKE_BINARY_DIR}/bbl/bbl")
+                set(
+                    elf_target_file
+                    "${OPENSBI_PATH}/build/platform/${OPENSBI_PLATFORM}/firmware/fw_payload.elf"
+                )
             endif()
         endif()
         set(binary_efi_list "binary;efi")
