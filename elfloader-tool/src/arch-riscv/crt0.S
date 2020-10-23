@@ -22,7 +22,7 @@ _start:
   addi  gp, gp, %pcrel_lo(1b)
 .option pop
 
-/* BBL starts all HARTs and sends them to this entry point. */
+/* OpenSBI starts all HARTs and sends them to this entry point. */
   li s0, CONFIG_FIRST_HART_ID
   bne  a0, s0, secondary_harts
 
