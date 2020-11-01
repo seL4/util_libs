@@ -197,7 +197,7 @@ function(correct_platform_strings)
 
     # Only print out these info messages on first initialisation
     # otherwise the ccache gets interrupted with output everytime it is used.
-    # The ccache also has a mechanism for showing what config options get chagned
-    # after a configuration anyway so the user will still be informed.
+    # The ccache also has a mechanism for showing what config options get
+    # changed after a configuration anyway so the user will still be informed.
     set(correct_platform_strings_no_print ON CACHE INTERNAL "")
 endfunction()
