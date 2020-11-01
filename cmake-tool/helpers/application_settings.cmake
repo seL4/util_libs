@@ -169,11 +169,7 @@ function(correct_platform_strings)
         # handle changing the kernel architecture. It was used to mean
         # "aarch32 + hyp extensions". Now it would be possible to completely
         # remove it and follow the same pattern as aarch64.
-        if(
-            ARM_HYP
-            OR ("${KernelSel4Arch}" STREQUAL arm_hyp)
-            OR ("${KernelArmSel4Arch}" STREQUAL arm_hyp)
-        )
+        if(ARM_HYP OR ("${KernelSel4Arch}" STREQUAL "arm_hyp"))
             set(KernelSel4Arch arm_hyp CACHE STRING "" FORCE)
         else()
             set(KernelSel4Arch aarch32 CACHE STRING "" FORCE)

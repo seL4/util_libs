@@ -145,13 +145,14 @@ function(DeclareRootserver rootservername)
             )
         elseif("${ElfloaderImage}" STREQUAL "uimage")
             # Construct payload for U-Boot.
-
-            if("${KernelArmSel4Arch}" STREQUAL "aarch32")
+            if(KernelSel4ArchAarch32)
                 set(UIMAGE_ARCH "arm")
             elseif(KernelSel4ArchAarch64)
                 set(UIMAGE_ARCH "arm64")
             else()
-                message(FATAL_ERROR "uimage: Unsupported architecture: ${KernelArch}")
+                message(
+                    FATAL_ERROR "uimage: Unsupported architecture: ${KernelArch}/${KernelSel4Arch}"
+                )
             endif()
 
             add_custom_command(
