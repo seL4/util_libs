@@ -96,7 +96,38 @@ endfunction()
 #
 # Calling this function will result in forced updates to the cache.
 function(correct_platform_strings)
-    set(_REWRITE ON)
+
+    if(KernelX86Sel4Arch)
+        # this used to be a common mechanism how x86 architectures were
+        # selected. It's deprecated now and PLATFORM should be used instead. As
+        # of Nov/2020, we don't make this an error to give everybody a chance
+        # to update their scripts.
+        if("${PLATFORM}" STREQUAL "")
+            if(NOT correct_platform_strings_no_print)
+                message(
+                    DEPRECATION
+                        "setting PLATFORM from deprecated KernelX86Sel4Arch: ${KernelX86Sel4Arch}"
+                )
+            endif()
+            set(PLATFORM "${KernelX86Sel4Arch}")
+        elseif("${PLATFORM}" STREQUAL "${KernelX86Sel4Arch}")
+            if(NOT correct_platform_strings_no_print)
+                message(DEPRECATION "KernelX86Sel4Arch is deprecated, use PLATFORM only")
+            endif()
+        else()
+            message(
+                FATAL_ERROR
+                    "PLATFORM=${PLATFORM} does not match KernelX86Sel4Arch=${KernelX86Sel4Arch}"
+            )
+        endif()
+    elseif(KernelArmSel4Arch)
+        # this has never been widely in use, so we stop supporting it
+        message(FATAL_ERROR "KernelArmSel4Arch is no longer supported, use PLATFROM")
+    elseif(KernelRiscVSel4Arch)
+        # this should not have been in use at all
+        message(FATAL_ERROR "KernelRiscVSel4Arch is no longer supported, use PLATFROM")
+    endif()
+
     set(
         correct_platform_strings_platform_aliases
         sabre
@@ -115,6 +146,7 @@ function(correct_platform_strings)
         correct_platform_strings_platform_aliases ${correct_platform_strings_platform_aliases}
         CACHE INTERNAL ""
     )
+    set(_REWRITE ON)
     if("${PLATFORM}" STREQUAL "sabre")
         set(KernelPlatform imx6 CACHE STRING "" FORCE)
         set(KernelARMPlatform sabre CACHE STRING "" FORCE)
@@ -187,13 +219,6 @@ function(correct_platform_strings)
         message(
             "correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}"
         )
-    endif()
-
-    # This is a common mechanism for how x86 architectures were selected
-    if("${KernelX86Sel4Arch}" STREQUAL ia32)
-        set(KernelSel4Arch ia32 CACHE STRING "" FORCE)
-    elseif("${KernelX86Sel4Arch}" STREQUAL x86_64)
-        set(KernelSel4Arch x86_64 CACHE STRING "" FORCE)
     endif()
 
     # Only print out these info messages on first initialisation
