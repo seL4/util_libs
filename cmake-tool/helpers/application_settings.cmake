@@ -164,6 +164,11 @@ function(correct_platform_strings)
     set(_REWRITE ON)
 
     if(ARM OR AARCH32 OR AARCH32HF)
+        # "arm_hyp" was needed as a new kernel architecture long time ago when
+        # the scripts that produced a kernel that was given to L4V could only
+        # handle changing the kernel architecture. It was used to mean
+        # "aarch32 + hyp extensions". Now it would be possible to completely
+        # remove it and follow the same pattern as aarch64.
         if(
             ARM_HYP
             OR ("${KernelSel4Arch}" STREQUAL arm_hyp)
