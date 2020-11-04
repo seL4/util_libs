@@ -56,6 +56,7 @@ function(GenerateSimulateScript)
     set(sim_cpu "")
     set(sim_cpu_opt "")
     set(sim_machine "")
+    set(qemu_sim_extra_args "")
     if(KernelArchX86)
         # Try and simulate the correct micro architecture and features
         if(KernelX86MicroArchNehalem)
@@ -116,15 +117,18 @@ function(GenerateSimulateScript)
     elseif(KernelPlatformSpike)
         if(KernelSel4ArchRiscV32)
             set(binary "qemu-system-riscv32")
+            set(sim_cpu "rv32")
             SetDefaultMemSize("2000M")
             set(sim_machine "virt")
         elseif(KernelSel4ArchRiscV64)
             set(binary "qemu-system-riscv64")
+            set(sim_cpu "rv64")
             SetDefaultMemSize("4095M")
-            set(sim_machine "spike_v1.10")
+            set(sim_machine "spike")
         endif()
         set(QemuBinaryMachine "${binary}")
         set(sim_serial_opt "-serial mon:stdio")
+        set(qemu_sim_extra_args "-bios none")
     elseif(KernelPlatformQEMUArmVirt)
         set(QemuBinaryMachine "qemu-system-${QEMU_ARCH}")
         if(KernelArmHypervisorSupport)
@@ -168,8 +172,7 @@ function(GenerateSimulateScript)
                 -DQEMU_SIM_CPU_OPT=${sim_cpu_opt} -DQEMU_SIM_GRAPHIC_OPT=${sim_graphic_opt}
                 -DQEMU_SIM_SERIAL_OPT=${sim_serial_opt} -DQEMU_SIM_MEM_SIZE_OPT=${QemuMemSize}
                 -DQEMU_SIM_KERNEL_FILE=${KERNEL_IMAGE_NAME} -DQEMU_SIM_INITRD_FILE=${IMAGE_NAME}
-                -DQEMU_SIM_EXTRA_ARGS=${qemu_sim_extra_args} -P
-                ${CONFIGURE_FILE_SCRIPT}
+                -DQEMU_SIM_EXTRA_ARGS=${qemu_sim_extra_args} -P ${CONFIGURE_FILE_SCRIPT}
             COMMAND chmod u+x "${sim_path}"
             VERBATIM COMMAND_EXPAND_LISTS
         )
