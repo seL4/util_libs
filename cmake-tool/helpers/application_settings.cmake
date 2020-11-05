@@ -81,13 +81,8 @@ function(ApplyCommonReleaseVerificationSettings release verification)
 endfunction()
 
 # Try and map a PLATFORM value to a valid kernel platform and architecture
-# setting based on some established conventions:
-#  - Any previous value taken by KernelARMPlatform
-#  - Any value accepted by KernelPlatform
-#  - x86_64 and ia32 map to pc99
-#
-# Additionally use the following boolean configs to indicate which seL4 arch
-# to select:
+# variables. Additionally, the following boolean configs can be set to indicate
+# which seL4 arch to select:
 #  - aarch32: ARM, AARCH32, AARCH32HF
 #  - arm_hyp: ARM_HYP
 #  - aarch64: AARCH64
@@ -129,70 +124,112 @@ function(correct_platform_strings)
     endif()
 
     set(
-        correct_platform_strings_platform_aliases
-        sabre
-        wandq
-        kzm
-        rpi3
-        exynos5250
-        exynos5410
-        exynos5422
-        am335x-boneblack
-        am335x-boneblue
-        x86_64
-        ia32
+        platform_aliases
+        # The elements of this list are:
+        #      "-"+<name of architecture #1 specific platform variable>
+        #      <chip family>:<board_1>,<board_2>...
+        #      <chip family>:<board_1>,<board_2>...
+        #      ...
+        #      "-"+<name of architecture #2 specific platform variable>
+        #      <chip family>:<board_1>,<board_2>...
+        #      ...
+        #  where this function will try to match PLATFORM against <board_n> and
+        #  then set:
+        #      KernelPlatform=<chip family>
+        #      <platform variable>=<board_n>
+        # Note that <board_n> must be a unique name, as the first match will be
+        # used. If there was no match for any board the function will set:
+        #     KernelPlatform=${PLATFORM}
+        # and leave all further setup to the architecture/platform specific
+        # configuration to <sel4 kernel>/src/plat/*/config.cmake
+        #
+        "-KernelARMPlatform"
+        "imx6:sabre,wandq"
+        "imx31:kzm"
+        "bcm2837:rpi3"
+        "exynos5:exynos5250,exynos5410,exynos5422"
+        "am335x:am335x-boneblack,am335x-boneblue"
+        "-KernelSel4Arch"
+        "pc99:x86_64,ia32"
     )
-    set(
-        correct_platform_strings_platform_aliases ${correct_platform_strings_platform_aliases}
-        CACHE INTERNAL ""
-    )
-    set(_REWRITE ON)
-    if("${PLATFORM}" STREQUAL "sabre")
-        set(KernelPlatform imx6 CACHE STRING "" FORCE)
-        set(KernelARMPlatform sabre CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "wandq")
-        set(KernelPlatform imx6 CACHE STRING "" FORCE)
-        set(KernelARMPlatform wandq CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "kzm")
-        set(KernelPlatform imx31 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "rpi3")
-        set(KernelPlatform bcm2837 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "exynos5250")
-        set(KernelPlatform exynos5 CACHE STRING "" FORCE)
-        set(KernelARMPlatform exynos5250 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "exynos5410")
-        set(KernelPlatform exynos5 CACHE STRING "" FORCE)
-        set(KernelARMPlatform exynos5410 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "exynos5422")
-        set(KernelPlatform exynos5 CACHE STRING "" FORCE)
-        set(KernelARMPlatform exynos5422 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "am335x-boneblack")
-        set(KernelPlatform am335x CACHE STRING "" FORCE)
-        set(KernelARMPlatform am335x-boneblack CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "am335x-boneblue")
-        set(KernelPlatform am335x CACHE STRING "" FORCE)
-        set(KernelARMPlatform am335x-boneblue CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "x86_64")
-        set(KernelPlatform pc99 CACHE STRING "" FORCE)
-        set(KernelSel4Arch x86_64 CACHE STRING "" FORCE)
-    elseif("${PLATFORM}" STREQUAL "ia32")
-        set(KernelPlatform pc99 CACHE STRING "" FORCE)
-        set(KernelSel4Arch ia32 CACHE STRING "" FORCE)
-    elseif(NOT "${PLATFORM}" STREQUAL "")
-        set(KernelPlatform ${PLATFORM} CACHE STRING "" FORCE)
-        set(_REWRITE OFF)
-    else()
-        set(_REWRITE OFF)
+
+    set(all_boards "")
+    set(block_kernel_var "")
+    set(kernel_var "")
+
+    foreach(item IN LISTS platform_aliases)
+
+        if(item MATCHES "^-(.*)$")
+            set(block_kernel_var "${CMAKE_MATCH_1}")
+            continue()
+        endif()
+
+        if(NOT block_kernel_var)
+            message(
+                FATAL_ERROR
+                    "platform_aliases must set architecture specific kernel platform variable first"
+            )
+        endif()
+
+        if(NOT item MATCHES "^(.*):(.*)$")
+            message(FATAL_ERROR "invalid line in platform_aliases: ${item}")
+        endif()
+
+        set(plat "${CMAKE_MATCH_1}")
+
+        string(
+            REPLACE
+                ","
+                ";"
+                item_board_list
+                "${CMAKE_MATCH_2}"
+        )
+
+        # remember board alias names, we need to build a complete list
+        list(APPEND all_boards "${item_board_list}")
+
+        if(kernel_var OR ("${PLATFORM}" STREQUAL "") OR (NOT "${PLATFORM}" IN_LIST item_board_list))
+            continue()
+        endif()
+
+        if(KernelPlatform AND (NOT "${KernelPlatform}" STREQUAL "${plat}"))
+            message(
+                FATAL_ERROR
+                    "config mismatch, wont overwrite KernelPlatform=${KernelPlatform} with ${plat}"
+            )
+        endif()
+        set(KernelPlatform "${plat}" CACHE STRING "" FORCE)
+
+        if(${block_kernel_var} AND (NOT "${${block_kernel_var}}" STREQUAL "${PLATFORM}"))
+            message(
+                FATAL_ERROR
+                    "config mismatch, wont overwrite ${block_kernel_var}=${${block_kernel_var}} with ${PLATFORM}"
+            )
+        endif()
+        set(kernel_var "${block_kernel_var}")
+        set(${kernel_var} "${PLATFORM}" CACHE STRING "" FORCE)
+
+    endforeach()
+
+    if(NOT kernel_var)
+        set(KernelPlatform "${PLATFORM}" CACHE STRING "" FORCE)
     endif()
-    if(_REWRITE AND (NOT correct_platform_strings_no_print))
-        message("correct_platform_strings: Attempting to correct PLATFORM: ${PLATFORM}
-            to new valid KernelPlatform: ${KernelPlatform}")
-        if("${KernelPlatform}" STREQUAL pc99)
-            message("                         KernelSel4Arch: ${KernelSel4Arch}")
-        else()
-            message("                      KernelARMPlatform: ${KernelARMPlatform}")
+
+    # declare a special variable that some CMake files expect to hold a list of
+    # all board alias names from the "database" above
+    set(correct_platform_strings_platform_aliases "${all_boards}" CACHE INTERNAL "")
+
+    # printing a message about the adaption is optional. When CMake is
+    # invoked multiple times to get a stable configuration, we print this
+    # for the first run only.
+    if(NOT correct_platform_strings_no_print)
+        message("Set platform details from PLATFORM=${PLATFORM}")
+        message("  KernelPlatform: ${KernelPlatform}")
+        if(kernel_var)
+            message("  ${kernel_var}: ${${kernel_var}}")
         endif()
     endif()
+
     set(_REWRITE ON)
 
     if(ARM OR AARCH32 OR AARCH32HF)
@@ -226,4 +263,5 @@ function(correct_platform_strings)
     # The ccache also has a mechanism for showing what config options get
     # changed after a configuration anyway so the user will still be informed.
     set(correct_platform_strings_no_print ON CACHE INTERNAL "")
+
 endfunction()
