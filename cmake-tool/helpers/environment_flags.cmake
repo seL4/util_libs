@@ -72,7 +72,7 @@ macro(gcc_print_file_name var file)
         separate_arguments(c_arguments UNIX_COMMAND "${CMAKE_C_FLAGS}")
         # Append the target flag to the arguments if we are using clang so the
         # correct crt files are found
-        if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
             list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
         endif()
         execute_process(
