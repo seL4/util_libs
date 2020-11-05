@@ -57,9 +57,14 @@ macro(add_default_compilation_options)
     # uses causes alignment checks to be enabled.
     if(KernelSel4ArchAarch64)
         add_compile_options(-mstrict-align)
-        EXECUTE_PROCESS(COMMAND gcc -dumpversion CMAKE_C_COMPILER_VERSION)
-        set(GCC_10 "10.0.0")
-        if(${CMAKE_C_COMPILER_VERSION} VERSION_GREATER_EQUAL ${GCC_10})
+        if(NOT CMAKE_C_COMPILER_VERSION)
+            message(FATAL_ERROR "CMAKE_C_COMPILER_VERSION is not set")
+        endif()
+        # special handling for GCC 10 and above
+        if(
+            (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+            AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0.0")
+        )
             add_compile_options(-mno-outline-atomics)
         endif()
     elseif(KernelSel4ArchAarch32)
