@@ -334,8 +334,10 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
         dev->tx_ring[ring].addr = phys[i];
-        dev->tx_ring[ring].status = (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK) |
-                                    ZYNQ_GEM_TXBUF_LAST_MASK;
+        dev->tx_ring[ring].status = (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK);
+        if (i == (num - 1)) {
+            dev->tx_ring[ring].status |= ZYNQ_GEM_TXBUF_LAST_MASK;
+        }
 
         __sync_synchronize();
     }
