@@ -24,6 +24,7 @@
 #include <utils/stringify.h>
 
 #define BIT(n) (1ul<<(n))
+#define LLBIT(n) (1ull<<(n))
 
 #define MASK_UNSAFE(x) ((BIT(x) - 1ul))
 
