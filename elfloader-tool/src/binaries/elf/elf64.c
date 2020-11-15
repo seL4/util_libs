@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 1999-2004 University of New South Wales
  *
- * SPDX-License-Identifier: LicenseRef-OZPLB-1.0
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <strops.h>
