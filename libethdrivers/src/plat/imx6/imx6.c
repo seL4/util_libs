@@ -427,7 +427,7 @@ int ethif_imx6_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
 
     if (config == NULL) {
         ZF_LOGE("Cannot get platform info; Passed in Config Pointer NULL");
-        goto error;
+        return -1;
     }
 
     struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
@@ -435,8 +435,10 @@ int ethif_imx6_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
     dev = (struct imx6_eth_data *)malloc(sizeof(struct imx6_eth_data));
     if (dev == NULL) {
         ZF_LOGE("Failed to allocate eth data struct");
-        goto error;
+        return -1;
     }
+
+    /* We have allocated something and need to free it on any error */
 
     dev->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
     dev->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
