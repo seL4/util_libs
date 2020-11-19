@@ -585,7 +585,8 @@ static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
         int addr = ffs(phy_mask) - 1;
         int r = get_phy_id(bus, addr, devad, &phy_id);
         if (r < 0) {
-            return (void *)r;
+            ZF_LOGE("Failed to get PHY ID, code %d", r);
+            return NULL;
         }
         /* If the PHY ID is mostly f's, we didn't find anything */
         if ((phy_id & 0x1fffffff) != 0x1fffffff) {
@@ -615,20 +616,14 @@ static struct phy_device *search_for_existing_phy(struct mii_dev *bus,
 static struct phy_device *get_phy_device_by_mask(struct mii_dev *bus,
                                                  unsigned phy_mask, phy_interface_t interface)
 {
-    int i;
-    struct phy_device *phydev;
-
-    phydev = search_for_existing_phy(bus, phy_mask, interface);
+    struct phy_device *phydev = search_for_existing_phy(bus, phy_mask, interface);
     if (phydev) {
         return phydev;
     }
     /* Try Standard (ie Clause 22) access */
     /* Otherwise we have to try Clause 45 */
-    for (i = 0; i < 5; i++) {
+    for (unsigned int i = 0; i < 5; i++) {
         phydev = create_phy_by_mask(bus, phy_mask, i ? i : MDIO_DEVAD_NONE, interface);
-        if ((unsigned long)phydev >= (unsigned long) -4096) {
-            return NULL;
-        }
         if (phydev) {
             return phydev;
         }
