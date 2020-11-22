@@ -169,6 +169,8 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     gpio_direction_output(GPIO_NR_PHY_MODE1,     1, io_ops);
     gpio_direction_output(GPIO_NR_PHY_MODE2,     1, io_ops);
     gpio_direction_output(GPIO_NR_PHY_MODE3,     1, io_ops);
+    // enable 125MHz clock output
+    gpio_direction_output(GPIO_NR_PHY_CLK125_EN, 1, io_ops);
 
     /* set pad configuration (after we have set well-defined GPIOs above) */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
@@ -191,13 +193,6 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         MX6Q_PAD_RGMII_RX_CTL__GPIO_6_24    | MUX_PAD_CTRL(NO_PAD_CTRL),
         MX6Q_PAD_EIM_D23__GPIO_3_23         | MUX_PAD_CTRL(NO_PAD_CTRL),
     );
-
-    /* ToDo: is there any reason why we can't set the GPIO for PHY CLK125_EN
-     * in IMX_IOMUX_V3_SETUP_MULTIPLE_PADS() above like every other pin?
-     *
-     * CLK125_EN is latched at reset, '1' will enable 125MHz Clock Output
-     */
-    gpio_direction_output(GPIO_NR_PHY_CLK125_EN, 1, io_ops);
 
     /* Need delay 10ms according to KSZ9021 spec */
     udelay(1000 * 10);
