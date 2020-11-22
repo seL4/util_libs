@@ -26,57 +26,12 @@
 
 #include "imx-regs.h"
 #include "gpio.h"
-#include <stdint.h>
-
-#define CONFIG_MII
 
 #define CONFIG_PHYLIB
+#ifdef CONFIG_PLAT_IMX6SX
+#define CONFIG_PHY_ATHEROS
+#else
 #define CONFIG_PHY_MICREL
-
-/* Command definition */
-#include "config.h"
-
-typedef uint64_t iomux_v3_cfg_t;
-
-#define MUX_CTRL_OFS_SHIFT  0
-#define MUX_CTRL_OFS_MASK   ((iomux_v3_cfg_t)0xfff << MUX_CTRL_OFS_SHIFT)
-#define MUX_PAD_CTRL_OFS_SHIFT  12
-#define MUX_PAD_CTRL_OFS_MASK   ((iomux_v3_cfg_t)0xfff << \
-    MUX_PAD_CTRL_OFS_SHIFT)
-#define MUX_SEL_INPUT_OFS_SHIFT 24
-#define MUX_SEL_INPUT_OFS_MASK  ((iomux_v3_cfg_t)0xfff << \
-    MUX_SEL_INPUT_OFS_SHIFT)
-
-#define MUX_MODE_SHIFT      36
-#define MUX_MODE_MASK       ((iomux_v3_cfg_t)0x3f << MUX_MODE_SHIFT)
-#define MUX_PAD_CTRL_SHIFT  42
-#define MUX_PAD_CTRL_MASK   ((iomux_v3_cfg_t)0x3ffff << MUX_PAD_CTRL_SHIFT)
-#define MUX_SEL_INPUT_SHIFT 60
-#define MUX_SEL_INPUT_MASK  ((iomux_v3_cfg_t)0xf << MUX_SEL_INPUT_SHIFT)
-
-#define MUX_PAD_CTRL(x)     ((iomux_v3_cfg_t)(x) << MUX_PAD_CTRL_SHIFT)
-
-#define IOMUX_PAD(pad_ctrl_ofs, mux_ctrl_ofs, mux_mode, sel_input_ofs,  \
-        sel_input, pad_ctrl)                    \
-    (((iomux_v3_cfg_t)(mux_ctrl_ofs) << MUX_CTRL_OFS_SHIFT)     |   \
-    ((iomux_v3_cfg_t)(mux_mode)      << MUX_MODE_SHIFT)         |   \
-    ((iomux_v3_cfg_t)(pad_ctrl_ofs)  << MUX_PAD_CTRL_OFS_SHIFT) |   \
-    ((iomux_v3_cfg_t)(pad_ctrl)      << MUX_PAD_CTRL_SHIFT)     |   \
-    ((iomux_v3_cfg_t)(sel_input_ofs) << MUX_SEL_INPUT_OFS_SHIFT)|   \
-    ((iomux_v3_cfg_t)(sel_input)     << MUX_SEL_INPUT_SHIFT))
-
-#define NO_PAD_CTRL     (BIT(17))
-#define GPIO_PIN_MASK       0x1f
-#define GPIO_PORT_SHIFT     5
-#define GPIO_PORT_MASK      (0x7 << GPIO_PORT_SHIFT)
-#define GPIO_PORTA      (0 << GPIO_PORT_SHIFT)
-#define GPIO_PORTB      (BIT(GPIO_PORT_SHIFT))
-#define GPIO_PORTC      (2 << GPIO_PORT_SHIFT)
-#define GPIO_PORTD      (3 << GPIO_PORT_SHIFT)
-#define GPIO_PORTE      (4 << GPIO_PORT_SHIFT)
-#define GPIO_PORTF      (5 << GPIO_PORT_SHIFT)
-
-#define MUX_CONFIG_SION     (BIT(4))
-
+#endif
 
 int setup_iomux_enet(ps_io_ops_t *io_ops);

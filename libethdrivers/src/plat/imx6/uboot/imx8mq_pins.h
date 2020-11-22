@@ -4,6 +4,7 @@
 
 /*
  * Copyright (C) 2017 NXP
+ * Copyright (C) 2020, HENSOLDT Cyber GmbH
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,7 +24,11 @@
 
 #pragma once
 
-#include "mx6qsabrelite.h"
+#include "mx6_pins.h"
+
+#ifndef CONFIG_PLAT_IMX8MQ_EVK
+#error "CONFIG_PLAT_IMX8MQ_EVK must be defined to use this file"
+#endif
 
 enum {
     IMX8MQ_PAD_GPIO1_IO00__GPIO1_IO0                    = IOMUX_PAD(0x0290, 0x0028, 0, 0x0000, 0, 0),
