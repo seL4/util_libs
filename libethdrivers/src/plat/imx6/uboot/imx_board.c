@@ -142,25 +142,39 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     gpio_direction_output(IMX_GPIO_NR(1, 9), 1, io_ops);
 
     uint32_t *gpr1 = base + 0x4;
-    // Change ENET_TX to use internal clocks and not the external clocks
+    /* Change ENET_TX to use internal clocks and not the external clocks */
     *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
 
 #elif defined(CONFIG_PLAT_IMX6)
 
-    gpio_direction_output(IMX_GPIO_NR(3, 23), 0, io_ops);
-    gpio_direction_output(IMX_GPIO_NR(6, 30), 1, io_ops);
-    gpio_direction_output(IMX_GPIO_NR(6, 25), 1, io_ops);
-    gpio_direction_output(IMX_GPIO_NR(6, 27), 1, io_ops);
-    gpio_direction_output(IMX_GPIO_NR(6, 28), 1, io_ops);
-    gpio_direction_output(IMX_GPIO_NR(6, 29), 1, io_ops);
-
 #define ENET_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE | PAD_CTL_PUS_100K_UP | \
                         PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
 
+
+    /* PHY to GPIO mapping for strapping */
+#define GPIO_NR_PHY_NRST        IMX_GPIO_NR(3, 23) // EIM_D23      to PHY pin 42 nRST
+#define GPIO_NR_PHY_AD2         IMX_GPIO_NR(6, 30) // RGMII_RXC    to PHY pin 35 AD2
+#define GPIO_NR_PHY_MODE0       IMX_GPIO_NR(6, 25) // RGMII_RD0    to PHY pin 32 MODE0
+#define GPIO_NR_PHY_MODE1       IMX_GPIO_NR(6, 27) // RGMII_RD1    to PHY pin 31 MODE1
+#define GPIO_NR_PHY_MODE2       IMX_GPIO_NR(6, 28) // RGMII_RD2    to PHY pin 28 MODE2
+#define GPIO_NR_PHY_MODE3       IMX_GPIO_NR(6, 29) // RGMII_RD3    to PHY pin 27 MODE3
+#define GPIO_NR_PHY_CLK125_EN   IMX_GPIO_NR(6, 24) // RGMII_RX_CTL to PHY pin 33 CLK125_EN
+
+    /* put PHY into reset */
+    gpio_direction_output(GPIO_NR_PHY_NRST,      0, io_ops);
+    /* PHYAD=b00100 */
+    gpio_direction_output(GPIO_NR_PHY_AD2,       1, io_ops);
+    /* MODE=b1111 (RGMII Mode, 10/100/1000 speed, half/full duplex) */
+    gpio_direction_output(GPIO_NR_PHY_MODE0,     1, io_ops);
+    gpio_direction_output(GPIO_NR_PHY_MODE1,     1, io_ops);
+    gpio_direction_output(GPIO_NR_PHY_MODE2,     1, io_ops);
+    gpio_direction_output(GPIO_NR_PHY_MODE3,     1, io_ops);
+
+    /* set pad configuration (after we have set well-defined GPIOs above) */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
         base,
         MX6Q_PAD_ENET_MDIO__ENET_MDIO       | MUX_PAD_CTRL(ENET_PAD_CTRL),
-        MX6Q_PAD_ENET_MDC__ENET_MDC     | MUX_PAD_CTRL(ENET_PAD_CTRL),
+        MX6Q_PAD_ENET_MDC__ENET_MDC         | MUX_PAD_CTRL(ENET_PAD_CTRL),
         MX6Q_PAD_RGMII_TXC__ENET_RGMII_TXC  | MUX_PAD_CTRL(ENET_PAD_CTRL),
         MX6Q_PAD_RGMII_TD0__ENET_RGMII_TD0  | MUX_PAD_CTRL(ENET_PAD_CTRL),
         MX6Q_PAD_RGMII_TD1__ENET_RGMII_TD1  | MUX_PAD_CTRL(ENET_PAD_CTRL),
@@ -168,27 +182,29 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         MX6Q_PAD_RGMII_TD3__ENET_RGMII_TD3  | MUX_PAD_CTRL(ENET_PAD_CTRL),
         MX6Q_PAD_RGMII_TX_CTL__RGMII_TX_CTL | MUX_PAD_CTRL(ENET_PAD_CTRL),
         MX6Q_PAD_ENET_REF_CLK__ENET_TX_CLK  | MUX_PAD_CTRL(ENET_PAD_CTRL),
-        /* pin 35 - 1 (PHY_AD2) on reset */
+        // pad configuration as GPIO for PHY setup
         MX6Q_PAD_RGMII_RXC__GPIO_6_30       | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 32 - 1 - (MODE0) all */
         MX6Q_PAD_RGMII_RD0__GPIO_6_25       | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 31 - 1 - (MODE1) all */
         MX6Q_PAD_RGMII_RD1__GPIO_6_27       | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 28 - 1 - (MODE2) all */
         MX6Q_PAD_RGMII_RD2__GPIO_6_28       | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 27 - 1 - (MODE3) all */
         MX6Q_PAD_RGMII_RD3__GPIO_6_29       | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 33 - 1 - (CLK125_EN) 125Mhz clockout enabled */
         MX6Q_PAD_RGMII_RX_CTL__GPIO_6_24    | MUX_PAD_CTRL(NO_PAD_CTRL),
-        /* pin 42 PHY nRST */
-        MX6Q_PAD_EIM_D23__GPIO_3_23     | MUX_PAD_CTRL(NO_PAD_CTRL)
+        MX6Q_PAD_EIM_D23__GPIO_3_23         | MUX_PAD_CTRL(NO_PAD_CTRL),
     );
 
-    gpio_direction_output(IMX_GPIO_NR(6, 24), 1, io_ops);
+    /* ToDo: is there any reason why we can't set the GPIO for PHY CLK125_EN
+     * in IMX_IOMUX_V3_SETUP_MULTIPLE_PADS() above like every other pin?
+     *
+     * CLK125_EN is latched at reset, '1' will enable 125MHz Clock Output
+     */
+    gpio_direction_output(GPIO_NR_PHY_CLK125_EN, 1, io_ops);
+
     /* Need delay 10ms according to KSZ9021 spec */
     udelay(1000 * 10);
-    gpio_set_value(IMX_GPIO_NR(3, 23), 1);
+    /* release PHY from reset */
+    gpio_set_value(GPIO_NR_PHY_NRST, 1);
 
+    /* reconfigure pins from GPIO for PHY setup to ethernet usage */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
         base,
         MX6Q_PAD_RGMII_RXC__ENET_RGMII_RXC  | MUX_PAD_CTRL(ENET_PAD_CTRL),
