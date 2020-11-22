@@ -28,22 +28,28 @@
 
 #include "common.h"
 #include "../io.h"
-#include "mx6x_pins.h"
-#include "imx8mq_pins.h"
 #include "miiphy.h"
 #include "micrel.h"
-#include "mx6qsabrelite.h"
-#include <utils/util.h>
+
 #include <platsupport/io.h>
 #include <stdio.h>
 
-#ifdef CONFIG_PLAT_IMX6
-#define IOMUXC_PADDR 0x020E0000
-#define IOMUXC_SIZE      0x4000
-#endif
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
-#define IOMUXC_PADDR 0x30330000
-#define IOMUXC_SIZE      0x10000
+#include "mx6qsabrelite.h"
+
+#if defined(CONFIG_PLAT_IMX6)
+
+#include "mx6x_pins.h"
+
+#define IOMUXC_PADDR    0x020E0000
+#define IOMUXC_SIZE     0x4000
+
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+
+#include "imx8mq_pins.h"
+
+#define IOMUXC_PADDR    0x30330000
+#define IOMUXC_SIZE     0x10000
+
 #endif
 
 /*
