@@ -203,6 +203,8 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     udelay(1000 * 10);
     /* release PHY from reset */
     gpio_set_value(GPIO_NR_PHY_NRST, 1);
+    /* KSZ9021 spec recommends to wait 100us before sending any commands */
+    udelay(100);
 
     /* reconfigure pins from GPIO for PHY setup to ethernet usage */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
