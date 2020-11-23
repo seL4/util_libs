@@ -60,8 +60,6 @@ struct imx6_eth_data {
     unsigned int rdt, rdh, tdt, tdh;
 };
 
-int setup_iomux_enet(ps_io_ops_t *io_ops);
-
 /* Receive descriptor status */
 #define RXD_EMPTY     BIT(15) /* Buffer has no data. Waiting for reception. */
 #define RXD_OWN0      BIT(14) /* Receive software ownership. R/W by user */
