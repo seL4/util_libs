@@ -129,20 +129,24 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
 
     dev->rdt = dev->rdh = dev->tdt = dev->tdh = 0;
 
-    /* zero both rings */
+    /* initialise both rings */
     for (unsigned int i = 0; i < dev->tx_size; i++) {
         dev->tx_ring[i] = (struct emac_bd) {
             .addr = 0,
+            .status = ZYNQ_GEM_TXBUF_USED_MASK
+        };
+    }
+
+    dev->tx_ring[dev->tx_size - 1].status |= ZYNQ_GEM_TXBUF_WRAP_MASK;
+
+    for (unsigned int i = 0; i < dev->rx_size; i++) {
+        dev->rx_ring[i] = (struct emac_bd) {
+            .addr = ZYNQ_GEM_RXBUF_NEW_MASK,
             .status = 0
         };
     }
 
-    for (unsigned int i = 0; i < dev->rx_size; i++) {
-        dev->rx_ring[i] = (struct emac_bd) {
-            .addr = 0,
-            .status = 0
-        };
-    }
+    dev->rx_ring[dev->rx_size - 1].addr |= ZYNQ_GEM_RXBUF_WRAP_MASK;
 
     __sync_synchronize();
 
@@ -168,13 +172,13 @@ static void fill_rx_bufs(struct eth_driver *driver)
 
         dev->rx_cookies[dev->rdt] = cookie;
 
-        /* If this is the last descriptor in the ring, set the wrap bit of the address (bit 1)
-         *   so the controller knows to loop back around
-         */
         dev->rx_ring[dev->rdt].status = 0;
 
-        uint32_t mask = (next_rdt == 0 ? ZYNQ_GEM_RXBUF_WRAP_MASK : 0);
-        dev->rx_ring[dev->rdt].addr = (phys & ZYNQ_GEM_RXBUF_ADD_MASK) | mask;
+        /* Remove the used bit so the controller knows this descriptor is
+         * available to be written to */
+        dev->rx_ring[dev->rdt].addr &= ~(ZYNQ_GEM_RXBUF_NEW_MASK | ZYNQ_GEM_RXBUF_ADD_MASK);
+
+        dev->rx_ring[dev->rdt].addr |= (phys & ZYNQ_GEM_RXBUF_ADD_MASK);
 
         __sync_synchronize();
 
@@ -234,10 +238,13 @@ static void complete_tx(struct eth_driver *driver)
         for (i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
             int ring_pos = (i + dev->tdh) % dev->tx_size;
 
-            if (!(dev->tx_ring[ring_pos].status & ZYNQ_GEM_TXBUF_USED_MASK)) {
+            if (i == 0 && !(dev->tx_ring[ring_pos].status & ZYNQ_GEM_TXBUF_USED_MASK)) {
                 /* not all parts complete */
                 return;
             }
+
+            dev->tx_ring[ring_pos].status &= (ZYNQ_GEM_TXBUF_USED_MASK | ZYNQ_GEM_TXBUF_WRAP_MASK);
+            dev->tx_ring[ring_pos].status |= ZYNQ_GEM_TXBUF_USED_MASK;
         }
 
         /* do not let memory loads happen before our checking of the descriptor write back */
@@ -253,8 +260,7 @@ static void complete_tx(struct eth_driver *driver)
     }
 
     if (dev->tdh != dev->tdt) {
-        uintptr_t txbase = dev->tx_ring_phys + (uintptr_t)(dev->tdh * sizeof(struct emac_bd));
-        zynq_gem_start_send(dev->eth_dev, txbase);
+        zynq_gem_start_send(dev->eth_dev);
     }
 }
 
@@ -264,20 +270,20 @@ static void handle_irq(struct eth_driver *driver, int irq)
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)eth_data->eth_dev->iobase;
 
     // Clear Interrupts
-    u32 val = readl(&regs->isr);
-    writel(val, &regs->isr);
+    u32 isr = readl(&regs->isr);
+    writel(isr, &regs->isr);
 
-    if (val & ZYNQ_GEM_IXR_TXCOMPLETE) {
+    if (isr & ZYNQ_GEM_IXR_TXCOMPLETE) {
         /* Clear TX Status register */
-        val = readl(&regs->txsr);
+        u32 val = readl(&regs->txsr);
         writel(val, &regs->txsr);
 
         complete_tx(driver);
     }
 
-    if (val & ZYNQ_GEM_IXR_FRAMERX) {
+    if (isr & ZYNQ_GEM_IXR_FRAMERX) {
         /* Clear RX Status register */
-        val = readl(&regs->rxsr);
+        u32 val = readl(&regs->rxsr);
         writel(val, &regs->rxsr);
 
         complete_rx(driver);
@@ -328,30 +334,15 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     unsigned int i;
     __sync_synchronize();
 
-    uintptr_t txbase = dev->tx_ring_phys + (uintptr_t)(dev->tdt * sizeof(struct emac_bd));
-
     for (i = 0; i < num; i++) {
-
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
         dev->tx_ring[ring].addr = phys[i];
-        dev->tx_ring[ring].status = (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK);
+        dev->tx_ring[ring].status &= ~(ZYNQ_GEM_TXBUF_USED_MASK | ZYNQ_GEM_TXBUF_FRMLEN_MASK | ZYNQ_GEM_TXBUF_LAST_MASK);
+        dev->tx_ring[ring].status |= (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK);
         if (i == (num - 1)) {
             dev->tx_ring[ring].status |= ZYNQ_GEM_TXBUF_LAST_MASK;
         }
-
-        __sync_synchronize();
     }
-
-    unsigned int ring = (dev->tdt + i) % dev->tx_size;
-
-    /* Dummy descriptor to mark it as the last in descriptor chain */
-    dev->tx_ring[ring].addr = 0x0;
-    dev->tx_ring[ring].status = ZYNQ_GEM_TXBUF_WRAP_MASK |
-                                ZYNQ_GEM_TXBUF_LAST_MASK |
-                                ZYNQ_GEM_TXBUF_USED_MASK;
-
-    /* Increment num by 1 to account for the added last byte */
-    num += 1;
 
     dev->tx_cookies[dev->tdt] = cookie;
     dev->tx_lengths[dev->tdt] = num;
@@ -360,7 +351,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 
     __sync_synchronize();
 
-    zynq_gem_start_send(dev->eth_dev, txbase);
+    zynq_gem_start_send(dev->eth_dev);
 
     return ETHIF_TX_ENQUEUED;
 }
@@ -409,8 +400,8 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     }
     uint32_t base_addr = (uint32_t)plat_config->buffer_addr;
 
-    eth_data->tx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
-    eth_data->rx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    eth_data->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
     eth_driver->eth_data = eth_data;
     eth_driver->dma_alignment = ARCH_DMA_MINALIGN;
     eth_driver->i_fn = iface_fns;

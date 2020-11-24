@@ -333,7 +333,7 @@ int zynq_gem_init(struct eth_device *dev)
     return 0;
 }
 
-int zynq_gem_start_send(struct eth_device *dev, uint32_t txbase)
+int zynq_gem_start_send(struct eth_device *dev)
 {
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)dev->iobase;
 
@@ -342,8 +342,6 @@ int zynq_gem_start_send(struct eth_device *dev, uint32_t txbase)
     while (status & ZYNQ_GEM_TXSR_TXGO) {
         status = readl(&regs->txsr);
     }
-
-    writel(txbase, &regs->txqbase);
 
     /* Start transmit */
     setbits_le32(&regs->nwctrl, ZYNQ_GEM_NWCTRL_STARTTX_MASK);

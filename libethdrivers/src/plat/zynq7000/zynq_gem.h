@@ -155,7 +155,7 @@ struct eth_device *zynq_gem_initialize(phys_addr_t base_addr,
 			int phy_addr, u32 emio);
 int zynq_gem_init(struct eth_device *dev);
 int zynq_gem_setup_mac(struct eth_device *dev);
-int zynq_gem_start_send(struct eth_device *dev, uint32_t txbase);
+int zynq_gem_start_send(struct eth_device *dev);
 int zynq_gem_recv_enabled(struct eth_device *dev);
 void zynq_gem_recv_enable(struct eth_device *dev);
 void zynq_gem_halt(struct eth_device *dev);
