@@ -7,13 +7,14 @@
  */
 
 #include "enet.h"
-#include <stdint.h>
-#include <assert.h>
 #include "io.h"
 #include <platsupport/clock.h>
 #include "unimplemented.h"
 #include "../../debug.h"
+
+#include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #ifdef CONFIG_PLAT_IMX6
 #define IMX6_ENET_PADDR 0x02188000

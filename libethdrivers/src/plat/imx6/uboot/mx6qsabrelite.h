@@ -24,54 +24,18 @@
 
 #pragma once
 
-#define CONFIG_MX6
-#define CONFIG_MX6Q
-
-#define CONFIG_MACH_TYPE    3769
-
 #include "imx-regs.h"
 #include "gpio.h"
-
 #include <stdint.h>
 
-#define CONFIG_BOARD_EARLY_INIT_F
-#define CONFIG_MISC_INIT_R
-#define CONFIG_MXC_GPIO
-
-#define CONFIG_FEC_MXC
 #define CONFIG_MII
-#define IMX_FEC_BASE            ENET_BASE_ADDR
-#define CONFIG_FEC_XCV_TYPE     RGMII
-#define CONFIG_ETHPRIME         "FEC"
-#define CONFIG_FEC_MXC_PHYMASK      (0xf << 4)  /* scan phy 4,5,6,7 */
+
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_MICREL
-#define CONFIG_PHY_MICREL_KSZ9021
 
 /* Command definition */
 #include "config.h"
 
-#define CONFIG_MX6
-#define CONFIG_MX6Q
-
-#include "imx-regs.h"
-
-#define CONFIG_BOARD_EARLY_INIT_F
-#define CONFIG_MXC_GPIO
-
-#define CONFIG_MXC_UART
-#define CONFIG_FEC_MXC
-#define CONFIG_MII
-#define IMX_FEC_BASE            ENET_BASE_ADDR
-#define CONFIG_FEC_XCV_TYPE     RGMII
-#define CONFIG_ETHPRIME         "FEC"
-#define CONFIG_FEC_MXC_PHYADDR      1
-
-#define CONFIG_PHYLIB
-#define CONFIG_PHY_ATHEROS
-
-/* Command definition */
-#include "config.h"
 typedef uint64_t iomux_v3_cfg_t;
 
 #define MUX_CTRL_OFS_SHIFT  0
