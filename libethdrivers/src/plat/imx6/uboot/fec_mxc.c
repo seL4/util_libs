@@ -38,19 +38,6 @@
 #include <string.h>
 #include "../enet.h"
 #include "../ocotp_ctrl.h"
-/*
- * Timeout the transfer after 5 mS. This is usually a bit more, since
- * the code in the tightloops this timeout is used in adds some overhead.
- */
-#define FEC_XFER_TIMEOUT    5000
-
-#ifndef CONFIG_MII
-#error "CONFIG_MII has to be defined!"
-#endif
-
-#ifndef CONFIG_FEC_XCV_TYPE
-#define CONFIG_FEC_XCV_TYPE MII100
-#endif
 
 #undef DEBUG
 

@@ -9,8 +9,6 @@
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
 
-#define IMX6_INTERRUPT_ENET 150
-
 /**
  * This function initialises the hardware and conforms to the ethif_driver_init
  * type in raw.h
