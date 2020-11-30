@@ -11,5 +11,5 @@ astyle --options="${0%/*}/astylerc" "$@"
 
 for f
 do
-    python -m guardonce.guard2once -s "$f"
+    python3 -m guardonce.guard2once -s "$f"
 done
