@@ -467,12 +467,10 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
 
     /* Initialise the RGMII interface */
     struct enet *enet = enet_init(
-    (struct desc_data) {
-        .tx_phys = eth_data->tx_ring_phys,
-        .rx_phys = eth_data->rx_ring_phys,
-        .rx_bufsize = BUF_SIZE
-    },
-    &io_ops);
+                            eth_data->tx_ring_phys,
+                            eth_data->rx_ring_phys,
+                            BUF_SIZE,
+                            &io_ops);
     if (!enet) {
         LOG_ERROR("Failed to initialize RGMII");
         /* currently no way to properly clean up enet */
