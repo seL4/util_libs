@@ -29,13 +29,11 @@
 
 struct enet;
 
-struct desc_data {
-    uint32_t tx_phys;
-    uint32_t rx_phys;
-    uint32_t rx_bufsize;
-};
-
-struct enet *enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops);
+struct enet *enet_init(
+    uint32_t tx_phys,
+    uint32_t rx_phys,
+    uint32_t rx_bufsize,
+    ps_io_ops_t *io_ops);
 
 /* Debug */
 void enet_dump_regs(struct enet *enet);
