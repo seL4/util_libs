@@ -20,6 +20,8 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         set(ElfloaderImage "uimage" CACHE STRING "" FORCE)
     elseif(${kernel_platform} STREQUAL "rpi3" AND ${kernel_sel4_arch} STREQUAL "aarch64")
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
+    elseif(${kernel_platform} STREQUAL "rpi4" AND ${kernel_sel4_arch} STREQUAL "aarch64")
+        set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     else()
@@ -151,6 +153,7 @@ function(correct_platform_strings)
         "imx6:sabre,wandq"
         "imx31:kzm"
         "bcm2837:rpi3"
+        "bcm2711:rpi4"
         "exynos5:exynos5250,exynos5410,exynos5422"
         "am335x:am335x-boneblack,am335x-boneblue"
         "-KernelSel4Arch"
