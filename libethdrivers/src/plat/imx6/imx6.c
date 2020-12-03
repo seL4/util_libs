@@ -257,9 +257,9 @@ static int initialize_desc_ring(struct imx6_eth_data *dev,
     return 0;
 }
 
-static void complete_rx(struct eth_driver *eth_driver)
+static void complete_rx(struct eth_driver *driver)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)eth_driver->eth_data;
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     unsigned int rdt = dev->rdt;
     while (dev->rdh != rdt) {
         unsigned int status = dev->rx_ring[dev->rdh].stat;
@@ -277,7 +277,7 @@ static void complete_rx(struct eth_driver *eth_driver)
         dev->rdh = (dev->rdh + 1) % dev->rx_size;
         dev->rx_remain++;
         /* Give the buffers back */
-        eth_driver->i_cb.rx_complete(eth_driver->cb_cookie, 1, &cookie, &len);
+        driver->i_cb.rx_complete(driver->cb_cookie, 1, &cookie, &len);
     }
     if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
         enet_rx_enable(dev->enet);
@@ -310,16 +310,16 @@ static void complete_tx(struct eth_driver *driver)
     }
 }
 
-static void print_state(struct eth_driver *eth_driver)
+static void print_state(struct eth_driver *driver)
 {
-    struct imx6_eth_data *eth_data = (struct imx6_eth_data *)eth_driver->eth_data;
-    enet_print_mib(eth_data->enet);
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    enet_print_mib(dev->enet);
 }
 
 static void handle_irq(struct eth_driver *driver, int irq)
 {
-    struct imx6_eth_data *eth_data = (struct imx6_eth_data *)driver->eth_data;
-    struct enet *enet = eth_data->enet;
+    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    struct enet *enet = dev->enet;
     uint32_t e = enet_clr_events(enet, NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
     if (e & NETIRQ_TXF) {
         complete_tx(driver);
@@ -417,13 +417,12 @@ static struct raw_iface_funcs iface_fns = {
     .get_mac = get_mac
 };
 
-int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
-                    void *config)
+int ethif_imx6_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
 {
     int ret;
 
     /* need to free these on error if assigned */
-    struct imx6_eth_data *eth_data = NULL;
+    struct imx6_eth_data *dev = NULL;
     struct ocotp *ocotp = NULL;
 
     if (config == NULL) {
@@ -433,19 +432,19 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
 
     struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
 
-    eth_data = (struct imx6_eth_data *)malloc(sizeof(struct imx6_eth_data));
-    if (eth_data == NULL) {
+    dev = (struct imx6_eth_data *)malloc(sizeof(struct imx6_eth_data));
+    if (dev == NULL) {
         ZF_LOGE("Failed to allocate eth data struct");
         goto error;
     }
 
-    eth_data->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
-    eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
-    eth_driver->eth_data = eth_data;
-    eth_driver->dma_alignment = DMA_ALIGN;
-    eth_driver->i_fn = iface_fns;
+    dev->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    dev->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
+    driver->eth_data = dev;
+    driver->dma_alignment = DMA_ALIGN;
+    driver->i_fn = iface_fns;
 
-    ret = initialize_desc_ring(eth_data, &io_ops.dma_manager);
+    ret = initialize_desc_ring(dev, &io_ops.dma_manager);
     if (ret) {
         ZF_LOGE("Failed to allocate descriptor rings, code %d", ret);
         goto error;
@@ -473,8 +472,8 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
 
     /* Initialise the RGMII interface */
     struct enet *enet = enet_init(
-                            eth_data->tx_ring_phys,
-                            eth_data->rx_ring_phys,
+                            dev->tx_ring_phys,
+                            dev->rx_ring_phys,
                             BUF_SIZE,
                             &io_ops);
     if (!enet) {
@@ -483,7 +482,7 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
         assert(!"enet cannot be cleaned up");
         goto error;
     }
-    eth_data->enet = enet;
+    dev->enet = enet;
 
     /* Non-Promiscuous mode means that only traffic relevant for us is made
      * visible by the hardware, everything else is discarded automatically. We
@@ -517,18 +516,19 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops,
     /* Start the controller */
     enet_enable(enet);
 
-    fill_rx_bufs(eth_driver);
-    enable_interrupts(eth_data);
+    fill_rx_bufs(driver);
+    enable_interrupts(dev);
 
     /* done */
     return 0;
+
 error:
     if (ocotp) {
         ocotp_free(ocotp, &io_ops.io_mapper);
     }
-    if (eth_data) {
-        free_desc_ring(eth_data, &io_ops.dma_manager);
-        free(eth_data);
+    if (dev) {
+        free_desc_ring(dev, &io_ops.dma_manager);
+        free(dev);
     }
     return -1;
 }
@@ -598,19 +598,19 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num,
 int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
 {
     int ret;
-    struct eth_driver *eth_driver = NULL;
+    struct eth_driver *driver = NULL;
     ret = ps_calloc(
               &io_ops->malloc_ops,
               1,
-              sizeof(*eth_driver),
-              (void **) &eth_driver);
+              sizeof(*driver),
+              (void **) &driver);
     if (ret) {
         ZF_LOGE("Failed to allocate memory for the Ethernet driver, code %d", ret);
         return -ENOMEM;
     }
 
     ps_fdt_cookie_t *cookie = NULL;
-    callback_args_t args = { .io_ops = io_ops, .eth_driver = eth_driver };
+    callback_args_t args = { .io_ops = io_ops, .eth_driver = driver };
     ret = ps_fdt_read_path(
               &io_ops->io_fdt,
               &io_ops->malloc_ops,
@@ -653,7 +653,7 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
     plat_config.buffer_addr = args.addr;
     plat_config.prom_mode = 1;
 
-    ret = ethif_imx6_init(eth_driver, *io_ops, &plat_config);
+    ret = ethif_imx6_init(driver, *io_ops, &plat_config);
     if (ret) {
         ZF_LOGE("Failed to initialise the Ethernet driver, code %d", ret);
         return -ENODEV;
@@ -662,7 +662,7 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
     ret = ps_interface_register(
               &io_ops->interface_registration_ops,
               PS_ETHERNET_INTERFACE,
-              eth_driver,
+              driver,
               NULL);
     if (ret) {
         ZF_LOGE("Failed to register Ethernet driver interface, code %d", ret);
