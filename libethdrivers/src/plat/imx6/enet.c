@@ -520,17 +520,15 @@ void enet_prom_disable(struct enet *enet)
 struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
                        ps_io_ops_t *io_ops)
 {
-    enet_regs_t *regs;
-    struct enet *ret;
     struct clock *enet_clk_ptr = NULL;
 
     /* Map in the device */
-    regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
-    if (regs == NULL) {
+    enet_regs_t *regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
+    if (!regs) {
         ZF_LOGE("ethernet controller could not be mapped");
         return NULL;
     }
-    ret = (struct enet *)regs;
+    struct enet *enet = (struct enet *)regs;
 
     /* Perform reset */
     regs->ecr = ECR_RESET;
@@ -584,12 +582,12 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
 #endif
 
     /* Set the MDIO clock frequency */
-    mdc_clk.priv = (void *)enet_get_regs(ret);
+    mdc_clk.priv = (void *)regs;
     clk_register_child(enet_clk_ptr, &mdc_clk);
     clk_set_freq(&mdc_clk, MDC_FREQ);
 
     /* Clear out MIB */
-    enet_clear_mib(ret);
+    enet_clear_mib(enet);
 
     /* Descriptor group and individual hash tables - Not changed on reset */
     regs->iaur = 0;
@@ -598,7 +596,7 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
     regs->galr = 0;
 
     /* Set MAC and pause frame type field */
-    enet_set_mac(ret, (unsigned char *)"\0\0\0\0\0\0");
+    enet_set_mac(enet, (unsigned char *)"\0\0\0\0\0\0");
 
     /* Configure pause frames (continues into MAC registers...) */
     regs->opd = PAUSE_OPCODE_FIELD << 16;
@@ -632,7 +630,7 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
     /* Transmit control - Full duplex mode */
     regs->tcr = TCR_FDEN;
 
-    return ret;
+    return enet;
 }
 
 /****************************
