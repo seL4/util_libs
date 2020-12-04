@@ -23,9 +23,6 @@
 #include "unimplemented.h"
 
 #define IRQ_MASK    (NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR)
-
-#define DEFAULT_MAC "\x00\x19\xb8\x00\xf0\xa3"
-
 #define BUF_SIZE    MAX_PKT_SIZE
 #define DMA_ALIGN   32
 
@@ -524,25 +521,52 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     return ETHIF_TX_ENQUEUED;
 }
 
+static int obtain_mac_from_ocotp(ps_io_mapper_t *io_mapper, uint8_t* mac)
+{
+    assert(io_mapper);
+    assert(mac);
+
+    int ret;
+
+    struct ocotp *ocotp = ocotp_init(io_mapper);
+    if (!ocotp) {
+        ZF_LOGE("Failed to initialize OCOTP to read MAC");
+        return -1;
+    }
+
+    ret = ocotp_get_mac(ocotp, mac);
+    ocotp_free(ocotp, io_mapper);
+    if (ret) {
+        ZF_LOGE("Failed to get MAC from OCOTP, code %d", ret);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int init_device(imx6_eth_driver_t *dev)
 {
     assert(dev);
 
     int ret;
-    struct ocotp *ocotp = NULL; /* free on error if assigned */
+
+    uint8_t mac[6] = {0};
+    ret = obtain_mac_from_ocotp(&(dev->eth_drv.io_ops.io_mapper), mac);
+    if (ret) {
+        ZF_LOGE("Failed to get MAC from OCOTP, code %d", ret);
+        return -1;
+    }
+
+    ZF_LOGI("using MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
 
     ret = initialize_desc_ring(dev);
     if (ret) {
         ZF_LOGE("Failed to allocate descriptor rings, code %d", ret);
-        goto error;
+        return -1;
     }
-
-    /* initialise the eFuse controller so we can get a MAC address */
-    ocotp = ocotp_init(&(dev->eth_drv.io_ops.io_mapper));
-    if (!ocotp) {
-        ZF_LOGE("Failed to initialize ocotp");
-        goto error;
-    }
+    /* Allocation successful, need to free rings on any error from now own. */
 
     /* Initialise ethernet pins, also does a PHY reset */
     ret = setup_iomux_enet(&(dev->eth_drv.io_ops));
@@ -551,18 +575,13 @@ static int init_device(imx6_eth_driver_t *dev)
         goto error;
     }
 
-    /* Initialise the phy library */
-    miiphy_init();
-
-    /* Initialise the phy */
-    phy_micrel_init();
-
     /* Initialise the RGMII interface, clears and masks all interrupts */
     dev->enet = enet_init(
                     dev->mapped_peripheral,
                     dev->tx_ring_phys,
                     dev->rx_ring_phys,
                     BUF_SIZE,
+                    mac,
                     &(dev->eth_drv.io_ops));
     if (!dev->enet) {
         ZF_LOGE("Failed to initialize RGMII");
@@ -580,15 +599,10 @@ static int init_device(imx6_eth_driver_t *dev)
      */
     enet_prom_enable(dev->enet);
 
-    uint8_t mac[6];
-    if (ocotp == NULL || ocotp_get_mac(ocotp, mac)) {
-        memcpy(mac, DEFAULT_MAC, 6);
-    }
-    ZF_LOGI("using MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
-    enet_set_mac(dev->enet, mac);
-
+    /* Initialise the phy library */
+    miiphy_init();
+    /* Initialise the phy */
+    phy_micrel_init();
     /* Connect the phy to the ethernet controller */
     unsigned int phy_mask = 0xffffffff;
     dev->phy = fec_init(phy_mask, dev->enet);
@@ -626,9 +640,6 @@ static int init_device(imx6_eth_driver_t *dev)
     return 0;
 
 error:
-    if (ocotp) {
-        ocotp_free(ocotp, &(dev->eth_drv.io_ops.io_mapper));
-    }
     /* ToDo: free dev->phydev if set */
     free_desc_ring(dev);
     return -1;
