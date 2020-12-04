@@ -34,6 +34,7 @@ struct enet *enet_init(
     uintptr_t tx_phys,
     uintptr_t rx_phys,
     size_t rx_bufsize,
+    char *mac,
     ps_io_ops_t *io_ops);
 
 /* Debug */

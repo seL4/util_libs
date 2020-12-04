@@ -511,7 +511,7 @@ void enet_prom_disable(struct enet *enet)
 }
 
 struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
-                       uintptr_t rx_phys, size_t rx_bufsize,
+                       uintptr_t rx_phys, size_t rx_bufsize, char *mac,
                        ps_io_ops_t *io_ops)
 {
     assert(mapped_peripheral);
@@ -588,7 +588,7 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     regs->galr = 0;
 
     /* Set MAC and pause frame type field */
-    enet_set_mac(enet, (unsigned char *)"\0\0\0\0\0\0");
+    enet_set_mac(enet, mac);
 
     /* Configure pause frames (continues into MAC registers...) */
     regs->opd = PAUSE_OPCODE_FIELD << 16;
