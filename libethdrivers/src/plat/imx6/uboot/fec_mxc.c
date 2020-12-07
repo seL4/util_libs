@@ -41,16 +41,16 @@
 
 #undef DEBUG
 
-int fec_phy_read(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
-                 int regAddr)
+static int fec_phy_read(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
+                        int regAddr)
 {
     struct enet *enet = (struct enet *)bus->priv;
     assert(enet);
     return enet_mdio_read(enet, phyAddr, regAddr);
 }
 
-int fec_phy_write(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
-                  int regAddr, uint16_t data)
+static int fec_phy_write(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
+                         int regAddr, uint16_t data)
 {
     struct enet *enet = (struct enet *)bus->priv;
     assert(enet);
