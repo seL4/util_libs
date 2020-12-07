@@ -46,6 +46,7 @@ struct imx6_gpio_regs {
     uint32_t direction;   /* +0x04 */
     uint32_t pad_status;  /* +0x08 */
     uint32_t int_cfg;     /* +0x0C */
+    uint32_t int_cfg2;    /* +0x10 */
     uint32_t int_mask;    /* +0x14 */
     uint32_t int_status;  /* +0x18 */
     uint32_t edge;        /* +0x1C */
