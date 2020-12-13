@@ -18,9 +18,12 @@
 #define CCM_ANALOG_PADDR 0x020C8000
 #define CCM_ANALOG_SIZE      0x1000
 
-/* Generic PLL */
-#define PLL_LOCK          BIT(31)
-#define PLL_BYPASS        BIT(16)
+/* common flags for all PLLs */
+#define PLL_LOCK                BIT(31)
+#define PLL_BYPASS              BIT(16)
+#define PLL_GET_BYPASS_SRC(x)   (((x) >> 14) & 0x3)
+#define PLL_ENABLE              BIT(13)
+#define PLL_PWR_DOWN            BIT(12)
 
 /* SYS PLL */
 #define PLL_ARM_DIV_MASK  0x7F
