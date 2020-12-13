@@ -45,11 +45,17 @@
 #define PLL_ENET_DIV_MASK 0x3
 #define PLL_ENET_ENABLE   BIT(13)
 
-/* USB */
-#define PLL_USB_DIV_MASK  0x3
-#define PLL_EN_USB_CLKS   BIT(6)
-#define PLL_USB_ENABLE    BIT(13)
-#define PLL_USB_POWER     BIT(12)
+/* PLL_USB. There is PLL3 (USB1_PLL or 480 PLL) that runs at a fixed multiplier
+ * 20 and based on the 24 MHz oscillator creates a 480 MHz reference clock
+ * (24 MHz * 20 = 480 MHz). It is used for USB0 PHY (OTG PHY) and also to create
+ * clocks for UART, CAN, other serial interfaces and audio interfaces.
+ * There is also 480_PLL2 (USB2_PLL), which provides clock exclusively to
+ * USB2 PHY (also known as HOST PHY) that also runs at a fixed multiplier of 20
+ * to generate a 480 MHz clock.
+ */
+#define PLL_USB_ENABLE_CLKS     BIT(6)
+#define PLL_USB_DIV_MASK        0x3
+#define PLL_USB_GET_DIV(x)      ((x) & PLL_USB_DIV_MASK)
 
 
 #define CLKGATE_OFF    0x0
@@ -642,22 +648,65 @@ static struct clock ipg_clk = { CLK_OPS(IPG, ipg, NULL) };
 
 static freq_t _usb_get_freq(clk_t *clk)
 {
-    volatile alg_sct_t *pll_usb;
-    pll_usb = clk_regs.alg->pll_usb;
-    if (clk->id == CLK_USB2) {
-        pll_usb++;
-    } else if (clk->id != CLK_USB1) {
-        assert(0);
+    unsigned int idx;
+    switch (clk->id) {
+    case CLK_USB1:
+        idx = 0;
+        break;
+    case CLK_USB2:
+        idx = 1;
+        break;
+    default:
+        ZF_LOGE("invalid USB clock ID: %u", clk->id);
         return 0;
     }
-    if (pll_usb->val & ~PLL_BYPASS) {
-        if (pll_usb->val & (PLL_USB_ENABLE | PLL_USB_POWER | PLL_EN_USB_CLKS)) {
-            uint32_t div = (pll_usb->val & PLL_USB_DIV_MASK) ? 22 : 20;
-            return clk_get_freq(clk->parent) * div;
-        }
+
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
     }
-    /* Not enabled or in bypass mode...
-     * We should only be in bypass when changing Fout */
+
+    uint32_t v = clk_regs.alg->pll_usb[idx].val;
+
+    /* clock output enabled? */
+    if (!(v & PLL_ENABLE)) {
+        return 0;
+    }
+
+    if (v & PLL_BYPASS) {
+        /* bypass on
+         * 0x0 source is 24MHz oscillator
+         * 0x1 source is CLK1_N/CLK1_P
+         * 0x2 source is CLK2_N/CLK2_P
+         * 0x3 source is CLK1_N/CLK1_P XOR CLK2_N/CLK2_P
+         */
+        unsigned int src = PLL_GET_BYPASS_SRC(v);
+        switch (src) {
+        case 0:
+            return 24 * MHZ;
+        default:
+            break;
+        }
+        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        return 0;
+    }
+
+    /* PLL enabled, but powered down? */
+    if (v & PLL_PWR_DOWN) {
+        return 0;
+    }
+
+    freq_t f_parent = clk_get_freq(clk->parent);
+    unsigned int div = PLL_USB_GET_DIV(v);
+    switch (div) {
+    case 0:
+        return  f_parent * 20;
+    case 1:
+        return  f_parent * 22;
+    default:
+        break;
+    }
+    ZF_LOGE("unsupported USB PLL divider %u", v);
     return 0;
 }
 
@@ -674,26 +723,34 @@ static void _usb_recal(clk_t *clk UNUSED)
 
 static clk_t *_usb_init(clk_t *clk)
 {
-    volatile alg_sct_t *pll_usb;
     if (clk->parent == NULL) {
         clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
         clk->priv = (void *)&clk_regs;
     }
-    if (clk_regs.alg == NULL) {
-        ZF_LOGF("clk_regs.alg is NULL: Clocks likely not initialised properly");
+
+    unsigned int idx;
+    switch (clk->id) {
+    case CLK_USB1:
+        idx = 0;
+        break;
+    case CLK_USB2:
+        idx = 1;
+        break;
+    default:
+        ZF_LOGE("invalid USB clock ID: %u", clk->id);
         return NULL;
     }
+
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return NULL;
+    }
+    alg_sct_t *pll = &clk_regs.alg->pll_usb[idx];
+
     /* While we are here, gate the clocks */
-    pll_usb = clk_regs.alg->pll_usb;
-    if (clk->id == CLK_USB2) {
-        pll_usb++;
-    } else if (clk->id != CLK_USB1) {
-        assert(0);
-        return NULL;
-    }
-    pll_usb->clr = PLL_BYPASS;
-    pll_usb->set = PLL_USB_ENABLE | PLL_USB_POWER | PLL_EN_USB_CLKS;
+    pll->clr = PLL_BYPASS;
+    pll->set = PLL_ENABLE | PLL_PWR_DOWN | PLL_USB_ENABLE_CLKS;
     clk_gate_enable(clk_get_clock_sys(clk), usboh3, CLKGATE_ON);
     return clk;
 }
