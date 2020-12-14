@@ -25,9 +25,9 @@
 #define PLL_ENABLE              BIT(13)
 #define PLL_PWR_DOWN            BIT(12)
 
-/* PLL_ARM */
-#define PLL_ARM_DIV_MASK  0x7F
-#define PLL_ARM_ENABLE    BIT(13)
+/* PLL_ARM (PLL1), up to 1.3 GHz */
+#define PLL_ARM_DIV_MASK        0x7F
+#define PLL_ARM_GET_DIV(x)      ((x) & PLL_ARM_DIV_MASK)
 
 /* PLL_SYS (also called PLL2 or PLL_528) runs at a fixed multiplier 22 based
  * on the 24 MHz oscillator to create a 528 MHz a reference clock
@@ -215,34 +215,77 @@ static int change_pll(alg_sct_t *pll, uint32_t div_mask, uint32_t div)
 
 static freq_t _arm_get_freq(clk_t *clk)
 {
-    uint32_t div;
-    uint32_t fout, fin;
-    div = clk_regs.alg->pll_arm.val;
-    div &= PLL_ARM_DIV_MASK;
-    fin = clk_get_freq(clk->parent);
-    fout = fin * div / 2;
-    return fout;
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
+    }
+
+    uint32_t v = clk_regs.alg->pll_enet.val;
+
+    /* clock output enabled? */
+    if (!(v & PLL_ENABLE)) {
+        /* we should never be here, because we are running on the ARM core */
+        return 0;
+    }
+
+    if (v & PLL_BYPASS) {
+        /* bypass on
+         * 0x0 source is 24MHz oscillator
+         * 0x1 source is CLK1_N/CLK1_P
+         * 0x2 source is CLK2_N/CLK2_P
+         * 0x3 source is CLK1_N/CLK1_P XOR CLK2_N/CLK2_P
+         */
+        unsigned int src = PLL_GET_BYPASS_SRC(v);
+        switch (src) {
+        case 0:
+            return 24 * MHZ;
+        default:
+            break;
+        }
+        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        return 0;
+    }
+
+    /* PLL enabled, but powered down? */
+    if (v & PLL_PWR_DOWN) {
+        /* we should never be here, because we are running on the ARM core */
+        return 0;
+    }
+
+    /* valid divider range 54 to 108, F_out = F_in * div_select / 2 */
+    unsigned int div = PLL_ARM_GET_DIV(v);
+    if ((div < 54) || (div > 108)) {
+        ZF_LOGE("PLL_ARM divider out of valid range 54-108: %u", div);
+    }
+    freq_t f_in = clk_get_freq(clk->parent);
+    return f_in * div / 2;
 }
 
 static freq_t _arm_set_freq(clk_t *clk, freq_t hz)
 {
-    uint32_t div;
-    uint32_t fin;
-    uint32_t v;
+    ZF_LOGI("clock '%s': switch from %u Mhz to %llu (%u Mhz)",
+            clk->name, (int)(clk_get_freq(clk) / MHZ), hz, (int)(hz / MHZ));
 
-    fin = clk_get_freq(clk->parent);
-    div = 2 * hz / fin;
-    div = INRANGE(54, div, 108);
-    /* bypass on during clock manipulation */
-    clk_regs.alg->pll_arm.set = PLL_BYPASS;
-    /* Set the divisor */
-    v = clk_regs.alg->pll_arm.val & ~(PLL_ARM_DIV_MASK);
-    v |= div;
-    clk_regs.alg->pll_arm.val = v;
-    /* wait for lock */
-    while (!(clk_regs.alg->pll_arm.val & PLL_LOCK));
-    /* bypass off */
-    clk_regs.alg->pll_arm.clr = PLL_BYPASS;
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
+    }
+
+    alg_sct_t *pll = &clk_regs.alg->pll_arm;
+
+    freq_t fin = clk_get_freq(clk->parent);
+    unsigned int div = 2 * hz / fin;
+    if ((div < 54) || (div > 108)) {
+        ZF_LOGE("PLL_ARM divider out of valid range 54-108: %u", div);
+        return 0;
+    }
+
+    int ret = change_pll(pll, PLL_ARM_DIV_MASK, div);
+    if (0 != ret) {
+        ZF_LOGE("waiting for PLL_ARM lock aborted, code %d", ret);
+        return 0;
+    }
+
     return clk_get_freq(clk);
 }
 
