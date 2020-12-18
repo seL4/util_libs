@@ -33,7 +33,7 @@ mark_as_advanced(UIMAGE_TOOL)
 config_option(UseRiscVOpenSBI RISCV_OPENSBI "Use OpenSBI." DEFAULT ON DEPENDS "KernelArchRiscV")
 
 if(UseRiscVOpenSBI)
-    set(OPENSBI_PATH ${"CMAKE_SOURCE_DIR}/tools/opensbi" CACHE STRING "OpenSBI Folder location")
+    set(OPENSBI_PATH "${CMAKE_SOURCE_DIR}/tools/opensbi" CACHE STRING "OpenSBI Folder location")
     mark_as_advanced(FORCE OPENSBI_PATH)
 endif()
 
@@ -99,35 +99,28 @@ function(DeclareRootserver rootservername)
             endif()
             if(UseRiscVOpenSBI)
                 # Package up our final elf image into OpenSBI.
-                # The host string is extracted from the cross compiler setting
-                # minus the trailing '-'
                 if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
                     message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
                 endif()
 
-                if("${PLATFORM}" STREQUAL "hifive" OR "${PLATFORM}" STREQUAL "polarfire")
-                    set(OPENSBI_PLATFORM "sifive/fu540")
-                elseif("${PLATFORM}" STREQUAL "ariane")
-                    set(OPENSBI_PLATFORM "fpga/ariane")
-                else()
-                    set(OPENSBI_PLATFORM "generic")
+                if("${KernelOpenSBIPlatform}" STREQUAL "")
+                    message(FATAL_ERROR "KernelOpenSBIPlatform not set.")
                 endif()
 
                 file(GLOB_RECURSE deps)
+                set(
+                    OPENSBI_FW_PAYLOAD_ELF
+                    "${OPENSBI_PATH}/build/platform/${KernelOpenSBIPlatform}/firmware/fw_payload.elf"
+                )
                 add_custom_command(
-                    OUTPUT
-                        "${OPENSBI_PATH}/build/platform/${KernelOpenSBIPlatform}/firmware/fw_payload.elf"
-                    COMMAND mkdir -p "${CMAKE_BINARY_DIR}/opensbi"
+                    OUTPUT "${OPENSBI_FW_PAYLOAD_ELF}"
                     COMMAND
                         cd "${OPENSBI_PATH}" && ${CMAKE_OBJCOPY} -O binary "${elf_target_file}"
                         "payload" && make -s clean && CROSS_COMPILE=${CROSS_COMPILER_PREFIX} make
-                        PLATFORM="${OPENSBI_PLATFORM}" FW_PAYLOAD_PATH=payload
-                    DEPENDS ${elf_target_file} elfloader ${USES_TERMINAL_DEBUG}
+                        PLATFORM="${KernelOpenSBIPlatform}" FW_PAYLOAD_PATH=payload
+                    DEPENDS "${elf_target_file}" elfloader ${USES_TERMINAL_DEBUG}
                 )
-                set(
-                    elf_target_file
-                    "${OPENSBI_PATH}/build/platform/${OPENSBI_PLATFORM}/firmware/fw_payload.elf"
-                )
+                set(elf_target_file "${OPENSBI_FW_PAYLOAD_ELF}")
             endif()
         endif()
         set(binary_efi_list "binary;efi")
