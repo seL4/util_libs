@@ -113,12 +113,18 @@ struct phy_device *fec_init(unsigned int phy_mask, struct enet *enet)
 
 #elif defined(CONFIG_PLAT_IMX6)
 
-    /* min rx data delay */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
-    /* min tx data delay */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_TX_DATA_SKEW, 0x0);
-    /* max rx/tx clock delay, min rx/tx control */
-    ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
+    if (0x00221610 == (phydev->phy_id & 0xfffffff0)) { /* ignore silicon rev */
+        /* min rx data delay */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
+        /* min tx data delay */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_TX_DATA_SKEW, 0x0);
+        /* max rx/tx clock delay, min rx/tx control */
+        ksz9021_phy_extended_write(phydev, MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
+    } else if (0x0007c0d1 == phydev->phy_id) {
+        /* seems we are running on QEMU, no special init for the emulated PHY */
+    } else {
+        ZF_LOGW("SABRE: unexpected PHY with ID 0x%x", phydev->phy_id);
+    }
 
 #else
 #error "unsupported platform"
