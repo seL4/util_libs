@@ -25,9 +25,21 @@
 #define PLL_ENABLE              BIT(13)
 #define PLL_PWR_DOWN            BIT(12)
 
-/* SYS PLL */
+/* PLL_ARM */
 #define PLL_ARM_DIV_MASK  0x7F
 #define PLL_ARM_ENABLE    BIT(13)
+
+/* PLL_SYS (also called PLL2 or PLL_528) runs at a fixed multiplier 22 based
+ * on the 24 MHz oscillator to create a 528 MHz a reference clock
+ * (24 MHz * 22 = 528 MHz). Other values than 22 are not supposed to be used.
+ */
+#define PLL_SYS_DIV_MASK        BIT(0)
+#define PLL_SYS_GET_DIV(x)      ((x) & PLL_SYS_DIV_MASK)
+
+/* PLL_SYS spread spectrum control (CCM_ANALOG_PLL_SYS_SS) */
+#define PLL_SYS_SS_STOP(x)      (((x) & 0xffff) << 16)
+#define PLL_SYS_SS_EN           BIT(15)
+#define PLL_SYS_SS_STEP(x)      ((x) & 0x7fff)
 
 /* ENET PLL */
 #define PLL_ENET_DIV_MASK 0x3
@@ -39,19 +51,6 @@
 #define PLL_USB_ENABLE    BIT(13)
 #define PLL_USB_POWER     BIT(12)
 
-/* Also known as PLL_SYS */
-#define PLL2_PADDR 0x020C8030
-
-#define PLL2_CTRL_LOCK          BIT(31)
-#define PLL2_CTRL_PDFOFFSET_EN  BIT(18)
-#define PLL2_CTRL_BYPASS        BIT(16)
-#define PLL2_CTRL_BYPASS_SRC(x) ((x) << 14)
-#define PLL2_CTRL_ENABLE        BIT(13)
-#define PLL2_CTRL_PWR_DOWN      BIT(12)
-#define PLL2_CTRL_DIVSEL        BIT(0)
-#define PLL2_SS_STOP(x)         ((x) << 16)
-#define PLL2_SS_EN              BIT(15)
-#define PLL2_SS_STEP(x)         ((x) <<  0)
 
 #define CLKGATE_OFF    0x0
 #define CLKGATE_ON_RUN 0x2
@@ -169,20 +168,43 @@ static struct {
     ccm_alg_regs_t *alg;
 } clk_regs = { .ccm = NULL, .alg = NULL};
 
-struct pll2_regs {
-    uint32_t ctrl;
-    uint32_t ctrl_s;
-    uint32_t ctrl_c;
-    uint32_t ctrl_t;
-    uint32_t ss;
-    uint32_t res0[3];
-    uint32_t num;
-    uint32_t res1[3];
-    uint32_t denom;
-    uint32_t res2[3];
-};
-
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
+
+static int change_pll(alg_sct_t *pll, uint32_t div_mask, uint32_t div)
+{
+    /* div can't exceed the mask */
+    assert(0 == (div & (~div_mask)));
+
+    /* bypass on during clock manipulation */
+    pll->set = PLL_BYPASS;
+    /* power down the PLL */
+    pll->set = PLL_PWR_DOWN;
+    /* set the divisor */
+    pll->clr = div_mask;
+    pll->set = div;
+    /* power up the PLL */
+    pll->clr = PLL_PWR_DOWN;
+
+    /* wait for PLL to be stable, stop after a bit over 65 million loops */
+    unsigned int loop_cnt = 0x4000000;
+    for (;;) {
+        if (pll->val & PLL_LOCK) {
+            break;
+        }
+
+        if (0 == loop_cnt--) {
+            ZF_LOGE("waiting for PLL_LOCK aborted");
+            return -1;
+        }
+    }
+
+    /* bypass off */
+    pll-> clr = PLL_BYPASS;
+    /* ensure PLL output is enabled */
+    pll->set = PLL_ENABLE;
+
+    return 0;
+}
 
 
 /*
@@ -339,57 +361,126 @@ static struct clock enet_clk = { CLK_OPS(ENET, enet, NULL) };
 
 /*
  *------------------------------------------------------------------------------
- * PLL2_CLK
+ * PLL_SYS
  *------------------------------------------------------------------------------
  */
 
-static freq_t _pll2_get_freq(clk_t *clk)
+static freq_t _pll_sys_get_freq(clk_t *clk)
 {
-    uint32_t p, s;
-    struct pll2_regs *regs;
-    regs = (struct pll2_regs *)((uint32_t)clk_regs.alg + (PLL2_PADDR & 0xfff));
-    assert((regs->ctrl & PLL2_CTRL_LOCK) != 0);
-    assert((regs->ctrl & PLL2_CTRL_BYPASS) == 0);
-    assert((regs->ctrl & PLL2_CTRL_PWR_DOWN) == 0);
-    /* pdf offset? */
-
-    p = clk_get_freq(clk->parent);
-    if (regs->ctrl & PLL2_CTRL_DIVSEL) {
-        s = 22;
-    } else {
-        s = 20;
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
     }
-    return p * s;
+
+    uint32_t v = clk_regs.alg->pll_sys.val;
+
+    /* clock output enabled? */
+    if (!(v & PLL_ENABLE)) {
+        return 0;
+    }
+
+    if (v & PLL_BYPASS) {
+        /* bypass on
+         * 0x0 source is 24MHz oscillator
+         * 0x1 source is CLK1_N/CLK1_P
+         * 0x2 source is CLK2_N/CLK2_P
+         * 0x3 source is CLK1_N/CLK1_P XOR CLK2_N/CLK2_P
+         */
+        unsigned int src = PLL_GET_BYPASS_SRC(v);
+        switch (src) {
+        case 0:
+            return 24 * MHZ;
+        default:
+            break;
+        }
+        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        return 0;
+    }
+
+    /* PLL enabled, but powered down? */
+    if (v & PLL_PWR_DOWN) {
+        return 0;
+    }
+
+    freq_t f_parent = clk_get_freq(clk->parent);
+    unsigned int div = PLL_SYS_GET_DIV(v);
+    switch (div) {
+    case 0:
+        return  f_parent * 20;
+    case 1:
+        return  f_parent * 22;
+    default:
+        break;
+    }
+    ZF_LOGE("unsupported PLL_SYS divisor %u", div);
+    return 0;
 }
 
-static freq_t _pll2_set_freq(clk_t *clk, freq_t hz)
+static freq_t _pll_sys_set_freq(clk_t *clk, freq_t hz)
 {
-    uint32_t s;
-    if (clk_regs.alg == NULL) {
-        return clk_get_freq(clk);
+    ZF_LOGI("clock '%s': switch from %u Mhz to %llu (%u Mhz)",
+            clk->name, (int)(clk_get_freq(clk) / MHZ), hz, (int)(hz / MHZ));
+
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
     }
-    s = hz / clk_get_freq(clk->parent);
-    (void)s; /* TODO implement */
-    assert(hz == 528 * MHZ);
+
+    alg_sct_t *pll = &clk_regs.alg->pll_sys;
+
+    if (24 * MHZ == hz) {
+        /* bypass PLL and use 24 MHz oscillator */
+        pll->set = PLL_BYPASS;
+        pll->set = PLL_PWR_DOWN;
+        pll->clr = PLL_ENET_DIV_MASK;
+        pll->set = PLL_ENABLE;
+    } else {
+        uint32_t div;
+        switch (hz) {
+        case 480 * MHZ:
+            div = 0;
+            break; // 480 MHz = 20 * 24 MHz
+        case 528 * MHZ:
+            div = 1;
+            break; // 528 MHz = 22 * 24 MHz
+        default:
+            ZF_LOGE("unsupported PLL_SYS clock frequency %llu", hz);
+            return 0;
+        }
+
+        int ret = change_pll(pll, PLL_SYS_DIV_MASK, div);
+        if (0 != ret) {
+            ZF_LOGE("PLL_SYS change failed, code %d", ret);
+            return 0;
+        }
+    }
+
     return clk_get_freq(clk);
 }
 
-static void _pll2_recal(clk_t *clk UNUSED)
+static void _pll_sys_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("PLL_SYS recal is not supported");
     assert(0);
 }
 
-static clk_t *_pll2_init(clk_t *clk)
+static clk_t *_pll_sys_init(clk_t *clk)
 {
     if (clk->parent == NULL) {
         clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
         clk->priv = (void *)&clk_regs;
     }
+
+    // After a reset, the system PLL is not active and the clock signal comes
+    // from the 24 MHz oscillator. We don't reconfigure anything here, enabling
+    // the 528 MHz PLL must be done manually somewhere. Note that if U-Boot is
+    // used, it may have done this already.
+
     return clk;
 }
 
-static struct clock pll2_clk = { CLK_OPS(PLL2, pll2, NULL) };
+static struct clock pll_sys_clk = { CLK_OPS(PLL2, pll_sys, NULL) };
 
 
 /*
@@ -405,7 +496,11 @@ static freq_t _mmdc_ch0_get_freq(clk_t *clk)
 
 static freq_t _mmdc_ch0_set_freq(clk_t *clk, freq_t hz)
 {
-    /* TODO there is a mux here */
+    /* TODO: there are the two MUXers here:
+     *         - CCM Bus Clock Multiplexer CBCMR.PRE_PERIPH_CLK_SEL
+     *         - CCM Bus Clock Divider CBCDR.PERIPH_CLK_SEL
+     *       by default they route the clock PLL_SYS (PLL2)
+     */
     assert(hz == 528 * MHZ);
     return clk_set_freq(clk->parent, hz);
 }
@@ -692,7 +787,7 @@ void clk_print_clock_tree(clock_sys_t *sys)
 
 clk_t *ps_clocks[] = {
     [CLK_MASTER]   = &master_clk,
-    [CLK_PLL2  ]   = &pll2_clk,
+    [CLK_PLL2]     = &pll_sys_clk,
     [CLK_MMDC_CH0] = &mmdc_ch0_clk,
     [CLK_AHB]      = &ahb_clk,
     [CLK_IPG]      = &ipg_clk,
@@ -709,7 +804,7 @@ clk_t *ps_clocks[] = {
  */
 freq_t ps_freq_default[] = {
     [CLK_MASTER]   =  24 * MHZ,
-    [CLK_PLL2  ]   = 528 * MHZ,
+    [CLK_PLL2]     = 528 * MHZ, /* PLL_SYS */
     [CLK_MMDC_CH0] = 528 * MHZ,
     [CLK_AHB]      = 132 * MHZ,
     [CLK_IPG]      =  66 * MHZ,
