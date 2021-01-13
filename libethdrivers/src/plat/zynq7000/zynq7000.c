@@ -29,6 +29,10 @@ struct zynq7000_eth_data {
     uintptr_t rx_ring_phys;
     volatile struct emac_bd *tx_ring;
     volatile struct emac_bd *rx_ring;
+    uintptr_t dummy_tx_bd_phys;
+    uintptr_t dummy_rx_bd_phys;
+    volatile struct emac_bd *dummy_tx_bd;
+    volatile struct emac_bd *dummy_rx_bd;
     unsigned int rx_size;
     unsigned int tx_size;
     void **rx_cookies;
@@ -53,6 +57,18 @@ static void free_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma_man)
         dma_unpin_free(dma_man, (void *)dev->tx_ring, sizeof(struct emac_bd) * dev->tx_size);
         dev->tx_ring = NULL;
     }
+
+#ifdef CONFIG_PLAT_ZYNQMP
+    if (dev->dummy_rx_bd != NULL) {
+        dma_unpin_free(dma_man, (void *)dev->dummy_rx_bd, sizeof(struct emac_bd));
+        dev->dummy_rx_bd = NULL;
+    }
+
+    if (dev->dummy_tx_bd != NULL) {
+        dma_unpin_free(dma_man, (void *)dev->dummy_tx_bd, sizeof(struct emac_bd));
+        dev->dummy_tx_bd = NULL;
+    }
+#endif
 
     if (dev->rx_cookies != NULL) {
         free(dev->rx_cookies);
@@ -89,6 +105,29 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
 
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct emac_bd) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct emac_bd) * dev->tx_size);
+
+#ifdef CONFIG_PLAT_ZYNQMP
+    dma_addr_t dummy_rx_ring = dma_alloc_pin(dma_man, sizeof(struct emac_bd), 0, ARCH_DMA_MINALIGN);
+    if (!dummy_rx_ring.phys) {
+        LOG_ERROR("Failed to allocate dummy rx_ring");
+        free_desc_ring(dev, dma_man);
+        return -1;
+    }
+    dev->dummy_rx_bd = dummy_rx_ring.virt;
+    dev->dummy_rx_bd_phys = dummy_rx_ring.phys;
+
+    dma_addr_t dummy_tx_ring = dma_alloc_pin(dma_man, sizeof(struct emac_bd), 0, ARCH_DMA_MINALIGN);
+    if (!dummy_tx_ring.phys) {
+        LOG_ERROR("Failed to allocate dummy tx_ring");
+        free_desc_ring(dev, dma_man);
+        return -1;
+    }
+    dev->dummy_tx_bd = dummy_tx_ring.virt;
+    dev->dummy_tx_bd_phys = dummy_tx_ring.phys;
+
+    ps_dma_cache_clean_invalidate(dma_man, dummy_rx_ring.virt, sizeof(struct emac_bd));
+    ps_dma_cache_clean_invalidate(dma_man, dummy_tx_ring.virt, sizeof(struct emac_bd));
+#endif
 
     dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
     dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
@@ -127,7 +166,10 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
     for (unsigned int i = 0; i < dev->tx_size; i++) {
         dev->tx_ring[i] = (struct emac_bd) {
             .addr = 0,
-            .status = ZYNQ_GEM_TXBUF_USED_MASK
+            .status = ZYNQ_GEM_TXBUF_USED_MASK,
+#ifdef CONFIG_PLAT_ZYNQMP
+            .addr_hi = 0
+#endif
         };
     }
 
@@ -136,11 +178,26 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
     for (unsigned int i = 0; i < dev->rx_size; i++) {
         dev->rx_ring[i] = (struct emac_bd) {
             .addr = ZYNQ_GEM_RXBUF_NEW_MASK,
-            .status = 0
+            .status = 0,
+#ifdef CONFIG_PLAT_ZYNQMP
+            .addr_hi = 0,
+#endif
         };
     }
 
     dev->rx_ring[dev->rx_size - 1].addr |= ZYNQ_GEM_RXBUF_WRAP_MASK;
+
+#ifdef CONFIG_PLAT_ZYNQMP
+    /* initialise the dummy rings */
+    dev->dummy_tx_bd->addr = 0;
+    dev->dummy_tx_bd->addr_hi = 0;
+    dev->dummy_tx_bd->status = ZYNQ_GEM_TXBUF_USED_MASK | ZYNQ_GEM_TXBUF_WRAP_MASK
+                                                        | ZYNQ_GEM_TXBUF_LAST_MASK;
+
+    dev->dummy_rx_bd->addr = ZYNQ_GEM_RXBUF_NEW_MASK | ZYNQ_GEM_RXBUF_WRAP_MASK;
+    dev->dummy_rx_bd->addr_hi = 0;
+    dev->dummy_rx_bd->status = 0;
+#endif
 
     __sync_synchronize();
 
@@ -149,7 +206,6 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
 
 static void fill_rx_bufs(struct eth_driver *driver)
 {
-
     struct zynq7000_eth_data *dev = (struct zynq7000_eth_data *)driver->eth_data;
     __sync_synchronize();
 
@@ -171,8 +227,10 @@ static void fill_rx_bufs(struct eth_driver *driver)
         /* Remove the used bit so the controller knows this descriptor is
          * available to be written to */
         dev->rx_ring[dev->rdt].addr &= ~(ZYNQ_GEM_RXBUF_NEW_MASK | ZYNQ_GEM_RXBUF_ADD_MASK);
-
         dev->rx_ring[dev->rdt].addr |= (phys & ZYNQ_GEM_RXBUF_ADD_MASK);
+#ifdef CONFIG_PLAT_ZYNQMP
+        dev->rx_ring[dev->rdt].addr_hi = (phys >> 32);
+#endif
 
         __sync_synchronize();
 
@@ -330,7 +388,10 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 
     for (i = 0; i < num; i++) {
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
-        dev->tx_ring[ring].addr = phys[i];
+        dev->tx_ring[ring].addr = (phys[i] & 0xFFFFFFFF);
+#ifdef CONFIG_PLAT_ZYNQMP
+        dev->tx_ring[ring].addr_hi = (phys[i] >> 32);
+#endif
         dev->tx_ring[ring].status &= ~(ZYNQ_GEM_TXBUF_USED_MASK | ZYNQ_GEM_TXBUF_FRMLEN_MASK | ZYNQ_GEM_TXBUF_LAST_MASK);
         dev->tx_ring[ring].status |= (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK);
         if (i == (num - 1)) {
@@ -392,7 +453,7 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
         LOG_ERROR("Cannot get platform info; Passed in Config Pointer NULL");
         goto error;
     }
-    uint32_t base_addr = (uint32_t)plat_config->buffer_addr;
+    uint32_t base_addr = (uint32_t)((uintptr_t)plat_config->buffer_addr);
 
     eth_data->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
     eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
@@ -431,6 +492,13 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     /* Initialize the buffer descriptor registers */
     writel((uint32_t)eth_data->tx_ring_phys, &regs->txqbase);
     writel((uint32_t)eth_data->rx_ring_phys, &regs->rxqbase);
+
+#ifdef CONFIG_PLAT_ZYNQMP
+    writel((uint32_t)(eth_data->tx_ring_phys >> 32), &regs->upper_txqbase);
+    writel((uint32_t)(eth_data->rx_ring_phys >> 32), &regs->upper_rxqbase);
+    writel((uint32_t)(eth_data->dummy_tx_bd_phys), &regs->transmit_q1_ptr);
+    writel((uint32_t)(eth_data->dummy_rx_bd_phys), &regs->receive_q1_ptr);
+#endif
 
     zynq_gem_init(eth_dev);
 

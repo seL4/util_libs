@@ -40,14 +40,20 @@
 #define ZYNQ_GEM_NWCTRL_MDEN_MASK   0x00000010 /* Enable MDIO port */
 #define ZYNQ_GEM_NWCTRL_STARTTX_MASK    0x00000200 /* Start tx (tx_go) */
 
-#define ZYNQ_GEM_NWCFG_SPEED100     0x000000001 /* 100 Mbps operation */
-#define ZYNQ_GEM_NWCFG_SPEED1000    0x000000400 /* 1Gbps operation */
-#define ZYNQ_GEM_NWCFG_FDEN     0x000000002 /* Full Duplex mode */
-#define ZYNQ_GEM_NWCFG_FSREM        0x000020000 /* FCS removal */
-#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x0000c0000 /* Div pclk by 48, max 120MHz */
+
+#define ZYNQ_GEM_NWCFG_SPEED100     0x00000001 /* 100 Mbps operation */
+#define ZYNQ_GEM_NWCFG_SPEED1000    0x00000400 /* 1Gbps operation */
+#define ZYNQ_GEM_NWCFG_FDEN         0x00000002 /* Full Duplex mode */
+#define ZYNQ_GEM_NWCFG_FSREM        0x00020000 /* FCS removal */
+#ifdef CONFIG_PLAT_ZYNQMP
+#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x00100000 /* Div pclk by 48, max 120MHz */
+#else
+#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x000c0000 /* Div pclk by 48, max 120MHz */
+#endif
 #define ZYNQ_GEM_NWCFG_COPY_ALL     0x000000010 /* Promiscuous Mode */
 
-#ifdef CONFIG_ARM64
+
+#ifdef CONFIG_PLAT_ZYNQMP
 # define ZYNQ_GEM_DBUS_WIDTH    (1 << 21) /* 64 bit bus */
 #else
 # define ZYNQ_GEM_DBUS_WIDTH    (0 << 21) /* 32 bit bus */
@@ -67,11 +73,17 @@
 #define ZYNQ_GEM_DMACR_TXSIZE       0x00000400
 /* Set with binary 00011000 to use 1536 byte(1*max length frame/buffer) */
 #define ZYNQ_GEM_DMACR_RXBUF        0x00180000
+#ifdef CONFIG_PLAT_ZYNQMP
+#define ZYNQ_GEM_DMACR_DBUS_WIDTH (1 << 30)
+#else
+#define ZYNQ_GEM_DMACR_DBUS_WIDTH (0 << 30)
+#endif
 
 #define ZYNQ_GEM_DMACR_INIT     (ZYNQ_GEM_DMACR_BLENGTH | \
                     ZYNQ_GEM_DMACR_RXSIZE | \
                     ZYNQ_GEM_DMACR_TXSIZE | \
-                    ZYNQ_GEM_DMACR_RXBUF)
+                    ZYNQ_GEM_DMACR_RXBUF | \
+                    ZYNQ_GEM_DMACR_DBUS_WIDTH)
 
 #define ZYNQ_GEM_TSR_DONE       0x00000020 /* Tx done mask */
 
@@ -127,16 +139,28 @@ struct zynq_gem_regs {
     u32 reserved6[18];
 #define STAT_SIZE   44
     u32 stat[STAT_SIZE]; /* 0x100 - Octects transmitted Low reg */
-    u32 reserved7[164];
+    u32 reserved9[20];
+    u32 pcscntrl;
+    u32 reserved12[36];
+    u32 dcfg6;
+    u32 reserved7[106];
     u32 transmit_q1_ptr; /* 0x440 - Transmit priority queue 1 */
     u32 reserved8[15];
     u32 receive_q1_ptr; /* 0x480 - Receive priority queue 1 */
+    u32 reserved10[17];
+    u32 upper_txqbase;
+    u32 reserved11[2];
+    u32 upper_rxqbase;
 };
 
 /* BD descriptors */
 struct emac_bd {
     u32 addr; /* Next descriptor pointer */
     u32 status;
+#ifdef CONFIG_PLAT_ZYNQMP
+    u32 addr_hi;
+    u32 reserved;
+#endif
 };
 
 #define RX_BUF 32

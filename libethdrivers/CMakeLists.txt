@@ -66,6 +66,8 @@ add_config_library(ethdrivers "${configure_string}")
 if("${KernelPlatform}" MATCHES "imx8mq-evk")
     # Re-use the imx6 sources
     set(PlatPrefix "imx6")
+elseif("${KernelPlatform}" MATCHES "zynqmp")
+    set(PlatPrefix "zynq7000")
 else()
     set(PlatPrefix "${KernelPlatform}")
 endif()

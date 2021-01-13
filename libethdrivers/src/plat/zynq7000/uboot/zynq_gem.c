@@ -250,8 +250,8 @@ int zynq_gem_init(struct eth_device *dev)
 
         /* Disable the receiver & transmitter */
         writel(0, &regs->nwctrl);
-        writel(0xFFFFFFFF, &regs->txsr);
-        writel(0xFFFFFFFF, &regs->rxsr);
+        writel(0, &regs->txsr);
+        writel(0, &regs->rxsr);
         writel(0, &regs->phymntnc);
 
         /* Clear the Hash registers for the mac address
@@ -321,9 +321,11 @@ int zynq_gem_init(struct eth_device *dev)
     /* Change the rclk and clk only not using EMIO interface */
     if (!priv->emio) {
         /* Set the ethernet clock frequency */
+#ifdef CONFIG_PLAT_ZYNQ7000
         gem_clk = clk_get_clock(&zynq_io_ops->clock_sys, CLK_GEM0);
         gem_clk->init(gem_clk);
         clk_set_freq(gem_clk, clk_rate);
+#endif
     }
 
     /* Enable IRQs */
