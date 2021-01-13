@@ -34,8 +34,8 @@
  * TODO: The kernel offers some more advanced versions of barriers, it might
  * have some advantages to use them instead of the simple one here.
  */
-#define dmb()     asm volatile("dmb" ::: "memory")
-#define dsb()     asm volatile("dsb" ::: "memory")
+#define dmb()     asm volatile("dmb sy" ::: "memory")
+#define dsb()     asm volatile("dsb sy" ::: "memory")
 #define isb()     asm volatile("isb" ::: "memory")
 #define __iormb()	dmb()
 #define __iowmb()	dmb()
