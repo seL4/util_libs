@@ -64,11 +64,12 @@
 #define PLL_USB_DIV_MASK        0x3
 #define PLL_USB_GET_DIV(x)      ((x) & PLL_USB_DIV_MASK)
 
-
-#define CLKGATE_OFF    0x0
-#define CLKGATE_ON_RUN 0x2
-#define CLKGATE_ON_ALL 0x3
-#define CLKGATE_MASK   CLKGATE_ON_ALL
+/* clock gating in CCM_CCGRn */
+#define CLKGATE_MODE_OFF        0x0
+#define CLKGATE_MODE_ON_RUN     0x1
+#define CLKGATE_MODE_RESERVED   0x2
+#define CLKGATE_MODE_ON_ALL     0x3
+#define CLKGATE_MODE_MASK       0x3
 
 #define CLKO1_SRC_AHB       (0xBU << 0)
 #define CLKO1_SRC_IPG       (0xCU << 0)
@@ -914,20 +915,47 @@ static clk_t *_clko_init(clk_t *clk)
 static struct clock clko1_clk = { CLK_OPS(CLKO1, clko, NULL) };
 static struct clock clko2_clk = { CLK_OPS(CLKO2, clko, NULL) };
 
-static int imx6_gate_enable(clock_sys_t *clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+static int imx6_gate_enable(
+    clock_sys_t *clock_sys,
+    enum clock_gate gate,
+    enum clock_gate_mode mode)
 {
     assert(clk_regs.ccm);
-    assert(mode == CLKGATE_ON);
-    (void)assert(gate >= 0);
-    assert(gate < 112);
 
-    uint32_t v;
-    uint32_t reg = gate / 16;
+    if (gate > 112) {
+        ZF_LOGE("invalid gate %d", gate);
+        return -1;
+    }
+
+    uint32_t m;
+    switch (mode) {
+    case CLKGATE_ON:
+        m = CLKGATE_MODE_ON_ALL;
+        break;
+
+    case CLKGATE_IDLE:
+        ZF_LOGE("CLKGATE_IDLE not supported for gate %d", gate);
+        return -1;
+
+    case CLKGATE_SLEEP:
+        m = CLKGATE_MODE_ON_RUN;
+        break;
+
+    case CLKGATE_OFF:
+        m = CLKGATE_MODE_OFF;
+        break;
+
+    default:
+        assert(!"Invalid clock gate mode");
+        return -1;
+    }
+
+    uint32_t volatile *reg = &clk_regs.ccm->ccgr[gate / 16];
     uint32_t shift = (gate & 0xf) * 2;
-    v = clk_regs.ccm->ccgr[reg];
-    v &= ~(CLKGATE_MASK << shift);
-    v |= (CLKGATE_ON_ALL << shift);
-    clk_regs.ccm->ccgr[reg] = v;
+
+    /* clear mask and set net clock gating mode */
+    *reg = (*reg & ~(CLKGATE_MODE_MASK << shift)) | (m << shift);
+
     return 0;
 }
 
