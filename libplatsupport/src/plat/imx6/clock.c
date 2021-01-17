@@ -71,15 +71,15 @@
 #define CLKGATE_MODE_ON_ALL     0x3
 #define CLKGATE_MODE_MASK       0x3
 
-#define CLKO1_SRC_AHB       (0xBU << 0)
-#define CLKO1_SRC_IPG       (0xCU << 0)
-#define CLKO1_SRC_MASK      (0xFU << 0)
-#define CLKO1_ENABLE        (1U << 7)
-
+/* CCM Clock Output Source (CCM_CCOSR) */
+#define CLKO1_SRC_AHB       0xBU
+#define CLKO1_SRC_IPG       0xCU
+#define CLKO1_SRC_MASK      0xFU /* bit 0-3 */
+#define CLKO1_ENABLE        BIT(7)
+#define CLKO_SEL            BIT(8) /* select CCM_CLKO1 or CCM_CLKO2 */
+#define CLKO2_SRC_MASK      (0x1FU << 16) /* bit 16-20 */
 #define CLKO2_SRC_MMDC_CH0  (0U << 16) /* b00000 for mmdc_ch0_clk_root */
-#define CLKO2_SRC_MASK      (0x1FU << 16)
-#define CLKO2_ENABLE        (1U << 24)
-#define CLKO_SEL            (1U << 8)
+#define CLKO2_ENABLE        BIT(24)
 
 typedef volatile struct {
     uint32_t ccr;      /* 0x000 */
