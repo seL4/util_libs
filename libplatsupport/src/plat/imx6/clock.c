@@ -65,7 +65,7 @@
 #define CLKO2_ENABLE        (1U << 24)
 #define CLKO_SEL            (1U << 8)
 
-struct ccm_regs {
+typedef volatile struct {
     uint32_t ccr;      /* 0x000 */
     uint32_t ccdr;     /* 0x004 */
     uint32_t csr;      /* 0x008 */
@@ -94,16 +94,16 @@ struct ccm_regs {
     uint32_t ccgr[7];  /* 0x068 */
     uint32_t res2[1];
     uint32_t cmeor;    /* 0x088 */
-};
+} ccm_regs_t;
 
-typedef struct {
+typedef volatile struct {
     uint32_t val;                    /* 0x00 */
     uint32_t set;                    /* 0x04 */
     uint32_t clr;                    /* 0x08 */
     uint32_t tog;                    /* 0x0C */
 } alg_sct_t;
 
-struct ccm_alg_usbphy_regs {
+typedef volatile struct {
     alg_sct_t vbus_detect;           /* 0x00 */
     alg_sct_t chrg_detect;           /* 0x10 */
     uint32_t vbus_detect_stat;       /* 0x20 */
@@ -111,10 +111,10 @@ struct ccm_alg_usbphy_regs {
     uint32_t chrg_detect_stat;       /* 0x30 */
     uint32_t res1[3];
     uint32_t res2[4];
-    alg_sct_t misc;                  /* 0x50 */
-};
+    alg_sct_t misc;                  /* +0x50 */
+} ccm_alg_usbphy_regs_t;
 
-struct ccm_alg_regs {
+typedef volatile struct {
     /* PLL_ARM */
     alg_sct_t pll_arm;               /* 0x000 */
     /* PLL_USB * 2 */
@@ -157,15 +157,14 @@ struct ccm_alg_regs {
     /* USB phy control is implemented here for the sake of componentisation
      * since it shares the same register space.
      */
-    struct ccm_alg_usbphy_regs phy1; /* 0x1a0 */
-    struct ccm_alg_usbphy_regs phy2; /* 0x200 */
+    ccm_alg_usbphy_regs_t phy[2];    /* 0x1a0, 0x200 */
     uint32_t digprog;                /* 0x260 */
-};
+} ccm_alg_regs_t;
 
-static volatile struct clock_regs {
-    struct ccm_regs      *ccm;
-    struct ccm_alg_regs *alg;
-} clk_regs = {.ccm = NULL, .alg = NULL};
+static struct {
+    ccm_regs_t     *ccm;
+    ccm_alg_regs_t *alg;
+} clk_regs = { .ccm = NULL, .alg = NULL};
 
 struct pll2_regs {
     uint32_t ctrl;
