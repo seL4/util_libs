@@ -157,7 +157,7 @@ struct ccm_alg_regs {
     uint32_t  res8[4];
     /* MISC2 */
     alg_sct_t misc2;                 /* 0x170 */
-    uint32_t  res9[11];
+    uint32_t  res9[8];
     /* USB phy control - Implemented here for the sake of
      * componentisation since it shares the same register space */
     struct ccm_alg_usbphy_regs phy1; /* 0x1a0 */
