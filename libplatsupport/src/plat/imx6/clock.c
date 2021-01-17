@@ -101,21 +101,21 @@ struct ccm_regs {
 };
 
 typedef struct {
-    uint32_t val;
-    uint32_t set;
-    uint32_t clr;
-    uint32_t tog;
+    uint32_t val;                    /* 0x00 */
+    uint32_t set;                    /* 0x04 */
+    uint32_t clr;                    /* 0x08 */
+    uint32_t tog;                    /* 0x0C */
 } alg_sct_t;
 
 struct ccm_alg_usbphy_regs {
-    alg_sct_t vbus_detect;           /* +0x00 */
-    alg_sct_t chrg_detect;           /* +0x10 */
-    uint32_t vbus_detect_stat;       /* +0x20 */
+    alg_sct_t vbus_detect;           /* 0x00 */
+    alg_sct_t chrg_detect;           /* 0x10 */
+    uint32_t vbus_detect_stat;       /* 0x20 */
     uint32_t res0[3];
-    uint32_t chrg_detect_stat;       /* +0x30 */
+    uint32_t chrg_detect_stat;       /* 0x30 */
     uint32_t res1[3];
     uint32_t res2[4];
-    alg_sct_t misc;                  /* +0x50 */
+    alg_sct_t misc;                  /* 0x50 */
 };
 
 struct ccm_alg_regs {
@@ -158,8 +158,9 @@ struct ccm_alg_regs {
     /* MISC2 */
     alg_sct_t misc2;                 /* 0x170 */
     uint32_t  res9[8];
-    /* USB phy control - Implemented here for the sake of
-     * componentisation since it shares the same register space */
+    /* USB phy control is implemented here for the sake of componentisation
+     * since it shares the same register space.
+     */
     struct ccm_alg_usbphy_regs phy1; /* 0x1a0 */
     struct ccm_alg_usbphy_regs phy2; /* 0x200 */
     uint32_t digprog;                /* 0x260 */
@@ -185,7 +186,13 @@ struct pll2_regs {
 
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
-/* ARM_CLK */
+
+/*
+ *------------------------------------------------------------------------------
+ * ARM_CLK
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _arm_get_freq(clk_t *clk)
 {
     uint32_t div;
@@ -237,7 +244,12 @@ static clk_t *_arm_init(clk_t *clk)
 
 static struct clock arm_clk = { CLK_OPS(ARM, arm, NULL) };
 
-/* ENET_CLK */
+
+/*
+ *------------------------------------------------------------------------------
+ * ENET_CLK
+ *------------------------------------------------------------------------------
+ */
 
 static freq_t _enet_get_freq(clk_t *clk)
 {
@@ -312,7 +324,13 @@ static clk_t *_enet_init(clk_t *clk)
 
 static struct clock enet_clk = { CLK_OPS(ENET, enet, NULL) };
 
-/* PLL2_CLK */
+
+/*
+ *------------------------------------------------------------------------------
+ * PLL2_CLK
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _pll2_get_freq(clk_t *clk)
 {
     uint32_t p, s;
@@ -361,7 +379,13 @@ static clk_t *_pll2_init(clk_t *clk)
 
 static struct clock pll2_clk = { CLK_OPS(PLL2, pll2, NULL) };
 
-/* MMDC_CH0_CLK */
+
+/*
+ *------------------------------------------------------------------------------
+ * MMDC_CH0_CLK
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _mmdc_ch0_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent);
@@ -391,7 +415,13 @@ static clk_t *_mmdc_ch0_init(clk_t *clk)
 
 static struct clock mmdc_ch0_clk = { CLK_OPS(MMDC_CH0, mmdc_ch0, NULL) };
 
-/* AHB_CLK_ROOT */
+
+/*
+ *------------------------------------------------------------------------------
+ * AHB_CLK_ROOT
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _ahb_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent) / 4;
@@ -419,7 +449,13 @@ static clk_t *_ahb_init(clk_t *clk)
 
 static struct clock ahb_clk = { CLK_OPS(AHB, ahb, NULL) };
 
-/* IPG_CLK_ROOT */
+
+/*
+ *------------------------------------------------------------------------------
+ * IPG_CLK_ROOT
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _ipg_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent) / 2;
@@ -447,7 +483,13 @@ static clk_t *_ipg_init(clk_t *clk)
 
 static struct clock ipg_clk = { CLK_OPS(IPG, ipg, NULL) };
 
-/* USB_CLK */
+
+/*
+ *------------------------------------------------------------------------------
+ * USB_CLK
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _usb_get_freq(clk_t *clk)
 {
     volatile alg_sct_t *pll_usb;
@@ -509,7 +551,13 @@ static clk_t *_usb_init(clk_t *clk)
 static struct clock usb1_clk = { CLK_OPS(USB1, usb, NULL) };
 static struct clock usb2_clk = { CLK_OPS(USB2, usb, NULL) };
 
-/* clkox */
+
+/*
+ *------------------------------------------------------------------------------
+ * CLK_Ox
+ *------------------------------------------------------------------------------
+ */
+
 static freq_t _clko_get_freq(clk_t *clk)
 {
     uint32_t fin = clk_get_freq(clk->parent);
@@ -644,10 +692,9 @@ clk_t *ps_clocks[] = {
     [CLK_CLKO2]    = &clko2_clk,
 };
 
-/* These frequencies are NOT the recommended
- * frequencies. They are to be used when we
- * need to make assumptions about what u-boot
- * has left us with. */
+/* These frequencies are NOT the recommended frequencies. They are to be used
+ * when we need to make assumptions about what u-boot has left us with.
+ */
 freq_t ps_freq_default[] = {
     [CLK_MASTER]   =  24 * MHZ,
     [CLK_PLL2  ]   = 528 * MHZ,
