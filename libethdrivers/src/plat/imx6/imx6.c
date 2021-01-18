@@ -625,8 +625,6 @@ static int init_device(imx6_eth_driver_t *dev)
             dev->phy->speed,
             (dev->phy->duplex == DUPLEX_FULL) ? "full" : "half");
 
-    udelay(100000); /* why? */
-
     /* Start the controller, all interrupts are still masked here */
     enet_enable(dev->enet);
 
