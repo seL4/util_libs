@@ -490,14 +490,14 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)eth_dev->iobase;
 
     /* Initialize the buffer descriptor registers */
-    writel((uint32_t)eth_data->tx_ring_phys, &regs->txqbase);
-    writel((uint32_t)eth_data->rx_ring_phys, &regs->rxqbase);
+    writel((uint32_t)eth_data->tx_ring, &regs->txqbase);
+    writel((uint32_t)eth_data->rx_ring, &regs->rxqbase);
 
 #ifdef CONFIG_PLAT_ZYNQMP
-    writel((uint32_t)(eth_data->tx_ring_phys >> 32), &regs->upper_txqbase);
-    writel((uint32_t)(eth_data->rx_ring_phys >> 32), &regs->upper_rxqbase);
-    writel((uint32_t)(eth_data->dummy_tx_bd_phys), &regs->transmit_q1_ptr);
-    writel((uint32_t)(eth_data->dummy_rx_bd_phys), &regs->receive_q1_ptr);
+    writel((uint32_t)((uintptr_t) eth_data->tx_ring >> 32), &regs->upper_txqbase);
+    writel((uint32_t)((uintptr_t) eth_data->rx_ring >> 32), &regs->upper_rxqbase);
+    writel((uint32_t)(eth_data->dummy_tx_bd), &regs->transmit_q1_ptr);
+    writel((uint32_t)(eth_data->dummy_rx_bd), &regs->receive_q1_ptr);
 #endif
 
     zynq_gem_init(eth_dev);
