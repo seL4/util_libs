@@ -565,6 +565,73 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irq
     return 0;
 }
 
+void *smmu_base;
+
+static int smmu_register_callback(pmem_region_t pmem, unsigned curr_num, size_t num_regs, void *token)
+{
+    if (token == NULL) {
+        ZF_LOGE("Expected a token!");
+        return -EINVAL;
+    }
+
+    callback_args_t *args = token;
+    if (curr_num == 0) {
+        smmu_base = ps_pmem_map(args->io_ops, pmem, false, PS_MEM_NORMAL);
+        if (!smmu_base) {
+            ZF_LOGE("Failed to map the Ethernet device");
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
+int smmu_irq_id;
+
+static void smmu_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
+{
+    ZF_LOGE("Printing out the FSRs and FARs for the SMMU");
+
+    uint32_t *fsr = smmu_base + 0x48;
+    ZF_LOGE("fsr = 0x%x", *fsr);
+    uint32_t *fsynr0 = smmu_base + 0x50;
+    ZF_LOGE("fsynr0 = 0x%x", *fsynr0);
+    uint32_t *far_lo = smmu_base + 0x40;
+    ZF_LOGE("far_lo = 0x%x", *far_lo);
+    uint32_t *far_hi = smmu_base + 0x44;
+    ZF_LOGE("far_hi = 0x%x", *far_hi);
+
+    uint32_t *cb1_fsr = smmu_base + 0x00011058;
+    ZF_LOGE("cb1_fsr = 0x%x", *cb1_fsr);
+    uint32_t *cb1_fsynr0 = smmu_base + 0x00011068;
+    ZF_LOGE("cb1_fsynr0 = 0x%x", *cb1_fsynr0);
+    uint32_t *cb1_far_lo = smmu_base + 0x00011060;
+    ZF_LOGE("cb1_far_lo = 0x%x", *cb1_far_lo);
+    uint32_t *cb1_far_hi = smmu_base + 0x00011064;
+    ZF_LOGE("cb1_far_hi = 0x%x", *cb1_far_hi);
+
+    ZF_LOGF("Done.");
+}
+
+static int smmu_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irqs, void *token)
+{
+    if (token == NULL) {
+        ZF_LOGE("Expected a token!");
+        return -EINVAL;
+    }
+
+    callback_args_t *args = token;
+    if (curr_num == 0) {
+        smmu_irq_id = ps_irq_register(&args->io_ops->irq_ops, irq, smmu_irq_handle, NULL);
+        if (smmu_irq_id < 0) {
+            ZF_LOGE("Failed to register the Ethernet device's IRQ");
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
 int ethif_zynq7000_init_module(ps_io_ops_t *io_ops, const char *dev_path)
 {
     struct arm_eth_plat_config plat_config;
@@ -591,6 +658,30 @@ int ethif_zynq7000_init_module(ps_io_ops_t *io_ops, const char *dev_path)
     }
 
     error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, allocate_irq_callback, &args);
+    if (error) {
+        ZF_LOGE("Failed to walk the Ethernet device's IRQs and allocate them");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_cleanup_cookie(&io_ops->malloc_ops, cookie);
+    if (error) {
+        ZF_LOGE("Failed to free the cookie used to allocate resources");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_read_path(&io_ops->io_fdt, &io_ops->malloc_ops, "/amba/smmu@fd800000", &cookie);
+    if (error) {
+        ZF_LOGE("Failed to read the path of the Ethernet device");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_walk_registers(&io_ops->io_fdt, cookie, smmu_register_callback, &args);
+    if (error) {
+        ZF_LOGE("Failed to walk the Ethernet device's registers and allocate them");
+        return -ENODEV;
+    }
+
+    error = ps_fdt_walk_irqs(&io_ops->io_fdt, cookie, smmu_irq_callback, &args);
     if (error) {
         ZF_LOGE("Failed to walk the Ethernet device's IRQs and allocate them");
         return -ENODEV;
