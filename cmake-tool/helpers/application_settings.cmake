@@ -223,10 +223,10 @@ function(correct_platform_strings)
     # invoked multiple times to get a stable configuration, we print this
     # for the first run only.
     if(NOT correct_platform_strings_no_print)
-        message("Set platform details from PLATFORM=${PLATFORM}")
-        message("  KernelPlatform: ${KernelPlatform}")
+        message(STATUS "Set platform details from PLATFORM=${PLATFORM}")
+        message(STATUS "  KernelPlatform: ${KernelPlatform}")
         if(kernel_var)
-            message("  ${kernel_var}: ${${kernel_var}}")
+            message(STATUS "  ${kernel_var}: ${${kernel_var}}")
         endif()
     endif()
 
@@ -253,9 +253,7 @@ function(correct_platform_strings)
         set(_REWRITE OFF)
     endif()
     if(_REWRITE AND (NOT correct_platform_strings_no_print))
-        message(
-            "correct_platform_strings: Based on toolchain, setting KernelSel4Arch: ${KernelSel4Arch}"
-        )
+        message(STATUS "Setting from flags KernelSel4Arch: ${KernelSel4Arch}")
     endif()
 
     # Only print out these info messages on first initialisation
