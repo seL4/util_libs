@@ -391,8 +391,8 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
         goto error;
     }
 
-    eth_data->tx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
-    eth_data->rx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    eth_data->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
     eth_driver->eth_data = eth_data;
     eth_driver->dma_alignment = DMA_ALIGN;
     eth_driver->i_fn = iface_fns;
@@ -502,8 +502,15 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irq
         return -EINVAL;
     }
 
+    unsigned target_num = 0;
     callback_args_t *args = token;
-    if (curr_num == 0) {
+    if (config_set(CONFIG_PLAT_IMX6)) {
+        target_num = 0;
+    } else if (config_set(CONFIG_PLAT_IMX8MQ_EVK)) {
+        target_num = 2;
+    }
+
+    if (curr_num == target_num) {
         args->irq_id = ps_irq_register(&args->io_ops->irq_ops, irq, eth_irq_handle, args->eth_driver);
         if (args->irq_id < 0) {
             ZF_LOGE("Failed to register the Ethernet device's IRQ");
