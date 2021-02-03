@@ -10,6 +10,7 @@ import sys
 import argparse
 import signal
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--binary', dest='gdb_binary', type=str,
@@ -21,10 +22,12 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 if __name__ == "__main__":
     args = parse_args()
 
-    gdb_command_opts = [args.gdb_binary, args.extra_gdb_args, '-ex "target remote :1234"', args.target_executable]
+    gdb_command_opts = [args.gdb_binary, args.extra_gdb_args,
+                        '-ex "target remote :1234"', args.target_executable]
     gdb_command = " ".join(gdb_command_opts)
 
     print(gdb_command)

@@ -46,7 +46,10 @@ function(MakeCPIO output_name input_files)
     # Check that the reproducible flag is available. Don't use it if it isn't.
     CheckCPIOArgument(cpio_reproducible_flag "--reproducible")
     set(append "")
-	set(commands "bash;-c;cpio ${cpio_reproducible_flag} --quiet --create -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio;&&")
+    set(
+        commands
+        "bash;-c;cpio ${cpio_reproducible_flag} --quiet --create -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio;&&"
+    )
     foreach(file IN LISTS input_files)
         # Try and generate reproducible cpio meta-data as we do this:
         # - touch -d @0 file sets the modified time to 0
@@ -60,7 +63,7 @@ function(MakeCPIO output_name input_files)
     endforeach()
     list(APPEND commands "true")
     separate_arguments(cmake_c_flags_sep NATIVE_COMMAND "${CMAKE_C_FLAGS}")
-    if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
         list(APPEND cmake_c_flags_sep "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
     endif()
 

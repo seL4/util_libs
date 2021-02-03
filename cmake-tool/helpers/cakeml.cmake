@@ -179,8 +179,7 @@ function(DeclareCakeMLLib library_name)
             "${HOLMAKEFILE}"
             ${PARSE_CML_LIB_DEPENDS}
         WORKING_DIRECTORY "${CML_DIR}"
-        VERBATIM
-        ${USES_TERMINAL_DEBUG}
+        VERBATIM ${USES_TERMINAL_DEBUG}
     )
     add_custom_target(${library_name}cakeml_asm_theory_target DEPENDS "${ASM_FILE}")
     add_library(${library_name} STATIC EXCLUDE_FROM_ALL "${ASM_FILE}")

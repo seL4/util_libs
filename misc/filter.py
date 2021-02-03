@@ -37,12 +37,13 @@ def parse_filters(filters_file: str):
             logging.warning("Failed to open filter file %s: %s", filters_file, exception)
     return filters
 
+
 def main():
     parser = argparse.ArgumentParser("Filter files.")
     parser.add_argument('-f', '--filters', type=str,
-            help='File with glob filters of files')
+                        help='File with glob filters of files')
     parser.add_argument('files', nargs='*', type=str,
-            help='List of files to be filtered')
+                        help='List of files to be filtered')
     args = parser.parse_args()
 
     filters = parse_filters(args.filters)
@@ -51,6 +52,7 @@ def main():
             return fnmatch.fnmatch(fname, pattern)
         if not any(map(matches, filters)):
             print(fname)
+
 
 if __name__ == '__main__':
     sys.exit(main())
