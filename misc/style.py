@@ -43,6 +43,10 @@ def main():
     args.files = filter(os.path.isfile, args.files)
     # construct a list of files to pass to each tool
     for fname in args.files:
+        # strip leading `./` which `find` produces, but stylefilters don't expect
+        if fname[0:2] == './':
+            fname = fname[2:]
+
         def matches(pattern, fname=fname):
             """filter any files that match the filter filters"""
             return fnmatch.fnmatch(fname, pattern)
