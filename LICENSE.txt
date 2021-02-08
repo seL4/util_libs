@@ -1,5 +1,0 @@
-Please see the individual library directories and source files for the licenses
-that apply to each library.
-
-For licensing an application using the libraries in each repository, you must
-check each library that you link against.
