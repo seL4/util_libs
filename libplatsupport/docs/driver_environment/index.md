@@ -57,7 +57,7 @@ where other devices aren't required to enable the device to be used.
 [3]:ps_io_port_ops_t.md
 [4]:ps_irq_ops_t.md
 [5]:ps_malloc_ops_t.md
-[6]:fdt.md
+[6]:ps_io_fdt_t.md
 [7]:ps_interface_registration_ops_t.md
 
 Many drivers require another device to perform some sort of operation to allow
