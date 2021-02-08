@@ -4,7 +4,7 @@
  *
  * Common configuration options for all Zynq boards.
  *
- * SPDX-License-Identifier:	GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #ifndef __CONFIG_ZYNQ_COMMON_H

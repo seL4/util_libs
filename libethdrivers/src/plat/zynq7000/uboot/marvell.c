@@ -1,11 +1,12 @@
 /*
  * Marvell PHY drivers
  *
- * SPDX-License-Identifier:	GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright 2010-2011 Freescale Semiconductor, Inc.
  * author Andy Fleming
  */
+
 #include "config.h"
 #include "common.h"
 #include "phy.h"
