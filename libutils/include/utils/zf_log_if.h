@@ -1,7 +1,8 @@
 /*
- * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2017 wonder-mice
  *
- * SPDX-License-Identifier: BSD-2-Clause
+ * zf log taken from: https://github.com/wonder-mice/zf_log
  */
 
 #pragma once
