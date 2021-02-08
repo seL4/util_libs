@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  @Component:   CPSW
  *
  *  @Filename:    cpsw_port_cred.h

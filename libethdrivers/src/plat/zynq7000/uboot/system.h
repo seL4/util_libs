@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier:	GPL-2.0-or-later
+ * Copyright Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ */
+
 #ifndef __ASM_ARM_SYSTEM_H
 #define __ASM_ARM_SYSTEM_H
 

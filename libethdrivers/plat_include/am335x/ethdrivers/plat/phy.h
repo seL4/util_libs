@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  * \file  phy.h
  *
  * \brief Macros and function definitions for EMAC PHY

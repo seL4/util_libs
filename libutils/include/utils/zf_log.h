@@ -1,5 +1,8 @@
-/* @TAG(CUSTOM) */
-/* zf log taken from: https://github.com/wonder-mice/zf_log
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2017 wonder-mice
+ *
+ * zf log taken from: https://github.com/wonder-mice/zf_log
  *
  * "Software source code can not be printed on paper and sticked to a cat."
  */

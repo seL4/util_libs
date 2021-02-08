@@ -1,4 +1,4 @@
-/* @TAG(OTHER_NON_STANDARD) */
+/* SPDX-License-Identifier: BSD-1-Clause */
 /*
 Copyright (c) 2003-2018, Troy D. Hanson     http://troydhanson.github.com/uthash/
 All rights reserved.

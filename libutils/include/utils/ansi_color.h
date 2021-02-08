@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) */
+/* SPDX-License-Identifier: MIT */
+
 /* Copyright (c) 2012, Ryan Fox
  *
  * Permission is hereby granted, free of charge, to any person obtaining

@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  * \file  hw_types.h
  *
  * \brief Common type definitions and macros

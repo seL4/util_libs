@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  \file       edma.h
  *
  *  \brief      This file contains the function prototypes for the device

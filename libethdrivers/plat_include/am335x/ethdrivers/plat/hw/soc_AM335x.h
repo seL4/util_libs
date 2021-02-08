@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//** ============================================================================
+/* SPDX-License-Identifier: BSD-3-Clause */
+/** ============================================================================
  *   \file  soc_AM33XX.h
  *
  *   \brief This file contains the peripheral information for AM33XX SoC

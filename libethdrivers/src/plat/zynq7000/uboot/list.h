@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright Linux
+ */
+
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 

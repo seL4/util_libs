@@ -1,4 +1,4 @@
-/* @TAG(CUSTOM) */
+/* SPDX-License-Identifier: BSD-3-Clause */
 
 /**
  * @file - cpswif.c

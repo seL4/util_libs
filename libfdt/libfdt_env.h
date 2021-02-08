@@ -1,5 +1,8 @@
 #ifndef LIBFDT_ENV_H
 #define LIBFDT_ENV_H
+
+/* SPDX-License-Identifier: GPL-2.0-or-later or BSD-2-Clause */
+
 /*
  * libfdt - Flat Device Tree manipulation
  * Copyright (C) 2006 David Gibson, IBM Corporation.

@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
+ */
+
 #include <stdint.h>
 
 typedef  uint8_t  u8_t;

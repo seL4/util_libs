@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  * \file   beaglebone.h
  *
  * \brief  This file contains prototype declarations of functions which

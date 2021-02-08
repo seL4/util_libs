@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  \file   interrupt.h
  *
  *  \brief  Interrupt related API declarations.

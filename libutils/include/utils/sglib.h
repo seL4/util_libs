@@ -1,4 +1,12 @@
-/* @TAG(CUSTOM) */
+/*
+ * Copyright Marian Vittek
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * http://sglib.sourceforge.net/#license says "you can use Sglib under the terms
+ * of any license defined as an open source license by the Open Source Initiative
+ * (see http://www.opensource.org/)"
+ */
+
 /*
 
   This is SGLIB version 1.0.4

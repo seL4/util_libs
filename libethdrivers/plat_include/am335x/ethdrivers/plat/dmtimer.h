@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  \file   dmtimer.h
  *
  *  \brief  DMTimer API prototypes and macros.

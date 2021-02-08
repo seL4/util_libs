@@ -1,4 +1,4 @@
-/* @TAG(CUSTOM) */
+/* SPDX-License-Identifier: BSD-3-Clause */
 #pragma once
 /* An interface for efficient virtio implementation, currently for use by KVM
  * and lguest, but hopefully others soon.  Do NOT change this since it will

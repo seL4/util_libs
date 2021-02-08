@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  * \file  edma.c
  *
  * \brief This file contains device abstraction layer APIs for the EDMA device.

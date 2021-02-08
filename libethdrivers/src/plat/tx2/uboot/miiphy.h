@@ -1,7 +1,4 @@
-/*
- * @TAG(OTHER_GPL)
- */
-/* SPDX-License-Identifier: GPL-2.0 OR IBM-pibs */
+/* SPDX-License-Identifier: GPL-2.0-only OR IBM-pibs */
 /*
  * Additions (C) Copyright 2009 Industrie Dial Face S.p.A.
  */

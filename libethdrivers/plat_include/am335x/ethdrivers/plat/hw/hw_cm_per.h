@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  @Component:   CM
  *
  *  @Filename:    ../../CredDataBase/prcmCRED/cm_per_cred.h

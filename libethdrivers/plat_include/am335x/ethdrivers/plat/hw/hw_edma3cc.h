@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  * \file  hw_edma3cc.h
  *
  * \brief EDMA3CC register definitions

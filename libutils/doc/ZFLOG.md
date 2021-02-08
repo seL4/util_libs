@@ -1,4 +1,8 @@
-/* @TAG(CUSTOM) */
+<!--
+   Copyright (c) 2017 wonder-mice
+   SPDX-License-Identifier: MIT
+-->
+
 zf_log
 ========
 

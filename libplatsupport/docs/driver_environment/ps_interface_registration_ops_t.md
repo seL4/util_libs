@@ -1,9 +1,7 @@
 <!--
-  Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+     Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
 
-  SPDX-License-Identifier: BSD-2-Clause
-
-  @TAG(DATA61_BSD)
+     SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
 # Interface registration interface

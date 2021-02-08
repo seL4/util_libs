@@ -1,4 +1,5 @@
-/* @TAG(CUSTOM) *//**
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
  *  @Component:   CONTROL
  *
  *  @Filename:    ../../CredDataBase/CONTROL_cred.h

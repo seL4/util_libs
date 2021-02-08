@@ -1,11 +1,7 @@
 /*
  * Copyright 2017, DornerWorks, Ltd.
  *
- * This software may be distributed and modified according to the terms of
- * the GNU General Public License version 2. Note that NO WARRANTY is provided.
- * See "LICENSE_GPLv2.txt" for details.
- *
- * @TAG(OTHER_GPL)
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 
 #ifndef __ETHIF_ZYNQ7000_DRIVER_H

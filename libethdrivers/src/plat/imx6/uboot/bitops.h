@@ -1,5 +1,6 @@
 /*
- * @TAG(OTHER_GPL)
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  */
 
 #pragma once

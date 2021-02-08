@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later or BSD-2-Clause */
+
 /*
  * libfdt - Flat Device Tree manipulation
  * Copyright (C) 2012 David Gibson, IBM Corporation.

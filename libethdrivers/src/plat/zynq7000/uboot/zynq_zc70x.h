@@ -4,7 +4,7 @@
  * Configuration settings for the Xilinx Zynq ZC702 and ZC706 boards
  * See zynq-common.h for Zynq common configs
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * SPDX-License-Identifier:	GPL-2.0-or-later
  */
 
 #ifndef __CONFIG_ZYNQ_ZC70X_H
