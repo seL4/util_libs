@@ -298,13 +298,13 @@ void _zf_log_write_mem(const int lvl, const char *const tag,
 	#define _ZF_LOG_IMP(lvl, tag, ...) \
 			do { \
 				if (ZF_LOG_OUTPUT(lvl)) \
-					_zf_log_write_d(__FUNCTION__, __FILE__, __LINE__, \
+					_zf_log_write_d(__func__, __FILE__, __LINE__, \
 							lvl, tag, __VA_ARGS__); \
 			} while (0)
 	#define _ZF_LOG_MEM_IMP(lvl, tag, d, d_sz, ...) \
 			do { \
 				if (ZF_LOG_OUTPUT(lvl)) \
-					_zf_log_write_mem_d(__FUNCTION__, __FILE__, __LINE__, \
+					_zf_log_write_mem_d(__func__, __FILE__, __LINE__, \
 							lvl, tag, d, d_sz, __VA_ARGS__); \
 			} while (0)
 #endif

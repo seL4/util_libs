@@ -18,8 +18,8 @@ static void
 md_print_line(void* address, int word_size)
 {
     uint8_t line[MD_BYTES_PER_LINE];
-    int num_objects = MD_BYTES_PER_LINE / word_size;
-    int object;
+    unsigned num_objects = MD_BYTES_PER_LINE / word_size;
+    unsigned object;
     printf("%p: ", address);
     for (object = 0; object < num_objects; object++) {
         int object_offset = object * word_size;
@@ -28,25 +28,25 @@ md_print_line(void* address, int word_size)
         }
         switch (word_size) {
         case 1: {
-            uint8_t temp = *(volatile uint8_t*)(address + object_offset);
+            uint8_t temp = *(volatile uint8_t*)((uintptr_t)address + object_offset);
             printf("0x%02x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 2: {
-            uint16_t temp = *(volatile uint16_t*)(address + object_offset);
+            uint16_t temp = *(volatile uint16_t*)((uintptr_t)address + object_offset);
             printf("0x%04x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 4: {
-            uint32_t temp = *(volatile uint32_t*)(address + object_offset);
+            uint32_t temp = *(volatile uint32_t*)((uintptr_t)address + object_offset);
             printf("0x%08x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 8: {
-            uint64_t temp = *(volatile uint64_t*)(address + object_offset);
+            uint64_t temp = *(volatile uint64_t*)((uintptr_t)address + object_offset);
             printf("0x%016"PRIx64" ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
@@ -68,7 +68,6 @@ md_print_line(void* address, int word_size)
 void
 utils_memory_dump(void* address, size_t bytes, int word_size)
 {
-    void* a;
     if (word_size == 1 || word_size == 2 || word_size == 4 || word_size == 8) {
         /* Notify the caller if 'bytes' is not a multple of MD_BYTES_PER_LINE */
         if (bytes % MD_BYTES_PER_LINE) {
@@ -77,8 +76,8 @@ utils_memory_dump(void* address, size_t bytes, int word_size)
             bytes += extra_bytes;
         }
         /* Print each line */
-        for (a = address; a < address + bytes; a += MD_BYTES_PER_LINE) {
-            md_print_line(a, word_size);
+        for (size_t i = 0; i < bytes; i += MD_BYTES_PER_LINE) {
+            md_print_line(&((uint8_t *)address)[i], word_size);
         }
     } else {
         LOG_ERROR("Invalid word size (%d). Valid options are [1, 2, 4, 8]", word_size);

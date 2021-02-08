@@ -59,5 +59,5 @@
  * all ZF_LOG output, settings it to ZF_LOG_FATAL will
  * only display fatal outputs.
  */
-#define LOG_ERROR(args...) ZF_LOGE(args)
-#define LOG_INFO(args...) ZF_LOGI(args)
+#define LOG_ERROR(...) ZF_LOGE(__VA_ARGS__)
+#define LOG_INFO(...) ZF_LOGI(__VA_ARGS__)

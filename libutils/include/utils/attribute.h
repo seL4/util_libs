@@ -21,8 +21,8 @@
 
 #define ALIAS(sym)   __attribute__((alias(#sym)))
 #define ALIGN(n)     __attribute__((__aligned__(n)))
-#define ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
-#define ASSUME_ALIGNED(args...) __attribute__((assume_aligned(args)))
+#define ALLOC_SIZE(...) __attribute__((alloc_size(__VA_ARGS__)))
+#define ASSUME_ALIGNED(...) __attribute__((assume_aligned(__VA_ARGS__)))
 #define NO_INLINE        __attribute__((noinline))
 #define ALWAYS_INLINE __attribute__((always_inline))
 #define CLEANUP(fn)  __attribute__((cleanup(fn)))
@@ -46,7 +46,7 @@
   #define HOT        /* ignored */
 #endif
 #define MALLOC       __attribute__((malloc))
-#define NONNULL(args...) __attribute__((__nonnull__(args)))
+#define NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
 #define NONNULL_ALL  __attribute__((__nonnull__))
 #define NORETURN     __attribute__((__noreturn__))
 #define PACKED       __attribute__((__packed__))
