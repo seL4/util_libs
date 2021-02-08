@@ -74,8 +74,7 @@ Will produce the following output:
 05-06 00:54:33.825 35864  1299 I hello.MAIN 6e6720656c69742e00                ng elit.?
 ```
 
-More examples available in [examples](examples) folder. For more details see
-comments in [zf_log/zf_log.h](zf_log/zf_log.h) file.
+For more details see comments in [zf_log/zf_log.h](../include/utils/zf_log.h) file.
 
 Usage
 --------
@@ -85,33 +84,13 @@ Usage
 The simplest way of using this library is to embed its sources into existing
 project. For that, copy the following files to your source tree:
 
-* [zf_log.h](zf_log/zf_log.h)
-* [zf_log.c](zf_log/zf_log.c)
+* [zf_log.h](../include/utils/zf_log.h)
+* [zf_log.c](../src/zf_log.c)
 
 See comments in those files for configuration macros. One particularly useful
 option when embedding into a library project is `ZF_LOG_LIBRARY_PREFIX`. It
 could be used to decorate zf_log exported symbols to avoid linker conflicts
 (when that library project is used in other project that is also uses zf_log).
-
-### Embedding with CMake
-
-Another options is avaibale for projects that are using CMake. Copy
-[zf_log](zf_log) folder to you source tree and add it with `add_subdirectory()`
-call in one of your CMakeLists.txt files. Also see
-[zf_log/CMakeLists.txt](zf_log/CMakeLists.txt) for available `ZF_LOG_`
-configuration options. For example:
-
-```
-set(ZF_LOG_ANDROID_LOG ON)
-add_subdirectory(zf_log)
-```
-
-This will add `zf_log` library target. For each target that uses zf_log in
-corresponding CMakeLists.txt file add:
-
-```cmake
-target_link_libraries(my_target zf_log)
-```
 
 ### Installation
 
@@ -222,10 +201,7 @@ following output facilities (see [zf_log/zf_log.c] for details):
 * Android Log (via android/log.h)
 * Apple System Log (iOS, OS X via asl.h)
 
-See [examples/custom_output.c] for an example of custom output function.
-
-[zf_log/zf_log.c]: zf_log/zf_log.c
-[examples/custom_output.c]: examples/custom_output.c
+[zf_log/zf_log.c]: ../src/zf_log.c
 
 Why zf?
 --------
