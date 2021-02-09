@@ -52,7 +52,7 @@ static ps_irq_t irqs[] = {
     }
 };
 
- size_t get_num_irqs(void *data)
+size_t get_num_irqs(void *data)
 {
     return 1;
 }
@@ -102,22 +102,22 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
     timer->period = 0;
 
     switch (type) {
-        case TIMEOUT_ABSOLUTE: {
-            uint64_t time = apb_timer_get_time(&timer->apb_timer_ltimer.apb_timer);
-            if (time >= ns) {
-                return ETIME;
-            }
-            apb_timer_set_timeout(&timer->apb_timer_ltimer.apb_timer, ns - time);
-            return 0;
+    case TIMEOUT_ABSOLUTE: {
+        uint64_t time = apb_timer_get_time(&timer->apb_timer_ltimer.apb_timer);
+        if (time >= ns) {
+            return ETIME;
         }
-        case TIMEOUT_PERIODIC: {
-            timer->period = ns;
-            /* fall through */
-        }
-        case TIMEOUT_RELATIVE: {
-            apb_timer_set_timeout(&timer->apb_timer_ltimer.apb_timer, ns);
-            return 0;
-        }
+        apb_timer_set_timeout(&timer->apb_timer_ltimer.apb_timer, ns - time);
+        return 0;
+    }
+    case TIMEOUT_PERIODIC: {
+        timer->period = ns;
+        /* fall through */
+    }
+    case TIMEOUT_RELATIVE: {
+        apb_timer_set_timeout(&timer->apb_timer_ltimer.apb_timer, ns);
+        return 0;
+    }
     }
 
     return EINVAL;
@@ -128,7 +128,7 @@ static int reset(void *data)
     assert(data != NULL);
     ariane_ltimer_t *timer = data;
     apb_timer_stop(&timer->apb_timer_ltimer.apb_timer);
-    apb_timer_start(&timer->apb_timer_ltimer.apb_timer);  
+    apb_timer_start(&timer->apb_timer_ltimer.apb_timer);
     return 0;
 }
 
@@ -143,7 +143,7 @@ static void destroy(void *data)
     if (timer->irq_id > PS_INVALID_IRQ_ID) {
         int error = ps_irq_unregister(&timer->ops.irq_ops, timer->irq_id);
         ZF_LOGF_IF(error, "Failed to unregister IRQ");
-        }
+    }
     ps_free(&timer->ops.malloc_ops, sizeof(timer), timer);
 }
 
@@ -187,11 +187,11 @@ static int handle_irq(void *data, ps_irq_t *irq)
 
     timer->apb_timer_ltimer.apb_timer.time_h += timer->apb_timer_ltimer.apb_timer.apb_timer_map->cmp;
     apb_timer_stop(&timer->apb_timer_ltimer.apb_timer);
-    
+
     if (timer->period > 0) {
         apb_timer_set_timeout(&timer->apb_timer_ltimer.apb_timer, timer->period);
     }
-    
+
     ltimer_event_t event = LTIMER_TIMEOUT_EVENT;
     if (timer->user_callback) {
         timer->user_callback(timer->user_callback_token, event);
@@ -239,7 +239,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         return error;
     }
     timer->irq_id = ps_irq_register(&ops.irq_ops, *timer->callback_data.irq, handle_irq_wrapper,
-                                                &timer->callback_data);
+                                    &timer->callback_data);
     if (timer->irq_id < 0) {
         destroy(ltimer->data);
         return EIO;

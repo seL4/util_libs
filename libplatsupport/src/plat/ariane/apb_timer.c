@@ -45,7 +45,7 @@ int apb_timer_set_timeout(apb_timer_t *apb_timer, uint64_t ns)
         ZF_LOGE("Cannot program a timeout larget than %ld ns", MAX_TIMEOUT_NS);
         return -1;
     }
-    
+
     apb_timer->apb_timer_map->cmp = ns / (NS_IN_S / APB_TIMER_INPUT_FREQ);
     apb_timer_start(apb_timer);
 
@@ -60,7 +60,7 @@ uint64_t apb_timer_get_time(apb_timer_t *apb_timer)
 
 int apb_timer_init(apb_timer_t *apb_timer, apb_timer_config_t config)
 {
-    apb_timer->apb_timer_map = (volatile struct apb_timer_map*) config.vaddr;
+    apb_timer->apb_timer_map = (volatile struct apb_timer_map *) config.vaddr;
     apb_timer->time_h = 0;
     return 0;
 }
