@@ -50,10 +50,6 @@
 #define PLL2_SS_EN              BIT(15)
 #define PLL2_SS_STEP(x)         ((x) <<  0)
 
-#define PLL_CLKGATE BIT(31)
-#define PLL_STABLE  BIT(30)
-#define PLL_FRAC(x) ((x) << 24)
-
 #define CLKGATE_OFF    0x0
 #define CLKGATE_ON_RUN 0x2
 #define CLKGATE_ON_ALL 0x3
