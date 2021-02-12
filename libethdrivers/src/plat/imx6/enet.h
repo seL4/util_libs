@@ -34,7 +34,7 @@ struct enet *enet_init(
     uintptr_t tx_phys,
     uintptr_t rx_phys,
     size_t rx_bufsize,
-    char *mac,
+    uint64_t mac,
     ps_io_ops_t *io_ops);
 
 /* Debug */
@@ -51,12 +51,12 @@ void enet_enable(struct enet *enet);
 void enet_disable(struct enet *enet);
 int enet_enabled(struct enet *enet);
 
-void enet_set_mac(struct enet *enet, unsigned char *mac);
-void enet_get_mac(struct enet *enet, unsigned char *mac);
+void enet_set_mac(struct enet *enet, uint64_t mac);
+uint64_t enet_get_mac(struct enet *enet);
 
 void enet_set_speed(struct enet *enet, int speed, int full_duplex);
 
-/* Clears interrupt events and returns the original value - before the clear */
+/* Clears ievents and returns the original value - before the clear */
 uint32_t enet_clr_events(struct enet *enet, uint32_t clr_bits);
 /* Sets the event mask */
 void enet_enable_events(struct enet *enet, uint32_t mask_bits);

@@ -110,7 +110,12 @@ static void get_mac(struct eth_driver *driver, uint8_t *mac)
     struct enet *enet = dev->enet;
     assert(enet);
 
-    enet_get_mac(enet, (unsigned char *)mac);
+    uint64_t mac_u64 = enet_get_mac(enet);
+    /* MAC is big endian u64, 0x0000aabbccddeeff means aa:bb:cc:dd:ee:ff */
+    for (unsigned int i = 0; i < 6; i++) {
+        mac[5 - i] = (uint8_t)mac_u64;
+        mac_u64 >>= 8;
+    }
 }
 
 static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
@@ -521,27 +526,24 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     return ETHIF_TX_ENQUEUED;
 }
 
-static int obtain_mac_from_ocotp(ps_io_mapper_t *io_mapper, uint8_t* mac)
+static uint64_t obtain_mac_from_ocotp(ps_io_mapper_t *io_mapper)
 {
     assert(io_mapper);
-    assert(mac);
-
-    int ret;
 
     struct ocotp *ocotp = ocotp_init(io_mapper);
     if (!ocotp) {
         ZF_LOGE("Failed to initialize OCOTP to read MAC");
-        return -1;
+        return 0;
     }
 
-    ret = ocotp_get_mac(ocotp, mac);
+    uint64_t mac = ocotp_get_mac(ocotp);
     ocotp_free(ocotp, io_mapper);
-    if (ret) {
-        ZF_LOGE("Failed to get MAC from OCOTP, code %d", ret);
-        return -1;
+    if (0 == mac) {
+        ZF_LOGE("Failed to get MAC from OCOTP");
+        return 0;
     }
 
-    return 0;
+    return mac;
 }
 
 static int init_device(imx6_eth_driver_t *dev)
@@ -550,16 +552,19 @@ static int init_device(imx6_eth_driver_t *dev)
 
     int ret;
 
-    uint8_t mac[6] = {0};
-    ret = obtain_mac_from_ocotp(&(dev->eth_drv.io_ops.io_mapper), mac);
-    if (ret) {
-        ZF_LOGE("Failed to get MAC from OCOTP, code %d", ret);
+    uint64_t mac = obtain_mac_from_ocotp(&(dev->eth_drv.io_ops.io_mapper));
+    if (0 == mac) {
+        ZF_LOGE("Failed to get MAC from OCOTP");
         return -1;
     }
 
     ZF_LOGI("using MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
+            (uint8_t)(mac >> 40),
+            (uint8_t)(mac >> 32),
+            (uint8_t)(mac >> 24),
+            (uint8_t)(mac >> 16),
+            (uint8_t)(mac >> 8),
+            (uint8_t)(mac));
 
     ret = initialize_desc_ring(dev);
     if (ret) {

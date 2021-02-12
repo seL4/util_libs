@@ -178,26 +178,19 @@ void ocotp_free(struct ocotp *ocotp, ps_io_mapper_t *io_mapper)
     UNRESOURCE(io_mapper, IMX6_OCOTP, ocotp);
 }
 
-int ocotp_get_mac(struct ocotp *ocotp, unsigned char *mac)
+uint64_t ocotp_get_mac(struct ocotp *ocotp)
 {
-    ocotp_regs_t *regs;
-    uint32_t mac0;
-    uint32_t mac1;
     assert(ocotp);
+    ocotp_regs_t *regs = ocotp_get_regs(ocotp);
 
-    regs = ocotp_get_regs(ocotp);
-    mac0 = regs->mac0;
-    mac1 = regs->mac1;
-    if (mac0 | mac1) {
-        mac[0] = (mac1 >>  8) & 0xff;
-        mac[1] = (mac1 >>  0) & 0xff;
+    uint32_t mac0 = regs->mac0; // 0xaabbccdd
+    uint32_t mac1 = regs->mac1; // 0x????gghh
+    // make big endian integer 0x0000gghhaabbccdd for the MAC
+    uint64_t mac = ((uint64_t)((uint16_t)mac1) << 32) | mac0;
 
-        mac[2] = (mac0 >> 24) & 0xff;
-        mac[3] = (mac0 >> 16) & 0xff;
-        mac[4] = (mac0 >>  8) & 0xff;
-        mac[5] = (mac0 >>  0) & 0xff;
-        return 0;
-    } else {
-        return -1;
-    }
+    ZF_LOGI("MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+            (uint8_t)(mac >> 40), (uint8_t)(mac >> 32), (uint8_t)(mac >> 24),
+            (uint8_t)(mac >> 16), (uint8_t)(mac >> 8), (uint8_t)mac);
+
+    return mac;
 }
