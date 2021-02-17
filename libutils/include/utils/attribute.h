@@ -10,13 +10,13 @@
 
 /* Stub out Clang feature macros for GCC. */
 #ifndef __has_attribute
-  #define __has_attribute(attrib) 0
+#define __has_attribute(attrib) 0
 #endif
 #ifndef __has_extension
-  #define __has_extension(ext) 0
+#define __has_extension(ext) 0
 #endif
 #ifndef __has_feature
-  #define __has_feature(feature) 0
+#define __has_feature(feature) 0
 #endif
 
 #define ALIAS(sym)   __attribute__((alias(#sym)))
@@ -27,23 +27,23 @@
 #define ALWAYS_INLINE __attribute__((always_inline))
 #define CLEANUP(fn)  __attribute__((cleanup(fn)))
 #if (defined(__clang__) && __has_attribute(cold)) || (!defined(__clang__) && defined(__GNUC__))
-  #define COLD       __attribute__((cold))
+#define COLD       __attribute__((cold))
 #else
-  #define COLD       /* ignored */
+#define COLD       /* ignored */
 #endif
 #define DEPRECATED(msg) __attribute__((deprecated(msg)))
 #if defined(__clang__) && __has_extension(attribute_unavailable_with_message)
-  #define ERROR(msg)   __attribute__((unavailable(msg)))
+#define ERROR(msg)   __attribute__((unavailable(msg)))
 #elif defined(__GNUC__)
-  #define ERROR(msg)   __attribute__((error(msg)))
+#define ERROR(msg)   __attribute__((error(msg)))
 #else
-  /* No good compile-time error feature. Just emit garbage that will force an unclean error. */
-  #define ERROR(msg)  __COMPILE_TIME_ERROR_SUPPORT_UNAVAILABLE(msg)
+/* No good compile-time error feature. Just emit garbage that will force an unclean error. */
+#define ERROR(msg)  __COMPILE_TIME_ERROR_SUPPORT_UNAVAILABLE(msg)
 #endif
 #if (defined(__clang__) && __has_attribute(hot)) || (!defined(__clang__) && defined(__GNUC__))
-  #define HOT        __attribute__((hot))
+#define HOT        __attribute__((hot))
 #else
-  #define HOT        /* ignored */
+#define HOT        /* ignored */
 #endif
 #define MALLOC       __attribute__((malloc))
 #define NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
@@ -58,9 +58,9 @@
 #define UNUSED       __attribute__((__unused__))
 #define USED         __attribute__((__used__))
 #if defined(__clang__) && !__has_attribute(externally_visible)
-  #define VISIBLE /* ignored */
+#define VISIBLE /* ignored */
 #else
-  #define VISIBLE __attribute__((__externally_visible__))
+#define VISIBLE __attribute__((__externally_visible__))
 #endif
 #define WARNING(msg) __attribute__((warning(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))

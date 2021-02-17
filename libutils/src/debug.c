@@ -14,8 +14,7 @@
 #define MD_BYTES_PER_LINE (sizeof(uint32_t) * 4)
 #define MD_GROUPING       4
 
-static void
-md_print_line(void* address, int word_size)
+static void md_print_line(void *address, int word_size)
 {
     uint8_t line[MD_BYTES_PER_LINE];
     unsigned num_objects = MD_BYTES_PER_LINE / word_size;
@@ -28,25 +27,25 @@ md_print_line(void* address, int word_size)
         }
         switch (word_size) {
         case 1: {
-            uint8_t temp = *(volatile uint8_t*)((uintptr_t)address + object_offset);
+            uint8_t temp = *(volatile uint8_t *)((uintptr_t)address + object_offset);
             printf("0x%02x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 2: {
-            uint16_t temp = *(volatile uint16_t*)((uintptr_t)address + object_offset);
+            uint16_t temp = *(volatile uint16_t *)((uintptr_t)address + object_offset);
             printf("0x%04x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 4: {
-            uint32_t temp = *(volatile uint32_t*)((uintptr_t)address + object_offset);
+            uint32_t temp = *(volatile uint32_t *)((uintptr_t)address + object_offset);
             printf("0x%08x ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
         }
         case 8: {
-            uint64_t temp = *(volatile uint64_t*)((uintptr_t)address + object_offset);
+            uint64_t temp = *(volatile uint64_t *)((uintptr_t)address + object_offset);
             printf("0x%016"PRIx64" ", temp);
             memcpy(&line[object_offset], &temp, sizeof(temp));
             break;
@@ -65,8 +64,7 @@ md_print_line(void* address, int word_size)
     printf("|\n");
 }
 
-void
-utils_memory_dump(void* address, size_t bytes, int word_size)
+void utils_memory_dump(void *address, size_t bytes, int word_size)
 {
     if (word_size == 1 || word_size == 2 || word_size == 4 || word_size == 8) {
         /* Notify the caller if 'bytes' is not a multple of MD_BYTES_PER_LINE */
