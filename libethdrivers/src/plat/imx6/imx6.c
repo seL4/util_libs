@@ -1,6 +1,7 @@
 /*
  * Copyright 2017, DornerWorks
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -463,9 +464,9 @@ error:
         ocotp_free(ocotp, &io_ops.io_mapper);
     }
     if (eth_data) {
+        free_desc_ring(eth_data, &io_ops.dma_manager);
         free(eth_data);
     }
-    free_desc_ring(eth_data, &io_ops.dma_manager);
     return -1;
 }
 
