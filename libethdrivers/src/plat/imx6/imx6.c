@@ -194,6 +194,7 @@ static void free_desc_ring(imx6_eth_driver_t *dev)
             sizeof(struct descriptor) * dev->rx_size);
         dev->rx_ring = NULL;
     }
+
     if (dev->tx_ring) {
         dma_unpin_free(
             dma_man,
@@ -201,16 +202,31 @@ static void free_desc_ring(imx6_eth_driver_t *dev)
             sizeof(struct descriptor) * dev->tx_size);
         dev->tx_ring = NULL;
     }
+
+    ps_malloc_ops_t *malloc_ops = &(dev->eth_drv.io_ops.malloc_ops);
+    assert(malloc_ops);
+
     if (dev->rx_cookies) {
-        free(dev->rx_cookies);
+        ps_free(
+            malloc_ops,
+            sizeof(void *) * dev->rx_size,
+            dev->rx_cookies);
         dev->rx_cookies = NULL;
     }
+
     if (dev->tx_cookies) {
-        free(dev->tx_cookies);
+        ps_free(
+            malloc_ops,
+            sizeof(void *) * dev->tx_size,
+            dev->tx_cookies);
         dev->tx_cookies = NULL;
     }
+
     if (dev->tx_lengths) {
-        free(dev->tx_lengths);
+        ps_free(
+            malloc_ops,
+            sizeof(void *) * dev->tx_size,
+            dev->tx_lengths);
         dev->tx_lengths = NULL;
     }
 }
@@ -219,59 +235,73 @@ static int initialize_desc_ring(imx6_eth_driver_t *dev)
 {
     assert(dev);
 
+    int ret;
+
+    /* Allocate uncached memory for RX/TX DMA descriptor rings. The function
+     * ensures that the cache is cleaned and invalidated for this area, so there
+     * are no surprises.
+     */
     ps_dma_man_t *dma_man = &(dev->eth_drv.io_ops.dma_manager);
     assert(dma_man);
 
     dma_addr_t rx_ring = dma_alloc_pin(
                              dma_man,
                              sizeof(struct descriptor) * dev->rx_size,
-                             0,
+                             0, // uncached
                              dev->eth_drv.dma_alignment);
     if (!rx_ring.phys) {
         ZF_LOGE("Failed to allocate rx_ring");
-        return -1;
+        goto error;
     }
-    ps_dma_cache_clean_invalidate(
-        dma_man,
-        rx_ring.virt,
-        sizeof(struct descriptor) * dev->rx_size);
     dev->rx_ring = rx_ring.virt;
     dev->rx_ring_phys = rx_ring.phys;
 
     dma_addr_t tx_ring = dma_alloc_pin(
                              dma_man,
                              sizeof(struct descriptor) * dev->tx_size,
-                             0,
+                             0, // uncached
                              dev->eth_drv.dma_alignment);
     if (!tx_ring.phys) {
         ZF_LOGE("Failed to allocate tx_ring");
-        free_desc_ring(dev);
-        return -1;
-    }
-    ps_dma_cache_clean_invalidate(
-        dma_man,
-        tx_ring.virt,
-        sizeof(struct descriptor) * dev->tx_size);
-
-    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
-    dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
-    if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
-        ZF_LOGE("Failed to malloc");
-        if (dev->rx_cookies) {
-            free(dev->rx_cookies);
-        }
-        if (dev->tx_cookies) {
-            free(dev->tx_cookies);
-        }
-        if (dev->tx_lengths) {
-            free(dev->tx_lengths);
-        }
-        free_desc_ring(dev);
-        return -1;
+        goto error;
     }
     dev->tx_ring = tx_ring.virt;
     dev->tx_ring_phys = tx_ring.phys;
+
+    ps_malloc_ops_t *malloc_ops = &(dev->eth_drv.io_ops.malloc_ops);
+    assert(malloc_ops);
+
+    ret = ps_calloc(
+              malloc_ops,
+              dev->rx_size,
+              sizeof(void *),
+              (void **)&dev->rx_cookies);
+    if (ret) {
+        ZF_LOGE("ps_calloc() failed for rx_cookies, code %d", ret);
+        goto error;
+    }
+
+    ret = ps_calloc(
+              malloc_ops,
+              dev->tx_size,
+              sizeof(void *),
+              (void **)&dev->tx_cookies);
+
+    if (ret) {
+        ZF_LOGE("ps_calloc() failed for tx_cookies, code %d", ret);
+        goto error;
+    }
+
+    ret = ps_calloc(
+              malloc_ops,
+              dev->tx_size,
+              sizeof(void *),
+              (void **)&dev->tx_lengths);
+    if (ret) {
+        ZF_LOGE("ps_calloc() failed for tx_lengths, code %d", ret);
+        goto error;
+    }
+
     /* Remaining needs to be 2 less than size as we cannot actually enqueue
      * size many descriptors, since then the head and tail pointers would be
      * equal, indicating empty.
@@ -302,6 +332,10 @@ static int initialize_desc_ring(imx6_eth_driver_t *dev)
     __sync_synchronize();
 
     return 0;
+
+error:
+    free_desc_ring(dev);
+    return -1;
 }
 
 static void complete_rx(imx6_eth_driver_t *dev)
