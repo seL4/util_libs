@@ -1,12 +1,8 @@
 /*
- * @TAG(OTHER_GPL)
- */
-
-/*
  * (C) Copyright 2008
  * Benjamin Warren, biggerbadderben@gmail.com
  *
- * SPDX-License-Identifier: GPL-2.0+
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 /*

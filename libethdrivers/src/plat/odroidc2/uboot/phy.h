@@ -1,12 +1,8 @@
 /*
- * @TAG(OTHER_GPL)
- */
-
-/*
  * Copyright 2011 Freescale Semiconductor, Inc.
  *  Andy Fleming <afleming@gmail.com>
  *
- * SPDX-License-Identifier: GPL-2.0+
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This file pretty much stolen from Linux's mii.h/ethtool.h/phy.h
  */
