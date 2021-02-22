@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -46,6 +47,7 @@ static int imx_uart_init(struct elfloader_device *dev, UNUSED void *match_data)
 static const struct dtb_match_table imx_uart_matches[] = {
     { .compatible = "fsl,imx31-uart" },
     { .compatible = "fsl,imx6q-uart" },
+    { .compatible = "fsl,imx6sx-uart" },
     { .compatible = NULL /* sentinel */ },
 };
 

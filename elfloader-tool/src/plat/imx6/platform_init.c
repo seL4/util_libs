@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -107,8 +108,13 @@ UNUSED static void switch_to_mon_mode(void)
 /* The physical address region [MON_VECTOR_START, MON_VECTOR_START + size)
  * must not be used by the seL4 kernel. The VECTOR_BASE must be
  * the same as MON_VECTOR_START */
-
+#if defined(CONFIG_PLAT_IMX6DQ)
 #define MON_VECTOR_START    (0x10000000)
+#elif defined(CONFIG_PLAT_IMX6SX)
+#define MON_VECTOR_START    (0x80000000)
+#else
+#error "unknown i.MX6 SOC"
+#endif
 extern void arm_monitor_vector(void);
 extern void arm_monitor_vector_end(void);
 extern void *memcpy(void *dest, void *src, size_t n);

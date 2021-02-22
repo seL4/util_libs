@@ -1,5 +1,6 @@
 #
 # Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+# Copyright 2020, HENSOLDT Cyber GmbH
 #
 # SPDX-License-Identifier: BSD-2-Clause
 #
@@ -153,7 +154,7 @@ function(correct_platform_strings)
         # configuration to <sel4 kernel>/src/plat/*/config.cmake
         #
         "-KernelARMPlatform"
-        "imx6:sabre,wandq"
+        "imx6:sabre,wandq,nitrogen6sx"
         "imx31:kzm"
         "bcm2837:rpi3"
         "bcm2711:rpi4"
