@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -165,8 +166,8 @@ struct ccm_alg_regs {
 };
 
 static volatile struct clock_regs {
-    struct ccm_regs     * ccm;
-    struct ccm_alg_regs * alg;
+    struct ccm_regs      *ccm;
+    struct ccm_alg_regs *alg;
 } clk_regs = {.ccm = NULL, .alg = NULL};
 
 struct pll2_regs {
@@ -185,8 +186,7 @@ struct pll2_regs {
 static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 /* ARM_CLK */
-static freq_t
-_arm_get_freq(clk_t* clk)
+static freq_t _arm_get_freq(clk_t *clk)
 {
     uint32_t div;
     uint32_t fout, fin;
@@ -197,8 +197,7 @@ _arm_get_freq(clk_t* clk)
     return fout;
 }
 
-static freq_t
-_arm_set_freq(clk_t* clk, freq_t hz)
+static freq_t _arm_set_freq(clk_t *clk, freq_t hz)
 {
     uint32_t div;
     uint32_t fin;
@@ -220,20 +219,18 @@ _arm_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-static void
-_arm_recal(clk_t* clk UNUSED)
+static void _arm_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_arm_init(clk_t* clk)
+static clk_t *_arm_init(clk_t *clk)
 {
     if (clk->priv == NULL) {
-        clk_t* parent;
+        clk_t *parent;
         parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -242,8 +239,7 @@ static struct clock arm_clk = { CLK_OPS(ARM, arm, NULL) };
 
 /* ENET_CLK */
 
-static freq_t
-_enet_get_freq(clk_t* clk)
+static freq_t _enet_get_freq(clk_t *clk)
 {
     uint32_t div;
     uint32_t fin;
@@ -265,8 +261,7 @@ _enet_get_freq(clk_t* clk)
     }
 }
 
-static freq_t
-_enet_set_freq(clk_t* clk, freq_t hz)
+static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
 {
     uint32_t div, fin;
     uint32_t v;
@@ -300,19 +295,17 @@ _enet_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-static void
-_enet_recal(clk_t* clk UNUSED)
+static void _enet_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_enet_init(clk_t* clk)
+static clk_t *_enet_init(clk_t *clk)
 {
     if (clk->priv == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -320,12 +313,11 @@ _enet_init(clk_t* clk)
 static struct clock enet_clk = { CLK_OPS(ENET, enet, NULL) };
 
 /* PLL2_CLK */
-static freq_t
-_pll2_get_freq(clk_t* clk)
+static freq_t _pll2_get_freq(clk_t *clk)
 {
     uint32_t p, s;
     struct pll2_regs *regs;
-    regs = (struct pll2_regs*)((uint32_t)clk_regs.alg + (PLL2_PADDR & 0xfff));
+    regs = (struct pll2_regs *)((uint32_t)clk_regs.alg + (PLL2_PADDR & 0xfff));
     assert((regs->ctrl & PLL2_CTRL_LOCK) != 0);
     assert((regs->ctrl & PLL2_CTRL_BYPASS) == 0);
     assert((regs->ctrl & PLL2_CTRL_PWR_DOWN) == 0);
@@ -340,8 +332,7 @@ _pll2_get_freq(clk_t* clk)
     return p * s;
 }
 
-static freq_t
-_pll2_set_freq(clk_t* clk, freq_t hz)
+static freq_t _pll2_set_freq(clk_t *clk, freq_t hz)
 {
     uint32_t s;
     if (clk_regs.alg == NULL) {
@@ -353,19 +344,17 @@ _pll2_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-static void
-_pll2_recal(clk_t* clk UNUSED)
+static void _pll2_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_pll2_init(clk_t* clk)
+static clk_t *_pll2_init(clk_t *clk)
 {
     if (clk->parent == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -373,33 +362,29 @@ _pll2_init(clk_t* clk)
 static struct clock pll2_clk = { CLK_OPS(PLL2, pll2, NULL) };
 
 /* MMDC_CH0_CLK */
-static freq_t
-_mmdc_ch0_get_freq(clk_t* clk)
+static freq_t _mmdc_ch0_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent);
 }
 
-static freq_t
-_mmdc_ch0_set_freq(clk_t* clk, freq_t hz)
+static freq_t _mmdc_ch0_set_freq(clk_t *clk, freq_t hz)
 {
     /* TODO there is a mux here */
     assert(hz == 528 * MHZ);
     return clk_set_freq(clk->parent, hz);
 }
 
-static void
-_mmdc_ch0_recal(clk_t* clk UNUSED)
+static void _mmdc_ch0_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_mmdc_ch0_init(clk_t* clk)
+static clk_t *_mmdc_ch0_init(clk_t *clk)
 {
     if (clk->parent == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_PLL2);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_PLL2);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -407,31 +392,27 @@ _mmdc_ch0_init(clk_t* clk)
 static struct clock mmdc_ch0_clk = { CLK_OPS(MMDC_CH0, mmdc_ch0, NULL) };
 
 /* AHB_CLK_ROOT */
-static freq_t
-_ahb_get_freq(clk_t* clk)
+static freq_t _ahb_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent) / 4;
 }
 
-static freq_t
-_ahb_set_freq(clk_t* clk, freq_t hz)
+static freq_t _ahb_set_freq(clk_t *clk, freq_t hz)
 {
     return clk_set_freq(clk->parent, hz * 4);
 }
 
-static void
-_ahb_recal(clk_t* clk UNUSED)
+static void _ahb_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_ahb_init(clk_t* clk)
+static clk_t *_ahb_init(clk_t *clk)
 {
     if (clk->parent == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MMDC_CH0);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MMDC_CH0);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -439,31 +420,27 @@ _ahb_init(clk_t* clk)
 static struct clock ahb_clk = { CLK_OPS(AHB, ahb, NULL) };
 
 /* IPG_CLK_ROOT */
-static freq_t
-_ipg_get_freq(clk_t* clk)
+static freq_t _ipg_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent) / 2;
 };
 
-static freq_t
-_ipg_set_freq(clk_t* clk, freq_t hz)
+static freq_t _ipg_set_freq(clk_t *clk, freq_t hz)
 {
     return clk_set_freq(clk->parent, hz * 2);
 };
 
-static void
-_ipg_recal(clk_t* clk UNUSED)
+static void _ipg_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_ipg_init(clk_t* clk)
+static clk_t *_ipg_init(clk_t *clk)
 {
     if (clk->parent == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_AHB);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_AHB);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     return clk;
 }
@@ -471,10 +448,9 @@ _ipg_init(clk_t* clk)
 static struct clock ipg_clk = { CLK_OPS(IPG, ipg, NULL) };
 
 /* USB_CLK */
-static freq_t
-_usb_get_freq(clk_t* clk)
+static freq_t _usb_get_freq(clk_t *clk)
 {
-    volatile alg_sct_t* pll_usb;
+    volatile alg_sct_t *pll_usb;
     pll_usb = clk_regs.alg->pll_usb;
     if (clk->id == CLK_USB2) {
         pll_usb++;
@@ -493,27 +469,24 @@ _usb_get_freq(clk_t* clk)
     return 0;
 }
 
-static freq_t
-_usb_set_freq(clk_t* clk, freq_t hz UNUSED)
+static freq_t _usb_set_freq(clk_t *clk, freq_t hz UNUSED)
 {
     assert(!"Not implemented");
     return clk_get_freq(clk);
 }
 
-static void
-_usb_recal(clk_t* clk UNUSED)
+static void _usb_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_usb_init(clk_t* clk)
+static clk_t *_usb_init(clk_t *clk)
 {
-    volatile alg_sct_t* pll_usb;
+    volatile alg_sct_t *pll_usb;
     if (clk->parent == NULL) {
-        clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
+        clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
         clk_register_child(parent, clk);
-        clk->priv = (void*)&clk_regs;
+        clk->priv = (void *)&clk_regs;
     }
     if (clk_regs.alg == NULL) {
         ZF_LOGF("clk_regs.alg is NULL: Clocks likely not initialised properly");
@@ -537,8 +510,7 @@ static struct clock usb1_clk = { CLK_OPS(USB1, usb, NULL) };
 static struct clock usb2_clk = { CLK_OPS(USB2, usb, NULL) };
 
 /* clkox */
-static freq_t
-_clko_get_freq(clk_t* clk)
+static freq_t _clko_get_freq(clk_t *clk)
 {
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t div;
@@ -556,8 +528,7 @@ _clko_get_freq(clk_t* clk)
     return fin / (div + 1);
 }
 
-static freq_t
-_clko_set_freq(clk_t* clk, freq_t hz)
+static freq_t _clko_set_freq(clk_t *clk, freq_t hz)
 {
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t div = (fin / hz) + 1;
@@ -582,19 +553,17 @@ _clko_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-static void
-_clko_recal(clk_t* clk UNUSED)
+static void _clko_recal(clk_t *clk UNUSED)
 {
     assert(0);
 }
 
-static clk_t*
-_clko_init(clk_t* clk)
+static clk_t *_clko_init(clk_t *clk)
 {
     assert(clk_get_clock_sys(clk));
     if (clk->parent == NULL) {
         /* We currently only support 1 src, but there are many to choose from */
-        clk_t* parent;
+        clk_t *parent;
         uint32_t v = clk_regs.ccm->ccosr;
         switch (clk->id) {
         case CLK_CLKO1:
@@ -628,8 +597,7 @@ _clko_init(clk_t* clk)
 static struct clock clko1_clk = { CLK_OPS(CLKO1, clko, NULL) };
 static struct clock clko2_clk = { CLK_OPS(CLKO2, clko, NULL) };
 
-static int
-imx6_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
+static int imx6_gate_enable(clock_sys_t *clock_sys, enum clock_gate gate, enum clock_gate_mode mode)
 {
     assert(clk_regs.ccm);
     assert(mode == CLKGATE_ON);
@@ -646,25 +614,23 @@ imx6_gate_enable(clock_sys_t* clock_sys, enum clock_gate gate, enum clock_gate_m
     return 0;
 }
 
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+int clock_sys_init(ps_io_ops_t *o, clock_sys_t *clock_sys)
 {
-    MAP_IF_NULL(o, CCM       , clk_regs.ccm);
+    MAP_IF_NULL(o, CCM, clk_regs.ccm);
     MAP_IF_NULL(o, CCM_ANALOG, clk_regs.alg);
-    clock_sys->priv = (void*)&clk_regs;
+    clock_sys->priv = (void *)&clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &imx6_gate_enable;
     return 0;
 }
 
-void
-clk_print_clock_tree(clock_sys_t* sys)
+void clk_print_clock_tree(clock_sys_t *sys)
 {
     clk_t *clk = clk_get_clock(sys, CLK_MASTER);
     clk_print_tree(clk, "");
 }
 
-clk_t* ps_clocks[] = {
+clk_t *ps_clocks[] = {
     [CLK_MASTER]   = &master_clk,
     [CLK_PLL2  ]   = &pll2_clk,
     [CLK_MMDC_CH0] = &mmdc_ch0_clk,
