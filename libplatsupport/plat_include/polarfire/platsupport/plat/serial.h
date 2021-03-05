@@ -79,8 +79,8 @@ typedef volatile struct uart uart_regs_t;
 #define DEFAULT_SERIAL_PADDR UART3_PADDR
 #define DEFAULT_SERIAL_INTERRUPT UART3_IRQ
 
-/* Relevant Register Masks *
-/
+/* Relevant Register Masks */
+
 /* Line Control Register */
 #define LCR_WORD_LEN_5                  0b00
 #define LCR_WORD_LEN_6                  0b01
