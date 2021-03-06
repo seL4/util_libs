@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
+#include "../../chardev.h"
 #include <string.h>
 
 
