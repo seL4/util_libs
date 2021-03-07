@@ -76,7 +76,7 @@ int load_images(
     unsigned int *num_images,
     void *bootloader_dtb,
     void **chosen_dtb,
-    uint32_t *chosen_dtb_size);
+    size_t *chosen_dtb_size);
 
 /* Platform functions */
 void platform_init(void);

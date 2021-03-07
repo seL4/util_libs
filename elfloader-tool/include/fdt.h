@@ -6,5 +6,5 @@
 
 #pragma once
 
-uint32_t fdt_size(
+size_t fdt_size(
     void const *fdt);

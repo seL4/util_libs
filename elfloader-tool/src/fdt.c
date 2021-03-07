@@ -31,7 +31,7 @@ uint32_t be32_to_le(
            ((be & 0xff000000) >> 24);
 }
 
-uint32_t fdt_size(
+size_t fdt_size(
     void const *fdt)
 {
     struct fdt_header const *hdr = fdt;

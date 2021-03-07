@@ -30,7 +30,7 @@ char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
 struct image_info kernel_info;
 struct image_info user_info;
 void *dtb;
-uint32_t dtb_size;
+size_t dtb_size;
 
 extern void finish_relocation(int offset, void *_dynamic, unsigned int total_offset);
 void continue_boot(int was_relocated);
