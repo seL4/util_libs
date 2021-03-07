@@ -74,7 +74,10 @@ static void ensure_phys_range_valid(
      * Ensure that the physical load address of the object we're loading (called
      * `name`) doesn't overwrite us.
      */
-    if (regions_overlap(paddr_min, paddr_max - 1, (word_t)_text, (word_t)_end - 1)) {
+    if (regions_overlap(paddr_min,
+                        paddr_max - 1,
+                        (uintptr_t)_text,
+                        (uintptr_t)_end - 1)) {
         printf("%s load address would overlap ELF-loader!\n", name);
         abort();
     }
@@ -91,7 +94,7 @@ static void unpack_elf_to_paddr(
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
 
-    word_t phys_virt_offset;
+    uintptr_t phys_virt_offset;
 
     /* Get size of the image. */
     elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
@@ -212,9 +215,9 @@ static paddr_t load_elf(
 
     /* Print diagnostics. */
     printf("ELF-loading image '%s'\n", name);
-    printf("  paddr=[%lx..%lx]\n", dest_paddr, dest_paddr + image_size - 1);
-    printf("  vaddr=[%lx..%lx]\n", (vaddr_t)min_vaddr, (vaddr_t)max_vaddr - 1);
-    printf("  virt_entry=%lx\n", (vaddr_t)elf_getEntryPoint(elf));
+    printf("  paddr=[%p..%p]\n", dest_paddr, dest_paddr + image_size - 1);
+    printf("  vaddr=[%p..%p]\n", (vaddr_t)min_vaddr, (vaddr_t)max_vaddr - 1);
+    printf("  virt_entry=%p\n", (vaddr_t)elf_getEntryPoint(elf));
 
     /* Ensure the ELF file is valid. */
     if (elf_checkFile(elf) != 0) {
@@ -385,7 +388,7 @@ void load_images(
         dtb_phys_end = next_phys_addr;
 
         printf("Loaded DTB from %p.\n", dtb);
-        printf("   paddr=[%lx..%lx]\n", dtb_phys_start, dtb_phys_end - 1);
+        printf("   paddr=[%p..%p]\n", dtb_phys_start, dtb_phys_end - 1);
         *chosen_dtb = (void *)dtb_phys_start;
     } else {
         next_phys_addr = ROUND_UP(kernel_phys_end, PAGE_BITS);

@@ -45,7 +45,7 @@ static void write_num(
     write_char_fn write_char,
     void *payload,
     int base,
-    unsigned long n)
+    uintmax_t n)
 {
     static const char hex[] = "0123456789abcdef";
     char buff[MAX_INT_BUFF_SIZE];
@@ -80,13 +80,9 @@ static void vxprintf(
     const char *format,
     va_list args)
 {
-    int d, i;
-    char c, *s;
-    unsigned long p, ul;
     int escape_mode = 0;
-
     /* Iterate over the format list. */
-    for (i = 0; format[i] != 0; i++) {
+    for (unsigned int i = 0; format[i] != 0; i++) {
         /* Handle simple characters. */
         if (!escape_mode && format[i] != '%') {
             write_char(payload, format[i]);
@@ -125,51 +121,86 @@ static void vxprintf(
 
         /* String. */
         case 's':
-            s = va_arg(args, char *);
-            write_string(write_char, payload, s);
+            write_string(write_char, payload, va_arg(args, char *));
             escape_mode = 0;
             break;
 
         /* Pointers. */
         case 'p':
-            p = va_arg(args, unsigned long);
-            write_num(write_char, payload, 16, p);
+            write_num(write_char, payload, 16, (uintptr_t)va_arg(args, void *));
             escape_mode = 0;
             break;
 
         /* Hex number. */
         case 'x':
-            d = va_arg(args, int);
-            write_num(write_char, payload, 16, d);
+            write_num(write_char, payload, 16, va_arg(args, int));
             escape_mode = 0;
             break;
 
         /* Decimal number. */
         case 'd':
         case 'u':
-            d = va_arg(args, int);
-            write_num(write_char, payload, 10, d);
+            write_num(write_char, payload, 10, va_arg(args, int));
             escape_mode = 0;
             break;
 
         /* Character. */
         case 'c':
-            c = va_arg(args, int);
-            write_char(payload, c);
+            write_char(payload, va_arg(args, int));
+            escape_mode = 0;
+            break;
+
+        /* size_t number. */
+        case 'z':
+            switch (format[++i]) {
+            case 'd':
+            case 'u':
+                write_num(write_char, payload, 10,
+                          va_arg(args, size_t));
+                break;
+
+            case 'x':
+                write_num(write_char, payload, 16,
+                          va_arg(args, size_t));
+                break;
+
+            default:
+                write_char(payload, '?');
+            }
             escape_mode = 0;
             break;
 
         /* Long number. */
         case 'l':
             switch (format[++i]) {
+            case 'd':
             case 'u':
-                ul = va_arg(args, unsigned long);
-                write_num(write_char, payload, 10, ul);
+                write_num(write_char, payload, 10,
+                          va_arg(args, unsigned long));
                 break;
 
             case 'x':
-                ul = va_arg(args, unsigned long);
-                write_num(write_char, payload, 16, ul);
+                write_num(write_char, payload, 16,
+                          va_arg(args, unsigned long));
+                break;
+
+            /* Long Long number. */
+            case 'l':
+                switch (format[++i]) {
+                case 'd':
+                case 'u':
+                    write_num(write_char, payload, 10,
+                              va_arg(args, unsigned long long));
+                    break;
+
+                case 'x':
+                    write_num(write_char, payload, 16,
+                              va_arg(args, unsigned long long));
+                    break;
+
+                default:
+                    write_char(payload, '?');
+                }
                 break;
 
             default:
