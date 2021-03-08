@@ -41,8 +41,8 @@ typedef unsigned int    uint32_t;
 
 #elif defined(__KERNEL_64__)
 
-#define _int64_type         long long
-#define _int64_type_fmt     ll  // for printf() formatting and integer suffix
+#define _int64_type         long
+#define _int64_type_fmt     l  // for printf() formatting and integer suffix
 
 #else
 #error expecting either __KERNEL_32__ or __KERNEL_64__ to be defined
