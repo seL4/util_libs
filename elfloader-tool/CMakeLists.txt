@@ -173,6 +173,12 @@ file(
 # We never want to give crt0_64.S to add_executable
 list(FILTER files EXCLUDE REGEX "src/arch-arm/32/crt0_64\.S")
 
+if(NOT ElfloaderMonitorHook)
+    # The CMake documentation is no clear on this, but it seems all variables
+    # of the form ${xxx} get evaluated first and then the regex is applied
+    list(FILTER files EXCLUDE REGEX "src/plat/${KernelPlatform}/monitor\.S")
+endif()
+
 if(KernelArchARM)
     file(
         GLOB

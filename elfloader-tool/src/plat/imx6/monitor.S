@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
+#ifndef CONFIG_ARM_MONITOR_HOOK
+#error This file is for CONFIG_ARM_MONITOR_HOOK only
+#endif
+
+
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
 
