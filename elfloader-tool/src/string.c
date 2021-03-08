@@ -68,8 +68,10 @@ void *memset(void *s, int c, size_t n)
     for (; (uintptr_t)mem % BYTE_PER_WORD != 0 && n > 0; mem++, n--) {
         *mem = c;
     }
-    /* construct word filler */
-    u_alias fill = ((u_alias) - 1 / 255) * (unsigned char)c;
+    /* construct word filler with some smart math magic that works for any
+     * byte size actually. Assume words have 3 byte, then 0xffffff / 0xff is
+     * 0x010101, and 0x010101 * 0xab is 0xababab  */
+    u_alias fill = (((u_alias)(-1)) / 0xff) * (unsigned char)c;
     /* do as many word writes as we can */
     for (; n > BYTE_PER_WORD - 1; n -= BYTE_PER_WORD, mem += BYTE_PER_WORD) {
         *(u_alias *)mem = fill;
