@@ -23,6 +23,9 @@
 #include "uboot/micrel.h"
 #include "unimplemented.h"
 
+// Temporary fix: set to imx8mq mac
+#define DEFAULT_MAC "\x00\x04\x9f\x05\x93\xdf"
+
 #define IRQ_MASK    (NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR)
 #define BUF_SIZE    MAX_PKT_SIZE
 #define DMA_ALIGN   32
