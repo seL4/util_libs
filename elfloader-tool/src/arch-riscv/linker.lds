@@ -4,12 +4,15 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-OUTPUT_ARCH( "riscv" )
+#include <autoconf.h>
+#include <elfloader/gen_config.h>
+#include "image_start_addr.h"
+
 ENTRY( _start )
 
 SECTIONS
 {
-  . = 0x0000000080400000;
+    . = IMAGE_START_ADDR;
     _text = .;
     .start :
     {
