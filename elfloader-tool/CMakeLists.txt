@@ -264,59 +264,58 @@ endif()
 # Construct the ELF loader's payload.
 MakeCPIO(archive.o "${cpio_files}" CPIO_SYMBOL _archive_start)
 
-# If our platform has a YAML description, create a C header file to include
-# information about the platform that is of interest to the ELF-loader, such as
-# a physical memory map.
-#
-# We also need to put the ELF-loader's payload in memory at a place that will be
-# out of the way of the kernel and user images that the elfloader extracts.  In
-# other words, we don't want the ELF-loader (with its payload) to clobber
-# itself.
-#
-# Formerly there was a complex set of conditionals driving a table of
-# hard-coded addresses.
-#
-# Now, instead, we compute a reasonable image start address, using a tool called
-# `shoehorn`, based on knowledge of how where and how big the extracted payloads
-# will be, obtained by a tool called `elf_sift`.
 set(PLATFORM_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen_headers")
-set(CMAKE_TOOL_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake-tool/helpers")
+set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
+set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
 
-if(DEFINED platform_yaml)
-    set(PLATFORM_SIFT "${CMAKE_TOOL_HELPERS_DIR}/platform_sift.py")
-    set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
+if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
+
     add_custom_command(
-        OUTPUT ${PLATFORM_INFO_H}
-        COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${PLATFORM_INFO_H}
+        OUTPUT "${PLATFORM_INFO_H}" "${IMAGE_START_ADDR_H}"
+        COMMAND echo "#pragma once\\n\/* no platform YAML file available */" >"${PLATFORM_INFO_H}"
+        COMMAND
+            echo "#pragma once\\n#define IMAGE_START_ADDR ${IMAGE_START_ADDR}"
+            >"${IMAGE_START_ADDR_H}"
         VERBATIM
-        DEPENDS ${platform_yaml} ${PLATFORM_SIFT}
     )
 
-    set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
-    if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
-        file(WRITE ${IMAGE_START_ADDR_H} "#define IMAGE_START_ADDR ${IMAGE_START_ADDR}")
-    else()
-        # `shoehorn` calls `elf_sift`, so we'll need to depend on it.
-        set(ELF_SIFT "${CMAKE_TOOL_HELPERS_DIR}/elf_sift.py")
-        set(SHOEHORN "${CMAKE_TOOL_HELPERS_DIR}/shoehorn.py")
-        set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
-        add_custom_command(
-            OUTPUT ${IMAGE_START_ADDR_H}
-            COMMAND
-                ${SHOEHORN} ${platform_yaml} ${ARCHIVE_O} > ${IMAGE_START_ADDR_H}
-            VERBATIM
-            DEPENDS
-                ${ARCHIVE_O}
-                ${platform_yaml}
-                ${ELF_SIFT}
-                ${SHOEHORN}
-        )
-    endif()
+elseif(NOT DEFINED platform_yaml)
+
+    message(FATAL_ERROR "IMAGE_START_ADDR not set and 'platform_yaml' undefined")
+
 else()
-    message(
-        FATAL_ERROR
-            "no image start address computed for platform; use platform YAML file ${platform_yaml} or replace this diagnostic with a CMake custom command to generate a file \"${IMAGE_START_ADDR_H}\" that hard-codes it; the same goes for \"${PLATFORM_INFO_H}\""
+
+    # Take the platform's YAML description can create a C header file with
+    # information of interest to the ELF-loader, e.g. a physical memory map. We
+    # must put the ELF-loader's payload in memory at a place that will be out of
+    # the way of the kernel and user images that are extracted. In other words,
+    # we don't want the ELF-loader (with its payload) to clobber itself.
+    add_custom_command(
+        OUTPUT "${PLATFORM_INFO_H}"
+        COMMAND "${PLATFORM_SIFT}" --emit-c-syntax "${platform_yaml}" > "${PLATFORM_INFO_H}"
+        VERBATIM
+        DEPENDS "${platform_yaml}" "${PLATFORM_SIFT}"
     )
+
+    # The `shoehorn` tool computes a reasonable image start address. It calls
+    # `elf_sift` to obtain details about where the extracted payloads will be
+    # and how big they are.
+    set(CMAKE_TOOL_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake-tool/helpers")
+    set(ELF_SIFT "${CMAKE_TOOL_HELPERS_DIR}/elf_sift.py")
+    set(SHOEHORN "${CMAKE_TOOL_HELPERS_DIR}/shoehorn.py")
+    set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
+    add_custom_command(
+        OUTPUT "${IMAGE_START_ADDR_H}"
+        COMMAND
+            "${SHOEHORN}" "${platform_yaml}" "${ARCHIVE_O}" > "${IMAGE_START_ADDR_H}"
+        VERBATIM
+        DEPENDS
+            "${ARCHIVE_O}"
+            "${platform_yaml}"
+            "${ELF_SIFT}"
+            "${SHOEHORN}"
+    )
+
 endif()
 
 if(DEFINED KernelDTBPath)
