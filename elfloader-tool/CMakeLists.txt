@@ -291,7 +291,6 @@ if(DEFINED platform_yaml)
         VERBATIM
         DEPENDS ${platform_yaml} ${PLATFORM_SIFT}
     )
-    set_property(SOURCE src/common.c PROPERTY OBJECT_DEPENDS ${PLATFORM_INFO_H})
 
     set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
     if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
