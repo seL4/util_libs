@@ -122,8 +122,9 @@ function(DeclareRootserver rootservername)
                         ${CMAKE_OBJCOPY} -O binary "${elf_target_file}"
                         "${OPENSBI_BINARY_DIR}/payload"
                     COMMAND
-                        CROSS_COMPILE=${CROSS_COMPILER_PREFIX} make -C "${OPENSBI_PATH}"
-                        O="${OPENSBI_BINARY_DIR}" PLATFORM="${KernelOpenSBIPlatform}"
+                        PLATFORM_RISCV_XLEN=${mode} CROSS_COMPILE=${CROSS_COMPILER_PREFIX} make -C
+                        "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}"
+                        PLATFORM="${KernelOpenSBIPlatform}"
                         FW_PAYLOAD_PATH="${OPENSBI_BINARY_DIR}/payload"
                     DEPENDS "${elf_target_file}" elfloader ${USES_TERMINAL_DEBUG}
                 )
