@@ -231,22 +231,10 @@ static void arch_write_char(
 {
     arch_write_char_ctx_t *ctx = payload;
 
-    /* For now, console output goes into a UART on every platform eventually
-     * and we write a '\r' (CR) before every '\n' (LF) unconditionally. If there
-     * will even be a console that works differently, we can still add a
-     * configuration flag that allows disabling this feature.
-     */
-    if (c == '\n') {
-        /* TODO: There is no "(*num_chars_printed)++;" here, as the CR char has
-         *       never been counted by any platform specific implementations in
-         *       the past. For now the behavior is kept, but it seem quite
-         *       wrong to hide this. Check if any code depends really on this
-         *       and consider counting the CR char also.
-         */
-        plat_console_putchar('\r');
-    }
-
     plat_console_putchar(c);
+    /* do do not really know what plat_console_putchar() does effectively, all
+     * we do know is that we have given it one character.
+     */
     ctx->cnt++;
 }
 

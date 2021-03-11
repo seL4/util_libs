@@ -33,5 +33,15 @@ int __attribute__((weak)) plat_console_putchar(unsigned int c)
         return 0;
     }
 
-    return dev_get_uart(uart_out)->putc(uart_out, c);
+    /* Currently no driver really implements a return code for putc(), they all
+     * return 0 unconditionally. So we ignore it here completely. To comply with
+     * UART terminal behavior, we print a '\r' (CR) before every '\n' (LF).
+     */
+    if ('\n' == c) {
+        (void)dev_get_uart(uart_out)->putc(uart_out, '\r');
+    }
+
+    (void)dev_get_uart(uart_out)->putc(uart_out, c);
+
+    return 0;
 }
