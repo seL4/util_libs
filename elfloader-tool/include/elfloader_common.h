@@ -26,6 +26,7 @@ typedef uintptr_t vaddr_t;
 #define VISIBLE
 #endif
 #define UNUSED              __attribute__((unused))
+#define UNUSED_VARIABLE(x)  ((void)(x))
 #define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
 #define NULL                ((void *)0)
 

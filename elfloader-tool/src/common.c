@@ -147,8 +147,8 @@ static int load_elf(
     struct image_info *info,
     int keep_headers,
     paddr_t *next_phys_addr,
-    __attribute__((unused)) unsigned long size,
-    __attribute__((unused)) char const *hash)
+    unsigned long size,
+    char const *hash)
 {
     int ret;
     uint64_t min_vaddr, max_vaddr;
@@ -182,7 +182,12 @@ static int load_elf(
         return -1;
     }
 
-#ifndef CONFIG_HASH_NONE
+#ifdef CONFIG_HASH_NONE
+
+    UNUSED_VARIABLE(size);
+    UNUSED_VARIABLE(hash);
+
+#else
 
     /* Get the binary file that contains the SHA256 Hash */
     unsigned long unused;
