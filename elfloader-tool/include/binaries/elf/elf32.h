@@ -88,68 +88,68 @@ struct Elf32_Rel {
 
 
 int elf32_checkFile(
-    struct Elf32_Header *file);
+    struct Elf32_Header const *file);
 
-struct Elf32_Phdr *elf32_getProgramSegmentTable(
-    struct Elf32_Header *file);
+struct Elf32_Phdr const *elf32_getProgramSegmentTable(
+    struct Elf32_Header const *file);
 
 unsigned elf32_getNumSections(
-    struct Elf32_Header *file);
+    struct Elf32_Header const *file);
 
-char *elf32_getStringTable(
-    struct Elf32_Header *file);
+char const *elf32_getStringTable(
+    struct Elf32_Header const *file);
 
-char *elf32_getSegmentStringTable(
-    struct Elf32_Header *file);
+char const *elf32_getSegmentStringTable(
+    struct Elf32_Header const *file);
 
-static inline struct Elf32_Shdr *elf32_getSectionTable(
-    struct Elf32_Header *file)
+static inline struct Elf32_Shdr const *elf32_getSectionTable(
+    struct Elf32_Header const *file)
 {
     /* Cast heaven! */
-    return (struct Elf32_Shdr *)(uintptr_t)(((uintptr_t) file) + file->e_shoff);
+    return (struct Elf32_Shdr const *)((uintptr_t)file + file->e_shoff);
 }
 
 /* accessor functions */
 static inline uint32_t elf32_getSectionType(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t s)
 {
     return elf32_getSectionTable(file)[s].sh_type;
 }
 
 static inline uint32_t elf32_getSectionFlags(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t s)
 {
     return elf32_getSectionTable(file)[s].sh_flags;
 }
 
-char *elf32_getSectionName(
-    struct Elf32_Header *file,
+char const *elf32_getSectionName(
+    struct Elf32_Header const *file,
     int i);
 
 uint32_t elf32_getSectionSize(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     int i);
 
 uint32_t elf32_getSectionAddr(
-    struct Elf32_Header *elfFile,
+    struct Elf32_Header const *elfFile,
     int i);
 
-void *elf32_getSection(
-    struct Elf32_Header *file,
+void const *elf32_getSection(
+    struct Elf32_Header const *file,
     int i);
 
-void *elf32_getSectionNamed(
-    struct Elf32_Header *file,
-    char *str);
+void const *elf32_getSectionNamed(
+    struct Elf32_Header const *file,
+    char const *str);
 
 int elf32_getSegmentType(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     int segment);
 
 void elf32_getSegmentInfo(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     int segment,
     uint64_t *p_vaddr,
     uint64_t *p_paddr,
@@ -158,64 +158,64 @@ void elf32_getSegmentInfo(
     uint64_t *p_memsz);
 
 uint32_t elf32_getEntryPoint(
-    struct Elf32_Header *file);
+    struct Elf32_Header const *file);
 
 /* Program header functions */
 uint16_t elf32_getNumProgramHeaders(
-    struct Elf32_Header *file);
+    struct Elf32_Header const *file);
 
-static inline struct Elf32_Phdr *elf32_getProgramHeaderTable(
-    struct Elf32_Header *file)
+static inline struct Elf32_Phdr const *elf32_getProgramHeaderTable(
+    struct Elf32_Header const *file)
 {
     /* Cast heaven! */
-    return (struct Elf32_Phdr *)(uintptr_t)(((uintptr_t) file) + file->e_phoff);
+    return (struct Elf32_Phdr const *)((uintptr_t)file + file->e_phoff);
 }
 
 /* accessor functions */
 static inline uint32_t elf32_getProgramHeaderFlags(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_flags;
 }
 
 static inline uint32_t elf32_getProgramHeaderType(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_type;
 }
 
 static inline uint32_t elf32_getProgramHeaderFileSize(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_filesz;
 }
 
 static inline uint32_t elf32_getProgramHeaderMemorySize(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_memsz;
 }
 
 static inline uint32_t elf32_getProgramHeaderVaddr(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_vaddr;
 }
 
 static inline uint32_t elf32_getProgramHeaderPaddr(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_paddr;
 }
 
 static inline uint32_t elf32_getProgramHeaderOffset(
-    struct Elf32_Header *file,
+    struct Elf32_Header const *file,
     uint16_t ph)
 {
     return elf32_getProgramHeaderTable(file)[ph].p_offset;

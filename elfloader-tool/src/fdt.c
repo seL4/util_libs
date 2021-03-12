@@ -32,9 +32,9 @@ uint32_t be32_to_le(
 }
 
 uint32_t fdt_size(
-    void *fdt)
+    void const *fdt)
 {
-    struct fdt_header *hdr = (struct fdt_header *)fdt;
+    struct fdt_header const *hdr = fdt;
 
     if (be32_to_le(hdr->magic) != FDT_MAGIC ||
         be32_to_le(hdr->last_comp_version) > FDT_MAX_VER) {

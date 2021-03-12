@@ -7,4 +7,4 @@
 #pragma once
 
 uint32_t fdt_size(
-    void *fdt);
+    void const *fdt);

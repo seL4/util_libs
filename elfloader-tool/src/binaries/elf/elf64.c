@@ -8,7 +8,7 @@
 #include <binaries/elf/elf.h>
 
 int elf64_checkFile(
-    void *elfFile)
+    void const *elfFile)
 {
     struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
     if (fileHdr->e_ident[EI_MAG0] != ELFMAG0
@@ -51,10 +51,10 @@ int elf64_checkFile(
  * ELF64_Phdr_t structs.  The size of the array can be found by calling
  * getNumProgramSegments.
  */
-struct Elf64_Phdr *elf64_getProgramSegmentTable(
-    void *elfFile)
+struct Elf64_Phdr const *elf64_getProgramSegmentTable(
+    void const *elfFile)
 {
-    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    struct Elf64_Header const *fileHdr = elfFile;
     return (struct Elf64_Phdr *)((size_t)fileHdr->e_phoff + (size_t) elfFile);
 }
 
@@ -62,24 +62,24 @@ struct Elf64_Phdr *elf64_getProgramSegmentTable(
  * Returns the number of program segments in this elf file.
  */
 unsigned elf64_getNumSections(
-    void *elfFile)
+    void const *elfFile)
 {
-    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    struct Elf64_Header const *fileHdr = elfFile;
     return fileHdr->e_shnum;
 }
 
-char *elf64_getStringTable(
-    void *elfFile,
+char const *elf64_getStringTable(
+    void const *elfFile,
     int string_segment)
 {
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return (char *) elfFile + sections[string_segment].sh_offset;
 }
 
-char *elf64_getSegmentStringTable(
-    void *elfFile)
+char const *elf64_getSegmentStringTable(
+    void const *elfFile)
 {
-    struct Elf64_Header *fileHdr = (struct Elf64_Header *) elfFile;
+    struct Elf64_Header const *fileHdr = elfFile;
     if (fileHdr->e_shstrndx == 0) {
         return NULL;
     } else {
@@ -87,12 +87,12 @@ char *elf64_getSegmentStringTable(
     }
 }
 
-char *elf64_getSectionName(
-    void *elfFile,
+char const *elf64_getSectionName(
+    void const *elfFile,
     int i)
 {
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
-    char *str_table = elf64_getSegmentStringTable(elfFile);
+    struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
+    char const *str_table = elf64_getSegmentStringTable(elfFile);
     if (str_table == NULL) {
         return "<corrupted>";
     } else {
@@ -101,32 +101,32 @@ char *elf64_getSectionName(
 }
 
 uint64_t elf64_getSectionSize(
-    void *elfFile,
+    void const *elfFile,
     int i)
 {
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return sections[i].sh_size;
 }
 
 uint64_t elf64_getSectionAddr(
-    struct Elf64_Header *elfFile,
+    struct Elf64_Header const *elfFile,
     int i)
 {
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return sections[i].sh_addr;
 }
 
-void *elf64_getSection(
-    void *elfFile,
+void const *elf64_getSection(
+    void const *elfFile,
     int i)
 {
-    struct Elf64_Shdr *sections = elf64_getSectionTable(elfFile);
+    struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return (char *)elfFile + sections[i].sh_offset;
 }
 
-void *elf64_getSectionNamed(
-    void *elfFile,
-    char *str)
+void const *elf64_getSectionNamed(
+    void const *elfFile,
+    char const *str)
 {
     int numSections = elf64_getNumSections(elfFile);
     int i;
@@ -139,20 +139,20 @@ void *elf64_getSectionNamed(
 }
 
 uint16_t elf64_getNumProgramHeaders(
-    struct Elf64_Header *elfFile)
+    struct Elf64_Header const *elfFile)
 {
     return elfFile->e_phnum;
 }
 
 int elf64_getSegmentType(
-    void *elfFile,
+    void const *elfFile,
     int segment)
 {
     return elf64_getProgramSegmentTable(elfFile)[segment].p_type;
 }
 
 void elf64_getSegmentInfo(
-    void *elfFile,
+    void const *elfFile,
     int segment,
     uint64_t *p_vaddr,
     uint64_t *p_paddr,
@@ -160,9 +160,7 @@ void elf64_getSegmentInfo(
     uint64_t *p_offset,
     uint64_t *p_memsz)
 {
-    struct Elf64_Phdr *segments;
-
-    segments = elf64_getProgramSegmentTable(elfFile);
+    struct Elf64_Phdr const *segments = elf64_getProgramSegmentTable(elfFile);
     *p_vaddr = segments[segment].p_vaddr;
     *p_paddr = segments[segment].p_paddr;
     *p_filesz = segments[segment].p_filesz;
@@ -171,7 +169,7 @@ void elf64_getSegmentInfo(
 }
 
 uint64_t elf64_getEntryPoint(
-    struct Elf64_Header *elfFile)
+    struct Elf64_Header const *elfFile)
 {
     return elf64_read64(&elfFile->e_entry);
 }
@@ -185,13 +183,13 @@ uint64_t elf64_getEntryPoint(
  * prints out some details of one elf file
  */
 void elf64_showDetails(
-    void *elfFile,
+    void const *elfFile,
     int size,
-    char *name)
+    char const *name)
 {
-    struct Elf64_Phdr *segments;
+    struct Elf64_Phdr const *segments;
     unsigned numSegments;
-    struct Elf64_Shdr *sections;
+    struct Elf64_Shdr const *sections;
     unsigned numSections;
     int i, r;
     char *str_table;

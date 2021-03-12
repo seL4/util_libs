@@ -87,7 +87,7 @@ static void ensure_phys_range_valid(
  * Unpack an ELF file to the given physical address.
  */
 static void unpack_elf_to_paddr(
-    void *elf,
+    void const *elf,
     paddr_t dest_paddr)
 {
     uint16_t i;
@@ -126,7 +126,7 @@ static void unpack_elf_to_paddr(
 }
 
 static size_t rounded_image_size(
-    void *elf,
+    void const *elf,
     uint64_t *min_vaddr,
     uint64_t *max_vaddr)
 {
@@ -141,13 +141,13 @@ static size_t rounded_image_size(
  * Return the byte past the last byte of the physical address used.
  */
 static paddr_t load_elf(
-    const char *name,
-    void *elf,
+    char const *name,
+    void const *elf,
     paddr_t dest_paddr,
     struct image_info *info,
     int keep_headers,
     __attribute__((unused)) unsigned long size,
-    __attribute__((unused)) const char *hash)
+    __attribute__((unused)) char const *hash)
 {
     uint64_t min_vaddr, max_vaddr;
     /* Fetch image info. */
@@ -171,7 +171,10 @@ static paddr_t load_elf(
     /* Get the binary file that contains the SHA256 Hash */
     unsigned long unused;
     unsigned long cpio_len = _archive_start_end - _archive_start;
-    void *file_hash = cpio_get_file(_archive_start, cpio_len, (const char *)hash, &unused);
+    void const *file_hash = cpio_get_file(_archive_start,
+                                          cpio_len,
+                                          hash,
+                                          unused);
     uint8_t *print_hash_pointer = (uint8_t *)file_hash;
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
@@ -254,10 +257,10 @@ static paddr_t load_elf(
         uint32_t phsize;
         paddr_t source_paddr;
         if (ISELF32(elf)) {
-            phsize = ((struct Elf32_Header *)elf)->e_phentsize;
+            phsize = ((struct Elf32_Header const *)elf)->e_phentsize;
             source_paddr = (paddr_t)elf32_getProgramHeaderTable(elf);
         } else {
-            phsize = ((struct Elf64_Header *)elf)->e_phentsize;
+            phsize = ((struct Elf64_Header const *)elf)->e_phentsize;
             source_paddr = (paddr_t)elf64_getProgramHeaderTable(elf);
         }
         /* We have no way of sharing definitions with the kernel so we just
@@ -321,12 +324,15 @@ void load_images(
 
     /* Load kernel. */
     unsigned long cpio_len = _archive_start_end - _archive_start;
-    void *kernel_elf = cpio_get_file(_archive_start, cpio_len, "kernel.elf",
-                                     &kernel_filesize);
+    void const *kernel_elf = cpio_get_file(_archive_start,
+                                           cpio_len,
+                                           "kernel.elf",
+                                           &kernel_filesize);
     if (kernel_elf == NULL) {
         printf("No kernel image present in archive!\n");
         abort();
     }
+
     if (elf_checkFile(kernel_elf)) {
         printf("Kernel image not a valid ELF file!\n");
         abort();
@@ -334,7 +340,7 @@ void load_images(
 
     elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
 
-    void *dtb = NULL;
+    void const *dtb = NULL;
 
 #ifdef CONFIG_ELFLOADER_INCLUDE_DTB
 
@@ -432,9 +438,11 @@ void load_images(
      * memory load_elf uses */
     int total_user_image_size = 0;
     for (i = 0; i < max_user_images; i++) {
-        void *user_elf = cpio_get_entry(_archive_start, cpio_len,
-                                        i + user_elf_offset,
-                                        &elf_filename, &unused);
+        void const *user_elf = cpio_get_entry(_archive_start,
+                                              cpio_len,
+                                              i + user_elf_offset,
+                                              &elf_filename,
+                                              &unused);
         uint64_t min_vaddr, max_vaddr;
         total_user_image_size += rounded_image_size(user_elf, &min_vaddr,
                                                     &max_vaddr);
@@ -452,10 +460,11 @@ void load_images(
     *num_images = 0;
     for (i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
-        void *user_elf = cpio_get_entry(_archive_start,
-                                        cpio_len, i + user_elf_offset,
-                                        &elf_filename,
-                                        &unused);
+        void const *user_elf = cpio_get_entry(_archive_start,
+                                              cpio_len,
+                                              i + user_elf_offset,
+                                              &elf_filename,
+                                              &unused);
         if (user_elf == NULL) {
             break;
         }
