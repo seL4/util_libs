@@ -141,6 +141,8 @@ static int unpack_elf_to_paddr(
  * address used.
  */
 static int load_elf(
+    void const *cpio,
+    size_t cpio_len,
     char const *name,
     void const *elf,
     paddr_t dest_paddr,
@@ -184,17 +186,15 @@ static int load_elf(
 
 #ifdef CONFIG_HASH_NONE
 
+    UNUSED_VARIABLE(cpio);
+    UNUSED_VARIABLE(cpio_len);
     UNUSED_VARIABLE(size);
     UNUSED_VARIABLE(hash);
 
 #else
 
     /* Get the binary file that contains the SHA256 Hash */
-    unsigned long cpio_len = _archive_start_end - _archive_start;
-    void const *file_hash = cpio_get_file(_archive_start,
-                                          cpio_len,
-                                          hash,
-                                          NULL);
+    void const *file_hash = cpio_get_file(cpio, cpio_len, hash, NULL);
     uint8_t *print_hash_pointer = (uint8_t *)file_hash;
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
@@ -353,9 +353,11 @@ int load_images(
     unsigned long kernel_filesize;
     int has_dtb_cpio = 0;
 
+    void const *cpio = _archive_start;
+    size_t cpio_len = _archive_start_end - _archive_start;
+
     /* Load kernel. */
-    unsigned long cpio_len = _archive_start_end - _archive_start;
-    void const *kernel_elf = cpio_get_file(_archive_start,
+    void const *kernel_elf = cpio_get_file(cpio,
                                            cpio_len,
                                            "kernel.elf",
                                            &kernel_filesize);
@@ -393,7 +395,7 @@ int load_images(
          * devices).  But we are freestanding (on the "bare metal"), and using
          * our own unbuffered printf() implementation.
          */
-        dtb = cpio_get_file(_archive_start, cpio_len, "kernel.dtb", NULL);
+        dtb = cpio_get_file(cpio, cpio_len, "kernel.dtb", NULL);
         if (dtb == NULL) {
             printf("not found.\n");
         } else {
@@ -446,7 +448,9 @@ int load_images(
     }
 
     /* Load the kernel */
-    ret = load_elf("kernel",
+    ret = load_elf(cpio,
+                   cpio_len,
+                   "kernel",
                    kernel_elf,
                    (paddr_t)kernel_phys_start,
                    kernel_info,
@@ -469,13 +473,13 @@ int load_images(
      * (n)'th CPU.
      */
     unsigned int user_elf_offset = 2;
-    cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, NULL);
+    cpio_get_entry(cpio, cpio_len, 0, &elf_filename, NULL);
     ret = strcmp(elf_filename, "kernel.elf");
     if (0 != ret) {
         printf("ERROR: Kernel image not first image in archive\n");
         return -1;
     }
-    cpio_get_entry(_archive_start, cpio_len, 1, &elf_filename, NULL);
+    cpio_get_entry(cpio, cpio_len, 1, &elf_filename, NULL);
     ret = strcmp(elf_filename, "kernel.dtb");
     if (0 != ret) {
         if (has_dtb_cpio) {
@@ -491,7 +495,7 @@ int load_images(
      * memory load_elf uses */
     unsigned int total_user_image_size = 0;
     for (unsigned int i = 0; i < max_user_images; i++) {
-        void const *user_elf = cpio_get_entry(_archive_start,
+        void const *user_elf = cpio_get_entry(cpio,
                                               cpio_len,
                                               i + user_elf_offset,
                                               NULL,
@@ -524,7 +528,7 @@ int load_images(
     for (unsigned int i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
         unsigned long elf_filesize = 0;
-        void const *user_elf = cpio_get_entry(_archive_start,
+        void const *user_elf = cpio_get_entry(cpio,
                                               cpio_len,
                                               i + user_elf_offset,
                                               &elf_filename,
@@ -534,7 +538,9 @@ int load_images(
         }
 
         /* Load the file into memory. */
-        ret = load_elf(elf_filename,
+        ret = load_elf(cpio,
+                       cpio_len,
+                       elf_filename,
                        user_elf,
                        next_phys_addr,
                        &user_info[*num_images],
