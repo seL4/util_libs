@@ -143,14 +143,14 @@ static int unpack_elf_to_paddr(
 static int load_elf(
     void const *cpio,
     size_t cpio_len,
-    char const *name,
-    void const *elf,
+    const char *name,
+    void const *elf_blob,
+    size_t elf_blob_size,
+    char const *elf_hash_filename,
     paddr_t dest_paddr,
-    struct image_info *info,
     int keep_headers,
-    paddr_t *next_phys_addr,
-    unsigned long size,
-    char const *hash)
+    struct image_info *info,
+    paddr_t *next_phys_addr)
 {
     int ret;
     uint64_t min_vaddr, max_vaddr;
@@ -161,7 +161,7 @@ static int load_elf(
     /* Get the memory bounds. Unlike most other functions, this returns 1 on
      * success and anything else is an error.
      */
-    ret = elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+    ret = elf_getMemoryBounds(elf_blob, 0, &min_vaddr, &max_vaddr);
     if (ret != 1) {
         printf("ERROR: Could not get image bounds\n");
         return -1;
@@ -188,20 +188,23 @@ static int load_elf(
 
     UNUSED_VARIABLE(cpio);
     UNUSED_VARIABLE(cpio_len);
-    UNUSED_VARIABLE(size);
-    UNUSED_VARIABLE(hash);
+    UNUSED_VARIABLE(elf_blob_size);
+    UNUSED_VARIABLE(elf_hash_filename);
 
 #else
 
     /* Get the binary file that contains the SHA256 Hash */
     unsigned long file_hash_len;
-    void const *file_hash = cpio_get_file(cpio, cpio_len, hash, &file_hash_len);
+    void const *file_hash = cpio_get_file(cpio,
+                                          cpio_len,
+                                          elf_hash_filename,
+                                          &file_hash_len);
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
      * cannot confirm the file is what we expect.
      */
     if (file_hash == NULL) {
-        printf("ERROR: hash file '%s' doesn't exist\n", hash);
+        printf("ERROR: hash file '%s' doesn't exist\n", elf_hash_filename);
         return -1;
     }
 
@@ -215,14 +218,14 @@ static int load_elf(
 
     if (file_hash_len < sizeof(calculated_hash)) {
         printf("ERROR: hash file '%s' size %u invalid, expected at least %u\n",
-               hash, file_hash_len, sizeof(calculated_hash));
+               elf_hash_filename, file_hash_len, sizeof(calculated_hash));
     }
 
     /* Print the Hash for the user to see */
     printf("Hash from ELF File: ");
     print_hash(file_hash, sizeof(calculated_hash));
 
-    get_hash(hashes, elf, size, calculated_hash);
+    get_hash(hashes, elf_blob, elf_blob_size, calculated_hash);
 
     /* Print the hash so the user can see they're the same or different */
     printf("Hash for ELF Input: ");
@@ -242,10 +245,10 @@ static int load_elf(
     /* Print diagnostics. */
     printf("  paddr=[%p..%p]\n", dest_paddr, dest_paddr + image_size - 1);
     printf("  vaddr=[%p..%p]\n", (vaddr_t)min_vaddr, (vaddr_t)max_vaddr - 1);
-    printf("  virt_entry=%p\n", (vaddr_t)elf_getEntryPoint(elf));
+    printf("  virt_entry=%p\n", (vaddr_t)elf_getEntryPoint(elf_blob));
 
     /* Ensure the ELF file is valid. */
-    ret = elf_checkFile(elf);
+    ret = elf_checkFile(elf_blob);
     if (0 != ret) {
         printf("ERROR: Invalid ELF file\n");
         return -1;
@@ -265,7 +268,7 @@ static int load_elf(
     }
 
     /* Copy the data. */
-    ret = unpack_elf_to_paddr(elf, dest_paddr);
+    ret = unpack_elf_to_paddr(elf_blob, dest_paddr);
     if (0 != ret) {
         printf("ERROR: Unpacking ELF to %p failed\n", dest_paddr);
         return -1;
@@ -276,7 +279,7 @@ static int load_elf(
     info->phys_region_end = dest_paddr + image_size;
     info->virt_region_start = (vaddr_t)min_vaddr;
     info->virt_region_end = (vaddr_t)max_vaddr;
-    info->virt_entry = (vaddr_t)elf_getEntryPoint(elf);
+    info->virt_entry = (vaddr_t)elf_getEntryPoint(elf_blob);
     info->phys_virt_offset = dest_paddr - (vaddr_t)min_vaddr;
 
     /* Round up the destination address to the next page */
@@ -284,15 +287,15 @@ static int load_elf(
 
     if (keep_headers) {
         /* Put the ELF headers in this page */
-        uint32_t phnum = elf_getNumProgramHeaders(elf);
+        uint32_t phnum = elf_getNumProgramHeaders(elf_blob);
         uint32_t phsize;
         paddr_t source_paddr;
-        if (ISELF32(elf)) {
-            phsize = ((struct Elf32_Header const *)elf)->e_phentsize;
-            source_paddr = (paddr_t)elf32_getProgramHeaderTable(elf);
+        if (ISELF32(elf_blob)) {
+            phsize = ((struct Elf32_Header const *)elf_blob)->e_phentsize;
+            source_paddr = (paddr_t)elf32_getProgramHeaderTable(elf_blob);
         } else {
-            phsize = ((struct Elf64_Header const *)elf)->e_phentsize;
-            source_paddr = (paddr_t)elf64_getProgramHeaderTable(elf);
+            phsize = ((struct Elf64_Header const *)elf_blob)->e_phentsize;
+            source_paddr = (paddr_t)elf64_getProgramHeaderTable(elf_blob);
         }
         /* We have no way of sharing definitions with the kernel so we just
          * memcpy to a bunch of magic offsets. Explicit numbers for sizes
@@ -353,23 +356,23 @@ int load_images(
     uintptr_t dtb_phys_start, dtb_phys_end;
     paddr_t next_phys_addr;
     const char *elf_filename;
-    unsigned long kernel_filesize;
     int has_dtb_cpio = 0;
 
     void const *cpio = _archive_start;
     size_t cpio_len = _archive_start_end - _archive_start;
 
     /* Load kernel. */
-    void const *kernel_elf = cpio_get_file(cpio,
-                                           cpio_len,
-                                           "kernel.elf",
-                                           &kernel_filesize);
-    if (kernel_elf == NULL) {
+    unsigned long kernel_elf_blob_size;
+    void const *kernel_elf_blob = cpio_get_file(cpio,
+                                                cpio_len,
+                                                "kernel.elf",
+                                                &kernel_elf_blob_size);
+    if (kernel_elf_blob == NULL) {
         printf("ERROR: No kernel image present in archive\n");
         return -1;
     }
 
-    ret = elf_checkFile(kernel_elf);
+    ret = elf_checkFile(kernel_elf_blob);
     if (ret != 0) {
         printf("ERROR: Kernel image not a valid ELF file\n");
         return -1;
@@ -378,7 +381,7 @@ int load_images(
     /* Get physical memory bounds. Unlike most other functions, this returns 1
      * on success and anything else is an error.
      */
-    ret = elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start,
+    ret = elf_getMemoryBounds(kernel_elf_blob, 1, &kernel_phys_start,
                               &kernel_phys_end);
     if (1 != ret) {
         printf("ERROR: Could not get kernel memory bounds\n");
@@ -454,13 +457,13 @@ int load_images(
     ret = load_elf(cpio,
                    cpio_len,
                    "kernel",
-                   kernel_elf,
+                   kernel_elf_blob,
+                   kernel_elf_blob_size,
+                   "kernel.bin", // hash file
                    (paddr_t)kernel_phys_start,
-                   kernel_info,
                    0, // don't keep ELF headers
-                   NULL, // we have calculated next_phys_addr already
-                   kernel_filesize,
-                   "kernel.bin");
+                   kernel_info,
+                   NULL); // we have calculated next_phys_addr already
 
     if (0 != ret) {
         printf("ERROR: Could not load kernel ELF\n");
@@ -545,12 +548,12 @@ int load_images(
                        cpio_len,
                        elf_filename,
                        user_elf,
-                       next_phys_addr,
-                       &user_info[*num_images],
-                       1,  // keep ELF headers
-                       &next_phys_addr,
                        elf_filesize,
-                       "app.bin");
+                       "app.bin", // hash file
+                       next_phys_addr,
+                       1,  // keep ELF headers
+                       &user_info[*num_images],
+                       &next_phys_addr);
         if (0 != ret) {
             printf("ERROR: Could not load user image ELF\n");
         }
