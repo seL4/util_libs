@@ -140,7 +140,7 @@ void elf32_printStringTable(
 }
 #endif
 
-int elf32_getSegmentType(
+uint32_t elf32_getSegmentType(
     struct Elf32_Header const *elfFile,
     unsigned int segment)
 {

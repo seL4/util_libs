@@ -156,7 +156,7 @@ void const *elf64_getSectionNamed(
     void const *elfFile,
     char const *str);
 
-int elf64_getSegmentType(
+uint32_t elf64_getSegmentType(
     void const *elfFile,
     unsigned int segment);
 

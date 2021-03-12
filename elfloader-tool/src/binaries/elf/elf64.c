@@ -143,7 +143,7 @@ uint16_t elf64_getNumProgramHeaders(
     return elfFile->e_phnum;
 }
 
-int elf64_getSegmentType(
+uint32_t elf64_getSegmentType(
     void const *elfFile,
     unsigned int segment)
 {
