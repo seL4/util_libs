@@ -21,8 +21,8 @@ enum hash_methods {
     MD5
 };
 
-/* Structure that contains a structure for each hash type and an integer representation
- * of the hashing method used
+/* Structure that contains a structure for each hash type and an integer
+ * representation of the hashing method used
  */
 typedef struct {
     sha256_t sha_structure;
@@ -30,6 +30,13 @@ typedef struct {
     unsigned int hash_type;
 } hashes_t;
 
-void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_hash, uint8_t *outputted_hash);
-void print_hash(uint8_t *hash_to_print, int bytes_to_print);
+void get_hash(
+    hashes_t hashes,
+    const void *file_to_hash,
+    unsigned long bytes_to_hash,
+    uint8_t *outputted_hash);
+
+void print_hash(
+    uint8_t *hash_to_print,
+    int bytes_to_print);
 

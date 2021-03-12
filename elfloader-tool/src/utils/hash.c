@@ -17,12 +17,15 @@
 
 /* Function to perform all hash operations.
  *
- * The outputted hash is stored in the outputted_hash pointer after the "sum" operation is used.
- *
- * This way beats having a bunch of #ifdefs in the source code, and is scalable to any other
- * hashing algoritm
+ * The outputted hash is stored in the outputted_hash pointer after the "sum"
+ * operation is used. This way beats having a bunch of #ifdefs in the source
+ * code, and is scalable to any other hashing algorithm.
  */
-void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_hash, uint8_t *outputted_hash)
+void get_hash(
+    hashes_t hashes,
+    const void *file_to_hash,
+    unsigned long bytes_to_hash,
+    uint8_t *outputted_hash)
 {
     if (hashes.hash_type == SHA_256) {
         sha256_t calculated_hash = hashes.sha_structure;
@@ -38,7 +41,9 @@ void get_hash(hashes_t hashes, const void *file_to_hash, unsigned long bytes_to_
 }
 
 /* Function to print the hash */
-void print_hash(uint8_t *hash_to_print, int bytes_to_print)
+void print_hash(
+    uint8_t *hash_to_print,
+    int bytes_to_print)
 {
     for (int i = 0; i < bytes_to_print; i++) {
         printf("%02x", *hash_to_print++);

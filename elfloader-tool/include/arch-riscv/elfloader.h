@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 #pragma once
+
 #include <autoconf.h>
 #include <elfloader_common.h>
 
