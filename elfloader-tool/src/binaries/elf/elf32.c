@@ -25,7 +25,7 @@ struct Elf32_Header const *file)
 /*
  * Returns the number of program segments in this elf file.
  */
-unsigned elf32_getNumSections(
+unsigned int elf32_getNumSections(
     struct Elf32_Header const *elfFile)
 {
     return elfFile->e_shnum;
@@ -58,7 +58,7 @@ uint16_t elf32_getNumProgramHeaders(
 
 char const *elf32_getSectionName(
     struct Elf32_Header const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf32_Shdr const *sections = elf32_getSectionTable(elfFile);
     char const *str_table = elf32_getSegmentStringTable(elfFile);
@@ -71,7 +71,7 @@ char const *elf32_getSectionName(
 
 uint32_t elf32_getSectionSize(
     struct Elf32_Header const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf32_Shdr const *sections = elf32_getSectionTable(elfFile);
     return sections[i].sh_size;
@@ -79,7 +79,7 @@ uint32_t elf32_getSectionSize(
 
 uint32_t elf32_getSectionAddr(
     struct Elf32_Header const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf32_Shdr const *sections = elf32_getSectionTable(elfFile);
     return sections[i].sh_addr;
@@ -87,7 +87,7 @@ uint32_t elf32_getSectionAddr(
 
 void const *elf32_getSection(
     struct Elf32_Header const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf32_Shdr const *sections = elf32_getSectionTable(elfFile);
     return (char *)elfFile + sections[i].sh_offset;
@@ -97,9 +97,8 @@ void const *elf32_getSectionNamed(
     struct Elf32_Header const *elfFile,
     char const *str)
 {
-    int numSections = elf32_getNumSections(elfFile);
-    int i;
-    for (i = 0; i < numSections; i++) {
+    unsigned int numSections = elf32_getNumSections(elfFile);
+    for (unsigned int i = 0; i < numSections; i++) {
         if (strcmp(str, elf32_getSectionName(elfFile, i)) == 0) {
             return elf32_getSection(elfFile, i);
         }
@@ -122,8 +121,7 @@ char const *elf32_getSegmentStringTable(
 void elf32_printStringTable(
     struct Elf32_Header const *elfFile)
 {
-    int counter;
-    struct Elf32_Shdr const *sections = elf32_getSectionTable(elfFile);
+    struct Elf32_Shdr *sections = elf32_getSectionTable(elfFile);
     char *stringTable;
 
     if (!sections) {
@@ -135,7 +133,7 @@ void elf32_printStringTable(
 
     printf("File is %p; sections is %p; string table is %p\n", elfFile, sections, stringTable);
 
-    for (counter = 0; counter < sections[elfFile->e_shstrndx].sh_size; counter++) {
+    for (unsigned int counter = 0; counter < sections[elfFile->e_shstrndx].sh_size; counter++) {
         printf("%02x %c ", stringTable[counter],
                stringTable[counter] >= 0x20 ? stringTable[counter] : '.');
     }
@@ -144,14 +142,14 @@ void elf32_printStringTable(
 
 int elf32_getSegmentType(
     struct Elf32_Header const *elfFile,
-    int segment)
+    unsigned int segment)
 {
     return elf32_getProgramSegmentTable(elfFile)[segment].p_type;
 }
 
 void elf32_getSegmentInfo(
     struct Elf32_Header const *elfFile,
-    int segment,
+    unsigned int segment,
     uint64_t *p_vaddr,
     uint64_t *p_addr,
     uint64_t *p_filesz,

@@ -212,13 +212,12 @@ int elf_getMemoryBounds(
 {
     uint64_t mem_min = UINT64_MAX;
     uint64_t mem_max = 0;
-    int i;
 
     if (elf_checkFile(elfFile) != 0) {
         return 0;
     }
 
-    for (i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
+    for (unsigned int i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
         uint64_t sect_min, sect_max;
 
         if (elf_getProgramHeaderMemorySize(elfFile, i) == 0) {
@@ -278,13 +277,11 @@ int elf_loadFile(
     void const *elfFile,
     int phys)
 {
-    int i;
-
     if (elf_checkFile(elfFile) != 0) {
         return 0;
     }
 
-    for (i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
+    for (unsigned int i = 0; i < elf_getNumProgramHeaders(elfFile); i++) {
         /* Load that section */
         uint64_t dest, src;
         size_t len;

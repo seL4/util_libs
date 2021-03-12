@@ -61,7 +61,7 @@ struct Elf64_Phdr const *elf64_getProgramSegmentTable(
 /*
  * Returns the number of program segments in this elf file.
  */
-unsigned elf64_getNumSections(
+unsigned int elf64_getNumSections(
     void const *elfFile)
 {
     struct Elf64_Header const *fileHdr = elfFile;
@@ -70,7 +70,7 @@ unsigned elf64_getNumSections(
 
 char const *elf64_getStringTable(
     void const *elfFile,
-    int string_segment)
+    unsigned int string_segment)
 {
     struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return (char *) elfFile + sections[string_segment].sh_offset;
@@ -89,7 +89,7 @@ char const *elf64_getSegmentStringTable(
 
 char const *elf64_getSectionName(
     void const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     char const *str_table = elf64_getSegmentStringTable(elfFile);
@@ -102,7 +102,7 @@ char const *elf64_getSectionName(
 
 uint64_t elf64_getSectionSize(
     void const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return sections[i].sh_size;
@@ -110,7 +110,7 @@ uint64_t elf64_getSectionSize(
 
 uint64_t elf64_getSectionAddr(
     struct Elf64_Header const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return sections[i].sh_addr;
@@ -118,7 +118,7 @@ uint64_t elf64_getSectionAddr(
 
 void const *elf64_getSection(
     void const *elfFile,
-    int i)
+    unsigned int i)
 {
     struct Elf64_Shdr const *sections = elf64_getSectionTable(elfFile);
     return (char *)elfFile + sections[i].sh_offset;
@@ -128,9 +128,8 @@ void const *elf64_getSectionNamed(
     void const *elfFile,
     char const *str)
 {
-    int numSections = elf64_getNumSections(elfFile);
-    int i;
-    for (i = 0; i < numSections; i++) {
+    unsigned int numSections = elf64_getNumSections(elfFile);
+    for (unsigned int i = 0; i < numSections; i++) {
         if (strcmp(str, elf64_getSectionName(elfFile, i)) == 0) {
             return elf64_getSection(elfFile, i);
         }
@@ -146,14 +145,14 @@ uint16_t elf64_getNumProgramHeaders(
 
 int elf64_getSegmentType(
     void const *elfFile,
-    int segment)
+    unsigned int segment)
 {
     return elf64_getProgramSegmentTable(elfFile)[segment].p_type;
 }
 
 void elf64_getSegmentInfo(
     void const *elfFile,
-    int segment,
+    unsigned int segment,
     uint64_t *p_vaddr,
     uint64_t *p_paddr,
     uint64_t *p_filesz,
@@ -188,10 +187,10 @@ void elf64_showDetails(
     char const *name)
 {
     struct Elf64_Phdr const *segments;
-    unsigned numSegments;
+    unsigned int numSegments;
     struct Elf64_Shdr const *sections;
-    unsigned numSections;
-    int i, r;
+    unsigned int numSections;
+    int r;
     char *str_table;
 
     printf("Found an elf64 file called \"%s\" located "
@@ -234,7 +233,7 @@ void elf64_showDetails(
     printf("Program Headers:\n");
     printf("  Type           Offset   VirtAddr   PhysAddr   "
            "FileSiz MemSiz  Flg Align\n");
-    for (i = 0; i < numSegments; i++) {
+    for (unsigned int i = 0; i < numSegments; i++) {
 
         if (segments[i].p_type != 1) {
             printf("segment %d is not loadable, "
@@ -254,7 +253,7 @@ void elf64_showDetails(
 
     printf("Section Headers:\n");
     printf("  [Nr] Name              Type            Addr     Off\n");
-    for (i = 0; i < numSections; i++) {
+    for (unsigned int i = 0; i < numSections; i++) {
         if (elf_checkSection(elfFile, i) == 0) {
             printf("%-17.17s %-15.15s %08x %06x\n", elf64_getSectionName(elfFile, i), " "   /* sections[i].sh_type
                                                      */,

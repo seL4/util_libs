@@ -30,8 +30,7 @@ static void write_string(
     void *payload,
     const char *str)
 {
-    int i;
-    for (i = 0; str[i] != 0; i++) {
+    for (unsigned int i = 0; str[i] != 0; i++) {
         write_char(payload, str[i]);
     }
 }
@@ -44,12 +43,12 @@ static void write_string(
 static void write_num(
     write_char_fn write_char,
     void *payload,
-    int base,
+    unsigned int base,
     uintmax_t n)
 {
     static const char hex[] = "0123456789abcdef";
     char buff[MAX_INT_BUFF_SIZE];
-    int k = MAX_INT_BUFF_SIZE - 1;
+    unsigned int k = MAX_INT_BUFF_SIZE - 1;
 
     /* Special case for "0". */
     if (n == 0) {

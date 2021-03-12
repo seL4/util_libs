@@ -96,7 +96,7 @@ void relocate_below_kernel(void)
  */
 void main(UNUSED void *arg)
 {
-    int num_apps;
+    unsigned int num_apps;
 
     void *bootloader_dtb = NULL;
 

@@ -94,7 +94,7 @@ unsigned elf64_getNumSections(
 
 char const *elf64_getStringTable(
     void const *elfFile,
-    int string_segment);
+    unsigned int string_segment);
 
 char const *elf64_getSegmentStringTable(
     void const *elfFile);
@@ -138,19 +138,19 @@ static inline uint32_t elf64_getSectionFlags(
 
 char const *elf64_getSectionName(
     void const *elfFile,
-    int i);
+    unsigned int i);
 
 uint64_t elf64_getSectionSize(
     void const *elfFile,
-    int i);
+    unsigned int i);
 
 uint64_t elf64_getSectionAddr(
     struct Elf64_Header const *elfFile,
-    int i);
+    unsigned int i);
 
 void const *elf64_getSection(
     void const *elfFile,
-    int i);
+    unsigned int i);
 
 void const *elf64_getSectionNamed(
     void const *elfFile,
@@ -158,11 +158,11 @@ void const *elf64_getSectionNamed(
 
 int elf64_getSegmentType(
     void const *elfFile,
-    int segment);
+    unsigned int segment);
 
 void elf64_getSegmentInfo(
     void const *elfFile,
-    int segment,
+    unsigned int segment,
     uint64_t *p_vaddr,
     uint64_t *p_paddr,
     uint64_t *p_filesz,

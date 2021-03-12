@@ -78,7 +78,7 @@ void map_kernel_window(struct image_info *kernel_info)
 #endif
 
     if (IS_ALIGNED((uintptr_t)_text, PT_LEVEL_2_BITS)) {
-        for (int page = 0; index < PTES_PER_PT; index++, page++) {
+        for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
             lpt[index] = PTE_CREATE_LEAF((uintptr_t)_text +
                                          (page << PT_LEVEL_2_BITS));
         }
@@ -97,7 +97,7 @@ void map_kernel_window(struct image_info *kernel_info)
 #endif
     if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start,
                           kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
-        for (int page = 0; index < PTES_PER_PT; index++, page++) {
+        for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
             lpt[index] = PTE_CREATE_LEAF(kernel_info->phys_region_start +
                                          (page << PT_LEVEL_2_BITS));
         }
@@ -157,7 +157,7 @@ static inline void enable_virtual_memory(void)
     ifence();
 }
 
-int num_apps = 0;
+unsigned int num_apps = 0;
 void main(UNUSED int hartid, void *bootloader_dtb)
 {
     printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);

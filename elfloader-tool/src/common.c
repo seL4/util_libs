@@ -90,7 +90,6 @@ static void unpack_elf_to_paddr(
     void const *elf,
     paddr_t dest_paddr)
 {
-    uint16_t i;
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
 
@@ -105,7 +104,7 @@ static void unpack_elf_to_paddr(
     memset((char *)dest_paddr, 0, image_size);
 
     /* Load each segment in the ELF file. */
-    for (i = 0; i < elf_getNumProgramHeaders(elf); i++) {
+    for (unsigned int i = 0; i < elf_getNumProgramHeaders(elf); i++) {
         vaddr_t dest_vaddr;
         size_t data_size, data_offset;
 
@@ -307,13 +306,12 @@ static paddr_t load_elf(
 void load_images(
     struct image_info *kernel_info,
     struct image_info *user_info,
-    int max_user_images,
-    int *num_images,
+    unsigned int max_user_images,
+    unsigned int *num_images,
     void *bootloader_dtb,
     void **chosen_dtb,
     uint32_t *chosen_dtb_size)
 {
-    int i;
     uint64_t kernel_phys_start, kernel_phys_end;
     uintptr_t dtb_phys_start, dtb_phys_end;
     paddr_t next_phys_addr;
@@ -417,7 +415,7 @@ void load_images(
      * and then load the (n+user_elf_offset)'th file in the archive onto the
      * (n)'th CPU.
      */
-    int user_elf_offset = 2;
+    unsigned int user_elf_offset = 2;
     cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
     if (strcmp(elf_filename, "kernel.elf") != 0) {
         printf("Kernel image not first image in archive.\n");
@@ -436,8 +434,8 @@ void load_images(
 
     /* work out the size of the user images - this corresponds to how much
      * memory load_elf uses */
-    int total_user_image_size = 0;
-    for (i = 0; i < max_user_images; i++) {
+    unsigned int total_user_image_size = 0;
+    for (unsigned int i = 0; i < max_user_images; i++) {
         void const *user_elf = cpio_get_entry(_archive_start,
                                               cpio_len,
                                               i + user_elf_offset,
@@ -458,7 +456,7 @@ void load_images(
 #endif /* CONFIG_ELFLOADER_ROOTSERVERS_LAST */
 
     *num_images = 0;
-    for (i = 0; i < max_user_images; i++) {
+    for (unsigned int i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
         void const *user_elf = cpio_get_entry(_archive_start,
                                               cpio_len,
