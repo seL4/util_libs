@@ -9,7 +9,6 @@
 
 #include <printf.h>
 #include <types.h>
-#include <abort.h>
 #include <strops.h>
 #include <binaries/elf/elf.h>
 #include <cpio/cpio.h>
@@ -62,11 +61,10 @@ static int regions_overlap(
 /*
  * Ensure that we are able to use the given physical memory range.
  *
- * We abort if the destination physical range overlaps us, or if it
- * goes outside the bounds of memory.
+ * We fail if the destination physical range overlaps us, or if it goes outside
+ * the bounds of memory.
  */
-static void ensure_phys_range_valid(
-    char const *const name,
+static int ensure_phys_range_valid(
     paddr_t paddr_min,
     paddr_t paddr_max)
 {
@@ -78,25 +76,35 @@ static void ensure_phys_range_valid(
                         paddr_max - 1,
                         (uintptr_t)_text,
                         (uintptr_t)_end - 1)) {
-        printf("%s load address would overlap ELF-loader!\n", name);
-        abort();
+        printf("ERROR: image would overlap ELF-loader\n");
+        return -1;
     }
+
+    return 0;
 }
 
 /*
  * Unpack an ELF file to the given physical address.
  */
-static void unpack_elf_to_paddr(
+static int unpack_elf_to_paddr(
     void const *elf,
     paddr_t dest_paddr)
 {
+    int ret;
     uint64_t min_vaddr, max_vaddr;
     size_t image_size;
 
     uintptr_t phys_virt_offset;
 
-    /* Get size of the image. */
-    elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+    /* Get the memory bounds. Unlike most other functions, this returns 1 on
+     * success and anything else is an error.
+     */
+    ret = elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+    if (ret != 1) {
+        printf("ERROR: Could not get image size\n");
+        return -1;
+    }
+
     image_size = (size_t)(max_vaddr - min_vaddr);
     phys_virt_offset = dest_paddr - (paddr_t)min_vaddr;
 
@@ -122,47 +130,56 @@ static void unpack_elf_to_paddr(
         memcpy((char *)dest_vaddr + phys_virt_offset,
                (char *)elf + data_offset, data_size);
     }
-}
 
-static size_t rounded_image_size(
-    void const *elf,
-    uint64_t *min_vaddr,
-    uint64_t *max_vaddr)
-{
-    elf_getMemoryBounds(elf, 0, min_vaddr, max_vaddr);
-    *max_vaddr = ROUND_UP(*max_vaddr, PAGE_BITS);
-    return (size_t)(*max_vaddr - *min_vaddr);
+    return 0;
 }
 
 /*
  * Load an ELF file into physical memory at the given physical address.
  *
- * Return the byte past the last byte of the physical address used.
+ * Returns in 'next_phys_addr' the byte past the last byte of the physical
+ * address used.
  */
-static paddr_t load_elf(
+static int load_elf(
     char const *name,
     void const *elf,
     paddr_t dest_paddr,
     struct image_info *info,
     int keep_headers,
+    paddr_t *next_phys_addr,
     __attribute__((unused)) unsigned long size,
     __attribute__((unused)) char const *hash)
 {
+    int ret;
     uint64_t min_vaddr, max_vaddr;
-    /* Fetch image info. */
-    size_t image_size = rounded_image_size(elf, &min_vaddr, &max_vaddr);
+
+    /* Print diagnostics. */
+    printf("ELF-loading image '%s' to %p\n", name, dest_paddr);
+
+    /* Get the memory bounds. Unlike most other functions, this returns 1 on
+     * success and anything else is an error.
+     */
+    ret = elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+    if (ret != 1) {
+        printf("ERROR: Could not get image bounds\n");
+        return -1;
+    }
+
+    /* round up size to the end of the page next page */
+    max_vaddr = ROUND_UP(max_vaddr, PAGE_BITS);
+    size_t image_size = (size_t)(max_vaddr - min_vaddr);
 
     /* Ensure our starting physical address is aligned. */
     if (!IS_ALIGNED(dest_paddr, PAGE_BITS)) {
-        printf("Attempting to load ELF at unaligned physical address!\n");
-        abort();
+        printf("ERROR: Attempting to load ELF at unaligned physical address\n");
+        return -1;
     }
 
     /* Ensure that the ELF file itself is 4-byte aligned in memory, so that
      * libelf can perform word accesses on it. */
     if (!IS_ALIGNED(dest_paddr, 2)) {
-        printf("Input ELF file not 4-byte aligned in memory!\n");
-        abort();
+        printf("ERROR: Input ELF file not 4-byte aligned in memory\n");
+        return -1;
     }
 
 #ifndef CONFIG_HASH_NONE
@@ -177,67 +194,75 @@ static paddr_t load_elf(
     uint8_t *print_hash_pointer = (uint8_t *)file_hash;
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
-     * cannot confirm the file is what we expect. Abort
+     * cannot confirm the file is what we expect.
      */
     if (file_hash == NULL) {
-        printf("Cannot compare hashes for %s, expected hash, %s, doesn't exist\n", name, hash);
-        abort();
-    } else {
+        printf("ERROR: hash file '%s' doesn't exist\n", hash);
+        return -1;
+    }
 
-        hashes_t hashes;
+    hashes_t hashes;
 
 #ifdef CONFIG_HASH_SHA
-        int hash_len = 32;
-        hashes.hash_type = SHA_256;
+    int hash_len = 32;
+    hashes.hash_type = SHA_256;
 #else
-        int hash_len = 16;
-        hashes.hash_type = MD5;
+    int hash_len = 16;
+    hashes.hash_type = MD5;
 #endif
 
-        uint8_t calculated_hash[hash_len];
+    uint8_t calculated_hash[hash_len];
 
-        /* Print the Hash for the user to see */
-        printf("Hash from ELF File: ");
-        print_hash(print_hash_pointer, hash_len);
+    /* Print the Hash for the user to see */
+    printf("Hash from ELF File: ");
+    print_hash(print_hash_pointer, hash_len);
 
-        get_hash(hashes, elf, size, calculated_hash);
+    get_hash(hashes, elf, size, calculated_hash);
 
-        /* Print the hash so the user can see they're the same or different */
-        printf("Hash for ELF Input: ");
-        print_hash(calculated_hash, hash_len);
+    /* Print the hash so the user can see they're the same or different */
+    printf("Hash for ELF Input: ");
+    print_hash(calculated_hash, hash_len);
 
-        /* Check to make sure the hashes are the same */
-        if (strncmp((char *)file_hash, (char *)calculated_hash, hash_len) != 0) {
-            printf("Hashes are different. Load failure\n");
-            abort();
-        }
+    /* Check to make sure the hashes are the same */
+    ret = strncmp((char *)file_hash, (char *)calculated_hash, hash_len);
+    if (0 != ret) {
+        printf("ERROR: Hashes are different\n");
+        return -1;
     }
 
 #endif  /* CONFIG_HASH_NONE */
 
     /* Print diagnostics. */
-    printf("ELF-loading image '%s'\n", name);
     printf("  paddr=[%p..%p]\n", dest_paddr, dest_paddr + image_size - 1);
     printf("  vaddr=[%p..%p]\n", (vaddr_t)min_vaddr, (vaddr_t)max_vaddr - 1);
     printf("  virt_entry=%p\n", (vaddr_t)elf_getEntryPoint(elf));
 
     /* Ensure the ELF file is valid. */
-    if (elf_checkFile(elf) != 0) {
-        printf("Attempting to load invalid ELF file '%s'.\n", name);
-        abort();
+    ret = elf_checkFile(elf);
+    if (0 != ret) {
+        printf("ERROR: Invalid ELF file\n");
+        return -1;
     }
 
     /* Ensure sane alignment of the image. */
     if (!IS_ALIGNED(min_vaddr, PAGE_BITS)) {
-        printf("Start of image '%s' is not 4K-aligned!\n", name);
-        abort();
+        printf("ERROR: Start of image is not 4K-aligned\n");
+        return -1;
     }
 
     /* Ensure that we region we want to write to is sane. */
-    ensure_phys_range_valid(name, dest_paddr, dest_paddr + image_size);
+    ret = ensure_phys_range_valid(dest_paddr, dest_paddr + image_size);
+    if (0 != ret) {
+        printf("ERROR: Physical address range invalid\n");
+        return -1;
+    }
 
     /* Copy the data. */
-    unpack_elf_to_paddr(elf, dest_paddr);
+    ret = unpack_elf_to_paddr(elf, dest_paddr);
+    if (0 != ret) {
+        printf("ERROR: Unpacking ELF to %p failed\n", dest_paddr);
+        return -1;
+    }
 
     /* Record information about the placement of the image. */
     info->phys_region_start = dest_paddr;
@@ -272,7 +297,11 @@ static paddr_t load_elf(
         /* return the frame after our headers */
         dest_paddr += KEEP_HEADERS_SIZE;
     }
-    return dest_paddr;
+
+    if (next_phys_addr) {
+        *next_phys_addr = dest_paddr;
+    }
+    return 0;
 }
 
 /*
@@ -303,7 +332,7 @@ static paddr_t load_elf(
  *
  *  We attempt to check for some of these, but some may go unnoticed.
  */
-void load_images(
+int load_images(
     struct image_info *kernel_info,
     struct image_info *user_info,
     unsigned int max_user_images,
@@ -312,6 +341,7 @@ void load_images(
     void **chosen_dtb,
     uint32_t *chosen_dtb_size)
 {
+    int ret;
     uint64_t kernel_phys_start, kernel_phys_end;
     uintptr_t dtb_phys_start, dtb_phys_end;
     paddr_t next_phys_addr;
@@ -327,16 +357,25 @@ void load_images(
                                            "kernel.elf",
                                            &kernel_filesize);
     if (kernel_elf == NULL) {
-        printf("No kernel image present in archive!\n");
-        abort();
+        printf("ERROR: No kernel image present in archive\n");
+        return -1;
     }
 
-    if (elf_checkFile(kernel_elf)) {
-        printf("Kernel image not a valid ELF file!\n");
-        abort();
+    ret = elf_checkFile(kernel_elf);
+    if (ret != 0) {
+        printf("ERROR: Kernel image not a valid ELF file\n");
+        return -1;
     }
 
-    elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start, &kernel_phys_end);
+    /* Get physical memory bounds. Unlike most other functions, this returns 1
+     * on success and anything else is an error.
+     */
+    ret = elf_getMemoryBounds(kernel_elf, 1, &kernel_phys_start,
+                              &kernel_phys_end);
+    if (1 != ret) {
+        printf("ERROR: Could not get kernel memory bounds\n");
+        return -1;
+    }
 
     void const *dtb = NULL;
 
@@ -378,13 +417,17 @@ void load_images(
 
         *chosen_dtb_size = fdt_size(dtb);
         if (!*chosen_dtb_size) {
-            printf("Invalid device tree blob supplied!\n");
-            abort();
+            printf("ERROR: Invalid device tree blob supplied\n");
+            return -1;
         }
 
         /* Make sure this is a sane thing to do */
-        ensure_phys_range_valid("DTB", next_phys_addr,
-                                next_phys_addr + *chosen_dtb_size);
+        ret = ensure_phys_range_valid(next_phys_addr,
+                                      next_phys_addr + *chosen_dtb_size);
+        if (0 != ret) {
+            printf("ERROR: Physical address of DTB invalid\n");
+            return -1;
+        }
 
         memmove((void *)next_phys_addr, dtb, *chosen_dtb_size);
         next_phys_addr += *chosen_dtb_size;
@@ -399,13 +442,19 @@ void load_images(
     }
 
     /* Load the kernel */
-    load_elf("kernel",
-             kernel_elf,
-             (paddr_t)kernel_phys_start,
-             kernel_info,
-             0, // don't keep ELF headers
-             kernel_filesize,
-             "kernel.bin");
+    ret = load_elf("kernel",
+                   kernel_elf,
+                   (paddr_t)kernel_phys_start,
+                   kernel_info,
+                   0, // don't keep ELF headers
+                   NULL, // we have calculated next_phys_addr already
+                   kernel_filesize,
+                   "kernel.bin");
+
+    if (0 != ret) {
+        printf("ERROR: Could not load kernel ELF\n");
+        return -1;
+    }
 
     /*
      * Load userspace images.
@@ -417,15 +466,17 @@ void load_images(
      */
     unsigned int user_elf_offset = 2;
     cpio_get_entry(_archive_start, cpio_len, 0, &elf_filename, &unused);
-    if (strcmp(elf_filename, "kernel.elf") != 0) {
-        printf("Kernel image not first image in archive.\n");
-        abort();
+    ret = strcmp(elf_filename, "kernel.elf");
+    if (0 != ret) {
+        printf("ERROR: Kernel image not first image in archive\n");
+        return -1;
     }
     cpio_get_entry(_archive_start, cpio_len, 1, &elf_filename, &unused);
-    if (strcmp(elf_filename, "kernel.dtb") != 0) {
+    ret = strcmp(elf_filename, "kernel.dtb");
+    if (0 != ret) {
         if (has_dtb_cpio) {
-            printf("Kernel DTB not second image in archive.\n");
-            abort();
+            printf("ERROR: Kernel DTB not second image in archive\n");
+            return -1;
         }
         user_elf_offset = 1;
     }
@@ -439,13 +490,22 @@ void load_images(
         void const *user_elf = cpio_get_entry(_archive_start,
                                               cpio_len,
                                               i + user_elf_offset,
-                                              &elf_filename,
-                                              &unused);
+                                              &elf_filename, &unused);
+        if (user_elf == NULL) {
+            break;
+        }
+        /* Get the memory bounds. Unlike most other functions, this returns 1 on
+         * success and anything else is an error.
+         */
         uint64_t min_vaddr, max_vaddr;
-        total_user_image_size += rounded_image_size(user_elf, &min_vaddr,
-                                                    &max_vaddr);
-
-        total_user_image_size += KEEP_HEADERS_SIZE;
+        int ret = elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+        if (ret != 1) {
+            printf("ERROR: Could not get image bounds\n");
+            return -1;
+        }
+        /* round up size to the end of the page next page */
+        total_user_image_size += (ROUND_UP(max_vaddr, PAGE_BITS) - min_vaddr)
+                                 + KEEP_HEADERS_SIZE;
     }
 
     /* work out where to place the user image */
@@ -468,15 +528,22 @@ void load_images(
         }
 
         /* Load the file into memory. */
-        next_phys_addr = load_elf(elf_filename,
-                                  user_elf,
-                                  next_phys_addr,
-                                  &user_info[*num_images],
-                                  1,  // keep ELF headers
-                                  unused,
-                                  "app.bin");
+        ret = load_elf(elf_filename,
+                       user_elf,
+                       next_phys_addr,
+                       &user_info[*num_images],
+                       1,  // keep ELF headers
+                       &next_phys_addr,
+                       unused,
+                       "app.bin");
+        if (0 != ret) {
+            printf("ERROR: Could not load user image ELF\n");
+        }
+
         *num_images = i + 1;
     }
+
+    return 0;
 }
 
 void __attribute__((weak)) platform_init(void)

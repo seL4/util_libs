@@ -84,7 +84,9 @@ void relocate_below_kernel(void)
     /* call into assembly to do the finishing touches */
     finish_relocation(offset, _DYNAMIC, new_base);
 #else
-    printf("The ELF loader does not support relocating itself. You probably need to move the kernel window higher, or the load address lower.\n");
+    printf("ERROR: The ELF loader does not support relocating itself. You"
+           " probably need to move the kernel window higher, or the load"
+           " address lower.\n");
     abort();
 #endif
 }
@@ -122,7 +124,7 @@ void main(UNUSED void *arg)
 
 #ifdef CONFIG_IMAGE_EFI
     if (efi_exit_boot_services() != EFI_SUCCESS) {
-        printf("Unable to exit UEFI boot services!\n");
+        printf("ERROR: Unable to exit UEFI boot services!\n");
         abort();
     }
 
@@ -147,12 +149,18 @@ void main(UNUSED void *arg)
     }
 
     /* Unpack ELF images into memory. */
-    load_images(&kernel_info, &user_info, 1, &num_apps, bootloader_dtb, &dtb, &dtb_size);
-    if (num_apps != 1) {
-        printf("No user images loaded!\n");
+    int ret = load_images(&kernel_info, &user_info, 1, &num_apps,
+                          bootloader_dtb, &dtb, &dtb_size);
+    if (0 != ret) {
+        printf("ERROR: image loading failed\n");
         abort();
     }
 
+    if (num_apps != 1) {
+        printf("ERROR: expected to load just 1 app, actually loaded %u apps\n",
+               num_apps);
+        abort();
+    }
     /*
      * We don't really know where we've been loaded.
      * It's possible that EFI loaded us in a place
@@ -161,7 +169,7 @@ void main(UNUSED void *arg)
      * Make sure this is not the case.
      */
     relocate_below_kernel();
-    printf("Relocation failed, aborting.\n");
+    printf("ERROR: Relocation failed, aborting!\n");
     abort();
 }
 
@@ -222,6 +230,6 @@ void continue_boot(int was_relocated)
                                                 user_info.virt_entry, (paddr_t)dtb, dtb_size);
 
     /* We should never get here. */
-    printf("Kernel returned back to the elf-loader.\n");
+    printf("ERROR: Kernel returned back to the ELF Loader\n");
     abort();
 }

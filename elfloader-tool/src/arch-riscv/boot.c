@@ -61,12 +61,18 @@ char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 void *dtb = NULL;
 uint32_t dtb_size = 0;
 
-void map_kernel_window(struct image_info *kernel_info)
+static int map_kernel_window(struct image_info *kernel_info)
 {
     uint32_t index;
     unsigned long *lpt;
 
     /* Map the elfloader into the new address space */
+
+    if (!IS_ALIGNED((uintptr_t)_text, PT_LEVEL_2_BITS)) {
+        printf("ERROR: ELF Loader not properly aligned\n");
+        return -1;
+    }
+
     index = GET_PT_INDEX((uintptr_t)_text, PT_LEVEL_1);
 
 #if __riscv_xlen == 32
@@ -77,17 +83,19 @@ void map_kernel_window(struct image_info *kernel_info)
     index = GET_PT_INDEX((uintptr_t)_text, PT_LEVEL_2);
 #endif
 
-    if (IS_ALIGNED((uintptr_t)_text, PT_LEVEL_2_BITS)) {
-        for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
-            lpt[index] = PTE_CREATE_LEAF((uintptr_t)_text +
-                                         (page << PT_LEVEL_2_BITS));
-        }
-    } else {
-        printf("Elfloader not properly aligned\n");
-        abort();
+    for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
+        lpt[index] = PTE_CREATE_LEAF((uintptr_t)_text +
+                                     (page << PT_LEVEL_2_BITS));
     }
 
     /* Map the kernel into the new address space */
+
+    if (!VIRT_PHYS_ALIGNED(kernel_info->virt_region_start,
+                           kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
+        printf("ERROR: Kernel not properly aligned\n");
+        return -1;
+    }
+
     index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
 
 #if __riscv_xlen == 64
@@ -95,16 +103,13 @@ void map_kernel_window(struct image_info *kernel_info)
     l1pt[index] = PTE_CREATE_NEXT((uintptr_t)l2pt);
     index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_2);
 #endif
-    if (VIRT_PHYS_ALIGNED(kernel_info->virt_region_start,
-                          kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
-        for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
-            lpt[index] = PTE_CREATE_LEAF(kernel_info->phys_region_start +
-                                         (page << PT_LEVEL_2_BITS));
-        }
-    } else {
-        printf("Kernel not properly aligned\n");
-        abort();
+
+    for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
+        lpt[index] = PTE_CREATE_LEAF(kernel_info->phys_region_start +
+                                     (page << PT_LEVEL_2_BITS));
     }
+
+    return 0;
 }
 
 #if CONFIG_PT_LEVELS == 2
@@ -164,13 +169,25 @@ void main(UNUSED int hartid, void *bootloader_dtb)
 
     printf("  paddr=[%p..%p]\n", _text, _end - 1);
     /* Unpack ELF images into memory. */
-    load_images(&kernel_info, &user_info, 1, &num_apps, bootloader_dtb, &dtb, &dtb_size);
-    if (num_apps != 1) {
-        printf("No user images loaded!\n");
+    int ret = load_images(&kernel_info, &user_info, 1, &num_apps,
+                          bootloader_dtb, &dtb, &dtb_size);
+
+    if (0 != ret) {
+        printf("ERROR: image loading failed\n");
         abort();
     }
 
-    map_kernel_window(&kernel_info);
+    if (num_apps != 1) {
+        printf("ERROR: expected to load just 1 app, actually loaded %u apps\n",
+               num_apps);
+        abort();
+    }
+
+    ret = map_kernel_window(&kernel_info);
+    if (0 != ret) {
+        printf("ERROR: could not map kernel window\n");
+        abort();
+    }
 
     printf("Jumping to kernel-image entry point...\n\n");
 
@@ -195,7 +212,8 @@ void main(UNUSED int hartid, void *bootloader_dtb)
                                                  );
 
     /* We should never get here. */
-    printf("Kernel returned back to the elf-loader.\n");
+    printf("ERROR: Kernel returned back to the ELF Loader\n");
+    abort();
 }
 
 #if CONFIG_MAX_NUM_NODES > 1
