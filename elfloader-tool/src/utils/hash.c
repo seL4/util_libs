@@ -23,30 +23,31 @@
  */
 void get_hash(
     hashes_t hashes,
-    const void *file_to_hash,
-    unsigned long bytes_to_hash,
-    uint8_t *outputted_hash)
+    const void *data,
+    size_t len,
+    void *outputted_hash)
 {
     if (hashes.hash_type == SHA_256) {
         sha256_t calculated_hash = hashes.sha_structure;
         sha256_init(&calculated_hash);
-        sha256_update(&calculated_hash, file_to_hash, bytes_to_hash);
+        sha256_update(&calculated_hash, data, len);
         sha256_sum(&calculated_hash, outputted_hash);
     } else {
         md5_t calculated_hash = hashes.md5_structure;
         md5_init(&calculated_hash);
-        md5_update(&calculated_hash, file_to_hash, bytes_to_hash);
+        md5_update(&calculated_hash, data, len);
         md5_sum(&calculated_hash, outputted_hash);
     }
 }
 
 /* Function to print the hash */
 void print_hash(
-    uint8_t *hash_to_print,
-    int bytes_to_print)
+    void const *hash,
+    size_t len)
 {
-    for (int i = 0; i < bytes_to_print; i++) {
-        printf("%02x", *hash_to_print++);
+    uint8_t const *hash_bytes = hash;
+    for (size_t i = 0; i < len; i++) {
+        printf("%02x", hash_bytes[i]);
     }
     printf("\n");
 }

@@ -194,8 +194,8 @@ static int load_elf(
 #else
 
     /* Get the binary file that contains the SHA256 Hash */
-    void const *file_hash = cpio_get_file(cpio, cpio_len, hash, NULL);
-    uint8_t *print_hash_pointer = (uint8_t *)file_hash;
+    unsigned long file_hash_len;
+    void const *file_hash = cpio_get_file(cpio, cpio_len, hash, &file_hash_len);
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
      * cannot confirm the file is what we expect.
@@ -205,33 +205,36 @@ static int load_elf(
         return -1;
     }
 
-    hashes_t hashes;
-
 #ifdef CONFIG_HASH_SHA
-    int hash_len = 32;
-    hashes.hash_type = SHA_256;
+    uint8_t calculated_hash[32];
+    hashes_t hashes = { .hash_type = SHA_256 };
 #else
-    int hash_len = 16;
-    hashes.hash_type = MD5;
+    uint8_t calculated_hash[16];
+    hashes_t hashes = { .hash_type = MD5 };
 #endif
 
-    uint8_t calculated_hash[hash_len];
+    if (file_hash_len < sizeof(calculated_hash)) {
+        printf("ERROR: hash file '%s' size %u invalid, expected at least %u\n",
+               hash, file_hash_len, sizeof(calculated_hash));
+    }
 
     /* Print the Hash for the user to see */
     printf("Hash from ELF File: ");
-    print_hash(print_hash_pointer, hash_len);
+    print_hash(file_hash, sizeof(calculated_hash));
 
     get_hash(hashes, elf, size, calculated_hash);
 
     /* Print the hash so the user can see they're the same or different */
     printf("Hash for ELF Input: ");
-    print_hash(calculated_hash, hash_len);
+    print_hash(calculated_hash, sizeof(calculated_hash));
 
-    /* Check to make sure the hashes are the same */
-    ret = strncmp((char *)file_hash, (char *)calculated_hash, hash_len);
-    if (0 != ret) {
-        printf("ERROR: Hashes are different\n");
-        return -1;
+    /* Check the hashes are the same. There is no memcmp() in the striped down
+     * runtime lib of ELF Loader, so we compare here byte per byte. */
+    for (unsigned int i = 0; i < sizeof(calculated_hash); i++) {
+        if (((char const *)file_hash)[i] != ((char const *)calculated_hash)[i]) {
+            printf("ERROR: Hashes are different\n");
+            return -1;
+        }
     }
 
 #endif  /* CONFIG_HASH_NONE */
