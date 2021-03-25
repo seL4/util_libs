@@ -618,7 +618,6 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
     /* Transmit control - Full duplex mode */
     regs->tcr = TCR_FDEN;
 
-    /* Setup the control path to the phy */
     return ret;
 }
 

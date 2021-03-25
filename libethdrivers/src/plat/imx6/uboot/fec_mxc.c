@@ -102,7 +102,7 @@ int fec_init(unsigned phy_mask, struct enet *enet)
     edev->priv = (void *)enet;
     edev->write_hwaddr = NULL;
 
-    /* Alocate the mdio bus */
+    /* Allocate the mdio bus */
     bus = mdio_alloc();
     if (!bus) {
         return -1;
