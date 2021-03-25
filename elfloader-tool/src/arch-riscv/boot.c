@@ -162,13 +162,15 @@ static inline void enable_virtual_memory(void)
     ifence();
 }
 
-unsigned int num_apps = 0;
 void main(UNUSED int hartid, void *bootloader_dtb)
 {
-    printf("ELF-loader started on (HART %d) (NODES %d)\n", hartid, CONFIG_MAX_NUM_NODES);
-
+    /* printing uses SBI, so there is no need to initialize any UART */
+    printf("ELF-loader started on (HART %d) (NODES %d)\n",
+           hartid, CONFIG_MAX_NUM_NODES);
     printf("  paddr=[%p..%p]\n", _text, _end - 1);
+
     /* Unpack ELF images into memory. */
+    unsigned int num_apps = 0;
     int ret = load_images(&kernel_info, &user_info, 1, &num_apps,
                           bootloader_dtb, &dtb, &dtb_size);
 

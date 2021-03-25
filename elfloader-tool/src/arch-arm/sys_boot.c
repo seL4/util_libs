@@ -98,50 +98,37 @@ void relocate_below_kernel(void)
  */
 void main(UNUSED void *arg)
 {
-    unsigned int num_apps;
-
     void *bootloader_dtb = NULL;
 
+    /* initialize platform to a state where we can print to a UART */
     initialise_devices();
+    platform_init();
 
-#ifdef CONFIG_IMAGE_UIMAGE
-    if (arg) {
-        uint32_t magic = *(uint32_t *)arg;
-        /*
-         * This might happen on ancient bootloaders which
-         * still think Linux wants atags instead of a
-         * device tree.
-         */
-        if (magic != DTB_MAGIC) {
-            printf("Bootloader did not supply a valid device tree!\n");
-            arg = NULL;
-        }
+    /* Print welcome message. */
+    printf("\nELF-loader started on ");
+    print_cpuid();
+    printf("  paddr=[%p..%p]\n", _text, _end - 1);
+
+#if defined(CONFIG_IMAGE_UIMAGE)
+
+    /* U-Boot passes a DTB. Ancient bootloaders may pass atags. When booting via
+     * bootelf argc is NULL.
+     */
+    if (arg && (DTB_MAGIC == *(uint32_t *)arg)) {
+        bootloader_dtb = arg;
     }
-    bootloader_dtb = arg;
-#else
-    bootloader_dtb = NULL;
-#endif
 
-#ifdef CONFIG_IMAGE_EFI
+#elif defined(CONFIG_IMAGE_EFI)
+
     if (efi_exit_boot_services() != EFI_SUCCESS) {
         printf("ERROR: Unable to exit UEFI boot services!\n");
         abort();
     }
 
     bootloader_dtb = efi_get_fdt();
+
 #endif
 
-    /* Print welcome message. */
-    platform_init();
-    printf("\nELF-loader started on ");
-    print_cpuid();
-
-    printf("  paddr=[%p..%p]\n", _text, _end - 1);
-
-    /*
-     * U-Boot will either pass us a DTB, or (if we're being booted via bootelf)
-     * pass '0' in argc.
-     */
     if (bootloader_dtb) {
         printf("  dtb=%p\n", dtb);
     } else {
@@ -149,6 +136,7 @@ void main(UNUSED void *arg)
     }
 
     /* Unpack ELF images into memory. */
+    unsigned int num_apps = 0;
     int ret = load_images(&kernel_info, &user_info, 1, &num_apps,
                           bootloader_dtb, &dtb, &dtb_size);
     if (0 != ret) {
@@ -218,11 +206,9 @@ void continue_boot(int was_relocated)
         arm_enable_mmu();
     }
 
-    /* Enter kernel. */
+    /* Enter kernel. The UART may no longer be accessible here. */
     if ((uintptr_t)uart_get_mmio() < kernel_info.virt_region_start) {
         printf("Jumping to kernel-image entry point...\n\n");
-    } else {
-        /* Our serial port is no longer accessible */
     }
 
     ((init_arm_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
