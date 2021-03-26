@@ -3,3 +3,6 @@
 
 libfdt
 liblwip/default_opts/lwipopts.h
+# Imported sources from zf_log
+libutils/include/utils/zf_log.h
+libutils/src/zf_log.c

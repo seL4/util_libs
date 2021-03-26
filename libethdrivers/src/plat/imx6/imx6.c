@@ -1,6 +1,7 @@
 /*
  * Copyright 2017, DornerWorks
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -409,7 +410,8 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
         LOG_ERROR("Failed to initialize ocotp");
         goto error;
     }
-    /* Initialise ethernet pins */
+
+    /* Initialise ethernet pins, also does a PHY reset */
     err = setup_iomux_enet(&io_ops);
     if (err) {
         LOG_ERROR("Failed to setup iomux enet");
@@ -431,6 +433,13 @@ int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *con
     }
     eth_data->enet = enet;
 
+    /* Non-Promiscuous mode means that only traffic relevant for us is made
+     * visible by the hardware, everything else is discarded automatically. We
+     * will only see packets addressed to our MAC and broadcast/multicast
+     * packets. This is usually all that is needed unless the upper layer
+     * implements functionality beyond a "normal" application scope, e.g.
+     * switching or monitoring.
+     */
     if (plat_config->prom_mode) {
         enet_prom_enable(enet);
     } else {
@@ -463,9 +472,9 @@ error:
         ocotp_free(ocotp, &io_ops.io_mapper);
     }
     if (eth_data) {
+        free_desc_ring(eth_data, &io_ops.dma_manager);
         free(eth_data);
     }
-    free_desc_ring(eth_data, &io_ops.dma_manager);
     return -1;
 }
 

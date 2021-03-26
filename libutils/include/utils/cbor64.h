@@ -274,7 +274,7 @@ static inline int cbor64_byte_chunks_end(base64_t *streamer)
 /* Send a non-UTF-8 string */
 static inline int cbor64_string(base64_t *streamer, char *text)
 {
-    return cbor64_bytes(streamer, text, strlen(text));
+    return cbor64_bytes(streamer, (unsigned char *) text, strlen(text));
 }
 
 /* Start chunked string */
@@ -292,7 +292,7 @@ static inline int cbor64_string_chunks_end(base64_t *streamer)
 /* Send a UTF-8 string */
 static inline int cbor64_utf8(base64_t *streamer, char *text)
 {
-    return cbor64_send_typed_bytes(streamer, CBOR64_MT_UTF8_STRING, text, strlen(text));
+    return cbor64_send_typed_bytes(streamer, CBOR64_MT_UTF8_STRING, (unsigned char *) text, strlen(text));
 }
 
 /* Start chunked UTF-8 string */

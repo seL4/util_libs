@@ -186,6 +186,13 @@ int uart_getchar(
     uint32_t imr = regs->imr;
     regs->idr = imr;
 
+    /* uart_handle_irq() clears the RTRIG interrupt, but it does not catch all
+     * corner cases. So we clear it here again, assuming the caller loops
+     * reading chars to drain the FIFO anyway. Register implements the "write
+     * a 1 to clear" semantic.
+     */
+    regs->isr = UART_ISR_RTRIG;
+
     if (!(regs->sr & UART_SR_REMPTY)) {
         c = regs->fifo;
 

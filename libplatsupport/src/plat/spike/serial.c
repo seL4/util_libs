@@ -6,12 +6,14 @@
 #include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
+#include "../../chardev.h"
 #include <string.h>
 
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(
+    const struct dev_defn *defn UNUSED,
+    const ps_io_ops_t *ops UNUSED,
+    ps_chardevice_t *dev UNUSED)
 {
     return 0;
 }

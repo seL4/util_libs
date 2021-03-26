@@ -28,8 +28,8 @@
  * creating masks that are larger than what is possible with MASK_UNSAFE, as
  * MASK_UNSAFE cannot create a MASK that is all 1's */
 #define MASK(n) \
-    ({  typeof (n) _n = (n); \
-        (void)assert(_n <= (sizeof(unsigned long) * 8)); \
+    __extension__ ({  typeof (n) _n = (n); \
+        (void)assert((unsigned long)_n <= (sizeof(unsigned long) * 8)); \
         (void)assert(_n > 0); \
         MASK_UNSAFE(_n - 1) | BIT(_n - 1); \
     })

@@ -6,12 +6,12 @@
 #pragma once
 
 
-enum chardev_id {                      
-    PS_SERIAL0,                        
-    PS_SERIAL1,                        
-    /* defaults */                     
-    PS_SERIAL_DEFAULT = PS_SERIAL1     
-};                                     
+enum chardev_id {
+    PS_SERIAL0,
+    PS_SERIAL1,
+    /* defaults */
+    PS_SERIAL_DEFAULT = PS_SERIAL1
+};
 
 #define PS_SERIAL_DEFAULT 0
 

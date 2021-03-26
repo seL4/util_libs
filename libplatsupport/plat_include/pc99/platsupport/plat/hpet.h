@@ -38,15 +38,6 @@ typedef struct hpet {
     uint64_t period_ns;
 } hpet_t;
 
-static UNUSED timer_properties_t hpet_properties =
-{
-        .upcounter = true,
-        .timeouts = true,
-        .absolute_timeouts = true,
-        .bit_width = 64,
-        .irqs = 1
-};
-
 int hpet_init(hpet_t *hpet, hpet_config_t config);
 int hpet_start(const hpet_t *hpet);
 int hpet_stop(const hpet_t *hpet);

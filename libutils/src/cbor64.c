@@ -79,12 +79,14 @@ int cbor64_send_typed_bytes(base64_t *streamer, cbor64_mt_t type, unsigned char 
         length -= 1;
         buffer += 1;
     }
+
+    return 0;
 }
 
 /* Send a special value in one or two bytes */
 int cbor64_send_simple(base64_t *streamer, cbor64_simple_t value)
 {
-    if (value < CBOR64_AI_SIMPLE_BYTE) {
+    if ((uint8_t)value < CBOR64_AI_SIMPLE_BYTE) {
         return cbor64_initial_byte(streamer, CBOR64_MT_SIMPLE, value);
     } else {
         int err = cbor64_initial_byte(streamer, CBOR64_MT_SIMPLE, CBOR64_AI_SIMPLE_BYTE);
@@ -97,7 +99,7 @@ int cbor64_send_simple(base64_t *streamer, cbor64_simple_t value)
 
 static inline int send_endian_bytes(base64_t *streamer, unsigned char *bytes, size_t length)
 {
-    for (int b = 0; b < length; b += 1) {
+    for (unsigned int b = 0; b < length; b += 1) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         int err = base64_putbyte(streamer, bytes[length - (b + 1)]);
 #else
