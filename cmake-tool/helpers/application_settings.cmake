@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 3.8.2)
 include_guard(GLOBAL)
 
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
-    set(binary_list "tx1;hikey;odroidc2;imx8mq-evk;rockpro64;zynqmp;imx8mm-evk;hifive")
-    set(efi_list "tk1")
+    set(binary_list "tx1;hikey;odroidc2;imx8mq-evk;zynqmp;imx8mm-evk;hifive")
+    set(efi_list "tk1;rockpro64")
     set(uimage_list "tx2;am335x")
     if(
         ${kernel_platform} IN_LIST efi_list
