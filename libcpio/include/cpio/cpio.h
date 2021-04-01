@@ -49,7 +49,7 @@ struct cpio_info {
  * @return             The location of the file in memory; NULL if the index
  *                     exceeds the number of files in the CPIO archive.
  */
-void *cpio_get_entry(void *archive, unsigned long len, int index, const char **name, unsigned long *size);
+void *cpio_get_entry(const void *archive, unsigned long len, int index, const char **name, unsigned long *size);
 
 /**
  * Retrieve file information from a provided file name
@@ -59,7 +59,7 @@ void *cpio_get_entry(void *archive, unsigned long len, int index, const char **n
  * @return             The location of the file in memory; NULL if the file
  *                     does not exist.
  */
-void *cpio_get_file(void *archive, unsigned long len, const char *name, unsigned long *size);
+void const *cpio_get_file(void const *archive, unsigned long len, const char *name, unsigned long *size);
 
 /**
  * Retrieves information about the provided CPIO archive

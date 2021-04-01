@@ -162,7 +162,7 @@ int cpio_parse_header(struct cpio_header *archive, unsigned long len,
  *
  * Runs in O(n) time.
  */
-void *cpio_get_entry(void *archive, unsigned long len, int n, const char **name, unsigned long *size)
+void *cpio_get_entry(const void *archive, unsigned long len, int n, const char **name, unsigned long *size)
 {
     struct cpio_header *header = archive;
     struct cpio_header_info header_info;
@@ -194,7 +194,7 @@ void *cpio_get_entry(void *archive, unsigned long len, int n, const char **name,
  *
  * Runs in O(n) time.
  */
-void *cpio_get_file(void *archive, unsigned long len, const char *name, unsigned long *size)
+const void *cpio_get_file(void const *archive, unsigned long len, const char *name, unsigned long *size)
 {
     struct cpio_header *header = archive;
     struct cpio_header_info header_info;
