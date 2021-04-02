@@ -20,7 +20,7 @@ int elf32_checkFile(elf_t *elf)
         return -1; /* not an ELF file */
     }
 
-    Elf32_Ehdr *header = elf->elfFile;
+    Elf32_Ehdr const *header = elf->elfFile;
     if (header->e_ident[EI_CLASS] != ELFCLASS32) {
         return -1; /* not a 32-bit ELF */
     }
@@ -41,9 +41,9 @@ int elf32_checkFile(elf_t *elf)
     return 0; /* elf header looks OK */
 }
 
-int elf32_checkProgramHeaderTable(elf_t *elf)
+int elf32_checkProgramHeaderTable(const elf_t *elf)
 {
-    Elf32_Ehdr *header = elf->elfFile;
+    const Elf32_Ehdr *header = elf->elfFile;
     size_t ph_end = header->e_phoff + header->e_phentsize * header->e_phnum;
     if (elf->elfSize < ph_end || ph_end < header->e_phoff) {
         return -1; /* invalid program header table */
@@ -52,9 +52,9 @@ int elf32_checkProgramHeaderTable(elf_t *elf)
     return 0;
 }
 
-int elf32_checkSectionTable(elf_t *elf)
+int elf32_checkSectionTable(const elf_t *elf)
 {
-    Elf32_Ehdr *header = elf->elfFile;
+    const Elf32_Ehdr *header = elf->elfFile;
     size_t sh_end = header->e_shoff + header->e_shentsize * header->e_shnum;
     if (elf->elfSize < sh_end || sh_end < header->e_shoff) {
         return -1; /* invalid section header table */
