@@ -280,6 +280,9 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
     if (clk_regs.alg == NULL) {
         return clk_get_freq(clk);
     }
+
+#if defined(CONFIG_PLAT_IMX6DQ)
+
     fin = clk_get_freq(clk->parent);
     if (hz >= 5 * fin) {
         div = 3;
@@ -304,6 +307,17 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
     /* bypass off */
     clk_regs.alg->pll_enet.clr = PLL_BYPASS;
     printf("Set ENET frequency to %ld Mhz... ", (long int)clk_get_freq(clk) / MHZ);
+
+#elif defined(CONFIG_PLAT_IMX6SX)
+
+    /* ENET requires enet_clk_root to be at least 133 MHz. However, we don't do
+     * anything here and just trust u-boot to have set things up properly.
+     */
+
+#else
+#error "unknown i.MX6 SOC"
+#endif
+
     return clk_get_freq(clk);
 }
 

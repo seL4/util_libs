@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -24,10 +25,17 @@
 
 #define UART_REF_CLK 40089600
 
+
 #if defined(CONFIG_PLAT_SABRE)
-    #define DEFAULT_SERIAL_PADDR UART2_PADDR
-    #define DEFAULT_SERIAL_INTERRUPT UART2_IRQ
-#elif defined(CONFIG_PLAT_WANDQ)
-    #define DEFAULT_SERIAL_PADDR UART1_PADDR
-    #define DEFAULT_SERIAL_INTERRUPT UART1_IRQ
+
+#define DEFAULT_SERIAL_PADDR        UART2_PADDR
+#define DEFAULT_SERIAL_INTERRUPT    UART2_IRQ
+
+#elif defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_NITROGEN6SX)
+
+#define DEFAULT_SERIAL_PADDR        UART1_PADDR
+#define DEFAULT_SERIAL_INTERRUPT    UART1_IRQ
+
+#else
+#error "unknown i.MX6 board"
 #endif
