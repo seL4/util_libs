@@ -24,15 +24,13 @@
  * MA 02111-1307 USA
  */
 
-#include <stdlib.h>
-#include "config.h"
 #include "common.h"
 #include "fec_mxc.h"
 #include "miiphy.h"
 #include "phy.h"
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
-#include "../unimplemented.h"
-#include "string.h"
 
 /* Generic PHY support and helper functions */
 

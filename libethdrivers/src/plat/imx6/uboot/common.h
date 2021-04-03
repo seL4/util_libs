@@ -2,6 +2,7 @@
  * Common definition
  *
  * (C) Copyright 2000-2009 Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * See file U-Boot CREDITS for list of people who contributed to this project.
  *
@@ -25,29 +26,14 @@
 
 #pragma once
 
-#undef  _LINUX_CONFIG_H
-#define _LINUX_CONFIG_H 1   /* avoid reading Linux autoconf.h file  */
-
+#include <autoconf.h>
+#include <utils/gen_config.h>
 #include <utils/arith.h>
-
-#include "mx6qsabrelite.h"
 #include "../unimplemented.h"
 
-#ifdef CONFIG_POST
-#define CONFIG_HAS_POST
-#ifndef CONFIG_POST_ALT_LIST
-#define CONFIG_POST_STD_LIST
-#endif
-#endif
+/* configuration */
+#define CONFIG_PHYLIB
 
-#ifdef CONFIG_INIT_CRITICAL
-#error CONFIG_INIT_CRITICAL is deprecated!
-#error Read section CONFIG_SKIP_LOWLEVEL_INIT in README.
-#endif
-
-#define roundup(x, y)       ((((x) + ((y) - 1)) / (y)) * (y))
-
-#define __ALIGN_MASK(x,mask)    (((x)+(mask))&~(mask))
 
 /**
  * container_of - cast a member of a structure out to the containing structure
@@ -59,4 +45,3 @@
 #define container_of(ptr, type, member) ({          \
     const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
     (type *)( (char *)__mptr - offsetof(type,member) );})
-

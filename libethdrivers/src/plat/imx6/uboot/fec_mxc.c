@@ -28,16 +28,13 @@
 #include "common.h"
 #include "miiphy.h"
 #include "fec_mxc.h"
-
-#include "imx-regs.h"
-#include "../io.h"
-
 #include "micrel.h"
+#include "../io.h"
+#include "../enet.h"
+#include "../ocotp_ctrl.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../enet.h"
-#include "../ocotp_ctrl.h"
 
 #undef DEBUG
 

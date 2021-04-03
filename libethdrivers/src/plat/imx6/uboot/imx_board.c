@@ -27,14 +27,13 @@
  */
 
 #include "common.h"
+#include "gpio.h"
 #include "../io.h"
 #include "miiphy.h"
 #include "micrel.h"
-
+#include "imx_board.h"
 #include <platsupport/io.h>
 #include <stdio.h>
-
-#include "mx6qsabrelite.h"
 
 #if defined(CONFIG_PLAT_IMX6)
 

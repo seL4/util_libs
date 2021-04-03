@@ -27,7 +27,6 @@
 #include "imx-regs.h"
 #include "gpio.h"
 #include "../io.h"
-#include "../unimplemented.h"
 
 enum mxc_gpio_direction {
     MXC_GPIO_DIRECTION_IN,

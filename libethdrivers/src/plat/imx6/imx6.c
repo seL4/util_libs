@@ -18,7 +18,7 @@
 #include "ocotp_ctrl.h"
 #include "uboot/fec_mxc.h"
 #include "uboot/miiphy.h"
-#include "uboot/mx6qsabrelite.h"
+#include "uboot/imx_board.h"
 #include "uboot/micrel.h"
 #include "unimplemented.h"
 
