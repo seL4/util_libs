@@ -44,7 +44,8 @@ enum mxc_gpio_direction {
 
 /* GPIO port description */
 
-#ifdef CONFIG_PLAT_IMX6
+#if defined(CONFIG_PLAT_IMX6)
+
 static unsigned long gpio_ports[] = {
     [0] = 0,
     [1] = 0,
@@ -64,8 +65,9 @@ static unsigned long gpio_paddr[] = {
     [5] = GPIO6_BASE_ADDR,
     [6] = GPIO7_BASE_ADDR,
 };
-#endif
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
+
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+
 static unsigned long gpio_ports[] = {
     [0] = 0,
     [1] = 0,
@@ -81,7 +83,11 @@ static unsigned long gpio_paddr[] = {
     [3] = 0x30230000,
     [4] = 0x30240000,
 };
+
+#else
+#error "unknown i.MX SOC"
 #endif
+
 
 static int mxc_gpio_direction(unsigned int gpio,
                               enum mxc_gpio_direction direction, ps_io_ops_t *io_ops)
