@@ -30,7 +30,6 @@
 #include "miiphy.h"
 #include "phy.h"
 #include <errno.h>
-#include "bitops.h"
 #include "../unimplemented.h"
 #include "string.h"
 
