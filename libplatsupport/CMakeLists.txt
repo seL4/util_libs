@@ -96,6 +96,7 @@ if(
         list(APPEND deps src/mach/${KernelArmMach}/serial/serial.c)
     endif()
 endif()
+
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     list(APPEND deps src/plat/imx8m/chardev.c)
     # There's no clock driver at the moment, but this is to allow the libethdrivers to build for imx8mq
@@ -107,18 +108,22 @@ list(SORT deps)
 add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
+
 target_include_directories(platsupport PRIVATE src/plat_include/${KernelPlatform})
 
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
+
 target_include_directories(
     platsupport
     PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
 )
+
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
 endif()
+
 if("${KernelArch}" STREQUAL "arm")
     set(sel4_arch "${KernelSel4Arch}")
     if("${KernelSel4Arch}" STREQUAL "arm_hyp")
@@ -126,6 +131,7 @@ if("${KernelArch}" STREQUAL "arm")
     endif()
     target_include_directories(platsupport PUBLIC sel4_arch_include/${sel4_arch})
 endif()
+
 target_link_libraries(
     platsupport
     muslc
