@@ -26,8 +26,8 @@ static inline void set_mux_priv(
 }
 
 static int zynq_mux_feature_enable(
-    const mux_sys_t *mux,
-    mux_feature_t mux_feature,
+    UNUSED const mux_sys_t *mux,
+    UNUSED mux_feature_t mux_feature,
     UNUSED enum mux_gpio_dir mgd)
 {
     return 0;
@@ -48,7 +48,7 @@ int zynq_mux_init(
 }
 
 int mux_sys_init(
-    ps_io_ops_t *io_ops,
+    UNUSED ps_io_ops_t *io_ops,
     UNUSED void *dependencies,
     mux_sys_t *mux)
 {
