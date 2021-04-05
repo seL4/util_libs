@@ -115,22 +115,24 @@ if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
 
-target_include_directories(
-    platsupport
-    PUBLIC include plat_include/${KernelPlatform} arch_include/${KernelArch}
-)
-
 if(NOT "${KernelArmMach}" STREQUAL "")
     target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
 endif()
 
-if("${KernelArch}" STREQUAL "arm")
-    set(sel4_arch "${KernelSel4Arch}")
-    if("${KernelSel4Arch}" STREQUAL "arm_hyp")
-        set(sel4_arch "aarch32")
-    endif()
-    target_include_directories(platsupport PUBLIC sel4_arch_include/${sel4_arch})
+# special handling for "arm_hyp", it's an add-on-hack over "aarch32"
+set(_inc_folder_KernelSel4Arch "${KernelSel4Arch}")
+if("${KernelSel4Arch}" STREQUAL "arm_hyp")
+    set(_inc_folder_KernelSel4Arch "aarch32")
 endif()
+
+target_include_directories(
+    platsupport
+    PUBLIC
+        include
+        plat_include/${KernelPlatform}
+        sel4_arch_include/${_inc_folder_KernelSel4Arch}
+        arch_include/${KernelArch}
+)
 
 target_link_libraries(
     platsupport
