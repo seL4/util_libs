@@ -628,24 +628,24 @@ struct imx6_iomuxc_regs {
 };
 
 static struct imx6_mux {
-    volatile struct imx6_iomuxc_regs* iomuxc;
+    volatile struct imx6_iomuxc_regs *iomuxc;
 } _mux;
 
-static inline struct imx6_mux* get_mux_priv(const mux_sys_t* mux) {
-    return (struct imx6_mux*)mux->priv;
+static inline struct imx6_mux *get_mux_priv(const mux_sys_t *mux)
+{
+    return (struct imx6_mux *)mux->priv;
 }
 
-static inline void set_mux_priv(mux_sys_t* mux, struct imx6_mux* imx6_mux)
+static inline void set_mux_priv(mux_sys_t *mux, struct imx6_mux *imx6_mux)
 {
     assert(mux != NULL);
     assert(imx6_mux != NULL);
     mux->priv = imx6_mux;
 }
 
-static int
-imx6_mux_feature_enable(const mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
+static int imx6_mux_feature_enable(const mux_sys_t *mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
-    struct imx6_mux* m;
+    struct imx6_mux *m;
     if (mux == NULL || mux->priv == NULL) {
         return -1;
     }
@@ -696,13 +696,12 @@ imx6_mux_feature_enable(const mux_sys_t* mux, mux_feature_t mux_feature, UNUSED 
     }
 }
 
-int
-imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
+int imx6_mux_enable_gpio(mux_sys_t *mux_sys, int gpio_id)
 {
-    static struct imx6_mux* m;
+    static struct imx6_mux *m;
     volatile uint32_t *reg;
     assert(mux_sys);
-    m = (struct imx6_mux*)mux_sys->priv;
+    m = (struct imx6_mux *)mux_sys->priv;
     assert(m);
     /* Surely there is a mathematical formula for finding the register to be set? */
     switch (gpio_id) {
@@ -785,8 +784,9 @@ imx6_mux_enable_gpio(mux_sys_t* mux_sys, int gpio_id)
     return 0;
 }
 
-static void *imx6_mux_get_vaddr(const mux_sys_t *mux) {
-    struct imx6_mux* m;
+static void *imx6_mux_get_vaddr(const mux_sys_t *mux)
+{
+    struct imx6_mux *m;
     if (mux == NULL || mux->priv == NULL) {
         return NULL;
     }
@@ -794,8 +794,7 @@ static void *imx6_mux_get_vaddr(const mux_sys_t *mux) {
     return (void *)m->iomuxc;
 }
 
-static int
-imx6_mux_init_common(mux_sys_t* mux)
+static int imx6_mux_init_common(mux_sys_t *mux)
 {
     set_mux_priv(mux, &_mux);
     mux->feature_enable = &imx6_mux_feature_enable;
@@ -803,8 +802,7 @@ imx6_mux_init_common(mux_sys_t* mux)
     return 0;
 }
 
-int
-imx6_mux_init(void* iomuxc, mux_sys_t* mux)
+int imx6_mux_init(void *iomuxc, mux_sys_t *mux)
 {
     if (iomuxc != NULL) {
         _mux.iomuxc = iomuxc;
@@ -812,8 +810,7 @@ imx6_mux_init(void* iomuxc, mux_sys_t* mux)
     return imx6_mux_init_common(mux);
 }
 
-int
-mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
+int mux_sys_init(ps_io_ops_t *io_ops, UNUSED void *dependencies, mux_sys_t *mux)
 {
     MAP_IF_NULL(io_ops, IMX6_IOMUXC, _mux.iomuxc);
     return imx6_mux_init_common(mux);

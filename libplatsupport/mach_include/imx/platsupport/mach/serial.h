@@ -28,4 +28,3 @@ enum chardev_id {
 #error "unknown imx platform selected!"
 #endif
 };
-

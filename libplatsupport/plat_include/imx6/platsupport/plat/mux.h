@@ -22,5 +22,5 @@ enum mux_feature {
  *                    subsystem data.
  * @return            0 on success
  */
-int imx6_mux_init(void* iomuxc, mux_sys_t* mux);
+int imx6_mux_init(void *iomuxc, mux_sys_t *mux);
 
