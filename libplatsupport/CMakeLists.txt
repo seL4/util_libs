@@ -109,8 +109,6 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 
-target_include_directories(platsupport PRIVATE src/plat_include/${KernelPlatform})
-
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
