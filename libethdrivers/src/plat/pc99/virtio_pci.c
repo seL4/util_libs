@@ -262,9 +262,9 @@ static void fill_rx_bufs(struct eth_driver *driver) {
             .next = 0
         };
         dev->rx_ring.avail->ring[dev->rx_ring.avail->idx % dev->rx_size] = dev->rdt;
-        asm volatile("sfence" ::: "memory");
+        __atomic_thread_fence(__ATOMIC_RELEASE);
         dev->rx_ring.avail->idx++;
-        asm volatile("sfence" ::: "memory");
+        __atomic_thread_fence(__ATOMIC_RELEASE);
         write_reg16(dev, VIRTIO_PCI_QUEUE_NOTIFY, RX_QUEUE);
         dev->rdt = (dev->rdt + 2) % dev->rx_size;
         dev->rx_remain-=2;
@@ -322,12 +322,12 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     dev->tx_cookies[dev->tdt] = cookie;
     dev->tx_lengths[dev->tdt] = num;
     /* ensure update to descriptors visible before updating the index */
-    asm volatile("mfence" ::: "memory");
+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
     dev->tdt = (dev->tdt + num + 1) % dev->tx_size;
     dev->tx_remain -= (num + 1);
     dev->tx_ring.avail->idx++;
     /* ensure index update visible before notifying */
-    asm volatile("mfence" ::: "memory");
+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
     write_reg16(dev, VIRTIO_PCI_QUEUE_NOTIFY, TX_QUEUE);
     return ETHIF_TX_ENQUEUED;
 }
