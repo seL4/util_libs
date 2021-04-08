@@ -188,6 +188,10 @@ if(KernelArchARM)
     list(APPEND files ${arm_files})
 endif()
 
+# Prevent any global variables to be placed in *COM* instead of .bss.
+# This causes linker errors for duplicate symbol definitions correctly
+# and allows the _bss and _bss_end symbols to capture all .bss variables properly.
+add_compile_options(-fno-common)
 if(ElfloaderImageEFI)
     # We cannot control where EFI loads the image and so we must make it relocatable
     add_compile_options(-fpic)
