@@ -10,9 +10,12 @@ project(libpci C)
 
 set(configure_string "")
 
-config_option(LibPCIDisplayFoundDevices PCI_DISPLAY_FOUND_DEVICES
+config_option(
+    LibPCIDisplayFoundDevices
+    PCI_DISPLAY_FOUND_DEVICES
     "Display found devices during a libpci_scan"
-    DEFAULT OFF
+    DEFAULT
+    OFF
 )
 
 add_config_library(pci "${configure_string}")
