@@ -17,15 +17,18 @@ libpci_device_t libpci_device_list[PCI_MAX_DEVICES];
 uint32_t libpci_num_devices = 0;
 static ps_io_port_ops_t global_port_ops;
 
-uint32_t libpci_ioread(uint32_t port_no, uint32_t* val, uint32_t size) {
+uint32_t libpci_ioread(uint32_t port_no, uint32_t *val, uint32_t size)
+{
     return (uint32_t)ps_io_port_in(&global_port_ops, port_no, (int)size, val);
 }
 
-uint32_t libpci_iowrite(uint32_t port_no, uint32_t val, uint32_t size) {
+uint32_t libpci_iowrite(uint32_t port_no, uint32_t val, uint32_t size)
+{
     return (uint32_t)ps_io_port_out(&global_port_ops, port_no, (int)size, val);
 }
 
-libpci_device_t* libpci_find_device(uint16_t vendor_id, uint16_t device_id) {
+libpci_device_t *libpci_find_device(uint16_t vendor_id, uint16_t device_id)
+{
     for (uint32_t i = 0; i < libpci_num_devices; i++) {
         if (libpci_device_list[i].vendor_id == vendor_id &&
             libpci_device_list[i].device_id == device_id) {
@@ -35,7 +38,8 @@ libpci_device_t* libpci_find_device(uint16_t vendor_id, uint16_t device_id) {
     return NULL;
 }
 
-int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device_t** out) {
+int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device_t **out)
+{
     assert(out);
     int n = 0;
     for (uint32_t i = 0; i < libpci_num_devices; i++) {
@@ -47,7 +51,8 @@ int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device
     return n;
 }
 
-libpci_device_t* libpci_find_device_matching(libpci_device_t *device) {
+libpci_device_t *libpci_find_device_matching(libpci_device_t *device)
+{
     for (uint32_t i = 0; i < libpci_num_devices; i++) {
         if (libpci_device_list[i].bus == device->bus &&
             libpci_device_list[i].dev == device->dev &&
@@ -60,7 +65,8 @@ libpci_device_t* libpci_find_device_matching(libpci_device_t *device) {
     return NULL;
 }
 
-libpci_device_t* libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun) {
+libpci_device_t *libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun)
+{
     for (uint32_t i = 0; i < libpci_num_devices; i++) {
         if (libpci_device_list[i].bus == bus &&
             libpci_device_list[i].dev == dev &&
@@ -71,7 +77,8 @@ libpci_device_t* libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun) {
     return NULL;
 }
 
-static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
+static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun)
+{
     uint16_t vendor_id = libpci_read_reg16(bus, dev, fun, PCI_VENDOR_ID);
 
     if (vendor_id == PCI_VENDOR_ID_INVALID) {
@@ -85,7 +92,7 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
     uint16_t device_id = libpci_read_reg16(bus, dev, fun, PCI_DEVICE_ID);
     ZF_LOGD("    deviceID = %s [0x%x]\n", libpci_deviceID_str(vendor_id, device_id), device_id);
 
-    if(libpci_num_devices + 1 > PCI_MAX_DEVICES) {
+    if (libpci_num_devices + 1 > PCI_MAX_DEVICES) {
         return 0;
     }
 
@@ -107,11 +114,11 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
 
 #ifdef CONFIG_PCI_DISPLAY_FOUND_DEVICES
     printf("PCI :: %.2x.%.2x.%.2x : %s %s (vid 0x%x did 0x%x) line%d pin%d\n", bus, dev, fun,
-        libpci_vendorID_str(vendor_id), libpci_deviceID_str(vendor_id, device_id),
-        vendor_id, device_id,
-        libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_LINE),
-        libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_PIN)
-    );
+           libpci_vendorID_str(vendor_id), libpci_deviceID_str(vendor_id, device_id),
+           vendor_id, device_id,
+           libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_LINE),
+           libpci_read_reg8(bus, dev, fun, PCI_INTERRUPT_PIN)
+          );
     libpci_device_iocfg_debug_print(&libpci_device_list[libpci_num_devices].cfg, true);
 #endif
 
@@ -122,23 +129,25 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun) {
 
 static void lib_pci_scan_bus(int bus);
 
-static void lib_pci_scan_fun(int bus, int dev, int fun) {
+static void lib_pci_scan_fun(int bus, int dev, int fun)
+{
     libpci_add_fun(bus, dev, fun);
-    if ( libpci_read_reg16(bus, dev, fun, PCI_CLASS_DEVICE) == 0x0604) {
+    if (libpci_read_reg16(bus, dev, fun, PCI_CLASS_DEVICE) == 0x0604) {
         int new_bus = libpci_read_reg8(bus, dev, fun, PCI_SECONDARY_BUS);
         ZF_LOGD("%s found additional bus %d from %d %d %d\n", __FUNCTION__, new_bus, bus, dev, fun);
         lib_pci_scan_bus(new_bus);
     }
 }
 
-static void lib_pci_scan_dev(int bus, int dev) {
+static void lib_pci_scan_dev(int bus, int dev)
+{
     uint16_t vendor_id = libpci_read_reg16(bus, dev, 0, PCI_VENDOR_ID);
     if (vendor_id == PCI_VENDOR_ID_INVALID) {
         return;
     }
     ZF_LOGD("%s found pci device %d %d\n", __FUNCTION__, bus, dev);
     lib_pci_scan_fun(bus, dev, 0);
-    if ( (libpci_read_reg8(bus, dev, 0, PCI_HEADER_TYPE) & 0x80) != 0) {
+    if ((libpci_read_reg8(bus, dev, 0, PCI_HEADER_TYPE) & 0x80) != 0) {
         ZF_LOGD("%s found multi function device %d %d\n", __FUNCTION__, bus, dev);
         for (int function = 1; function < 8; function++) {
             if (libpci_read_reg16(bus, dev, function, PCI_VENDOR_ID) != PCI_VENDOR_ID_INVALID) {
@@ -148,16 +157,18 @@ static void lib_pci_scan_dev(int bus, int dev) {
     }
 }
 
-static void lib_pci_scan_bus(int bus) {
+static void lib_pci_scan_bus(int bus)
+{
     for (int dev = 0; dev < 32; dev++) {
         lib_pci_scan_dev(bus, dev);
     }
 }
 
-void libpci_scan(ps_io_port_ops_t port_ops) {
+void libpci_scan(ps_io_port_ops_t port_ops)
+{
     global_port_ops = port_ops;
     ZF_LOGD("PCI :: Scanning...\n");
-    if ( (libpci_read_reg8(0, 0, 0, PCI_HEADER_TYPE) & 0x80) == 0) {
+    if ((libpci_read_reg8(0, 0, 0, PCI_HEADER_TYPE) & 0x80) == 0) {
         ZF_LOGD("Single bus detected\n");
         lib_pci_scan_bus(0);
     } else {
@@ -170,7 +181,8 @@ void libpci_scan(ps_io_port_ops_t port_ops) {
     }
 }
 
-void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, uint8_t fun) {
+void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, uint8_t fun)
+{
     assert(cfg);
     memset(cfg, 0, sizeof(libpci_device_iocfg_t));
 
@@ -193,7 +205,9 @@ void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, 
 
         if (cfg_base_addr == 0)
             /* no device here. */
+        {
             continue;
+        }
 
         cfg->base_addr_space[i] = cfg_base_addr & PCI_BASE_ADDRESS_SPACE;
         if (cfg->base_addr_space[i] == PCI_BASE_ADDRESS_SPACE_MEMORY) {
@@ -210,7 +224,7 @@ void libpci_read_ioconfig(libpci_device_iocfg_t *cfg, uint8_t bus, uint8_t dev, 
             } else {
                 cfg->base_addr[i] = bios_base_addr & PCI_BASE_ADDRESS_MEM_MASK;
             }
-        } else  /* PCI_BASE_ADDRESS_SPACE_IO */ {
+        } else { /* PCI_BASE_ADDRESS_SPACE_IO */
             cfg->base_addr[i] = bios_base_addr & PCI_BASE_ADDRESS_IO_MASK;
             cfg->base_addr_size_mask[i] = cfg_base_addr & PCI_BASE_ADDRESS_IO_MASK;
             cfg->base_addr_type[i] = PCI_BASE_ADDRESS_MEM_TYPE_32;
