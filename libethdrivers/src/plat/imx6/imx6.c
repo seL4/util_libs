@@ -371,59 +371,62 @@ static void complete_tx(imx6_eth_driver_t *dev)
     ethif_raw_tx_complete cb_complete = dev->eth_drv.i_cb.tx_complete;
     assert(cb_complete);
 
+    unsigned int cnt_org;
+    void *cookie;
     ring_ctx_t *ring = &(dev->tx);
     unsigned int head = ring->head;
+    unsigned int cnt = 0;
 
     while (head != ring->tail) {
 
-        void *cookie = ring->cookies[head];
-        unsigned int cnt = dev->tx_lengths[head];
-        unsigned int cnt_org = cnt;
-        while (cnt-- > 0) {
-
-            /* The NIC hardware can modify the descriptor any time, 'volatile'
-             * prevents the compiler's optimizer from caching values and
-             * enforces every access happens as stated in the code.
-             */
-            volatile struct descriptor *d = &(ring->descr[head]);
-
-            /* If the buffer was not sent, we can't release any buffer. */
-            if (d->stat & TXD_READY) {
-                /* TODO: it seems we should not exit the function here, but
-                *        execute the code at the bottom that re-enabled TX if
-                *        it is off?
-                */
+        if (0 == cnt) {
+            cnt = dev->tx_lengths[head];
+            if ((0 == cnt) || (cnt > dev->tx.cnt)) {
+                /* We are not supposed to read 0 here. */
+                LOG_ERROR("complete_tx with cnt=%u at head %u", cnt, head);
                 return;
             }
-
-            /* Go to next buffer, handle roll-over. */
-            if (++head == dev->tx.cnt) {
-                head = 0;
-            }
+            cnt_org = cnt;
+            cookie = ring->cookies[head];
         }
 
-        ring->head = head;
+        /* The NIC hardware can modify the descriptor any time, 'volatile'
+         * prevents the compiler's optimizer from caching values and enforces
+         * every access happens as stated in the code.
+         */
+        volatile struct descriptor *d = &(ring->descr[head]);
 
-        /* There is a race condition here if add/remove is not synchronized. */
-        ring->remain += cnt_org;
+        /* If this buffer was not sent, we can't release any buffer. */
+        if (d->stat & TXD_READY) {
+            assert(dev->enet);
+            if (!enet_tx_enabled(dev->enet)) {
+                enet_tx_enable(dev->enet);
+            }
+            return;
+        }
 
-        /* Tell the driver it can return the DMA buffers to the pool. */
-        cb_complete(cb_cookie, cookie);
+        /* Go to next buffer, handle roll-over. */
+        if (++head == dev->tx.cnt) {
+            head = 0;
+        }
+
+        if (0 == --cnt) {
+            ring->head = head;
+            /* race condition if add/remove is not synchronized. */
+            ring->remain += cnt_org;
+            /* give the buffer back */
+            cb_complete(cb_cookie, cookie);
+        }
+
     }
 
-    /* Seems this is never executed, because we can only arrive here if we exit
-     * the loop because head equals tails. There is another exit of the loop,
-     * but then the function is left - should we do this check there? Otherwise
-     * it looks odd that we do a check here. If this is supposed to solve a
-     * race condition, then this will fail, because the increment if tail might
-     * just happen a few instructions later also.
+    /* The only reason to arrive here is when head equals tails. If cnt is not
+     * zero, then there is some kind of overflow or data corruption. The number
+     * of tx descriptors holding data can't exceed the space in the ring.
      */
-    if (head != ring->tail) {
-        assert(dev->enet);
-        /* ToDo: can it really happen that TX is disabled? */
-        if (!enet_tx_enabled(dev->enet)) {
-            enet_tx_enable(dev->enet);
-        }
+    if (0 != cnt) {
+        LOG_ERROR("head at %u reached tail, but cnt=%u", head, cnt);
+        assert(0);
     }
 }
 
