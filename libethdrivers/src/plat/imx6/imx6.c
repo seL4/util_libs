@@ -49,6 +49,7 @@ typedef struct {
     void *mapped_peripheral;
     irq_id_t irq_id;
     struct enet *enet;
+    struct phy_device *phy;
     uintptr_t tx_ring_phys;
     uintptr_t rx_ring_phys;
     volatile struct descriptor *tx_ring;
@@ -590,10 +591,22 @@ static int init_device(imx6_eth_driver_t *dev)
 
     /* Connect the phy to the ethernet controller */
     unsigned int phy_mask = 0xffffffff;
-    if (fec_init(phy_mask, dev->enet)) {
+    dev->phy = fec_init(phy_mask, dev->enet);
+    if (!dev->phy) {
         ZF_LOGE("Failed to initialize fec");
         goto error;
     }
+
+    enet_set_speed(
+        dev->enet,
+        dev->phy->speed,
+        (dev->phy->duplex == DUPLEX_FULL) ? 1 : 0);
+
+    ZF_LOGI("Link speed: %d Mbps, %s-duplex",
+            dev->phy->speed,
+            (dev->phy->duplex == DUPLEX_FULL) ? "full" : "half");
+
+    udelay(100000); /* why? */
 
     /* Start the controller, all interrupts are still masked here */
     enet_enable(dev->enet);
@@ -616,6 +629,7 @@ error:
     if (ocotp) {
         ocotp_free(ocotp, &(dev->eth_drv.io_ops.io_mapper));
     }
+    /* ToDo: free dev->phydev if set */
     free_desc_ring(dev);
     return -1;
 }
