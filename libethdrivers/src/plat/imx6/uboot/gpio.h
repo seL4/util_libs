@@ -1,79 +1,14 @@
 /*
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
- * Copyright (C) 2011
- * Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- */
-
-#pragma once
-
-#include <platsupport/io.h>
-
-/*
- * Copyright (C) 2011
- * Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- */
-
-#ifndef __ASM_ARCH_IMX_GPIO_H
-#define __ASM_ARCH_IMX_GPIO_H
-
-#if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
-#include <stdint.h>
-/* GPIO registers */
-struct gpio_regs {
-	uint32_t gpio_dr;	/* data */
-	uint32_t gpio_dir;	/* direction */
-	uint32_t gpio_psr;	/* pad satus */
-};
-#endif
-
-#define IMX_GPIO_NR(port, index)		((((port)-1)*32)+((index)&31))
-
-#endif
-
-/*
  * Copyright (c) 2011 The Chromium OS Authors.
  * Copyright (c) 2011, NVIDIA Corp. All rights reserved.
- * See file CREDITS for list of people who contributed to this
- * project.
+ * Copyright (C) 2011 Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
+ * Copyright 2020, HENSOLDT Cyber GmbH
+ *
+ * This file is taken from U-Boot. See U-Boot CREDITS for list of people who
+ * contributed to the U-Boot project. It is a modified variant of the generic
+ * GPIO API for U-Boot
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -89,13 +24,8 @@ struct gpio_regs {
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
- */
-
-#ifndef _ASM_GENERIC_GPIO_H_
-#define _ASM_GENERIC_GPIO_H_
-
-/*
- * Generic GPIO API for U-Boot
+ *
+ *------------------------------------------------------------------------------
  *
  * GPIOs are numbered from 0 to GPIO_COUNT-1 which value is defined
  * by the SOC/architecture.
@@ -109,14 +39,28 @@ struct gpio_regs {
  * In some cases the operation may fail, for example if the GPIO number
  * is out of range, or the GPIO is not available because its pin is
  * being used by another function. In that case, functions may return
- * an error value of -1.
+ * an error value of -1.*
  */
+
+#pragma once
+
+#include <platsupport/io.h>
+#include <stdint.h>
+
+/* GPIO registers */
+struct gpio_regs {
+    uint32_t gpio_dr;   /* data */
+    uint32_t gpio_dir;  /* direction */
+    uint32_t gpio_psr;  /* pad satus */
+};
+
+#define IMX_GPIO_NR(port, index)        ((((port)-1)*32)+((index)&31))
 
 /**
  * Request ownership of a GPIO.
  *
- * @param gpio	GPIO number
- * @param label	Name given to the GPIO
+ * @param gpio  GPIO number
+ * @param label Name given to the GPIO
  * @return 0 if ok, -1 on error
  */
 int gpio_request(unsigned gpio, const char *label);
@@ -124,7 +68,7 @@ int gpio_request(unsigned gpio, const char *label);
 /**
  * Stop using the GPIO.  This function should not alter pin configuration.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if ok, -1 on error
  */
 int gpio_free(unsigned gpio);
@@ -132,7 +76,7 @@ int gpio_free(unsigned gpio);
 /**
  * Make a GPIO an input.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if ok, -1 on error
  */
 int gpio_direction_input(unsigned gpio, ps_io_ops_t *io_ops);
@@ -140,8 +84,8 @@ int gpio_direction_input(unsigned gpio, ps_io_ops_t *io_ops);
 /**
  * Make a GPIO an output, and set its value.
  *
- * @param gpio	GPIO number
- * @param value	GPIO value (0 for low or 1 for high)
+ * @param gpio  GPIO number
+ * @param value GPIO value (0 for low or 1 for high)
  * @return 0 if ok, -1 on error
  */
 int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops);
@@ -150,7 +94,7 @@ int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops);
  * Get a GPIO's value. This will work whether the GPIO is an input
  * or an output.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if low, 1 if high, -1 on error
  */
 int gpio_get_value(unsigned gpio);
@@ -159,8 +103,8 @@ int gpio_get_value(unsigned gpio);
  * Set an output GPIO's value. The GPIO must already be an output or
  * this function may have no effect.
  *
- * @param gpio	GPIO number
- * @param value	GPIO value (0 for low or 1 for high)
+ * @param gpio  GPIO number
+ * @param value GPIO value (0 for low or 1 for high)
  * @return 0 if ok, -1 on error
  */
 int gpio_set_value(unsigned gpio, int value);
@@ -169,10 +113,8 @@ int gpio_set_value(unsigned gpio, int value);
  * Request a gpio. This should be called before any of the other functions
  * are used on this gpio.
  *
- * @param gp	GPIO number
- * @param label	User label for this GPIO
+ * @param gp    GPIO number
+ * @param label User label for this GPIO
  * @return 0 if ok, -1 on error
  */
 int gpio_request(unsigned gpio, const char *label);
-#endif	/* _ASM_GENERIC_GPIO_H_ */
-

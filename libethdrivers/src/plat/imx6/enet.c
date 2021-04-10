@@ -1,6 +1,7 @@
 /*
  * Copyright 2017, NXP
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -255,6 +256,7 @@ static inline enet_regs_t *enet_get_regs(struct enet *enet)
 #define PHYOP_REG_SHIFT       18
 #define PHYOP_DATA_SHIFT       0
 
+
 /******************
  *** MDIO clock ***
  ******************/
@@ -318,7 +320,9 @@ static struct clock mdc_clk = {
     .child = NULL,
 };
 
+
 #ifdef CONFIG_PLAT_IMX8MQ_EVK
+
 static freq_t _enet_clk_get_freq(clk_t *clk)
 {
     return clk->req_freq;
@@ -337,7 +341,9 @@ static struct clock enet_clk = {
     .sibling = NULL,
     .child = NULL,
 };
+
 #endif
+
 
 void enet_set_speed(struct enet *enet, int speed, int full_duplex)
 {
@@ -398,7 +404,8 @@ int enet_mdio_read(struct enet *enet, uint16_t phy, uint16_t reg)
     return readl(&regs->mmfr) & 0xffff;
 }
 
-int enet_mdio_write(struct enet *enet, uint16_t phy, uint16_t reg, uint16_t data)
+int enet_mdio_write(struct enet *enet, uint16_t phy, uint16_t reg,
+                    uint16_t data)
 {
     enet_regs_t *regs = enet_get_regs(enet);
     uint32_t v;
@@ -416,6 +423,7 @@ int enet_mdio_write(struct enet *enet, uint16_t phy, uint16_t reg, uint16_t data
 /*******************
  *** ENET driver ***
  *******************/
+
 void enet_rx_enable(struct enet *enet)
 {
     enet_get_regs(enet)->rdar = RDAR_RDAR;
@@ -509,8 +517,7 @@ void enet_prom_disable(struct enet *enet)
     regs->rcr &= ~RCR_PROM;
 }
 
-struct enet *
-enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
+struct enet *enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
 {
     enet_regs_t *regs;
     struct enet *ret;
@@ -522,6 +529,7 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
         return NULL;
     }
     ret = (struct enet *)regs;
+
     /* Perform reset */
     regs->ecr = ECR_RESET;
     while (regs->ecr & ECR_RESET);
@@ -531,14 +539,16 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
     regs->eimr = 0x00000000;
     regs->eir  = 0xffffffff;
 
-#ifdef CONFIG_PLAT_IMX6
+#if defined(CONFIG_PLAT_IMX6)
+
     /* Set the ethernet clock frequency */
     clock_sys_t *clk_sys = malloc(sizeof(clock_sys_t));
     clock_sys_init(io_ops, clk_sys);
     enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
     clk_set_freq(enet_clk_ptr, ENET_FREQ);
-#endif
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
+
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+
     enet_clk_ptr = &enet_clk;
     // TODO Implement an actual clock driver for the imx8mq
     void *clock_base = RESOURCE(&io_ops->io_mapper, CCM);
@@ -567,6 +577,7 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
     /* Ungate the clocks now */
     *ccgr_enet_set = 0x3;
     *ccgr_sim_enet_set = 0x3;
+
 #endif
 
     /* Set the MDIO clock frequency */
@@ -627,11 +638,10 @@ enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops)
 
 static void dump_regs(uint32_t *start, int size)
 {
-    int i, j;
     uint32_t *base = start;
-    for (i = 0; i < size / sizeof(*start);) {
+    for (unsigned int i = 0; i < size / sizeof(*start);) {
         printf("+0x%03x: ", ((uint32_t)(start - base)) * 4);
-        for (j = 0; j < 4; j++, i++, start++) {
+        for (unsigned int j = 0; j < 4; j++, i++, start++) {
             printf("0x%08x ", *start);
         }
         printf("\n");

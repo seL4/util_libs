@@ -1,16 +1,10 @@
 /*
+ * Copyright (C) 2009 Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
+ * Copyright (C) 2011 Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
+ *
+ * See U-Boot file CREDITS for list of people who contributed to this project.
+ *
  * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
- * Copyright (C) 2009
- * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
- *
- * Copyright (C) 2011
- * Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
- *
- * See file CREDITS for list of people who contributed to this
- * project.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,6 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+
 #include "common.h"
 #include "imx-regs.h"
 #include "gpio.h"

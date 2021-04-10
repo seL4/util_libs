@@ -1,13 +1,13 @@
 /*
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
+ * based on u-boot-imx6/board/freescale/mx6qsabrelite/mx6qsabrelite.c
+ *
  * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
  * Copyright (C) 2018 NXP
  *
  * See file CREDITS for list of people who contributed to this
  * project.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,10 +23,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
- */
-
-/*
- * u-boot-imx6/board/freescale/mx6qsabrelite/mx6qsabrelite.c
  */
 
 #include "common.h"
