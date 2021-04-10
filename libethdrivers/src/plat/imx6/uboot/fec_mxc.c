@@ -72,46 +72,38 @@ static int fec_phy_write(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
  *      fec->tbd_index = 0;
  */
 
-int fec_init(unsigned int phy_mask, struct enet *enet)
+struct phy_device *fec_init(unsigned int phy_mask, struct enet *enet)
 {
-    struct eth_device *edev;
-    struct phy_device *phydev;
-    struct mii_dev *bus;
-    int ret = 0;
-    struct eth_device _eth;
-    /* create and fill edev struct */
-    edev = &_eth;
-    memset(edev, 0, sizeof(*edev));
-
-    edev->priv = (void *)enet;
-    edev->write_hwaddr = NULL;
+    int ret;
 
     /* Allocate the mdio bus */
-    bus = mdio_alloc();
+    struct mii_dev *bus = mdio_alloc();
     if (!bus) {
         ZF_LOGE("Could not allocate MDIO");
-        return -1;
+        return NULL;
     }
+    strncpy(bus->name, "MDIO", sizeof(bus->name));
     bus->read = fec_phy_read;
     bus->write = fec_phy_write;
     bus->priv = enet;
-    strcpy(bus->name, edev->name);
     ret = mdio_register(bus);
     if (ret) {
         ZF_LOGE("Could not register MDIO, code %d", ret);
         free(bus);
-        return -1;
+        return NULL;
     }
 
-    /****** Configure phy ******/
-    phydev = phy_connect_by_mask(
-                 bus,
-                 phy_mask,
-                 edev,
-                 PHY_INTERFACE_MODE_RGMII);
+    /* Configure PHY with a dummy edev, because it is never used. All that
+     * happens is that the name is printed */
+    static struct eth_device dummy_eth_dev = { .name = "DUMMY-EDEV" };
+    struct phy_device *phydev = phy_connect_by_mask(
+                                    bus,
+                                    phy_mask,
+                                    &dummy_eth_dev,
+                                    PHY_INTERFACE_MODE_RGMII);
     if (!phydev) {
         ZF_LOGE("Could not connect to PHY");
-        return -1;
+        return NULL;
     }
 
 #if defined(CONFIG_PLAT_IMX8MQ_EVK)
@@ -144,17 +136,12 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
     ret = ksz9021_startup(phydev);
     if (ret) {
         ZF_LOGE("Could not initialize PHY '%s', code %d", phydev->dev->name, ret);
-        return ret;
+        return NULL;
     }
 
 #else
 #error "unsupported platform"
 #endif
 
-    int isFullDuplex = (phydev->duplex == DUPLEX_FULL);
-    ZF_LOGI("Link speed: %u Mbps, %s-duplex",
-            phydev->speed, isFullDuplex ? "full" : "half");
-    enet_set_speed(enet, phydev->speed, isFullDuplex ? 1 : 0);
-    udelay(100000);
-    return 0;
+    return phydev;
 }

@@ -36,26 +36,11 @@
 #define PKTSIZE         1518
 #define PKTSIZE_ALIGN   1536
 
-struct fec_priv {
-#ifdef CONFIG_PHYLIB
-    int phy_mask;
-    struct phy_device *phydev;
-#else
-    int phy_id;
-    int (*mii_postcall)(int);
-#endif
-};
-
 struct eth_device {
     char name[16];
-    unsigned char enetaddr[6];
-    int iobase;
-    int state;
-    struct fec_priv *priv;
-    int (*write_hwaddr)(struct eth_device *dev);
 };
 
-int fec_init(unsigned phy_mask, struct enet *enet);
+struct phy_device *fec_init(unsigned phy_mask, struct enet *enet);
 
 #define FEC_RCNTRL_MAX_FL_SHIFT     16
 #define FEC_RCNTRL_LOOP             0x00000001
