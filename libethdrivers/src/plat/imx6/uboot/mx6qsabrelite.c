@@ -170,39 +170,45 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         return 1;
     }
 
-    if (config_set(CONFIG_PLAT_IMX8MQ_EVK)) {
-        ret = imx_iomux_v3_setup_multiple_pads(base, fec1_pads, ARRAY_SIZE(fec1_pads));
-        if (ret) {
-            return ret;
-        }
-        gpio_direction_output(IMX_GPIO_NR(1, 9), 0, io_ops);
-        udelay(500);
-        gpio_direction_output(IMX_GPIO_NR(1, 9), 1, io_ops);
+#if defined(CONFIG_PLAT_IMX8MQ_EVK)
 
-        uint32_t *gpr1 = base + 0x4;
-        // Change ENET_TX to use internal clocks and not the external clocks
-        *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
-    } else if (config_set(CONFIG_PLAT_IMX6)) {
-        gpio_direction_output(IMX_GPIO_NR(3, 23), 0, io_ops);
-        gpio_direction_output(IMX_GPIO_NR(6, 30), 1, io_ops);
-        gpio_direction_output(IMX_GPIO_NR(6, 25), 1, io_ops);
-        gpio_direction_output(IMX_GPIO_NR(6, 27), 1, io_ops);
-        gpio_direction_output(IMX_GPIO_NR(6, 28), 1, io_ops);
-        gpio_direction_output(IMX_GPIO_NR(6, 29), 1, io_ops);
-        ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads1, ARRAY_SIZE(enet_pads1));
-        if (ret) {
-            return ret;
-        }
-        gpio_direction_output(IMX_GPIO_NR(6, 24), 1, io_ops);
-        /* Need delay 10ms according to KSZ9021 spec */
-        udelay(1000 * 10);
-        gpio_set_value(IMX_GPIO_NR(3, 23), 1);
-
-        ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads2, ARRAY_SIZE(enet_pads2));
-        if (ret) {
-            return ret;
-        }
+    ret = imx_iomux_v3_setup_multiple_pads(base, fec1_pads, ARRAY_SIZE(fec1_pads));
+    if (ret) {
+        return ret;
     }
+    gpio_direction_output(IMX_GPIO_NR(1, 9), 0, io_ops);
+    udelay(500);
+    gpio_direction_output(IMX_GPIO_NR(1, 9), 1, io_ops);
+
+    uint32_t *gpr1 = base + 0x4;
+    // Change ENET_TX to use internal clocks and not the external clocks
+    *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
+
+#elif defined(CONFIG_PLAT_IMX6)
+
+    gpio_direction_output(IMX_GPIO_NR(3, 23), 0, io_ops);
+    gpio_direction_output(IMX_GPIO_NR(6, 30), 1, io_ops);
+    gpio_direction_output(IMX_GPIO_NR(6, 25), 1, io_ops);
+    gpio_direction_output(IMX_GPIO_NR(6, 27), 1, io_ops);
+    gpio_direction_output(IMX_GPIO_NR(6, 28), 1, io_ops);
+    gpio_direction_output(IMX_GPIO_NR(6, 29), 1, io_ops);
+    ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads1, ARRAY_SIZE(enet_pads1));
+    if (ret) {
+        return ret;
+    }
+    gpio_direction_output(IMX_GPIO_NR(6, 24), 1, io_ops);
+    /* Need delay 10ms according to KSZ9021 spec */
+    udelay(1000 * 10);
+    gpio_set_value(IMX_GPIO_NR(3, 23), 1);
+
+    ret = imx_iomux_v3_setup_multiple_pads(base, enet_pads2, ARRAY_SIZE(enet_pads2));
+    if (ret) {
+        return ret;
+    }
+
+#else
+#error "unsupported platform"
+#endif
 
     if (unmapOnExit) {
         UNRESOURCE(&io_ops->io_mapper, IOMUXC, base);
