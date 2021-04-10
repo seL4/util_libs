@@ -91,51 +91,67 @@
 
 #ifdef DBG_PKT
 
-static inline void print_mac(uint8_t* mac){
+static inline void print_mac(uint8_t *mac)
+{
     int i;
     printf("%02x", *mac++);
-    for(i = 0; i < 5; i++){
+    for (i = 0; i < 5; i++) {
         printf(":%02x", *mac++);
     }
 }
 
-static inline void
-print_type(uint8_t* p){
+static inline void print_type(uint8_t *p)
+{
     uint32_t type = 0;
     int i;
-    p += 6*2;
-    for(i = 0; i < 2; i++){
+    p += 6 * 2;
+    for (i = 0; i < 2; i++) {
         type = type << 8  | *p++;
     }
-    switch(type){
-    case 0x0806: printf("ARP"); break;
-    case 0x0800: printf(" IP"); break;
-    default: printf("UNKNOWN");
+    switch (type) {
+    case 0x0806:
+        printf("ARP");
+        break;
+    case 0x0800:
+        printf(" IP");
+        break;
+    default:
+        printf("UNKNOWN");
     }
     printf(" (0x%04x)", type);
 }
 
-static inline void print_val(uint8_t* p, int len){
+static inline void print_val(uint8_t *p, int len)
+{
     uint32_t val = 0;
     int i;
-    for(i = 0; i < len; i++){
+    for (i = 0; i < len; i++) {
         val = val << 8 | *p++;
     }
     printf("%d", val);
 }
 
-static inline void print_packet(const char* col, void* packet, int length){
+static inline void print_packet(const char *col, void *packet, int length)
+{
     cprintf(col, "packet 0x%x (%d bytes)", (uint32_t)packet, length);
-    unsigned char* p = packet;
-    printf(" dst MAC : ");  print_mac(p + 0);
-    printf(" src MAC : ");  print_mac(p + 6); printf("\n");
-    printf(" src port: ");  print_val(p +0x22, 2);
-    printf(" dst port: ");  print_val(p +0x24, 2); printf("\n");
-    printf(" type    : "); print_type(p + 0); printf("\n");
+    unsigned char *p = packet;
+    printf(" dst MAC : ");
+    print_mac(p + 0);
+    printf(" src MAC : ");
+    print_mac(p + 6);
+    printf("\n");
+    printf(" src port: ");
+    print_val(p + 0x22, 2);
+    printf(" dst port: ");
+    print_val(p + 0x24, 2);
+    printf("\n");
+    printf(" type    : ");
+    print_type(p + 0);
+    printf("\n");
 #if defined(DBG_PRINT_PAYLOAD)
-    int i,j;
-    for(i=0;i<length;i+=32){
-        for(j=0;j<32 && length > i+j;j++){
+    int i, j;
+    for (i = 0; i < length; i += 32) {
+        for (j = 0; j < 32 && length > i + j; j++) {
             printf("%02x", *p++);
         }
         printf("\n");

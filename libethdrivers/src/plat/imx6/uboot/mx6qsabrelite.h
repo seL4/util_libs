@@ -1,11 +1,9 @@
 /*
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
+ * Configuration settings for the Freescale i.MX6Q Sabre Lite board.
+ *
  * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
  *
- * Configuration settings for the Freescale i.MX6Q Sabre Lite board.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -114,4 +112,3 @@ typedef uint64_t iomux_v3_cfg_t;
 #define GPIO_PORTF      (5 << GPIO_PORT_SHIFT)
 
 #define MUX_CONFIG_SION     (BIT(4))
-

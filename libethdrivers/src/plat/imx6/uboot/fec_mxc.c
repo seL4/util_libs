@@ -1,14 +1,13 @@
 /*
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
  * (C) Copyright 2009 Ilya Yanok, Emcraft Systems Ltd <yanok@emcraft.com>
  * (C) Copyright 2008,2009 Eric Jarrige <eric.jarrige@armadeus.org>
  * (C) Copyright 2008 Armadeus Systems nc
  * (C) Copyright 2007 Pengutronix, Sascha Hauer <s.hauer@pengutronix.de>
  * (C) Copyright 2007 Pengutronix, Juergen Beisert <j.beisert@pengutronix.de>
  * (C) Copyright 2018, NXP
+ * (C) Copyright 2020, HENSOLDT Cyber GmbH
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -55,18 +54,23 @@
 
 #undef DEBUG
 
-int fec_phy_read(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr)
+int fec_phy_read(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
+                 int regAddr)
 {
-    return enet_mdio_read((struct enet *)bus->priv, phyAddr, regAddr);
+    struct enet *enet = (struct enet *)bus->priv;
+    assert(enet);
+    return enet_mdio_read(enet, phyAddr, regAddr);
 }
 
-int fec_phy_write(struct mii_dev *bus, int phyAddr, int dev_addr, int regAddr,
-                  uint16_t data)
+int fec_phy_write(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
+                  int regAddr, uint16_t data)
 {
-    return enet_mdio_write((struct enet *)bus->priv, phyAddr, regAddr, data);
+    struct enet *enet = (struct enet *)bus->priv;
+    assert(enet);
+    return enet_mdio_write(enet, phyAddr, regAddr, data);
 }
 
-/**
+/*
  * Halt the FEC engine
  * @param[in] dev Our device to handle
  */
@@ -88,7 +92,8 @@ void fec_halt(struct eth_device *dev)
     assert(!"unimplemented");
 #endif
 }
-int fec_init(unsigned phy_mask, struct enet *enet)
+
+int fec_init(unsigned int phy_mask, struct enet *enet)
 {
     struct eth_device *edev;
     struct phy_device *phydev;
@@ -118,7 +123,11 @@ int fec_init(unsigned phy_mask, struct enet *enet)
     }
 
     /****** Configure phy ******/
-    phydev = phy_connect_by_mask(bus, phy_mask, edev, PHY_INTERFACE_MODE_RGMII);
+    phydev = phy_connect_by_mask(
+                 bus,
+                 phy_mask,
+                 edev,
+                 PHY_INTERFACE_MODE_RGMII);
     if (!phydev) {
         return -1;
     }
