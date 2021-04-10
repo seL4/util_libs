@@ -58,27 +58,19 @@ static int fec_phy_write(struct mii_dev *bus, int phyAddr, UNUSED int dev_addr,
 }
 
 /*
- * Halt the FEC engine
- * @param[in] dev Our device to handle
+ * Halting the FEC engine could can be done with:
+ *   issue graceful stop command
+ *      writel(FEC_TCNTRL_GTS | readl(eth->x_cntrl), eth->x_cntrl);
+ *   wait (with timeout) for graceful stop to register
+ *      counter = 0xffff
+ *      while ((counter--) && (!(readl(eth->ievent) & FEC_IEVENT_GRA))) {
+ *         udelay(1);
+ *      }
+ *   issue disable command and clerar FEV
+ *      writel(readl(eth->ecntrl) & ~FEC_ECNTRL_ETHER_EN, eth->ecntrl);
+ *      fec->rbd_index = 0;
+ *      fec->tbd_index = 0;
  */
-void fec_halt(struct eth_device *dev)
-{
-#if 0
-    struct fec_priv *fec = (struct fec_priv *)dev->priv;
-    int counter = 0xffff;
-    /* issue graceful stop command to the FEC transmitter if necessary */
-    writel(FEC_TCNTRL_GTS | readl(&fec->eth->x_cntrl), &fec->eth->x_cntrl);
-    /* wait for graceful stop to register */
-    while ((counter--) && (!(readl(&fec->eth->ievent) & FEC_IEVENT_GRA))) {
-        udelay(1);
-    }
-    writel(readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_ETHER_EN, &fec->eth->ecntrl);
-    fec->rbd_index = 0;
-    fec->tbd_index = 0;
-#else
-    assert(!"unimplemented");
-#endif
-}
 
 int fec_init(unsigned int phy_mask, struct enet *enet)
 {
