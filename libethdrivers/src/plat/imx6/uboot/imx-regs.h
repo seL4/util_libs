@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <autoconf.h>
 #include <stdint.h>
 
 #define ARCH_MXC
