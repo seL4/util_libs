@@ -22,6 +22,8 @@
 #include "uboot/micrel.h"
 #include "unimplemented.h"
 
+#define IRQ_MASK    (NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR)
+
 #define DEFAULT_MAC "\x00\x19\xb8\x00\xf0\xa3"
 
 #define BUF_SIZE    MAX_PKT_SIZE
@@ -134,15 +136,6 @@ static void fill_rx_bufs(struct eth_driver *driver)
     if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
         enet_rx_enable(dev->enet);
     }
-}
-
-static void enable_interrupts(struct imx6_eth_data *dev)
-{
-    struct enet *enet = dev->enet;
-    assert(enet);
-    enet_enable_events(enet, 0);
-    enet_clr_events(enet, (uint32_t) ~(NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR));
-    enet_enable_events(enet, (uint32_t) NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
 }
 
 static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
@@ -320,7 +313,7 @@ static void handle_irq(struct eth_driver *driver, int irq)
 {
     struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     struct enet *enet = dev->enet;
-    uint32_t e = enet_clr_events(enet, NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR);
+    uint32_t e = enet_clr_events(enet, IRQ_MASK);
     if (e & NETIRQ_TXF) {
         complete_tx(driver);
     }
@@ -472,7 +465,7 @@ int ethif_imx6_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
     /* Initialise the phy */
     phy_micrel_init();
 
-    /* Initialise the RGMII interface */
+    /* Initialise the RGMII interface, clears and masks all interrupts */
     struct enet *enet = enet_init(
                             dev->tx_ring_phys,
                             dev->rx_ring_phys,
@@ -515,11 +508,18 @@ int ethif_imx6_init(struct eth_driver *driver, ps_io_ops_t io_ops, void *config)
         goto error;
     }
 
-    /* Start the controller */
+    /* Start the controller, all interrupts are still masked here */
     enet_enable(enet);
 
     fill_rx_bufs(driver);
-    enable_interrupts(dev);
+
+    /* Ensure no unused interrupts are pending. */
+    enet_clr_events(dev->enet, ~((uint32_t)IRQ_MASK));
+
+    /* Enable interrupts for the events we care about. This unmask them, some
+     * could already be pending here and trigger immediately.
+     */
+    enet_enable_events(dev->enet, IRQ_MASK);
 
     /* done */
     return 0;
