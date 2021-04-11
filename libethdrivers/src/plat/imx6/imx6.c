@@ -89,11 +89,26 @@ struct imx6_eth_data {
 #define TXD_ADDCRC    BIT(10) /* Append a CRC to the end of the frame */
 #define TXD_ADDBADCRC BIT( 9) /* Append a bad CRC to the end of the frame */
 
+static void get_mac(struct eth_driver *driver, uint8_t *mac)
+{
+    assert(driver);
+    assert(mac);
+
+    struct enet *enet = ((struct imx6_eth_data *)driver->eth_data)->enet;
+    enet_get_mac(enet, (unsigned char *)mac);
+}
+
 static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
-    enet_get_mac(dev->enet, mac);
-    *mtu = MAX_PKT_SIZE;
+    assert(driver);
+
+    if (mac) {
+        get_mac(driver, mac);
+    }
+
+    if (mtu) {
+        *mtu = MAX_PKT_SIZE;
+    }
 }
 
 static void fill_rx_bufs(struct eth_driver *driver)
@@ -407,12 +422,6 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     }
 
     return ETHIF_TX_ENQUEUED;
-}
-
-static void get_mac(struct eth_driver *driver, uint8_t *mac)
-{
-    struct enet *enet = ((struct imx6_eth_data *)driver->eth_data)->enet;
-    enet_get_mac(enet, (unsigned char *)mac);
 }
 
 static struct raw_iface_funcs iface_fns = {
