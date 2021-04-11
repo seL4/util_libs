@@ -99,40 +99,46 @@ static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 static void fill_rx_bufs(struct eth_driver *driver)
 {
     struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
-    __sync_synchronize();
-    while (dev->rx_remain > 0) {
-        /* request a buffer */
-        void *cookie = NULL;
-        int next_rdt = (dev->rdt + 1) % dev->rx_size;
 
-        /* This fn ptr is either lwip_allocate_rx_buf or
-         * lwip_pbuf_allocate_rx_buf (in src/lwip.c)
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_allocate_rx_buf cb_alloc = driver->i_cb.allocate_rx_buf;
+    if (!cb_alloc) {
+        /* The function may not be set up (yet), in this case we can't do
+         * anything. If lwip is used, this can be either lwip_allocate_rx_buf()
+         * or lwip_pbuf_allocate_rx_buf() from src/lwip.c
          */
-        uintptr_t phys = driver->i_cb.allocate_rx_buf ?
-                         driver->i_cb.allocate_rx_buf(
-                             driver->cb_cookie,
-                             BUF_SIZE,
-                             &cookie)
-                         : 0;
-        if (!phys) {
-            /* NOTE: This condition could happen if
-             *       CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS is less than
-             *       CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT
-             */
-            break;
-        }
-
-        dev->rx_cookies[dev->rdt] = cookie;
-        dev->rx_ring[dev->rdt].phys = phys;
-        dev->rx_ring[dev->rdt].len = 0;
-
+        LOG_WARN("callback allocate_rx_buf not set, can't allocate %d buffers",
+                 dev->rx_remain);
+    } else {
         __sync_synchronize();
-        dev->rx_ring[dev->rdt].stat = RXD_EMPTY
-                                      | (next_rdt == 0 ? RXD_WRAP : 0);
-        dev->rdt = next_rdt;
-        dev->rx_remain--;
+        while (dev->rx_remain > 0) {
+
+            /* request a buffer */
+            void *cookie = NULL;
+            uintptr_t phys = cb_alloc(cb_cookie, BUF_SIZE, &cookie);
+            if (!phys) {
+                /* There are no buffers left. This can happen if the pool is too
+                 * small because CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
+                 * is less than CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT.
+                 */
+                break;
+            }
+
+            int next_rdt = (dev->rdt + 1) % dev->rx_size;
+            dev->rx_cookies[dev->rdt] = cookie;
+            dev->rx_ring[dev->rdt].phys = phys;
+            dev->rx_ring[dev->rdt].len = 0;
+
+            __sync_synchronize();
+
+            dev->rx_ring[dev->rdt].stat = RXD_EMPTY
+                                          | (next_rdt == 0 ? RXD_WRAP : 0);
+            dev->rdt = next_rdt;
+            dev->rx_remain--;
+        }
+        __sync_synchronize();
     }
-    __sync_synchronize();
+
     if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
         enet_rx_enable(dev->enet);
     }
@@ -252,6 +258,10 @@ static int initialize_desc_ring(struct imx6_eth_data *dev,
 
 static void complete_rx(struct eth_driver *driver)
 {
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_rx_complete cb_complete = driver->i_cb.rx_complete;
+    assert(cb_complete);
+
     struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     unsigned int rdt = dev->rdt;
     while (dev->rdh != rdt) {
@@ -270,7 +280,7 @@ static void complete_rx(struct eth_driver *driver)
         dev->rdh = (dev->rdh + 1) % dev->rx_size;
         dev->rx_remain++;
         /* Give the buffers back */
-        driver->i_cb.rx_complete(driver->cb_cookie, 1, &cookie, &len);
+        cb_complete(cb_cookie, 1, &cookie, &len);
     }
     if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
         enet_rx_enable(dev->enet);
@@ -279,6 +289,10 @@ static void complete_rx(struct eth_driver *driver)
 
 static void complete_tx(struct eth_driver *driver)
 {
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_tx_complete cb_complete = driver->i_cb.tx_complete;
+    assert(cb_complete);
+
     struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
     while (dev->tdh != dev->tdt) {
         for (unsigned int i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
@@ -296,7 +310,7 @@ static void complete_tx(struct eth_driver *driver)
         dev->tx_remain += dev->tx_lengths[dev->tdh];
         dev->tdh = (dev->tdh + dev->tx_lengths[dev->tdh]) % dev->tx_size;
         /* give the buffer back */
-        driver->i_cb.tx_complete(driver->cb_cookie, cookie);
+        cb_complete(cb_cookie, cookie);
     }
     if (dev->tdh != dev->tdt && !enet_tx_enabled(dev->enet)) {
         enet_tx_enable(dev->enet);
