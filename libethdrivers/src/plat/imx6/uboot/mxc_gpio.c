@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009 Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
  * Copyright (C) 2011 Stefano Babic, DENX Software Engineering, <sbabic@denx.de>
+ * Copyright (C) 2020, HENSOLDT Cyber GmbH
  *
  * See U-Boot file CREDITS for list of people who contributed to this project.
  *
@@ -92,6 +93,7 @@ static int mxc_gpio_direction(unsigned int gpio,
     uint32_t l;
 
     if (port >= ARRAY_SIZE(gpio_ports)) {
+        ZF_LOGE("invalid GPIO port %u for pin %u", port, gpio);
         return -1;
     }
 
@@ -101,7 +103,8 @@ static int mxc_gpio_direction(unsigned int gpio,
         uintptr_t gpio_phys = (uintptr_t)gpio_paddr[port];
         gpio_ports[port] = (unsigned long)ps_io_map(&io_ops->io_mapper, gpio_phys, GPIO_SIZE, 0, PS_MEM_NORMAL);
         if (gpio_ports[port] == 0) {
-            LOG_ERROR("Warning: No map for GPIO %d. Assuming that it is already configured\n", port);
+            ZF_LOGE("No mapping for GPIO port %u of pin %u. Assuming it's already configured",
+                    port, gpio);
             return 0;
         }
     }
@@ -128,6 +131,7 @@ int gpio_set_value(unsigned gpio, int value)
     uint32_t l;
 
     if (port >= ARRAY_SIZE(gpio_ports)) {
+        ZF_LOGE("invalid GPIO port %u for pin %u", port, gpio);
         return -1;
     }
 
@@ -153,6 +157,7 @@ int gpio_get_value(unsigned gpio)
     uint32_t val;
 
     if (port >= ARRAY_SIZE(gpio_ports)) {
+        ZF_LOGE("invalid GPIO port %u for pin %u", port, gpio);
         return -1;
     }
 
@@ -169,6 +174,7 @@ int gpio_request(unsigned gpio, const char *label)
 {
     unsigned int port = GPIO_TO_PORT(gpio);
     if (port >= ARRAY_SIZE(gpio_ports)) {
+        ZF_LOGE("invalid GPIO port %u for pin %u", port, gpio);
         return -1;
     }
     return 0;
@@ -189,6 +195,8 @@ int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops)
     int ret = mxc_gpio_direction(gpio, MXC_GPIO_DIRECTION_OUT, io_ops);
 
     if (ret < 0) {
+        ZF_LOGE("Could not set output direction for pin %u, code %u",
+                gpio, ret);
         return ret;
     }
 

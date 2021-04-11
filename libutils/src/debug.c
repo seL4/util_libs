@@ -70,7 +70,7 @@ void utils_memory_dump(void *address, size_t bytes, int word_size)
         /* Notify the caller if 'bytes' is not a multple of MD_BYTES_PER_LINE */
         if (bytes % MD_BYTES_PER_LINE) {
             int extra_bytes = MD_BYTES_PER_LINE - (bytes % MD_BYTES_PER_LINE);
-            LOG_INFO("Rounding displayed bytes from %zu up to %zu", bytes, bytes + extra_bytes);
+            ZF_LOGI("Rounding displayed bytes from %zu up to %zu", bytes, bytes + extra_bytes);
             bytes += extra_bytes;
         }
         /* Print each line */
@@ -78,6 +78,6 @@ void utils_memory_dump(void *address, size_t bytes, int word_size)
             md_print_line(&((uint8_t *)address)[i], word_size);
         }
     } else {
-        LOG_ERROR("Invalid word size (%d). Valid options are [1, 2, 4, 8]", word_size);
+        ZF_LOGE("Invalid word size (%d). Valid options are [1, 2, 4, 8]", word_size);
     }
 }

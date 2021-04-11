@@ -145,7 +145,7 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man)
     dma_addr_t rx_ring = dma_alloc_pin(dma_man, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN), 1,
                                        VIRTIO_PCI_VRING_ALIGN);
     if (!rx_ring.phys) {
-        LOG_ERROR("Failed to allocate rx_ring");
+        ZF_LOGE("Failed to allocate rx_ring");
         return -1;
     }
     memset(rx_ring.virt, 0, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN));
@@ -154,7 +154,7 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man)
     dma_addr_t tx_ring = dma_alloc_pin(dma_man, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN), 1,
                                        VIRTIO_PCI_VRING_ALIGN);
     if (!tx_ring.phys) {
-        LOG_ERROR("Failed to allocate tx_ring");
+        ZF_LOGE("Failed to allocate tx_ring");
         free_desc_ring(dev, dma_man);
         return -1;
     }
@@ -165,7 +165,7 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man)
     dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
-        LOG_ERROR("Failed to malloc");
+        ZF_LOGE("Failed to malloc");
         free_desc_ring(dev, dma_man);
         return -1;
     }
@@ -192,7 +192,7 @@ static int initialize(virtio_dev_t *dev, ps_dma_man_t *dma_man)
     uint32_t features;
     features = get_features(dev);
     if ((features & FEATURES_REQUIRED) != FEATURES_REQUIRED) {
-        LOG_ERROR("Required features 0x%x, have 0x%x", (unsigned int)FEATURES_REQUIRED, features);
+        ZF_LOGE("Required features 0x%x, have 0x%x", (unsigned int)FEATURES_REQUIRED, features);
         return -1;
     }
     features &= FEATURES_REQUIRED;

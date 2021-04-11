@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
  * Copyright (C) 2018 NXP
+ * Copyright (C) 2020, HENSOLDT Cyber GmbH
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -105,6 +106,7 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         unmapOnExit = 1;
     }
     if (!base) {
+        ZF_LOGE("base is NULL");
         return 1;
     }
 

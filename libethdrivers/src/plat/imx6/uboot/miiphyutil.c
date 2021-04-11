@@ -3,6 +3,7 @@
  * channel.
  *
  * (C) Copyright 2001, Gerald Van Baren, Custom IDEAS, vanbaren@cideas.com.
+ * Copyright (C) 2020, HENSOLDT Cyber GmbH
  *
  * See file U-Boot CREDITS for list of people who contributed to this project.
  *
@@ -34,18 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../unimplemented.h"
-
-#define BUG_ON(x) do {} while(0)
-
-/* local debug macro */
-#undef MII_DEBUG
-
-#undef debug
-#ifdef MII_DEBUG
-#define debug(fmt, args...) printf(fmt, ##args)
-#else
-#define debug(fmt, args...)
-#endif /* MII_DEBUG */
 
 static struct list_head mii_devs;
 static struct mii_dev *current_mii;
@@ -117,12 +106,12 @@ void miiphy_register(const char *name,
     struct mii_dev *new_dev;
     struct legacy_mii_dev *ldev;
 
-    BUG_ON(strlen(name) >= MDIO_NAME_LEN);
+    assert(strlen(name) < MDIO_NAME_LEN);
 
     /* check if we have unique name */
     new_dev = miiphy_get_dev_by_name(name);
     if (new_dev) {
-        printf("miiphy_register: non unique device name '%s'\n", name);
+        ZF_LOGE("miiphy_register: non unique device name '%s'", name);
         return;
     }
 
@@ -131,8 +120,7 @@ void miiphy_register(const char *name,
     ldev = malloc(sizeof(*ldev));
 
     if (new_dev == NULL || ldev == NULL) {
-        printf("miiphy_register: cannot allocate memory for '%s'\n",
-               name);
+        ZF_LOGE("miiphy_register: cannot allocate memory for '%s'", name);
         return;
     }
 
@@ -145,8 +133,8 @@ void miiphy_register(const char *name,
     ldev->write = write;
     new_dev->priv = ldev;
 
-    debug("miiphy_register: added '%s', read=0x%08lx, write=0x%08lx\n",
-          new_dev->name, ldev->read, ldev->write);
+    ZF_LOGI("miiphy_register: added '%s', read=0x%08lx, write=0x%08lx",
+            new_dev->name, ldev->read, ldev->write);
 
     /* add it to the list */
     list_add_tail(&new_dev->link, &mii_devs);
@@ -181,8 +169,7 @@ int mdio_register(struct mii_dev *bus)
 
     /* check if we have unique name */
     if (miiphy_get_dev_by_name(bus->name)) {
-        printf("mdio_register: non unique device name '%s'\n",
-               bus->name);
+        ZF_LOGE("mdio_register: non unique device name '%s'", bus->name);
         return -1;
     }
 
@@ -204,18 +191,17 @@ void mdio_list_devices(void)
         int i;
         struct mii_dev *bus = list_entry(entry, struct mii_dev, link);
 
-        printf("%s:\n", bus->name);
+        ZF_LOGI("bus '%s':", bus->name);
 
         for (i = 0; i < PHY_MAX_ADDR; i++) {
             struct phy_device *phydev = bus->phymap[i];
 
             if (phydev) {
-                printf("%d - %s", i, phydev->drv->name);
-
                 if (phydev->dev) {
-                    printf(" <--> %s\n", phydev->dev->name);
+                    ZF_LOGI("  %d - %s <--> %s",
+                            i, phydev->drv->name, phydev->dev->name);
                 } else {
-                    printf("\n");
+                    ZF_LOGI("  %d - %s", i, phydev->drv->name);
                 }
             }
         }
@@ -232,7 +218,7 @@ int miiphy_set_current_dev(const char *devname)
         return 0;
     }
 
-    printf("No such device: %s\n", devname);
+    ZF_LOGE("No such device: %s", devname);
 
     return 1;
 }
@@ -262,7 +248,7 @@ struct phy_device *mdio_phydev_for_ethname(const char *ethname)
         }
     }
 
-    printf("%s is not a known ethernet\n", ethname);
+    ZF_LOGE("%s is not a known ethernet", ethname);
     return NULL;
 }
 
@@ -353,15 +339,14 @@ void miiphy_listdev(void)
     struct list_head *entry;
     struct mii_dev *dev;
 
-    puts("MII devices: ");
+    ZF_LOGI("MII devices: ");
     list_for_each(entry, &mii_devs) {
         dev = list_entry(entry, struct mii_dev, link);
-        printf("'%s' ", dev->name);
+        ZF_LOGI("  '%s'", dev->name);
     }
-    puts("\n");
 
     if (current_mii) {
-        printf("Current device: '%s'\n", current_mii->name);
+        ZF_LOGI("Current device: '%s'", current_mii->name);
     }
 }
 
@@ -385,12 +370,12 @@ int miiphy_info(const char *devname, unsigned char addr, unsigned int *oui,
     unsigned short tmp;
 
     if (miiphy_read(devname, addr, MII_PHYSID2, &tmp) != 0) {
-        debug("PHY ID register 2 read failed\n");
+        ZF_LOGE("PHY ID register 2 read failed");
         return -1;
     }
     reg = tmp;
 
-    debug("MII_PHYSID2 @ 0x%x = 0x%04x\n", addr, reg);
+    ZF_LOGI("MII_PHYSID2 @ 0x%x = 0x%04x", addr, reg);
 
     if (reg == 0xFFFF) {
         /* No physical device present at this address */
@@ -398,11 +383,11 @@ int miiphy_info(const char *devname, unsigned char addr, unsigned int *oui,
     }
 
     if (miiphy_read(devname, addr, MII_PHYSID1, &tmp) != 0) {
-        debug("PHY ID register 1 read failed\n");
+        ZF_LOGE("PHY ID register 1 read failed");
         return -1;
     }
     reg |= tmp << 16;
-    debug("PHY_PHYIDR[1,2] @ 0x%x = 0x%08x\n", addr, reg);
+    ZF_LOGI("PHY_PHYIDR[1,2] @ 0x%x = 0x%08x", addr, reg);
 
     *oui = (reg >> 10);
     *model = (unsigned char)((reg >> 4) & 0x0000003F);
@@ -426,11 +411,11 @@ int miiphy_reset(const char *devname, unsigned char addr)
     int timeout = 500;
 
     if (miiphy_read(devname, addr, MII_BMCR, &reg) != 0) {
-        debug("PHY status read failed\n");
+        ZF_LOGE("PHY status read failed");
         return -1;
     }
     if (miiphy_write(devname, addr, MII_BMCR, reg | BMCR_RESET) != 0) {
-        debug("PHY reset failed\n");
+        ZF_LOGE("PHY reset failed");
         return -1;
     }
 #ifdef CONFIG_PHY_RESET_DELAY
@@ -444,7 +429,7 @@ int miiphy_reset(const char *devname, unsigned char addr)
     reg = 0x8000;
     while (((reg & 0x8000) != 0) && timeout--) {
         if (miiphy_read(devname, addr, MII_BMCR, &reg) != 0) {
-            debug("PHY status read failed\n");
+            ZF_LOGE("PHY status read failed");
             return -1;
         }
         udelay(1000);
@@ -452,7 +437,7 @@ int miiphy_reset(const char *devname, unsigned char addr)
     if ((reg & 0x8000) == 0) {
         return 0;
     } else {
-        puts("PHY reset timed out\n");
+        ZF_LOGE("PHY reset timed out");
         return -1;
     }
     return 0;
@@ -483,7 +468,7 @@ int miiphy_speed(const char *devname, unsigned char addr)
      */
     /* Check for 1000BASE-T. */
     if (miiphy_read(devname, addr, MII_STAT1000, &btsr)) {
-        printf("PHY 1000BT status");
+        ZF_LOGI("PHY 1000BT status");
         goto miiphy_read_failed;
     }
     if (btsr != 0xFFFF &&
@@ -494,14 +479,14 @@ int miiphy_speed(const char *devname, unsigned char addr)
 
     /* Check Basic Management Control Register first. */
     if (miiphy_read(devname, addr, MII_BMCR, &bmcr)) {
-        printf("PHY speed");
+        ZF_LOGI("PHY speed");
         goto miiphy_read_failed;
     }
     /* Check if auto-negotiation is on. */
     if (bmcr & BMCR_ANENABLE) {
         /* Get auto-negotiation results. */
         if (miiphy_read(devname, addr, MII_LPA, &anlpar)) {
-            printf("PHY AN speed");
+            ZF_LOGI("PHY AN speed");
             goto miiphy_read_failed;
         }
         return (anlpar & LPA_100) ? _100BASET : _10BASET;
@@ -510,7 +495,7 @@ int miiphy_speed(const char *devname, unsigned char addr)
     return (bmcr & BMCR_SPEED100) ? _100BASET : _10BASET;
 
 miiphy_read_failed:
-    printf(" read failed, assuming 10BASE-T\n");
+    ZF_LOGE(" read failed, assuming 10BASE-T");
     return _10BASET;
 }
 
@@ -529,7 +514,7 @@ int miiphy_duplex(const char *devname, unsigned char addr)
     if (miiphy_is_1000base_x(devname, addr)) {
         /* 1000BASE-X */
         if (miiphy_read(devname, addr, MII_LPA, &anlpar)) {
-            printf("1000BASE-X PHY AN duplex");
+            ZF_LOGI("1000BASE-X PHY AN duplex");
             goto miiphy_read_failed;
         }
     }
@@ -538,7 +523,7 @@ int miiphy_duplex(const char *devname, unsigned char addr)
      */
     /* Check for 1000BASE-T. */
     if (miiphy_read(devname, addr, MII_STAT1000, &btsr)) {
-        printf("PHY 1000BT status");
+        ZF_LOGI("PHY 1000BT status");
         goto miiphy_read_failed;
     }
     if (btsr != 0xFFFF) {
@@ -552,14 +537,14 @@ int miiphy_duplex(const char *devname, unsigned char addr)
 
     /* Check Basic Management Control Register first. */
     if (miiphy_read(devname, addr, MII_BMCR, &bmcr)) {
-        puts("PHY duplex");
+        ZF_LOGI("PHY duplex");
         goto miiphy_read_failed;
     }
     /* Check if auto-negotiation is on. */
     if (bmcr & BMCR_ANENABLE) {
         /* Get auto-negotiation results. */
         if (miiphy_read(devname, addr, MII_LPA, &anlpar)) {
-            puts("PHY AN duplex");
+            ZF_LOGI("PHY AN duplex");
             goto miiphy_read_failed;
         }
         return (anlpar & (LPA_10FULL | LPA_100FULL)) ?
@@ -569,7 +554,7 @@ int miiphy_duplex(const char *devname, unsigned char addr)
     return (bmcr & BMCR_FULLDPLX) ? FULL : HALF;
 
 miiphy_read_failed:
-    printf(" read failed, assuming half duplex\n");
+    ZF_LOGI(" read failed, assuming half duplex");
     return HALF;
 }
 
@@ -584,8 +569,7 @@ int miiphy_is_1000base_x(const char *devname, unsigned char addr)
     u16 exsr;
 
     if (miiphy_read(devname, addr, MII_ESTATUS, &exsr)) {
-        printf("PHY extended status read failed, assuming no "
-               "1000BASE-X\n");
+        ZF_LOGI("PHY extended status read failed, assuming no 1000BASE-X");
         return 0;
     }
     return 0 != (exsr & (ESTATUS_1000XF | ESTATUS_1000XH));
@@ -606,7 +590,7 @@ int miiphy_link(const char *devname, unsigned char addr)
     /* dummy read; needed to latch some phys */
     (void)miiphy_read(devname, addr, MII_BMSR, &reg);
     if (miiphy_read(devname, addr, MII_BMSR, &reg)) {
-        puts("MII_BMSR read failed, assuming no link\n");
+        ZF_LOGI("MII_BMSR read failed, assuming no link");
         return 0;
     }
 

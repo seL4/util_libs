@@ -97,6 +97,7 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
     /* Allocate the mdio bus */
     bus = mdio_alloc();
     if (!bus) {
+        ZF_LOGE("Could not allocate MDIO");
         return -1;
     }
     bus->read = fec_phy_read;
@@ -105,6 +106,7 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
     strcpy(bus->name, edev->name);
     ret = mdio_register(bus);
     if (ret) {
+        ZF_LOGE("Could not register MDIO, code %d", ret);
         free(bus);
         return -1;
     }
@@ -116,6 +118,7 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
                  edev,
                  PHY_INTERFACE_MODE_RGMII);
     if (!phydev) {
+        ZF_LOGE("Could not connect to PHY");
         return -1;
     }
 
@@ -148,7 +151,7 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
     /* Start up the PHY */
     ret = ksz9021_startup(phydev);
     if (ret) {
-        printf("Could not initialize PHY %s\n", phydev->dev->name);
+        ZF_LOGE("Could not initialize PHY '%s', code %d", phydev->dev->name, ret);
         return ret;
     }
 
@@ -156,15 +159,10 @@ int fec_init(unsigned int phy_mask, struct enet *enet)
 #error "unsupported platform"
 #endif
 
-    printf("\n  * Link speed: %4i Mbps, ", phydev->speed);
-    if (phydev->duplex == DUPLEX_FULL) {
-        enet_set_speed(enet, phydev->speed, 1);
-        printf("full-duplex *\n");
-    } else {
-        enet_set_speed(enet, phydev->speed, 0);
-        printf("half-duplex *\n");
-    }
-
+    int isFullDuplex = (phydev->duplex == DUPLEX_FULL);
+    ZF_LOGI("Link speed: %u Mbps, %s-duplex",
+            phydev->speed, isFullDuplex ? "full" : "half");
+    enet_set_speed(enet, phydev->speed, isFullDuplex ? 1 : 0);
     udelay(100000);
     return 0;
 }

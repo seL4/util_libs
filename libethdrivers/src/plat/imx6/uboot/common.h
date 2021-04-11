@@ -49,26 +49,6 @@
 
 #define __ALIGN_MASK(x,mask)    (((x)+(mask))&~(mask))
 
-#ifdef ETH_DEBUG
-#define _DEBUG  1
-#else
-#define _DEBUG  1
-#endif
-
-/*
- * Output a debug text when condition "cond" is met. The "cond" should be
- * computed by a preprocessor in the best case, allowing for the best
- * optimization.
- */
-#define debug_cond(cond, fmt, args...)      \
-    do {                    \
-        if (cond)           \
-            printf(fmt, ##args);    \
-    } while (0)
-
-#define debug(fmt, args...)         \
-    debug_cond(_DEBUG, fmt, ##args)
-
 /**
  * container_of - cast a member of a structure out to the containing structure
  * @ptr:    the pointer to the member.
