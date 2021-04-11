@@ -292,8 +292,7 @@ static freq_t _mdc_clk_set_freq(clk_t *clk, freq_t hz)
     }
 
     regs->mscr = v << 1;
-    CLK_DEBUG(printf("Set MDC frequency to %.1f Mhz (<= 2.5 Mhz)\n",
-                     (float)clk_get_freq(clk) / MHZ));
+    ZF_LOGD("Set MDC frequency to %u Hz (<= 2.5 Mhz)", clk_get_freq(clk));
     return clk_get_freq(clk);
 }
 
@@ -369,7 +368,7 @@ void enet_set_speed(struct enet *enet, int speed, int full_duplex)
         rcr |= RCR_RMII_10T;
         break;
     default:
-        printf("Invalid speed\n");
+        ZF_LOGE("Invalid speed");
         assert(0);
         return;
     }
@@ -528,6 +527,7 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
     /* Map in the device */
     regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
     if (regs == NULL) {
+        ZF_LOGE("ethernet controller could not be mapped");
         return NULL;
     }
     ret = (struct enet *)regs;
@@ -555,6 +555,7 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
     // TODO Implement an actual clock driver for the imx8mq
     void *clock_base = RESOURCE(&io_ops->io_mapper, CCM);
     if (!clock_base) {
+        ZF_LOGE("clock controller could not be mapped");
         return NULL;
     }
 

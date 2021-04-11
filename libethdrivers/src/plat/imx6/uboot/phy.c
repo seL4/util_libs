@@ -4,6 +4,7 @@
  *
  * Copyright 2011 Freescale Semiconductor, Inc.
  * author Andy Fleming
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -244,20 +245,23 @@ int genphy_update_link(struct phy_device *phydev)
      * we don't need to wait for autoneg again
      */
     if (phydev->link && mii_reg & BMSR_LSTATUS) {
+        ZF_LOGI("link already established");
         return 0;
     }
 
     if ((mii_reg & BMSR_ANEGCAPABLE) && !(mii_reg & BMSR_ANEGCOMPLETE)) {
         int i = 0;
 
-        printf("%s Waiting for PHY auto negotiation to complete", phydev->dev->name);
+        ZF_LOGI(
+            "waiting for auto negotiation to complete on phy %d, '%s'",
+            phydev->addr, phydev->dev->name);
         fflush(stdout);
         while (!(mii_reg & BMSR_ANEGCOMPLETE)) {
             /*
              * Timeout reached ?
              */
             if (i > PHY_ANEG_TIMEOUT) {
-                printf(" TIMEOUT !\n");
+                ZF_LOGE("auto negotiation timeout");
                 phydev->link = 0;
                 return 0;
             }
@@ -270,7 +274,8 @@ int genphy_update_link(struct phy_device *phydev)
             udelay(1000);   /* 1 ms */
             mii_reg = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMSR);
         }
-        printf(" done\n");
+        ZF_LOGI("auto negotiation complete on phy %d, '%s'",
+                phydev->addr, phydev->dev->name);
         phydev->link = 1;
     } else {
         /* Read the link a second time to clear the latched state */
@@ -510,8 +515,7 @@ static struct phy_device *phy_device_create(struct mii_dev *bus, int addr,
      * default values */
     dev = malloc(sizeof(*dev));
     if (!dev) {
-        printf("Failed to allocate PHY device for %s:%d\n",
-               bus->name, addr);
+        ZF_LOGE("Failed to allocate PHY device for '%s':%d", bus->name, addr);
         return NULL;
     }
 
@@ -554,6 +558,7 @@ static int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
     phy_reg = bus->read(bus, addr, devad, MII_PHYSID1);
 
     if (phy_reg < 0) {
+        ZF_LOGE("read MII_PHYSID1 failed, code %d", phy_reg);
         return -EIO;
     }
 
@@ -563,6 +568,7 @@ static int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
     phy_reg = bus->read(bus, addr, devad, MII_PHYSID2);
 
     if (phy_reg < 0) {
+        ZF_LOGE("read MII_PHYSID2 failed, code %d", phy_reg);
         return -EIO;
     }
 
@@ -587,6 +593,7 @@ static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
         }
         phy_mask &= ~(BIT(addr));
     }
+    ZF_LOGE("Failed to create PHY by mask");
     return NULL;
 }
 
@@ -626,7 +633,7 @@ static struct phy_device *get_phy_device_by_mask(struct mii_dev *bus,
             return phydev;
         }
     }
-    printf("Phy not found\n");
+    ZF_LOGE("PHY not found");
     return phy_device_create(bus, ffs(phy_mask) - 1, 0xffffffff, interface);
 }
 
@@ -663,14 +670,14 @@ int phy_reset(struct phy_device *phydev)
 
     reg = phy_read(phydev, devad, MII_BMCR);
     if (reg < 0) {
-        debug("PHY status read failed\n");
+        ZF_LOGE("PHY status read failed");
         return -1;
     }
 
     reg |= BMCR_RESET;
 
     if (phy_write(phydev, devad, MII_BMCR, reg) < 0) {
-        debug("PHY reset failed\n");
+        ZF_LOGE("PHY reset failed");
         return -1;
     }
 
@@ -686,14 +693,14 @@ int phy_reset(struct phy_device *phydev)
         reg = phy_read(phydev, devad, MII_BMCR);
 
         if (reg < 0) {
-            debug("PHY status read failed\n");
+            ZF_LOGE("PHY status read failed");
             return -1;
         }
         udelay(1000);
     }
 
     if (reg & BMCR_RESET) {
-        puts("PHY reset timed out\n");
+        ZF_LOGE("PHY reset timed out");
         return -1;
     }
 
@@ -731,8 +738,8 @@ struct phy_device *phy_connect_by_mask(struct mii_dev *bus, unsigned phy_mask,
     phydev = get_phy_device_by_mask(bus, phy_mask, interface);
 
     if (!phydev) {
-        printf("Could not get PHY for %s: phy mask %x\n",
-               bus->name, phy_mask);
+        ZF_LOGE("Could not get PHY for '%s' phy mask 0x%x",
+                bus->name, phy_mask);
         return NULL;
     }
 
@@ -740,12 +747,13 @@ struct phy_device *phy_connect_by_mask(struct mii_dev *bus, unsigned phy_mask,
     phy_reset(phydev);
 
     if (phydev->dev) {
-        printf("%s:%d is connected to %s.  Reconnecting to %s\n",
-               bus->name, phydev->addr, phydev->dev->name, dev->name);
+        ZF_LOGI("%s:%d is connected to %s.  Reconnecting to %s",
+                bus->name, phydev->addr, phydev->dev->name, dev->name);
     }
     phydev->dev = dev;
 
-    debug("%s connected to %s\n", dev->name, phydev->drv->name);
+    ZF_LOGI("Connected PHY '%s' at address %d to '%s'",
+            phydev->drv->name, phydev->addr, phydev->dev->name);
 
     return phydev;
 }

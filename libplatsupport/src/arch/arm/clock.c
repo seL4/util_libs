@@ -134,11 +134,11 @@ void clk_print_tree(clk_t *clk, const char *prefix)
             strcpy(new_prefix + depth, " ");
         }
         if (freqh == 0) {
-            printf("%s\\%s (%03d %s)\n", new_prefix, clk->name, freql, u[0]);
+            ZF_LOGI("%s\\%s (%03d %s)", new_prefix, clk->name, freql, u[0]);
         } else if (freql == 0) {
-            printf("%s\\%s (%d %s)\n", new_prefix, clk->name, freqh, u[1]);
+            ZF_LOGI("%s\\%s (%d %s)", new_prefix, clk->name, freqh, u[1]);
         } else {
-            printf("%s\\%s (%d.%03d %s)\n", new_prefix, clk->name, freqh, freql, u[1]);
+            ZF_LOGI("%s\\%s (%d.%03d %s)", new_prefix, clk->name, freqh, freql, u[1]);
         }
         clk_print_tree(clk->child, new_prefix);
         clk = clk->sibling;
@@ -163,9 +163,8 @@ void clk_register_child(clk_t *parent, clk_t *child)
         child->sibling = parent->child;
         parent->child = child;
     } else if (child->parent != parent) {
-        printf("%s->%s\n | %s already has parent %s",
-               child->name, parent->name, child->name,
-               child->parent->name);
+        ZF_LOGI("%s->%s (%s already had parent %s)",
+                child->name, parent->name, child->name, child->parent->name);
         assert(!"Changing parents not supported yet");
     }
 }

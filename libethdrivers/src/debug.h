@@ -1,27 +1,20 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
+ *
+ *
+ * This file uses printf() instead of ZF_LOGx() because it is used for special
+ * debugging purposes only. Re-writing the functions is not worth the effort. It
+ * should happen if the function are used during normal operation also.
  */
 
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <utils/util.h>
-//#define DBG_MAP
-//#define DBG_PKT
-//#define DBG_PRINT_PAYLOAD
-//#define DBG_REG
-//#define DBG_FEC
-//#define DBG_BUF
-//#define DBG_NET
-//#define DBG_CLK
-
-#ifdef DBG_MAP
-#  define MAP_DEBUG(x) do{x;}while(0)
-#else
-#  define MAP_DEBUG(x) do{;}while(0)
-#endif
 
 #ifdef DBG_PKT
 #  define PKT_DEBUG(x) do{x;}while(0)
@@ -32,39 +25,6 @@
 #  define PKT_DEBUG(x) do{;}while(0)
 #endif
 
-#ifdef DBG_FEC
-#define FEC_DEBUG(x) do{x;}while(0)
-#else
-#define FEC_DEBUG(x) do{;}while(0)
-#endif
-
-#ifdef DBG_BUF
-#define BUF_DEBUG(x) do{x;}while(0)
-#else
-#define BUF_DEBUG(x) do{;}while(0)
-#endif
-
-#ifdef DBG_REG
-#define REG_DEBUG(x) do{x;}while(0)
-#else
-#define REG_DEBUG(x) do{;}while(0)
-#endif
-
-#ifdef DBG_NET
-#define NET_DEBUG(x) do{x;}while(0)
-#else
-#define NET_DEBUG(x) do{;}while(0)
-#endif
-
-#ifdef DBG_CLK
-#define CLK_DEBUG(x) do{x;} while(0)
-#else
-#define CLK_DEBUG(x) do{;} while(0)
-#endif
-
-#include <stdio.h>
-#include <stdint.h>
-
 #define COL_NET "\e[1;34m"
 #define COL_IMP "\e[1;31m"
 #define COL_FEC "\e[1;32m"
@@ -74,20 +34,7 @@
 #define COL_PKT "\e[1;36m"
 #define COL_DEF "\e[0;0m"
 
-#define set_colour(x) printf(x);
-
-#define cprintf(col, ...) do { \
-        set_colour(col);       \
-        ZF_LOGD(__VA_ARGS__);  \
-        set_colour(COL_DEF);   \
-        printf("\n");          \
-    }while(0)
-
-#define UNIMPLEMENTED() \
-    do{\
-        ZF_LOGF("unimplemented"); \
-        while(1); \
-    } while(0)
+#define cprintf(col, fmt, ...)  ZF_LOGD( col fmt COL_DEF, __VA_ARGS__)
 
 #ifdef DBG_PKT
 
