@@ -89,12 +89,22 @@ struct imx6_eth_data {
 #define TXD_ADDCRC    BIT(10) /* Append a CRC to the end of the frame */
 #define TXD_ADDBADCRC BIT( 9) /* Append a bad CRC to the end of the frame */
 
+static struct imx6_eth_data *get_dev_from_driver(struct eth_driver *driver)
+{
+    assert(driver);
+    return (struct imx6_eth_data *)(driver->eth_data);
+}
+
 static void get_mac(struct eth_driver *driver, uint8_t *mac)
 {
     assert(driver);
     assert(mac);
 
-    struct enet *enet = ((struct imx6_eth_data *)driver->eth_data)->enet;
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
+    struct enet *enet = dev->enet;
+    assert(enet);
+
     enet_get_mac(enet, (unsigned char *)mac);
 }
 
@@ -113,7 +123,10 @@ static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 
 static void fill_rx_bufs(struct eth_driver *driver)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    assert(driver);
+
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
 
     void *cb_cookie = driver->cb_cookie;
     ethif_raw_allocate_rx_buf cb_alloc = driver->i_cb.allocate_rx_buf;
@@ -154,13 +167,20 @@ static void fill_rx_bufs(struct eth_driver *driver)
         __sync_synchronize();
     }
 
-    if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
-        enet_rx_enable(dev->enet);
+    if (dev->rdt != dev->rdh) {
+        struct enet *enet = dev->enet;
+        assert(enet);
+        if (!enet_rx_enabled(enet)) {
+            enet_rx_enable(enet);
+        }
     }
 }
 
 static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
 {
+    assert(dev);
+    assert(dma_man);
+
     if (dev->rx_ring) {
         dma_unpin_free(
             dma_man,
@@ -192,6 +212,9 @@ static void free_desc_ring(struct imx6_eth_data *dev, ps_dma_man_t *dma_man)
 static int initialize_desc_ring(struct imx6_eth_data *dev,
                                 ps_dma_man_t *dma_man)
 {
+    assert(dev);
+    assert(dma_man);
+
     dma_addr_t rx_ring = dma_alloc_pin(
                              dma_man,
                              sizeof(struct descriptor) * dev->rx_size,
@@ -246,7 +269,10 @@ static int initialize_desc_ring(struct imx6_eth_data *dev,
      * size many descriptors, since then the head and tail pointers would be
      * equal, indicating empty.
      */
+    assert(dev->rx_size > 2);
     dev->rx_remain = dev->rx_size - 2;
+
+    assert(dev->tx_size > 2);
     dev->tx_remain = dev->tx_size - 2;
 
     dev->rdt = dev->rdh = dev->tdt = dev->tdh = 0;
@@ -273,11 +299,15 @@ static int initialize_desc_ring(struct imx6_eth_data *dev,
 
 static void complete_rx(struct eth_driver *driver)
 {
+    assert(driver);
+
     void *cb_cookie = driver->cb_cookie;
     ethif_raw_rx_complete cb_complete = driver->i_cb.rx_complete;
     assert(cb_complete);
 
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
+
     unsigned int rdt = dev->rdt;
     while (dev->rdh != rdt) {
         unsigned int status = dev->rx_ring[dev->rdh].stat;
@@ -297,18 +327,27 @@ static void complete_rx(struct eth_driver *driver)
         /* Give the buffers back */
         cb_complete(cb_cookie, 1, &cookie, &len);
     }
-    if (dev->rdt != dev->rdh && !enet_rx_enabled(dev->enet)) {
-        enet_rx_enable(dev->enet);
+
+    if (dev->rdt != dev->rdh) {
+        struct enet *enet = dev->enet;
+        assert(enet);
+        if (!enet_rx_enabled(enet)) {
+            enet_rx_enable(enet);
+        }
     }
 }
 
 static void complete_tx(struct eth_driver *driver)
 {
+    assert(driver);
+
     void *cb_cookie = driver->cb_cookie;
     ethif_raw_tx_complete cb_complete = driver->i_cb.tx_complete;
     assert(cb_complete);
 
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
+
     while (dev->tdh != dev->tdt) {
         for (unsigned int i = 0; i < dev->tx_lengths[dev->tdh]; i++) {
             if (dev->tx_ring[(i + dev->tdh) % dev->tx_size].stat & TXD_READY) {
@@ -327,21 +366,37 @@ static void complete_tx(struct eth_driver *driver)
         /* give the buffer back */
         cb_complete(cb_cookie, cookie);
     }
-    if (dev->tdh != dev->tdt && !enet_tx_enabled(dev->enet)) {
-        enet_tx_enable(dev->enet);
+
+    if (dev->tdh != dev->tdt) {
+        struct enet *enet = dev->enet;
+        assert(enet);
+        if (!enet_tx_enabled(enet)) {
+            enet_tx_enable(enet);
+        }
     }
 }
 
 static void print_state(struct eth_driver *driver)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
-    enet_print_mib(dev->enet);
+    assert(driver);
+
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
+    struct enet *enet = dev->enet;
+    assert(enet);
+
+    enet_print_mib(enet);
 }
 
 static void handle_irq(struct eth_driver *driver, int irq)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
+    assert(driver);
+
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
     struct enet *enet = dev->enet;
+    assert(enet);
+
     uint32_t e = enet_clr_events(enet, IRQ_MASK);
     if (e & NETIRQ_TXF) {
         complete_tx(driver);
@@ -389,8 +444,10 @@ static void raw_poll(struct eth_driver *driver)
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
                   unsigned int *len, void *cookie)
 {
-    struct imx6_eth_data *dev = (struct imx6_eth_data *)driver->eth_data;
-    struct enet *enet = dev->enet;
+    assert(driver);
+
+    struct imx6_eth_data *dev = get_dev_from_driver(driver);
+    assert(dev);
 
     /* Ensure we have room */
     if (dev->tx_remain < num) {
@@ -401,9 +458,9 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
             return ETHIF_TX_FAILED;
         }
     }
-    unsigned int i;
+
     __sync_synchronize();
-    for (i = 0; i < num; i++) {
+    for (unsigned int i = 0; i < num; i++) {
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
         dev->tx_ring[ring].len = len[i];
         dev->tx_ring[ring].phys = phys[i];
@@ -417,6 +474,9 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     dev->tdt = (dev->tdt + num) % dev->tx_size;
     dev->tx_remain -= num;
     __sync_synchronize();
+
+    struct enet *enet = dev->enet;
+    assert(enet);
     if (!enet_tx_enabled(enet)) {
         enet_tx_enable(enet);
     }
