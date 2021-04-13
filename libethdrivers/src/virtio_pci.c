@@ -55,63 +55,75 @@ typedef struct virtio_dev {
     uintptr_t virtio_net_hdr_phys;
 } virtio_dev_t;
 
-static uint8_t read_reg8(virtio_dev_t *dev, uint16_t port) {
+static uint8_t read_reg8(virtio_dev_t *dev, uint16_t port)
+{
     uint32_t val;
     ps_io_port_in(&dev->ioops, dev->io_base + port, 1, &val);
     return (uint8_t)val;
 }
 
-static uint16_t read_reg16(virtio_dev_t *dev, uint16_t port) {
+static uint16_t read_reg16(virtio_dev_t *dev, uint16_t port)
+{
     uint32_t val;
     ps_io_port_in(&dev->ioops, dev->io_base + port, 2, &val);
     return (uint16_t)val;
 }
 
-static uint32_t read_reg32(virtio_dev_t *dev, uint16_t port) {
+static uint32_t read_reg32(virtio_dev_t *dev, uint16_t port)
+{
     uint32_t val;
     ps_io_port_in(&dev->ioops, dev->io_base + port, 4, &val);
     return val;
 }
 
-static void write_reg8(virtio_dev_t *dev, uint16_t port, uint8_t val) {
+static void write_reg8(virtio_dev_t *dev, uint16_t port, uint8_t val)
+{
     ps_io_port_out(&dev->ioops, dev->io_base + port, 1, val);
 }
 
-static void write_reg16(virtio_dev_t *dev, uint16_t port, uint16_t val) {
+static void write_reg16(virtio_dev_t *dev, uint16_t port, uint16_t val)
+{
     ps_io_port_out(&dev->ioops, dev->io_base + port, 2, val);
 }
 
-static void write_reg32(virtio_dev_t *dev, uint16_t port, uint32_t val) {
+static void write_reg32(virtio_dev_t *dev, uint16_t port, uint32_t val)
+{
     ps_io_port_out(&dev->ioops, dev->io_base + port, 4, val);
 }
 
-static void set_status(virtio_dev_t *dev, uint8_t status) {
+static void set_status(virtio_dev_t *dev, uint8_t status)
+{
     write_reg8(dev, VIRTIO_PCI_STATUS, status);
 }
 
-static uint8_t get_status(virtio_dev_t *dev) {
+static uint8_t get_status(virtio_dev_t *dev)
+{
     return read_reg8(dev, VIRTIO_PCI_STATUS);
 }
 
-static void add_status(virtio_dev_t *dev, uint8_t status) {
+static void add_status(virtio_dev_t *dev, uint8_t status)
+{
     write_reg8(dev, VIRTIO_PCI_STATUS, get_status(dev) | status);
 }
 
-static uint32_t get_features(virtio_dev_t *dev) {
+static uint32_t get_features(virtio_dev_t *dev)
+{
     return read_reg32(dev, VIRTIO_PCI_HOST_FEATURES);
 }
 
-static void set_features(virtio_dev_t *dev, uint32_t features) {
+static void set_features(virtio_dev_t *dev, uint32_t features)
+{
     write_reg32(dev, VIRTIO_PCI_GUEST_FEATURES, features);
 }
 
-static void free_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
+static void free_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man)
+{
     if (dev->rx_ring.desc) {
-        dma_unpin_free(dma_man, (void*)dev->rx_ring.desc, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN));
+        dma_unpin_free(dma_man, (void *)dev->rx_ring.desc, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN));
         dev->rx_ring.desc = NULL;
     }
     if (dev->tx_ring.desc) {
-        dma_unpin_free(dma_man, (void*)dev->tx_ring.desc, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN));
+        dma_unpin_free(dma_man, (void *)dev->tx_ring.desc, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN));
         dev->tx_ring.desc = NULL;
     }
     if (dev->rx_cookies) {
@@ -128,8 +140,10 @@ static void free_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     }
 }
 
-static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
-    dma_addr_t rx_ring = dma_alloc_pin(dma_man, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN), 1, VIRTIO_PCI_VRING_ALIGN);
+static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man)
+{
+    dma_addr_t rx_ring = dma_alloc_pin(dma_man, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN), 1,
+                                       VIRTIO_PCI_VRING_ALIGN);
     if (!rx_ring.phys) {
         LOG_ERROR("Failed to allocate rx_ring");
         return -1;
@@ -137,7 +151,8 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     memset(rx_ring.virt, 0, vring_size(dev->rx_size, VIRTIO_PCI_VRING_ALIGN));
     vring_init(&dev->rx_ring, dev->rx_size, rx_ring.virt, VIRTIO_PCI_VRING_ALIGN);
     dev->rx_ring_phys = rx_ring.phys;
-    dma_addr_t tx_ring = dma_alloc_pin(dma_man, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN), 1, VIRTIO_PCI_VRING_ALIGN);
+    dma_addr_t tx_ring = dma_alloc_pin(dma_man, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN), 1,
+                                       VIRTIO_PCI_VRING_ALIGN);
     if (!tx_ring.phys) {
         LOG_ERROR("Failed to allocate tx_ring");
         free_desc_ring(dev, dma_man);
@@ -146,8 +161,8 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     memset(tx_ring.virt, 0, vring_size(dev->tx_size, VIRTIO_PCI_VRING_ALIGN));
     vring_init(&dev->tx_ring, dev->tx_size, tx_ring.virt, VIRTIO_PCI_VRING_ALIGN);
     dev->tx_ring_phys = tx_ring.phys;
-    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
+    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
+    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
         LOG_ERROR("Failed to malloc");
@@ -166,7 +181,8 @@ static int initialize_desc_ring(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     return 0;
 }
 
-static int initialize(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
+static int initialize(virtio_dev_t *dev, ps_dma_man_t *dma_man)
+{
     int err;
     /* perform a reset */
     set_status(dev, 0);
@@ -175,7 +191,7 @@ static int initialize(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     /* read device features */
     uint32_t features;
     features = get_features(dev);
-    if ( (features & FEATURES_REQUIRED) != FEATURES_REQUIRED) {
+    if ((features & FEATURES_REQUIRED) != FEATURES_REQUIRED) {
         LOG_ERROR("Required features 0x%x, have 0x%x", (unsigned int)FEATURES_REQUIRED, features);
         return -1;
     }
@@ -202,24 +218,28 @@ static int initialize(virtio_dev_t *dev, ps_dma_man_t *dma_man) {
     return 0;
 }
 
-static void get_mac(virtio_dev_t *dev, uint8_t *mac) {
+static void get_mac(virtio_dev_t *dev, uint8_t *mac)
+{
     int i;
     for (i = 0; i < 6; i++) {
         mac[i] = read_reg8(dev, 0x14 + i);
     }
 }
 
-static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     get_mac(dev, mac);
     *mtu = 1500;
 }
 
-static void print_state(struct eth_driver *eth_driver) {
+static void print_state(struct eth_driver *eth_driver)
+{
 }
 
-static void complete_tx(struct eth_driver *driver) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static void complete_tx(struct eth_driver *driver)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     while (dev->tuh != dev->tx_ring.used->idx) {
         uint16_t ring = dev->tuh % dev->tx_size;
         unsigned int UNUSED desc = dev->tx_ring.used->ring[ring].id;
@@ -236,8 +256,9 @@ static void complete_tx(struct eth_driver *driver) {
     }
 }
 
-static void fill_rx_bufs(struct eth_driver *driver) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static void fill_rx_bufs(struct eth_driver *driver)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     /* we need 2 free as we enqueue in pairs. One descriptor to hold the
      * virtio header, another one for the actual buffer */
     while (dev->rx_remain >= 2) {
@@ -267,12 +288,13 @@ static void fill_rx_bufs(struct eth_driver *driver) {
         __atomic_thread_fence(__ATOMIC_RELEASE);
         write_reg16(dev, VIRTIO_PCI_QUEUE_NOTIFY, RX_QUEUE);
         dev->rdt = (dev->rdt + 2) % dev->rx_size;
-        dev->rx_remain-=2;
+        dev->rx_remain -= 2;
     }
 }
 
-static void complete_rx(struct eth_driver *driver) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static void complete_rx(struct eth_driver *driver)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     while (dev->ruh != dev->rx_ring.used->idx) {
         uint16_t ring = dev->ruh % dev->rx_size;
         unsigned int UNUSED desc = dev->rx_ring.used->ring[ring].id;
@@ -290,8 +312,9 @@ static void complete_rx(struct eth_driver *driver) {
     }
 }
 
-static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     /* we need to num + 1 free descriptors. The + 1 is for the virtio header */
     if (dev->tx_remain < num + 1) {
         complete_tx(driver);
@@ -318,7 +341,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
             .next = next_desc
         };
     }
-    dev->tx_ring.avail->ring[dev->tx_ring.avail->idx% dev->tx_size] = dev->tdt;
+    dev->tx_ring.avail->ring[dev->tx_ring.avail->idx % dev->tx_size] = dev->tdt;
     dev->tx_cookies[dev->tdt] = cookie;
     dev->tx_lengths[dev->tdt] = num;
     /* ensure update to descriptors visible before updating the index */
@@ -332,14 +355,16 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     return ETHIF_TX_ENQUEUED;
 }
 
-static void raw_poll(struct eth_driver *driver) {
+static void raw_poll(struct eth_driver *driver)
+{
     complete_tx(driver);
     complete_rx(driver);
     fill_rx_bufs(driver);
 }
 
-static void handle_irq(struct eth_driver *driver, int irq) {
-    virtio_dev_t *dev = (virtio_dev_t*)driver->eth_data;
+static void handle_irq(struct eth_driver *driver, int irq)
+{
+    virtio_dev_t *dev = (virtio_dev_t *)driver->eth_data;
     /* read and throw away the ISR state. This will perform the ack */
     read_reg8(dev, VIRTIO_PCI_ISR);
     raw_poll(driver);
@@ -352,10 +377,11 @@ static struct raw_iface_funcs iface_fns = {
     .raw_poll = raw_poll
 };
 
-int ethif_virtio_pci_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config) {
+int ethif_virtio_pci_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
+{
     int err;
-    ethif_virtio_pci_config_t *virtio_config = (ethif_virtio_pci_config_t*)config;
-    virtio_dev_t *dev = (virtio_dev_t*)malloc(sizeof(*dev));
+    ethif_virtio_pci_config_t *virtio_config = (ethif_virtio_pci_config_t *)config;
+    virtio_dev_t *dev = (virtio_dev_t *)malloc(sizeof(*dev));
     if (!dev) {
         return -1;
     }
