@@ -12,6 +12,7 @@
 #include <elfloader.h>
 #include <abort.h>
 #include <cpio/cpio.h>
+#include <sbi.h>
 
 #define PT_LEVEL_1 1
 #define PT_LEVEL_2 2
@@ -122,18 +123,25 @@ uint64_t vm_mode = 0x9llu << 60;
 #error "Wrong PT level"
 #endif
 
+int hsm_exists = 0;
+
 #if CONFIG_MAX_NUM_NODES > 1
+
+extern void secondary_harts(unsigned long);
+
 int secondary_go = 0;
 int next_logical_core_id = 1;
 int mutex = 0;
 int core_ready[CONFIG_MAX_NUM_NODES] = { 0 };
 static void set_and_wait_for_ready(int hart_id, int core_id)
 {
+    /* Acquire lock to update core ready array */
     while (__atomic_exchange_n(&mutex, 1, __ATOMIC_ACQUIRE) != 0);
     printf("Hart ID %d core ID %d\n", hart_id, core_id);
     core_ready[core_id] = 1;
     __atomic_store_n(&mutex, 0, __ATOMIC_RELEASE);
 
+    /* Wait untill all cores are go */
     for (int i = 0; i < CONFIG_MAX_NUM_NODES; i++) {
         while (__atomic_load_n(&core_ready[i], __ATOMIC_RELAXED) == 0) ;
     }
@@ -162,11 +170,11 @@ static inline void enable_virtual_memory(void)
     ifence();
 }
 
-void main(UNUSED int hartid, void *bootloader_dtb)
+void main(UNUSED int hart_id, void *bootloader_dtb)
 {
     /* printing uses SBI, so there is no need to initialize any UART */
     printf("ELF-loader started on (HART %d) (NODES %d)\n",
-           hartid, CONFIG_MAX_NUM_NODES);
+           hart_id, CONFIG_MAX_NUM_NODES);
     printf("  paddr=[%p..%p]\n", _text, _end - 1);
 
     /* Unpack ELF images into memory. */
@@ -194,10 +202,23 @@ void main(UNUSED int hartid, void *bootloader_dtb)
     printf("Jumping to kernel-image entry point...\n\n");
 
 #if CONFIG_MAX_NUM_NODES > 1
+    while (__atomic_exchange_n(&mutex, 1, __ATOMIC_ACQUIRE) != 0);
+    printf("Main entry hart_id:%d\n", hart_id);
+    __atomic_store_n(&mutex, 0, __ATOMIC_RELEASE);
+
     /* Unleash secondary cores */
     __atomic_store_n(&secondary_go, 1, __ATOMIC_RELEASE);
-    /* Set that the current core is ready and wait for other cores */
-    set_and_wait_for_ready(hartid, 0);
+
+    /* Start all cores */
+    int i = 0;
+    while (i < CONFIG_MAX_NUM_NODES && hsm_exists) {
+        i++;
+        if (i != hart_id) {
+            sbi_hart_start(i, secondary_harts, i);
+        }
+    }
+
+    set_and_wait_for_ready(hart_id, 0);
 #endif
 
     enable_virtual_memory();
@@ -208,7 +229,7 @@ void main(UNUSED int hartid, void *bootloader_dtb)
                                                   (paddr_t) dtb, dtb_size
 #if CONFIG_MAX_NUM_NODES > 1
                                                   ,
-                                                  hartid,
+                                                  hart_id,
                                                   0
 #endif
                                                  );
@@ -224,15 +245,23 @@ void secondary_entry(int hart_id, int core_id)
 {
     while (__atomic_load_n(&secondary_go, __ATOMIC_ACQUIRE) == 0) ;
 
+    while (__atomic_exchange_n(&mutex, 1, __ATOMIC_ACQUIRE) != 0);
+    printf("Secondary entry hart_id:%d core_id:%d\n", hart_id, core_id);
+    __atomic_store_n(&mutex, 0, __ATOMIC_RELEASE);
+
     set_and_wait_for_ready(hart_id, core_id);
 
     enable_virtual_memory();
 
+
+    /* If adding or modifying these parameters you will need to update
+        the registers in head.S */
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                                  user_info.phys_region_end, user_info.phys_virt_offset,
+                                                  user_info.phys_region_end,
+                                                  user_info.phys_virt_offset,
                                                   user_info.virt_entry,
-                                                  (paddr_t) dtb, dtb_size
-                                                  ,
+                                                  (paddr_t) dtb,
+                                                  dtb_size,
                                                   hart_id,
                                                   core_id
                                                  );

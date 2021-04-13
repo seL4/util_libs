@@ -30,6 +30,25 @@
     a0;                         \
 })
 
+#define  SBI_HSM 0x48534DULL
+#define  SBI_HSM_HART_START 0
+
+#define SBI_EXT_CALL(extension, which, arg0, arg1, arg2) ({  \
+    register uintptr_t a0 asm ("a0") = (uintptr_t)(arg0);   \
+    register uintptr_t a1 asm ("a1") = (uintptr_t)(arg1);   \
+    register uintptr_t a2 asm ("a2") = (uintptr_t)(arg2);   \
+    register uintptr_t a7 asm ("a6") = (uintptr_t)(which);  \
+    register uintptr_t a6 asm ("a7") = (uintptr_t)extension; \
+    asm volatile ("ecall"                   \
+              : "+r" (a0)               \
+              : "r" (a1), "r" (a2), "r" (a7), "r" (a6)      \
+              : "memory");              \
+    a0;                         \
+})
+
+#define SBI_HSM_CALL(which, arg0, arg1, arg2) \
+    SBI_EXT_CALL(SBI_HSM, (which), (arg0), (arg1), (arg2))
+
 /* Lazy implementations until SBI is finalized */
 #define SBI_CALL_0(which) SBI_CALL(which, 0, 0, 0)
 #define SBI_CALL_1(which, arg0) SBI_CALL(which, arg0, 0, 0)
@@ -90,4 +109,11 @@ static inline void sbi_remote_sfence_vma_asid(const unsigned long *hart_mask,
                                               UNUSED unsigned long asid)
 {
     SBI_CALL_1(SBI_REMOTE_SFENCE_VMA_ASID, hart_mask);
+}
+
+static inline void sbi_hart_start(const unsigned long hart_id,
+                                  void (*start)(unsigned long),
+                                  unsigned long privilege)
+{
+    SBI_HSM_CALL(SBI_HSM_HART_START, hart_id, start, privilege);
 }
