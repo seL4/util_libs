@@ -134,7 +134,7 @@ unsigned int PhyLoopBackEnable(unsigned int mdioBaseAddr, unsigned int phyAddr)
 {
     unsigned short data;
 
-    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE ) {
+    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE) {
         return FALSE;
     }
 
@@ -161,7 +161,7 @@ unsigned int PhyLoopBackDisable(unsigned int mdioBaseAddr, unsigned int phyAddr)
 {
     unsigned short data;
 
-    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE ) {
+    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE) {
         return FALSE;
     }
 
@@ -204,7 +204,7 @@ unsigned int PhyAutoNegotiate(unsigned int mdioBaseAddr, unsigned int phyAddr,
     volatile unsigned short data;
     volatile unsigned short anar;
 
-    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE ) {
+    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE) {
         return FALSE;
     }
 
@@ -219,7 +219,7 @@ unsigned int PhyAutoNegotiate(unsigned int mdioBaseAddr, unsigned int phyAddr,
     /* Enable Auto Negotiation */
     MDIOPhyRegWrite(mdioBaseAddr, phyAddr, PHY_BCR, data);
 
-    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE ) {
+    if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE) {
         return FALSE;
     }
 
@@ -352,11 +352,9 @@ unsigned int PhyReset(unsigned int mdioBaseAddr, unsigned int phyAddr)
     MDIOPhyRegWrite(mdioBaseAddr, phyAddr, PHY_BCR, data);
 
     /* wait till the reset bit is auto cleared */
-    while(data & PHY_SOFTRESET)
-    {
+    while (data & PHY_SOFTRESET) {
         /* Read the reset */
-        if(MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE)
-        {
+        if (MDIOPhyRegRead(mdioBaseAddr, phyAddr, PHY_BCR, &data) != TRUE) {
             return FALSE;
         }
     }
@@ -365,12 +363,12 @@ unsigned int PhyReset(unsigned int mdioBaseAddr, unsigned int phyAddr)
 }
 
 unsigned int PhyConfigure(unsigned int mdioBaseAddr, unsigned int phyAddr,
-                              unsigned short speed, unsigned short duplexMode)
+                          unsigned short speed, unsigned short duplexMode)
 {
     /* Set the configurations */
     MDIOPhyRegWrite(mdioBaseAddr, phyAddr, PHY_BCR, (speed | duplexMode));
 
-        return TRUE;
+    return TRUE;
 }
 
 /**************************** End Of File ***********************************/

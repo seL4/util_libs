@@ -19,8 +19,9 @@
  *       // no need to call free(x)
  *     }
  */
-static inline void autofree_(void *p) {
-    void **q = (void**)p;
+static inline void autofree_(void *p)
+{
+    void **q = (void **)p;
     free(*q);
 }
 #define AUTOFREE __attribute__((cleanup(autofree_)))

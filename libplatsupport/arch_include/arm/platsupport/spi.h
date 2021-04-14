@@ -38,11 +38,11 @@ enum spi_cs_state {
  * @param  config  A pointer to the slave struct
  * @param  state   The release or assert cs state
  */
-typedef void (*spi_chipselect_fn)(const spi_slave_config_t* cfg, int state);
+typedef void (*spi_chipselect_fn)(const spi_slave_config_t *cfg, int state);
 
 #include <platsupport/plat/spi.h>
 
-typedef void (*spi_callback_fn)(spi_bus_t* spi_bus, int status, void* token);
+typedef void (*spi_callback_fn)(spi_bus_t *spi_bus, int status, void *token);
 
 /**
  * Initialise an SPI bus
@@ -52,7 +52,7 @@ typedef void (*spi_callback_fn)(spi_bus_t* spi_bus, int status, void* token);
  * @param[out] spi_bus A handle to the spi bus driver for future calls
  * @return             0 on success
  */
-int spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** spi_bus);
+int spi_init(enum spi_id id, ps_io_ops_t *io_ops, spi_bus_t **spi_bus);
 
 /**
  * Set the speed of the SPI bus
@@ -60,20 +60,20 @@ int spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** spi_bus);
  * @param[in] bps      The speed to set in bits per second.
  * @return             The actual speed set
  */
-long spi_set_speed(spi_bus_t* spi_bus, long bps);
+long spi_set_speed(spi_bus_t *spi_bus, long bps);
 
 /**
  * Allow the driver to handle an incoming IRQ
  * @param[in] dev The SPI bus that triggered the IRQ
  */
-void spi_handle_irq(spi_bus_t* dev);
+void spi_handle_irq(spi_bus_t *dev);
 
 /**
  * Configure the SPI bus to meet the slave device's requirement
  * @param[in] spi_bus  A handle to an SPI bus
  * @param[in] cfg      Slave configuration
  */
-void spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg);
+void spi_prepare_transfer(spi_bus_t *spi_bus, const spi_slave_config_t *cfg);
 
 /**
  * Write and read data to and from the SPI bus.
@@ -95,6 +95,6 @@ void spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg);
  *                     until the transfer is complete
  * @param[in] token    A token to pass, unmodified, to the callback function.
  */
-int spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
-             void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token);
+int spi_xfer(spi_bus_t *spi_bus, const void *txdata, size_t txcnt,
+             void *rxdata, size_t rxcnt, spi_callback_fn cb, void *token);
 

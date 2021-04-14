@@ -7,13 +7,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef __CONFIG_ZYNQ_ZC70X_H
-#define __CONFIG_ZYNQ_ZC70X_H
+#pragma once
 
-#define CONFIG_SYS_SDRAM_SIZE		(1024 * 1024 * 1024)
+#define CONFIG_SYS_SDRAM_SIZE       (1024 * 1024 * 1024)
 
 #define CONFIG_ZYNQ_GEM0
-#define CONFIG_ZYNQ_GEM_PHY_ADDR0	7
+#define CONFIG_ZYNQ_GEM_PHY_ADDR0   7
 
 #define CONFIG_SYS_NO_FLASH
 
@@ -24,5 +23,3 @@
 #define CONFIG_ZYNQ_BOOT_FREEBSD
 
 #include "zynq-common.h"
-
-#endif /* __CONFIG_ZYNQ_ZC70X_H */

@@ -166,10 +166,9 @@ static void delay(uint32_t ms)
 * @param  driver   ethernet driver data structure
 * @return None.
 */
-static void
-cpswif_inst_config(struct eth_driver *driver)
+static void cpswif_inst_config(struct eth_driver *driver)
 {
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
     struct cpswinst *cpswinst = ((struct beaglebone_eth_data *) driver->eth_data)->cpswinst;
 
     /**
@@ -196,8 +195,7 @@ cpswif_inst_config(struct eth_driver *driver)
  * @return index of the ALE entry which is free
  *         ERR_VAL if entry not found
  */
-static err_t
-cpswif_ale_entry_match_free(struct cpswinst *cpswinst)
+static err_t cpswif_ale_entry_match_free(struct cpswinst *cpswinst)
 {
     u32_t ale_entry[ALE_ENTRY_NUM_WORDS];
     s32_t idx;
@@ -208,7 +206,7 @@ cpswif_ale_entry_match_free(struct cpswinst *cpswinst)
 
         /* Break if the table entry is free */
         if (((*(((u8_t *)ale_entry) + ENTRY_TYPE_IDX))
-                & ENTRY_TYPE) == ENTRY_FREE) {
+             & ENTRY_TYPE) == ENTRY_FREE) {
             return idx;
         }
     }
@@ -224,9 +222,8 @@ cpswif_ale_entry_match_free(struct cpswinst *cpswinst)
  *
  * @return None
  */
-static void
-cpswif_ale_unicastentry_set(struct cpswinst *cpswinst, u32_t port_num,
-                            u8_t *eth_addr)
+static void cpswif_ale_unicastentry_set(struct cpswinst *cpswinst, u32_t port_num,
+                                        u8_t *eth_addr)
 {
     volatile u32_t cnt;
     volatile s32_t idx;
@@ -242,7 +239,7 @@ cpswif_ale_unicastentry_set(struct cpswinst *cpswinst, u32_t port_num,
 
     idx = cpswif_ale_entry_match_free(cpswinst);
 
-    if (idx < MAX_ALE_ENTRIES ) {
+    if (idx < MAX_ALE_ENTRIES) {
         CPSWALETableEntrySet(cpswinst->ale_base, idx, ale_entry);
     }
 }
@@ -256,16 +253,15 @@ cpswif_ale_unicastentry_set(struct cpswinst *cpswinst, u32_t port_num,
  * @return index of the ALE entry added
  *         ERR_VAL if table entry is not free
  */
-static void
-cpswif_ale_multicastentry_set(struct cpswinst *cpswinst, u32_t portmask,
-                              u8_t *eth_addr)
+static void cpswif_ale_multicastentry_set(struct cpswinst *cpswinst, u32_t portmask,
+                                          u8_t *eth_addr)
 {
     volatile u32_t cnt;
     volatile s32_t idx;
     u32_t ale_entry[ALE_ENTRY_NUM_WORDS] = {0, 0, 0};
 
     idx = cpswif_ale_entry_match_free(cpswinst);
-    if (idx < MAX_ALE_ENTRIES ) {
+    if (idx < MAX_ALE_ENTRIES) {
         for (cnt = 0; cnt < ETHARP_HWADDR_LEN; cnt++) {
             *(((u8_t *)ale_entry) + cnt) = eth_addr[ETHARP_HWADDR_LEN - cnt - 1];
         }
@@ -292,8 +288,7 @@ cpswif_ale_multicastentry_set(struct cpswinst *cpswinst, u32_t portmask,
  * @return ERR_OK      If link set up is successful
  *                     others if not successful
  */
-static err_t
-cpswif_phy_autoneg(struct cpswinst *cpswinst, u32_t port_num, u32_t adv)
+static err_t cpswif_phy_autoneg(struct cpswinst *cpswinst, u32_t port_num, u32_t adv)
 {
     err_t linkstat = ERR_CONN;
     u16_t adv_val = 0, partnr_ablty = 0, gbps_partnr_ablty = 0, gig_adv_val = 0;
@@ -449,9 +444,8 @@ cpswif_phy_autoneg(struct cpswinst *cpswinst, u32_t port_num, u32_t adv)
  * @return ERR_OK      If link set up is successful
  *                     others if not successful
  */
-static err_t
-cpswif_phy_forced(struct cpswinst *cpswinst, u32_t port_num, u32_t speed,
-                  u32_t duplex)
+static err_t cpswif_phy_forced(struct cpswinst *cpswinst, u32_t port_num, u32_t speed,
+                               u32_t duplex)
 {
     err_t linkstat = ERR_CONN;
     u16_t speed_val = 0, duplex_val = 0;
@@ -582,10 +576,9 @@ cpswif_phy_forced(struct cpswinst *cpswinst, u32_t port_num, u32_t speed,
 * @return ERR_OK      If link set up is successful
 *                     others if not successful
 */
-static err_t
-cpswif_autoneg_config(struct eth_driver *driver, u32_t inst_num, u32_t port_num)
+static err_t cpswif_autoneg_config(struct eth_driver *driver, u32_t inst_num, u32_t port_num)
 {
-    struct cpswinst *cpswinst = ((struct beaglebone_eth_data*)driver->eth_data)->cpswinst;
+    struct cpswinst *cpswinst = ((struct beaglebone_eth_data *)driver->eth_data)->cpswinst;
     err_t linkstat = ERR_CONN;
     u16_t adv_val, partnr_ablty, gbps_partnr_ablty, gig_adv_val;
     u32_t aut_neg_cnt = 200, auto_stat, transfer_mode = 0;
@@ -684,10 +677,9 @@ cpswif_autoneg_config(struct eth_driver *driver, u32_t inst_num, u32_t port_num)
  * @return ERR_OK    if link configurations are successful
  *                   an error status if failed
  */
-static err_t
-cpswif_phylink_config(struct eth_driver *driver, struct cpswportif * cpswif, u32_t slv_port_num)
+static err_t cpswif_phylink_config(struct eth_driver *driver, struct cpswportif *cpswif, u32_t slv_port_num)
 {
-    struct cpswinst *cpswinst = ((struct beaglebone_eth_data*)driver->eth_data)->cpswinst;
+    struct cpswinst *cpswinst = ((struct beaglebone_eth_data *)driver->eth_data)->cpswinst;
     err_t err;
 
     /* Check if ethernet PHY is present or not */
@@ -732,12 +724,11 @@ cpswif_phylink_config(struct eth_driver *driver, struct cpswportif * cpswif, u32
  * @return ERR_OK    if port initialization is successful
  *                   an error status if failed
  */
-static err_t
-cpswif_port_init(struct eth_driver *driver)
+static err_t cpswif_port_init(struct eth_driver *driver)
 {
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
 
-    struct cpswportif *cpswif = (struct cpswportif*) eth_data->cpswPortIf;
+    struct cpswportif *cpswif = (struct cpswportif *) eth_data->cpswPortIf;
 
     /* We only use one interface, comment out the following line if you need another */
     //err = err & (cpswif_phylink_config(cpswif, 2));
@@ -753,10 +744,9 @@ cpswif_port_init(struct eth_driver *driver)
  * @param  driver   ethernet driver data structure
  * @return None
  */
-static void
-cpswif_cpdma_init(struct eth_driver *driver)
+static void cpswif_cpdma_init(struct eth_driver *driver)
 {
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
     struct cpswinst *cpswinst = eth_data->cpswinst;
     CPSWCPDMARxHdrDescPtrWrite(cpswinst->cpdma_base, ((struct descriptor *) eth_data->rx_ring_phys), 0);
 }
@@ -768,12 +758,11 @@ cpswif_cpdma_init(struct eth_driver *driver)
  * @param driver   ethernet driver data structure
  * @return None
  */
-static void
-cpswif_inst_init(struct eth_driver *driver)
+static void cpswif_inst_init(struct eth_driver *driver)
 {
 
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
-    struct cpswportif *cpswif = (struct cpswportif*) eth_data->cpswPortIf;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
+    struct cpswportif *cpswif = (struct cpswportif *) eth_data->cpswPortIf;
     u32_t inst_num = cpswif->inst_num;
 
     struct cpswinst *cpswinst = eth_data->cpswinst;
@@ -852,12 +841,11 @@ cpswif_inst_init(struct eth_driver *driver)
  * @return ERR_OK   If the interface is initialized
  *                  any other err_t on error
  */
-err_t
-cpswif_init(struct eth_driver *driver)
+err_t cpswif_init(struct eth_driver *driver)
 {
     static u32_t inst_init_flag = 0;
 
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
 
     /* We only use one instance */
     u32_t inst_num = 0;
@@ -885,8 +873,7 @@ cpswif_init(struct eth_driver *driver)
  * @param   netif   The netif whoes status to be checked
  * @return  The netif status
  */
-u32_t
-cpswif_netif_status(struct netif *netif)
+u32_t cpswif_netif_status(struct netif *netif)
 {
     return ((u32_t)(netif_is_up(netif)));
 }
@@ -900,10 +887,9 @@ cpswif_netif_status(struct netif *netif)
  *
  * @return  the link status
  */
-u32_t
-cpswif_link_status(struct eth_driver *driver, u32_t inst_num, u32_t slv_port_num)
+u32_t cpswif_link_status(struct eth_driver *driver, u32_t inst_num, u32_t slv_port_num)
 {
-    struct cpswinst *cpswinst = ((struct beaglebone_eth_data*)driver->eth_data)->cpswinst;
+    struct cpswinst *cpswinst = ((struct beaglebone_eth_data *)driver->eth_data)->cpswinst;
 
     return (PhyLinkStatusGet(cpswinst->mdio_base,
                              cpswinst->port[slv_port_num - 1].phy_addr, 3));
@@ -918,8 +904,7 @@ cpswif_link_status(struct eth_driver *driver, u32_t inst_num, u32_t slv_port_num
  *
  * @return  the status
  */
-static u32_t
-check_valid(u32_t value, u32_t min, u32_t max)
+static u32_t check_valid(u32_t value, u32_t min, u32_t max)
 {
     if ((min <= value) && (value <= max)) {
         return TRUE;
@@ -958,10 +943,9 @@ check_valid(u32_t value, u32_t min, u32_t max)
  *
  * @return  None
 */
-void
-cpsw_switch_configuration(struct eth_driver *driver, struct cpsw_config *cpsw_config)
+void cpsw_switch_configuration(struct eth_driver *driver, struct cpsw_config *cpsw_config)
 {
-    struct cpswinst *cpswinst = ((struct beaglebone_eth_data*) driver->eth_data)->cpswinst;
+    struct cpswinst *cpswinst = ((struct beaglebone_eth_data *) driver->eth_data)->cpswinst;
     struct cpsw_phy_param *cpsw_phy_param = cpsw_config->phy_param;
 
     switch (cpsw_config->cmd) {

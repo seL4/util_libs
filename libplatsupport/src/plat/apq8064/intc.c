@@ -85,14 +85,13 @@ struct ppss_intc {
 };
 typedef volatile struct ppss_intc ppss_intc_t;
 
-intctl_t* intctl[8];
-ppss_intc_t* fiq;
-ppss_intc_t* irq;
+intctl_t *intctl[8];
+ppss_intc_t *fiq;
+ppss_intc_t *irq;
 
-void
-test_intc(ps_io_ops_t* o)
+void test_intc(ps_io_ops_t *o)
 {
-    void* vaddr[4];
+    void *vaddr[4];
     if (intctl[0] == NULL) {
         /* intc */
         vaddr[0] = ps_io_map(&o->io_mapper, INTCTL0, 0x1000, 0, PS_MEM_NORMAL);
@@ -103,18 +102,18 @@ test_intc(ps_io_ops_t* o)
         assert(vaddr[1]);
         assert(vaddr[2]);
         assert(vaddr[3]);
-        intctl[0] = (intctl_t*)((uintptr_t)vaddr[0] + 0x000);
-        intctl[1] = (intctl_t*)((uintptr_t)vaddr[0] + 0x800);
-        intctl[2] = (intctl_t*)((uintptr_t)vaddr[1] + 0x000);
-        intctl[3] = (intctl_t*)((uintptr_t)vaddr[1] + 0x800);
-        intctl[4] = (intctl_t*)((uintptr_t)vaddr[2] + 0x000);
-        intctl[5] = (intctl_t*)((uintptr_t)vaddr[2] + 0x800);
-        intctl[6] = (intctl_t*)((uintptr_t)vaddr[3] + 0x000);
-        intctl[7] = (intctl_t*)((uintptr_t)vaddr[3] + 0x800);
+        intctl[0] = (intctl_t *)((uintptr_t)vaddr[0] + 0x000);
+        intctl[1] = (intctl_t *)((uintptr_t)vaddr[0] + 0x800);
+        intctl[2] = (intctl_t *)((uintptr_t)vaddr[1] + 0x000);
+        intctl[3] = (intctl_t *)((uintptr_t)vaddr[1] + 0x800);
+        intctl[4] = (intctl_t *)((uintptr_t)vaddr[2] + 0x000);
+        intctl[5] = (intctl_t *)((uintptr_t)vaddr[2] + 0x800);
+        intctl[6] = (intctl_t *)((uintptr_t)vaddr[3] + 0x000);
+        intctl[7] = (intctl_t *)((uintptr_t)vaddr[3] + 0x800);
         /* ppss intc */
         vaddr[0] = ps_io_map(&o->io_mapper, PPSS_INTC, 0x1000, 0, PS_MEM_NORMAL);
-        irq = (ppss_intc_t*)((uintptr_t)vaddr[0] + PPSSINTC_IRQ_OFFSET);
-        fiq = (ppss_intc_t*)((uintptr_t)vaddr[0] + PPSSINTC_FIQ_OFFSET);
+        irq = (ppss_intc_t *)((uintptr_t)vaddr[0] + PPSSINTC_IRQ_OFFSET);
+        fiq = (ppss_intc_t *)((uintptr_t)vaddr[0] + PPSSINTC_FIQ_OFFSET);
         printf("irq: 0x%x 0x%x 0x%x 0x%x 0x%x\n", irq->stat, irq->rawstat, irq->seten, irq->clren, irq->soft);
         printf("fiq: 0x%x 0x%x 0x%x 0x%x 0x%x\n", fiq->stat, fiq->rawstat, fiq->seten, fiq->clren, fiq->soft);
         irq->soft = 1;

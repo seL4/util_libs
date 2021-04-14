@@ -50,8 +50,8 @@ typedef volatile struct devcfg_regs devcfg_regs_t;
 /* Maps the devcfg registers into memory.
  * Returns 0 on success, -1 on error.
  */
-int devcfg_init(ps_io_ops_t* ops);
+int devcfg_init(ps_io_ops_t *ops);
 
 /* Returns a pointer to the devcfg registers */
-devcfg_regs_t* devcfg_get_regs(void);
+devcfg_regs_t *devcfg_get_regs(void);
 

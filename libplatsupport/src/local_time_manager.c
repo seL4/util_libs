@@ -158,7 +158,8 @@ static int deregister_cb(void *data, uint32_t id)
     return tqueue_cancel(&state->timeouts, id);
 }
 
-int tm_init(time_manager_t *tm, ltimer_t *ltimer, ps_io_ops_t *ops, int size) {
+int tm_init(time_manager_t *tm, ltimer_t *ltimer, ps_io_ops_t *ops, int size)
+{
 
     if (!tm || !ltimer) {
         return EINVAL;

@@ -25,8 +25,7 @@
 */
 
 
-#ifndef _SGLIB__h_
-#define _SGLIB__h_
+#pragma once
 
 /* the assert is used exclusively to write unexpected error messages */
 #include <assert.h>
@@ -1962,5 +1961,3 @@ void sglib___##type##_consistency_check(type *t) {\
 #define SGLIB_HASH_TAB_SHIFT_CONSTANT 16381   /* should be a prime */
 /* #define SGLIB_HASH_TAB_SHIFT_CONSTANT 536870912*/   /* for large tables :) */
 #endif
-
-#endif /* _SGLIB__h_ */

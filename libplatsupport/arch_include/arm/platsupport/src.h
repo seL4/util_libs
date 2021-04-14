@@ -9,7 +9,7 @@
 #include <platsupport/plat/src.h>
 
 typedef struct src_dev {
-    void* priv;
+    void *priv;
 } src_dev_t;
 
 /**
@@ -18,7 +18,7 @@ typedef struct src_dev {
  * @param[out] dev      A device structure to initialise
  * @return              0 on success
  */
-int reset_controller_init(enum src_id, ps_io_ops_t* ops, src_dev_t* dev);
+int reset_controller_init(enum src_id, ps_io_ops_t *ops, src_dev_t *dev);
 
 /**
  * Reset a subsubsystem.
@@ -26,5 +26,5 @@ int reset_controller_init(enum src_id, ps_io_ops_t* ops, src_dev_t* dev);
  * @param[in] dev  A handle to the system reset controller
  * @param[in] rst  A subsystem identifyer
  */
-void reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id);
+void reset_controller_assert_reset(src_dev_t *dev, enum src_rst_id);
 

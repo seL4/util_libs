@@ -10,9 +10,10 @@
 #define DEVCFG_PADDR   0xF8007000
 #define DEVCFG_SIZE    0x1000
 
-static devcfg_regs_t* devcfg_regs = NULL;
+static devcfg_regs_t *devcfg_regs = NULL;
 
-int devcfg_init(ps_io_ops_t* ops) {
+int devcfg_init(ps_io_ops_t *ops)
+{
     if (devcfg_regs == NULL) {
         devcfg_regs = ps_io_map(&ops->io_mapper, DEVCFG_PADDR, DEVCFG_SIZE, false /* cached */, PS_MEM_NORMAL);
     }
@@ -20,6 +21,7 @@ int devcfg_init(ps_io_ops_t* ops) {
     return 0;
 }
 
-devcfg_regs_t* devcfg_get_regs(void) {
+devcfg_regs_t *devcfg_get_regs(void)
+{
     return devcfg_regs;
 }

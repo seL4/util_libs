@@ -41,26 +41,22 @@
  * flag for AM/PM */
 #define RTC_HOUR_PM       (1U << 6)
 
-static int
-id_valid(pmic_rtc_t* dev, int id)
+static int id_valid(pmic_rtc_t *dev, int id)
 {
     return id >= 0 && id < pmic_rtc_nalarms(dev);
 }
 
-static int
-pmic_rtc_reg_read(pmic_rtc_t* dev, uint8_t reg, void* data, int count)
+static int pmic_rtc_reg_read(pmic_rtc_t *dev, uint8_t reg, void *data, int count)
 {
     return i2c_kvslave_read(&dev->kvslave, reg, data, count);
 }
 
-static int
-pmic_rtc_reg_write(pmic_rtc_t* dev, uint8_t reg, const void* data, int count)
+static int pmic_rtc_reg_write(pmic_rtc_t *dev, uint8_t reg, const void *data, int count)
 {
     return i2c_kvslave_write(&dev->kvslave, reg, data, count);
 }
 
-static int
-pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag)
+static int pmic_rtc_update(pmic_rtc_t *dev, uint8_t flag)
 {
     int ret;
 
@@ -75,16 +71,14 @@ pmic_rtc_update(pmic_rtc_t* dev, uint8_t flag)
     return 0;
 }
 
-static int
-pmic_rtc_set_tval(pmic_rtc_t* dev, int base, const struct rtc_time* time)
+static int pmic_rtc_set_tval(pmic_rtc_t *dev, int base, const struct rtc_time *time)
 {
     int count;
     count = pmic_rtc_reg_write(dev, base, time, sizeof(*time));
     return !(count == sizeof(*time));
 }
 
-static int
-pmic_rtc_get_tval(pmic_rtc_t* dev, int base, struct rtc_time* time)
+static int pmic_rtc_get_tval(pmic_rtc_t *dev, int base, struct rtc_time *time)
 {
     int count;
     count = pmic_rtc_reg_read(dev, base, time, sizeof(*time));
@@ -92,14 +86,13 @@ pmic_rtc_get_tval(pmic_rtc_t* dev, int base, struct rtc_time* time)
     return !(count == sizeof(*time));
 }
 
-int
-pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
+int pmic_rtc_init(i2c_bus_t *i2c, pmic_rtc_t *pmic_rtc)
 {
     uint8_t data[7];
     int ret;
     ret = i2c_slave_init(i2c, MAX77686RTC_BUSADDR,
-                           I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
-                           0, &pmic_rtc->i2c_slave);
+                         I2C_SLAVE_ADDR_7BIT, I2C_SLAVE_SPEED_FAST,
+                         0, &pmic_rtc->i2c_slave);
     if (ret) {
         ZF_LOGD("Failed to register I2C slave");
         return -1;
@@ -128,8 +121,7 @@ pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc)
     return pmic_rtc_update(pmic_rtc, RTCUPDATE_WRITE);
 }
 
-int
-pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time)
+int pmic_rtc_get_time(pmic_rtc_t *pmic_rtc, struct rtc_time *time)
 {
     if (pmic_rtc_update(pmic_rtc, RTCUPDATE_READ)) {
         return -1;
@@ -137,8 +129,7 @@ pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time)
     return pmic_rtc_get_tval(pmic_rtc, RTCREG_TIME, time);
 }
 
-int
-pmic_rtc_set_time(pmic_rtc_t* pmic_rtc, const struct rtc_time* time)
+int pmic_rtc_set_time(pmic_rtc_t *pmic_rtc, const struct rtc_time *time)
 {
     if (pmic_rtc_set_tval(pmic_rtc, RTCREG_TIME, time)) {
         return -1;
@@ -146,14 +137,12 @@ pmic_rtc_set_time(pmic_rtc_t* pmic_rtc, const struct rtc_time* time)
     return pmic_rtc_update(pmic_rtc, RTCUPDATE_WRITE);
 }
 
-int
-pmic_rtc_nalarms(pmic_rtc_t* pmic_rtc)
+int pmic_rtc_nalarms(pmic_rtc_t *pmic_rtc)
 {
     return RTC_NALARMS;
 }
 
-int
-pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm)
+int pmic_rtc_get_alarm(pmic_rtc_t *pmic_rtc, int id, struct rtc_time *alarm)
 {
     if (!id_valid(pmic_rtc, id)) {
         return -1;
@@ -164,8 +153,7 @@ pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm)
     return pmic_rtc_get_tval(pmic_rtc, RTCREG_ALARM(id), alarm);
 }
 
-int
-pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm)
+int pmic_rtc_set_alarm(pmic_rtc_t *pmic_rtc, int id, const struct rtc_time *alarm)
 {
     if (!id_valid(pmic_rtc, id)) {
         return -1;

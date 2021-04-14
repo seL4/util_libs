@@ -11,10 +11,9 @@
 
 #define PRINT(s) (print == NULL ? printf("%s", (s)) : print(arg, "%s", (s)))
 
-int
-utils_put_xml_escape(const char *string,
-                     int (*print)(void *arg, const char *format, ...) FORMAT(printf, 2, 3),
-                     void *arg)
+int utils_put_xml_escape(const char *string,
+                         int (*print)(void *arg, const char *format, ...) FORMAT(printf, 2, 3),
+                         void *arg)
 {
 
     int ret = 0;
@@ -23,33 +22,33 @@ utils_put_xml_escape(const char *string,
 
         switch (*string) {
 
-            case '"':
-                ret += PRINT("&quot;");
-                break;
+        case '"':
+            ret += PRINT("&quot;");
+            break;
 
-            case '\'':
-                ret += PRINT("&apos;");
-                break;
+        case '\'':
+            ret += PRINT("&apos;");
+            break;
 
-            case '<':
-                ret += PRINT("&lt;");
-                break;
+        case '<':
+            ret += PRINT("&lt;");
+            break;
 
-            case '>':
-                ret += PRINT("&gt;");
-                break;
+        case '>':
+            ret += PRINT("&gt;");
+            break;
 
-            case '&':
-                ret += PRINT("&amp;");
-                break;
+        case '&':
+            ret += PRINT("&amp;");
+            break;
 
-            default:
-                if (print == NULL) {
-                    putchar(*string);
-                    ret++;
-                } else {
-                    ret += print(arg, "%c", *string);
-                }
+        default:
+            if (print == NULL) {
+                putchar(*string);
+                ret++;
+            } else {
+                ret += print(arg, "%c", *string);
+            }
         }
 
         string++;

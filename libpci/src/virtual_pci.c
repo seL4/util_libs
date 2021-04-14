@@ -14,7 +14,8 @@
 #include <pci/virtual_device.h>
 #include <utils/zf_log.h>
 
-bool libpci_virtual_pci_device_allow(libpci_virtual_pci_t* self, libpci_device_t *device) {
+bool libpci_virtual_pci_device_allow(libpci_virtual_pci_t *self, libpci_device_t *device)
+{
     assert(self);
     if (!device) {
         ZF_LOGD("device_allow error: NULL device!\n");
@@ -33,17 +34,21 @@ bool libpci_virtual_pci_device_allow(libpci_virtual_pci_t* self, libpci_device_t
     return true;
 }
 
-bool libpci_virtual_pci_device_allow_id(libpci_virtual_pci_t* self, uint16_t vendor_id, uint16_t device_id) {
-    libpci_device_t* matched_devices[PCI_MAX_DEVICES];
+bool libpci_virtual_pci_device_allow_id(libpci_virtual_pci_t *self, uint16_t vendor_id, uint16_t device_id)
+{
+    libpci_device_t *matched_devices[PCI_MAX_DEVICES];
     int nfound = libpci_find_device_all(vendor_id, device_id, matched_devices);
     for (int i = 0; i < nfound; i++) {
         bool ret = libpci_virtual_pci_device_allow(self, matched_devices[i]);
-        if (!ret) return ret;
+        if (!ret) {
+            return ret;
+        }
     }
     return true;
 }
 
-bool libpci_virtual_pci_device_disallow(libpci_virtual_pci_t* self, const libpci_device_t *device) {
+bool libpci_virtual_pci_device_disallow(libpci_virtual_pci_t *self, const libpci_device_t *device)
+{
     assert(self && device);
     for (uint32_t i = 0; i < self->num_allowed_devices; i++) {
         libpci_passthrough_vdevice_t *vd = &self->allowed_devices[i];
@@ -57,14 +62,17 @@ bool libpci_virtual_pci_device_disallow(libpci_virtual_pci_t* self, const libpci
     return false;
 }
 
-bool libpci_virtual_pci_device_device_check(libpci_virtual_pci_t* self, uint8_t bus, uint8_t dev, uint8_t fun) {
+bool libpci_virtual_pci_device_device_check(libpci_virtual_pci_t *self, uint8_t bus, uint8_t dev, uint8_t fun)
+{
     assert(self);
     if (self->override_allow_all_devices) {
         return true;
     }
     for (uint32_t i = 0; i < self->num_allowed_devices; i++) {
         libpci_passthrough_vdevice_t *vd = &self->allowed_devices[i];
-        if (vd->host_bus == PCI_HOST_BUS_INVALID) continue;
+        if (vd->host_bus == PCI_HOST_BUS_INVALID) {
+            continue;
+        }
         if (vd->host_bus == bus &&
             vd->host_dev == dev &&
             vd->host_fun == fun) {
@@ -74,24 +82,27 @@ bool libpci_virtual_pci_device_device_check(libpci_virtual_pci_t* self, uint8_t 
     return false;
 }
 
-libpci_vdevice_t* libpci_virtual_pci_vdevice_assign(libpci_virtual_pci_t* self) {
+libpci_vdevice_t *libpci_virtual_pci_vdevice_assign(libpci_virtual_pci_t *self)
+{
     assert(self);
     assert(self->num_virtual_devices + 1 < PCI_MAX_VDEVICES);
     libpci_vdevice_init(&self->virtual_devices[self->num_virtual_devices]);
     return &self->virtual_devices[self->num_virtual_devices++];
 }
 
-void libpci_virtual_pci_vdevice_resign(libpci_virtual_pci_t* self, libpci_vdevice_t* vdev) {
+void libpci_virtual_pci_vdevice_resign(libpci_virtual_pci_t *self, libpci_vdevice_t *vdev)
+{
     assert(self && vdev);
     int index = (vdev - self->virtual_devices);
     assert(index >= 0 && index <= PCI_MAX_VDEVICES);
     self->virtual_devices[index].disable(&self->virtual_devices[index]);
 }
 
-libpci_vdevice_t* libpci_virtual_pci_vdevice_check(libpci_virtual_pci_t* self,
-                                                   uint8_t bus, uint8_t dev, uint8_t fun) {
+libpci_vdevice_t *libpci_virtual_pci_vdevice_check(libpci_virtual_pci_t *self,
+                                                   uint8_t bus, uint8_t dev, uint8_t fun)
+{
     assert(self);
-    for(uint32_t i = 0; i < self->num_virtual_devices; i++) {
+    for (uint32_t i = 0; i < self->num_virtual_devices; i++) {
         libpci_vdevice_t *vd = &self->virtual_devices[i];
         if (vd->match(vd, bus, dev, fun)) {
             return vd;
@@ -100,7 +111,8 @@ libpci_vdevice_t* libpci_virtual_pci_vdevice_check(libpci_virtual_pci_t* self,
     return NULL;
 }
 
-int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint32_t* val, uint32_t size) {
+int libpci_virtual_pci_ioread(libpci_virtual_pci_t *self, uint32_t port_no, uint32_t *val, uint32_t size)
+{
     if (port_no >= PCI_CONF_PORT_ADDR && port_no < PCI_CONF_PORT_ADDR_END) {
         if (port_no + size > PCI_CONF_PORT_ADDR_END) {
             ZF_LOGD("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
@@ -108,7 +120,7 @@ int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint
         }
         /* Emulate read addr. */
         *val = 0;
-        memcpy(val, ((char*)&self->current_addr) + (port_no - PCI_CONF_PORT_ADDR), size);
+        memcpy(val, ((char *)&self->current_addr) + (port_no - PCI_CONF_PORT_ADDR), size);
         return 0;
     }
     if (port_no < PCI_CONF_PORT_DATA || port_no >= PCI_CONF_PORT_DATA_END) {
@@ -144,14 +156,15 @@ int libpci_virtual_pci_ioread(libpci_virtual_pci_t* self, uint32_t port_no, uint
     return ret;
 }
 
-int libpci_virtual_pci_iowrite(libpci_virtual_pci_t* self, uint32_t port_no, uint32_t val, uint32_t size) {
+int libpci_virtual_pci_iowrite(libpci_virtual_pci_t *self, uint32_t port_no, uint32_t val, uint32_t size)
+{
     if (port_no >= PCI_CONF_PORT_ADDR && port_no < PCI_CONF_PORT_ADDR_END) {
         if (port_no + size > PCI_CONF_PORT_ADDR_END) {
             ZF_LOGD("vpci_ioread WARNING: portno + size = 0x%x invalid address.\n", port_no + size);
             return 1;
         }
         /* Emulated set addr. */
-        memcpy(((char*)&self->current_addr) + (port_no - PCI_CONF_PORT_ADDR), &val, size);
+        memcpy(((char *)&self->current_addr) + (port_no - PCI_CONF_PORT_ADDR), &val, size);
         return 0;
     }
     if (port_no < PCI_CONF_PORT_DATA || port_no >= PCI_CONF_PORT_DATA_END) {
@@ -184,7 +197,8 @@ int libpci_virtual_pci_iowrite(libpci_virtual_pci_t* self, uint32_t port_no, uin
     return ret;
 }
 
-void libpci_virtual_pci_init(libpci_virtual_pci_t* vp) {
+void libpci_virtual_pci_init(libpci_virtual_pci_t *vp)
+{
     assert(vp);
 
     /* initialise state */

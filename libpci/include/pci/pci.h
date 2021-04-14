@@ -30,12 +30,12 @@ typedef struct libpci_device {
     uint8_t interrupt_pin;
     uint8_t interrupt_line;
 
-    const char* vendor_name;
-    const char* device_name;
+    const char *vendor_name;
+    const char *device_name;
     libpci_device_iocfg_t cfg;
 } libpci_device_t;
 
-uint32_t libpci_ioread(uint32_t port_no, uint32_t* val, uint32_t size);
+uint32_t libpci_ioread(uint32_t port_no, uint32_t *val, uint32_t size);
 uint32_t libpci_iowrite(uint32_t port_no, uint32_t val, uint32_t size);
 
 /* The global list of devices that have been found in the last PCI scan. */
@@ -43,17 +43,17 @@ extern libpci_device_t libpci_device_list[PCI_MAX_DEVICES];
 extern uint32_t libpci_num_devices;
 
 /* Return the first device found matching given vendor and device ID. */
-libpci_device_t* libpci_find_device(uint16_t vendor_id, uint16_t device_id);
+libpci_device_t *libpci_find_device(uint16_t vendor_id, uint16_t device_id);
 
 /* Return an array of all devices found matching vendor and device ID. The out parameter should
  * be of at least size PCI_MAX_DEVICES to be safe. */
-int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device_t** out);
+int libpci_find_device_all(uint16_t vendor_id, uint16_t device_id, libpci_device_t **out);
 
 /* Return the first device matching the bus, dev, fun, vendor and device id of given device struct. */
-libpci_device_t* libpci_find_device_matching(libpci_device_t *device);
+libpci_device_t *libpci_find_device_matching(libpci_device_t *device);
 
 /* Return a device, if one exists, on the given bus, dev and fun */
-libpci_device_t* libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun);
+libpci_device_t *libpci_find_device_bdf(uint8_t bus, uint8_t dev, uint8_t fun);
 
 /* Scan the entire PCI space, find every device and popular device structures. */
 void libpci_scan(ps_io_port_ops_t port_ops);

@@ -16,27 +16,24 @@ typedef struct acpi_rsdt {
 #pragma pack(pop)
 
 /* retrieve the number of entries in an rsdt table */
-static inline int
-acpi_rsdt_entry_count(acpi_rsdt_t* t)
+static inline int acpi_rsdt_entry_count(acpi_rsdt_t *t)
 {
     return (t->header.length - sizeof(*t)) / sizeof(uint32_t);
 }
 
 /* Retrieve the location of the first item in the list */
-static inline uint32_t*
-acpi_rsdt_first(acpi_rsdt_t* hdr)
+static inline uint32_t *acpi_rsdt_first(acpi_rsdt_t *hdr)
 {
-    return (uint32_t*)(hdr + 1);
+    return (uint32_t *)(hdr + 1);
 }
 
 /* Retrieve the location of the next item in the list */
-static inline uint32_t*
-acpi_rsdt_next(acpi_rsdt_t* hdr, uint32_t* cur)
+static inline uint32_t *acpi_rsdt_next(acpi_rsdt_t *hdr, uint32_t *cur)
 {
-    char* next = (char*)(cur + 1);
-    char* end = (char*)hdr + hdr->header.length;
+    char *next = (char *)(cur + 1);
+    char *end = (char *)hdr + hdr->header.length;
     if (next < end) {
-        return (uint32_t*)next;
+        return (uint32_t *)next;
     } else {
         return NULL;
     }

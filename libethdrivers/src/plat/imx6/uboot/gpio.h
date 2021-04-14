@@ -52,20 +52,19 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ASM_ARCH_IMX_GPIO_H
-#define __ASM_ARCH_IMX_GPIO_H
+#pragma once
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <stdint.h>
 /* GPIO registers */
 struct gpio_regs {
-	uint32_t gpio_dr;	/* data */
-	uint32_t gpio_dir;	/* direction */
-	uint32_t gpio_psr;	/* pad satus */
+    uint32_t gpio_dr;   /* data */
+    uint32_t gpio_dir;  /* direction */
+    uint32_t gpio_psr;  /* pad satus */
 };
 #endif
 
-#define IMX_GPIO_NR(port, index)		((((port)-1)*32)+((index)&31))
+#define IMX_GPIO_NR(port, index)        ((((port)-1)*32)+((index)&31))
 
 #endif
 
@@ -115,8 +114,8 @@ struct gpio_regs {
 /**
  * Request ownership of a GPIO.
  *
- * @param gpio	GPIO number
- * @param label	Name given to the GPIO
+ * @param gpio  GPIO number
+ * @param label Name given to the GPIO
  * @return 0 if ok, -1 on error
  */
 int gpio_request(unsigned gpio, const char *label);
@@ -124,7 +123,7 @@ int gpio_request(unsigned gpio, const char *label);
 /**
  * Stop using the GPIO.  This function should not alter pin configuration.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if ok, -1 on error
  */
 int gpio_free(unsigned gpio);
@@ -132,7 +131,7 @@ int gpio_free(unsigned gpio);
 /**
  * Make a GPIO an input.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if ok, -1 on error
  */
 int gpio_direction_input(unsigned gpio, ps_io_ops_t *io_ops);
@@ -140,8 +139,8 @@ int gpio_direction_input(unsigned gpio, ps_io_ops_t *io_ops);
 /**
  * Make a GPIO an output, and set its value.
  *
- * @param gpio	GPIO number
- * @param value	GPIO value (0 for low or 1 for high)
+ * @param gpio  GPIO number
+ * @param value GPIO value (0 for low or 1 for high)
  * @return 0 if ok, -1 on error
  */
 int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops);
@@ -150,7 +149,7 @@ int gpio_direction_output(unsigned gpio, int value, ps_io_ops_t *io_ops);
  * Get a GPIO's value. This will work whether the GPIO is an input
  * or an output.
  *
- * @param gpio	GPIO number
+ * @param gpio  GPIO number
  * @return 0 if low, 1 if high, -1 on error
  */
 int gpio_get_value(unsigned gpio);
@@ -159,8 +158,8 @@ int gpio_get_value(unsigned gpio);
  * Set an output GPIO's value. The GPIO must already be an output or
  * this function may have no effect.
  *
- * @param gpio	GPIO number
- * @param value	GPIO value (0 for low or 1 for high)
+ * @param gpio  GPIO number
+ * @param value GPIO value (0 for low or 1 for high)
  * @return 0 if ok, -1 on error
  */
 int gpio_set_value(unsigned gpio, int value);
@@ -169,10 +168,8 @@ int gpio_set_value(unsigned gpio, int value);
  * Request a gpio. This should be called before any of the other functions
  * are used on this gpio.
  *
- * @param gp	GPIO number
- * @param label	User label for this GPIO
+ * @param gp    GPIO number
+ * @param label User label for this GPIO
  * @return 0 if ok, -1 on error
  */
 int gpio_request(unsigned gpio, const char *label);
-#endif	/* _ASM_GENERIC_GPIO_H_ */
-

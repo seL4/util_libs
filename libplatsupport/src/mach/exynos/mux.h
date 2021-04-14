@@ -70,5 +70,5 @@ struct mux_feature_data {
     uint8_t value;
 };
 
-extern struct mux_feature_data* feature_data[];
+extern struct mux_feature_data *feature_data[];
 

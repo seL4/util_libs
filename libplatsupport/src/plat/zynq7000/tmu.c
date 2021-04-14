@@ -24,15 +24,18 @@
 #define TEMPERATURE_RAW_TO_MILLIKELVIN(x) \
         ((TEMPERATURE_RAW_TO_CODE((x)) * 503975) / 4096)
 
-static uint32_t get_raw_temperature(ps_tmu_t* tmu) {
+static uint32_t get_raw_temperature(ps_tmu_t *tmu)
+{
     return xadc_read_register(XADC_ADDRESS_TEMPERATURE);
 }
 
-static temperature_t get_temperature_millikelvin(ps_tmu_t* tmu) {
+static temperature_t get_temperature_millikelvin(ps_tmu_t *tmu)
+{
     return TEMPERATURE_RAW_TO_MILLIKELVIN(get_raw_temperature(tmu));
 }
 
-int ps_tmu_init(enum tmu_id id, ps_io_ops_t* ops, ps_tmu_t* dev) {
+int ps_tmu_init(enum tmu_id id, ps_io_ops_t *ops, ps_tmu_t *dev)
+{
 
     xadc_init(ops);
 

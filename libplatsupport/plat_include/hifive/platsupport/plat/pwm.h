@@ -34,8 +34,8 @@
  * if pwm_get_time is called before pwm_handle_irq the time could be incorrect.
  */
 typedef enum PWM_MODE {
-	TIMEOUT,
-	UPCOUNTER,
+    TIMEOUT,
+    UPCOUNTER,
 } pwm_mode_t;
 
 typedef struct {

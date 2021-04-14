@@ -43,7 +43,8 @@
 
 static bool initialized = false;
 
-int xadc_init(ps_io_ops_t* ops) {
+int xadc_init(ps_io_ops_t *ops)
+{
     if (initialized) {
         return 0;
     }
@@ -53,7 +54,7 @@ int xadc_init(ps_io_ops_t* ops) {
         return error;
     }
 
-    devcfg_regs_t* devcfg_regs = devcfg_get_regs();
+    devcfg_regs_t *devcfg_regs = devcfg_get_regs();
     if (devcfg_regs == NULL) {
         return -1;
     }
@@ -66,8 +67,9 @@ int xadc_init(ps_io_ops_t* ops) {
     return 0;
 }
 
-uint32_t xadc_read_register(uint32_t address) {
-    devcfg_regs_t* devcfg_regs = devcfg_get_regs();
+uint32_t xadc_read_register(uint32_t address)
+{
+    devcfg_regs_t *devcfg_regs = devcfg_get_regs();
 
     // write the command
     devcfg_regs->xadcif_cmdfifo = FORMAT_XADC_READ(address & XADC_VALID_ADDRESS_MASK);

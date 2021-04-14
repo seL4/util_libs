@@ -128,8 +128,8 @@ typedef struct {
 } timer_config_t;
 
 typedef struct {
-   void *data;
-   int id;
+    void *data;
+    int id;
 } timer_t;
 
 int gpt_timer_start(timer_t *timer);

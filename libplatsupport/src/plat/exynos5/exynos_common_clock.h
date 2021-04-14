@@ -20,16 +20,16 @@
 #define CLKID_SCLKBPLL     CLKID(CDREX, 0, 0)
 
 static enum clk_id clk_src_peri_blk[] = {
-                                            CLK_MASTER,
-                                            CLK_MASTER,
-                                            -1, // CLK_HDMI27M
-                                            -1, // CLK_DPTXPHY
-                                            -1, // CLK_UHOSTPHY
-                                            -1, // CLK_HDMIPHY
-                                            CLK_SCLKMPLL,
-                                            CLK_SCLKEPLL,
-                                            CLK_SCLKVPLL,
-                                            CLK_SCLKCPLL
-                                        };
+    CLK_MASTER,
+    CLK_MASTER,
+    -1, // CLK_HDMI27M
+    -1, // CLK_DPTXPHY
+    -1, // CLK_UHOSTPHY
+    -1, // CLK_HDMIPHY
+    CLK_SCLKMPLL,
+    CLK_SCLKEPLL,
+    CLK_SCLKVPLL,
+    CLK_SCLKCPLL
+};
 
 

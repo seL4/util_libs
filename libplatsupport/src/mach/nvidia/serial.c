@@ -94,14 +94,12 @@ struct tk1_uart_regs {
 };
 typedef volatile struct tk1_uart_regs tk1_uart_regs_t;
 
-static inline tk1_uart_regs_t*
-tk1_uart_get_priv(ps_chardevice_t *d)
+static inline tk1_uart_regs_t *tk1_uart_get_priv(ps_chardevice_t *d)
 {
-    return (tk1_uart_regs_t*)d->vaddr;
+    return (tk1_uart_regs_t *)d->vaddr;
 }
 
-static inline bool
-tk1_uart_is_async(ps_chardevice_t *d)
+static inline bool tk1_uart_is_async(ps_chardevice_t *d)
 {
     /* NV_UART[ABCD] are polling, while NV_UART[ABCD]_ASYNC are asynchronous
      * versions of the first 4 devices.
@@ -109,8 +107,7 @@ tk1_uart_is_async(ps_chardevice_t *d)
     return (d->id >= NV_UARTA_ASYNC);
 }
 
-static inline void
-tk1_uart_set_thr_irq(tk1_uart_regs_t *regs, bool enable)
+static inline void tk1_uart_set_thr_irq(tk1_uart_regs_t *regs, bool enable)
 {
     uint32_t ier;
 
@@ -123,8 +120,7 @@ tk1_uart_set_thr_irq(tk1_uart_regs_t *regs, bool enable)
     regs->ier_dlab = ier;
 }
 
-static inline void
-tk1_uart_set_rbr_irq(tk1_uart_regs_t *regs, bool enable)
+static inline void tk1_uart_set_rbr_irq(tk1_uart_regs_t *regs, bool enable)
 {
     uint32_t ier;
 
@@ -141,7 +137,7 @@ tk1_uart_set_rbr_irq(tk1_uart_regs_t *regs, bool enable)
 
 int uart_getchar(ps_chardevice_t *d)
 {
-    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
     uint32_t reg = 0;
     int c = -1;
 
@@ -152,9 +148,9 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t *d, int c)
 {
-    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
     uint32_t lsr = regs->lsr;
 
     if (((lsr & LSR_THRE_EMPTY) == LSR_THRE_EMPTY)) {
@@ -170,10 +166,9 @@ int uart_putchar(ps_chardevice_t* d, int c)
     }
 }
 
-static void
-tk1_uart_invoke_callback(ps_chardevice_t *d, enum chardev_status stat,
-                         size_t n_bytes_xferred,
-                         bool invoke_read, bool invoke_write)
+static void tk1_uart_invoke_callback(ps_chardevice_t *d, enum chardev_status stat,
+                                     size_t n_bytes_xferred,
+                                     bool invoke_read, bool invoke_write)
 {
     tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
 
@@ -202,8 +197,8 @@ tk1_uart_invoke_callback(ps_chardevice_t *d, enum chardev_status stat,
         if (d->write_descriptor.callback != NULL
             && d->write_descriptor.bytes_requested > 0) {
             d->write_descriptor.callback(d, stat,
-                                        n_bytes_xferred,
-                                        d->write_descriptor.token);
+                                         n_bytes_xferred,
+                                         d->write_descriptor.token);
 
             /* If the client set bytes_requested to 0 inside of the callback,
              * that is a signal to us that we should consider the async write
@@ -216,8 +211,7 @@ tk1_uart_invoke_callback(ps_chardevice_t *d, enum chardev_status stat,
     }
 }
 
-static void
-uart_handle_irq(ps_chardevice_t* d)
+static void uart_handle_irq(ps_chardevice_t *d)
 {
     tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
     uintptr_t irq_ident_val;
@@ -342,7 +336,7 @@ uart_handle_irq(ps_chardevice_t* d)
                 status = uart_putchar(d, client_data[wd->bytes_transfered]);
                 if (status == -1) {
                     ZF_LOGV("One DMA pass finished: written %d of %dB!",
-                           wd->bytes_transfered, wd->bytes_requested);
+                            wd->bytes_transfered, wd->bytes_requested);
                     break;
                 }
 
@@ -374,10 +368,9 @@ uart_handle_irq(ps_chardevice_t* d)
     };
 }
 
-static ssize_t
-tk1_uart_write(ps_chardevice_t* d, const void* vdata,
-                           size_t count, chardev_callback_t rcb,
-                           void* token)
+static ssize_t tk1_uart_write(ps_chardevice_t *d, const void *vdata,
+                              size_t count, chardev_callback_t rcb,
+                              void *token)
 {
     struct chardev_xmit_descriptor wd = {
         .callback = rcb,
@@ -419,10 +412,9 @@ tk1_uart_write(ps_chardevice_t* d, const void* vdata,
     return d->write_descriptor.bytes_transfered;
 }
 
-static ssize_t
-tk1_uart_read(ps_chardevice_t* d, void* vdata,
-                          size_t count, chardev_callback_t rcb,
-                          void* token)
+static ssize_t tk1_uart_read(ps_chardevice_t *d, void *vdata,
+                             size_t count, chardev_callback_t rcb,
+                             void *token)
 {
     if (count < 1) {
         count = 0;
@@ -474,11 +466,10 @@ tk1_uart_read(ps_chardevice_t* d, void* vdata,
  * @param d Pointer to the device whose divisor you want to get.
  * @return 16-bit divisor.
  */
-UNUSED static uint16_t
-tk1_uart_get_dlab_divisor(ps_chardevice_t *d)
+UNUSED static uint16_t tk1_uart_get_dlab_divisor(ps_chardevice_t *d)
 {
-    uint16_t ret=0;
-    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    uint16_t ret = 0;
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
 
     regs->lcr |= LCR_DLAB;
     THREAD_MEMORY_RELEASE();
@@ -490,10 +481,9 @@ tk1_uart_get_dlab_divisor(ps_chardevice_t *d)
     return ret;
 }
 
-static void
-tk1_uart_set_dlab_divisor(ps_chardevice_t *d, uint16_t divisor)
+static void tk1_uart_set_dlab_divisor(ps_chardevice_t *d, uint16_t divisor)
 {
-    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
 
     regs->lcr |= LCR_DLAB;
     THREAD_MEMORY_RELEASE();
@@ -503,8 +493,7 @@ tk1_uart_set_dlab_divisor(ps_chardevice_t *d, uint16_t divisor)
     regs->lcr &= ~LCR_DLAB;
 }
 
-static int
-tk1_uart_get_divisor_for(int baud)
+static int tk1_uart_get_divisor_for(int baud)
 {
     int ret;
 
@@ -550,10 +539,9 @@ tk1_uart_get_divisor_for(int baud)
     return ret;
 }
 
-int
-serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity parity, int stop_bits)
+int serial_configure(ps_chardevice_t *d, long bps, int char_size, enum serial_parity parity, int stop_bits)
 {
-    tk1_uart_regs_t* regs = tk1_uart_get_priv(d);
+    tk1_uart_regs_t *regs = tk1_uart_get_priv(d);
     int divisor;
     /* line control register */
     uint32_t lcr = 0;
@@ -563,43 +551,43 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
     THREAD_MEMORY_RELEASE();
 
     switch (char_size) {
-        case 5:
-            lcr |= LCR_WD_SIZE_5;
-            break;
-        case 6:
-            lcr |= LCR_WD_SIZE_6;
-            break;
-        case 7:
-            lcr |= LCR_WD_SIZE_7;
-            break;
-        case 8:
-            lcr |= LCR_WD_SIZE_8;
-            break;
-        default:
-            return -1;
+    case 5:
+        lcr |= LCR_WD_SIZE_5;
+        break;
+    case 6:
+        lcr |= LCR_WD_SIZE_6;
+        break;
+    case 7:
+        lcr |= LCR_WD_SIZE_7;
+        break;
+    case 8:
+        lcr |= LCR_WD_SIZE_8;
+        break;
+    default:
+        return -1;
     }
 
     switch (parity) {
-        case PARITY_NONE:
-            break;
-        case PARITY_EVEN:
-            lcr |= LCR_EVEN | LCR_PAR;
-            break;
-        case PARITY_ODD:
-            lcr |= LCR_PAR;
-            break;
-/*
- * Uncomment if we ever need fixed values for parity bits
- *
-        case PARITY_ONE:
-            lcr |= LCR_SET_PARITY | LCR_EVEN;
-            break;
-        case PARITY_ZERO:
-            lcr |= LCR_SET_PARITY;
-            break
-*/
-        default:
-            return -1;
+    case PARITY_NONE:
+        break;
+    case PARITY_EVEN:
+        lcr |= LCR_EVEN | LCR_PAR;
+        break;
+    case PARITY_ODD:
+        lcr |= LCR_PAR;
+        break;
+    /*
+     * Uncomment if we ever need fixed values for parity bits
+     *
+            case PARITY_ONE:
+                lcr |= LCR_SET_PARITY | LCR_EVEN;
+                break;
+            case PARITY_ZERO:
+                lcr |= LCR_SET_PARITY;
+                break
+    */
+    default:
+        return -1;
     }
 
     /* one stop bit */
@@ -645,44 +633,43 @@ serial_configure(ps_chardevice_t* d, long bps, int char_size, enum serial_parity
  *
  * Expects an already valid mapping to the TK1 UART MMIO vaddr range.
  */
-int
-tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
-                     ps_chardevice_t *dev)
+int tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
+                         ps_chardevice_t *dev)
 {
     volatile void *uart_vaddr = 0;
-    tk1_uart_regs_t* regs;
+    tk1_uart_regs_t *regs;
     uint32_t iir_fcr;
     struct chardev_xmit_descriptor cxd_zero = {0};
     ps_io_ops_t ioops_zero = {{0}};
 
     /* add offsets properly */
     switch (defn->id) {
-        case NV_UARTA:
-        case NV_UARTA_ASYNC:
-            uart_vaddr = uart_mmio_vaddr;
-            break;
-        case NV_UARTB:
-        case NV_UARTB_ASYNC:
-            uart_vaddr = uart_mmio_vaddr + UARTB_OFFSET;
-            break;
-        case NV_UARTC:
-        case NV_UARTC_ASYNC:
-            uart_vaddr = uart_mmio_vaddr + UARTC_OFFSET;
-            break;
-        case NV_UARTD:
-        case NV_UARTD_ASYNC:
-            uart_vaddr = uart_mmio_vaddr + UARTD_OFFSET;
-            /* The kernel uses UART-D. Recommend not conflicting with it. */
-            break;
-        default:
-            return -1;
+    case NV_UARTA:
+    case NV_UARTA_ASYNC:
+        uart_vaddr = uart_mmio_vaddr;
+        break;
+    case NV_UARTB:
+    case NV_UARTB_ASYNC:
+        uart_vaddr = uart_mmio_vaddr + UARTB_OFFSET;
+        break;
+    case NV_UARTC:
+    case NV_UARTC_ASYNC:
+        uart_vaddr = uart_mmio_vaddr + UARTC_OFFSET;
+        break;
+    case NV_UARTD:
+    case NV_UARTD_ASYNC:
+        uart_vaddr = uart_mmio_vaddr + UARTD_OFFSET;
+        /* The kernel uses UART-D. Recommend not conflicting with it. */
+        break;
+    default:
+        return -1;
     }
 
     memset(dev, 0, sizeof(*dev));
 
     /* Set up all the  device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*)uart_vaddr;
+    dev->vaddr      = (void *)uart_vaddr;
     dev->read       = &tk1_uart_read;
     dev->write      = &tk1_uart_write;
     dev->handle_irq = &uart_handle_irq;
@@ -710,11 +697,11 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
      * actually returns the values from the IIR, so you can't actually read FCR.
      */
     iir_fcr = 0
-        | FCR_FIFO_ENABLE | FCR_DMA_MODE0
-        | ENCODE_BITS(0, FCR_RX_TRIG_SHIFT, FCR_RX_TRIG_MASK, FCR_RX_TRIG_FIFO_GT_16)
-        | ENCODE_BITS(0, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK, FCR_TX_TRIG_FIFO_GT_16)
-        | BIT(FCR_TX_FIFO_CLEAR_SHIFT)
-        | BIT(FCR_RX_FIFO_CLEAR_SHIFT);
+              | FCR_FIFO_ENABLE | FCR_DMA_MODE0
+              | ENCODE_BITS(0, FCR_RX_TRIG_SHIFT, FCR_RX_TRIG_MASK, FCR_RX_TRIG_FIFO_GT_16)
+              | ENCODE_BITS(0, FCR_TX_TRIG_SHIFT, FCR_TX_TRIG_MASK, FCR_TX_TRIG_FIFO_GT_16)
+              | BIT(FCR_TX_FIFO_CLEAR_SHIFT)
+              | BIT(FCR_RX_FIFO_CLEAR_SHIFT);
 
     regs->iir_fcr = iir_fcr;
 
@@ -734,10 +721,9 @@ tk1_uart_init_common(const struct dev_defn *defn, void *const uart_mmio_vaddr,
  *
  * Expects a viable ps_io_ops_t for mapping the registers.
  */
-int
-uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn,
+              const ps_io_ops_t *ops,
+              ps_chardevice_t *dev)
 {
     static void *vaddr = 0;
     int ret;

@@ -16,8 +16,8 @@
  * is not NULL terminated.
  * -- In general, use this to find the RSDT pointer
  */
-void*
-acpi_sig_search(acpi_t* acpi, const char* sig, int sig_len, void* start, void* end);
+void *
+acpi_sig_search(acpi_t *acpi, const char *sig, int sig_len, void *start, void *end);
 
 /*
  * walk the tables and report table locations and sizes
@@ -31,5 +31,5 @@ acpi_parse_tables(acpi_t *acpi);
  * Returns a dynamically allocated copy of the table
  * header. Returns NULL if unable to parse the table.
  */
-acpi_header_t*
+acpi_header_t *
 acpi_parse_table(acpi_t *acpi, void *table_paddr);

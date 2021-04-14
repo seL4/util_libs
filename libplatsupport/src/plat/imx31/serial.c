@@ -30,7 +30,7 @@
 
 #define REG_PTR(base, offset)  ((volatile uint32_t *)((char*)(base) + (offset)))
 
-int uart_getchar(ps_chardevice_t* d)
+int uart_getchar(ps_chardevice_t *d)
 {
     int character = -1;
     uint32_t data = 0;
@@ -45,7 +45,7 @@ int uart_getchar(ps_chardevice_t* d)
     return character;
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t *d, int c)
 {
     if (*REG_PTR(d->vaddr, IMXUART_LSR) & IMXUART_LSR_TXFIFOE) {
         *REG_PTR(d->vaddr, IMXUART_THR) = c;
@@ -58,18 +58,17 @@ int uart_putchar(ps_chardevice_t* d, int c)
     }
 }
 
-static void uart_handle_irq(ps_chardevice_t* d UNUSED)
+static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
     /* TODO */
 }
 
-int
-uart_init(const struct dev_defn* defn,
-          const ps_io_ops_t* ops,
-          ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn,
+              const ps_io_ops_t *ops,
+              ps_chardevice_t *dev)
 {
 
-    void* vaddr = chardev_map(defn, ops);
+    void *vaddr = chardev_map(defn, ops);
     memset(dev, 0, sizeof(*dev));
     if (vaddr == NULL) {
         return -1;

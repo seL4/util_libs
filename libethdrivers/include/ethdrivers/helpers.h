@@ -12,7 +12,7 @@
 typedef struct dma_addr {
     void *virt;
     uintptr_t phys;
-}dma_addr_t;
+} dma_addr_t;
 
 /* Small wrapper that does ps_dma_alloc and then ps_dma_pin */
 dma_addr_t dma_alloc_pin(ps_dma_man_t *dma_man, size_t size, int cached, int alignment);

@@ -24,29 +24,30 @@ enum chardev_status {
     CHARDEV_STAT_CANCELLED,
 };
 
-typedef void (*chardev_callback_t)(ps_chardevice_t* device, enum chardev_status stat, size_t bytes_transfered, void* token);
+typedef void (*chardev_callback_t)(ps_chardevice_t *device, enum chardev_status stat, size_t bytes_transfered,
+                                   void *token);
 
 struct chardev_xmit_descriptor {
     /// A function to call when the transfer is complete
     chardev_callback_t callback;
     /// A token to pass unmodified to callback
-    void* token;
+    void *token;
     /// The number of bytes transfered thus far
     size_t bytes_transfered;
     /// The total number of bytes to transfer
     volatile size_t bytes_requested;
     /// The source or destination for the data
-    void* data;
+    void *data;
 };
 
 struct ps_chardevice {
     /* identifier for the device */
     enum chardev_id id;
-    void* vaddr;
+    void *vaddr;
     /* Character operations for this device */
-    ssize_t (*read)(ps_chardevice_t* device, void* data, size_t bytes, chardev_callback_t cb, void* token);
-    ssize_t (*write)(ps_chardevice_t* device, const void* data, size_t bytes, chardev_callback_t cb, void* token);
-    void (*handle_irq)(ps_chardevice_t* device);
+    ssize_t (*read)(ps_chardevice_t *device, void *data, size_t bytes, chardev_callback_t cb, void *token);
+    ssize_t (*write)(ps_chardevice_t *device, const void *data, size_t bytes, chardev_callback_t cb, void *token);
+    void (*handle_irq)(ps_chardevice_t *device);
     /* array of irqs associated with this device */
     const int *irqs;
     /// Transmit transfer data for use with IRQs
@@ -54,7 +55,7 @@ struct ps_chardevice {
     /// Receive transfer data for use with IRQs
     struct chardev_xmit_descriptor write_descriptor;
     /* Input clock for this device */
-    struct ps_clk* clk;
+    struct ps_clk *clk;
     /* OS specific memory operations */
     ps_io_ops_t ioops;
     /* Device specific flags */
@@ -68,9 +69,9 @@ struct ps_chardevice {
  * @param dev: a character device structure to populate
  * @return   : NULL on error, otherwise returns the device structure pointer
  */
-ps_chardevice_t* ps_cdev_init(enum chardev_id id,
-                              const ps_io_ops_t* ops,
-                              ps_chardevice_t* dev);
+ps_chardevice_t *ps_cdev_init(enum chardev_id id,
+                              const ps_io_ops_t *ops,
+                              ps_chardevice_t *dev);
 
 /*
  * Statically initialise a device
@@ -79,8 +80,8 @@ ps_chardevice_t* ps_cdev_init(enum chardev_id id,
  * @param params: a pointer generally used to pass machine or platform
  *  specific parameters
  */
-ps_chardevice_t* ps_cdev_static_init(const ps_io_ops_t *ops,
-                                     ps_chardevice_t* dev,
+ps_chardevice_t *ps_cdev_static_init(const ps_io_ops_t *ops,
+                                     ps_chardevice_t *dev,
                                      void *params);
 
 /*
@@ -89,8 +90,8 @@ ps_chardevice_t* ps_cdev_static_init(const ps_io_ops_t *ops,
  * @param d: a character device structure to populate
  * @return   : NULL on error, otherwise returns the device structure pointer
  */
-ps_chardevice_t* ps_cdev_new(const ps_io_ops_t* o,
-                             ps_chardevice_t* d);
+ps_chardevice_t *ps_cdev_new(const ps_io_ops_t *o,
+                             ps_chardevice_t *d);
 
 /**
  * Send a character to the device. New lines will be automatically be chased
@@ -98,7 +99,7 @@ ps_chardevice_t* ps_cdev_new(const ps_io_ops_t* o,
  * @param[in] d    The character device to send a character to
  * @param[in] c    The character to send
  */
-static inline void ps_cdev_putchar(ps_chardevice_t* d, int c)
+static inline void ps_cdev_putchar(ps_chardevice_t *d, int c)
 {
     int ret;
     do {
@@ -112,7 +113,7 @@ static inline void ps_cdev_putchar(ps_chardevice_t* d, int c)
  * @param[in] d  The device to receive a character from
  * @return       The chracter received; negative values signal that an error occurred.
  */
-static inline int ps_cdev_getchar(ps_chardevice_t* d)
+static inline int ps_cdev_getchar(ps_chardevice_t *d)
 {
     int ret;
     char data;
@@ -138,8 +139,8 @@ static inline int ps_cdev_getchar(ps_chardevice_t* d)
  *                      and then return. It will not block until the requested
  *                      number of bytes are available.
  */
-static inline ssize_t ps_cdev_read(ps_chardevice_t* d, void* data, size_t size,
-                                   chardev_callback_t callback, void* token)
+static inline ssize_t ps_cdev_read(ps_chardevice_t *d, void *data, size_t size,
+                                   chardev_callback_t callback, void *token)
 {
     return d->read(d, data, size, callback, token);
 }
@@ -162,8 +163,8 @@ static inline ssize_t ps_cdev_read(ps_chardevice_t* d, void* data, size_t size,
  *                      and then return. It will not block until the requested
  *                      number of bytes have been written.
  */
-static inline ssize_t ps_cdev_write(ps_chardevice_t* d, void* data, size_t size,
-                                    chardev_callback_t callback, void* token)
+static inline ssize_t ps_cdev_write(ps_chardevice_t *d, void *data, size_t size,
+                                    chardev_callback_t callback, void *token)
 {
     return d->write(d, data, size, callback, token);
 }
@@ -173,7 +174,7 @@ static inline ssize_t ps_cdev_write(ps_chardevice_t* d, void* data, size_t size,
  * @param[in] The device to pass control to
  * @param[in] The physical IRQ number that triggered the event
  */
-static inline void ps_cdev_handle_irq(ps_chardevice_t* d, int irq UNUSED)
+static inline void ps_cdev_handle_irq(ps_chardevice_t *d, int irq UNUSED)
 {
     d->handle_irq(d);
 }
@@ -184,7 +185,7 @@ static inline void ps_cdev_handle_irq(ps_chardevice_t* d, int irq UNUSED)
  * @param[in] irq An irq number
  * @return        non-zero if the device will produce the given IRQ
  */
-static inline int ps_cdev_produces_irq(const ps_chardevice_t* d, int irq)
+static inline int ps_cdev_produces_irq(const ps_chardevice_t *d, int irq)
 {
     int i;
     for (i = 0; d->irqs[i] != -1; i++) {
@@ -200,7 +201,7 @@ static inline int ps_cdev_produces_irq(const ps_chardevice_t* d, int irq)
  * @param[in] d     The character device to set the flags to
  * @param[in] flags The flags to set
  */
-static inline void ps_cdev_set_flags(ps_chardevice_t* d, int flags)
+static inline void ps_cdev_set_flags(ps_chardevice_t *d, int flags)
 {
     d->flags = flags;
 }

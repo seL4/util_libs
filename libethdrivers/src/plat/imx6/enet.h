@@ -29,9 +29,9 @@
 struct enet;
 
 /* Debug */
-void enet_dump_regs(struct enet* enet);
-void enet_clear_mib(struct enet* enet);
-void enet_print_mib(struct enet* enet);
+void enet_dump_regs(struct enet *enet);
+void enet_clear_mib(struct enet *enet);
+void enet_print_mib(struct enet *enet);
 
 struct desc_data {
     uint32_t tx_phys;
@@ -39,37 +39,37 @@ struct desc_data {
     uint32_t rx_bufsize;
 };
 
-struct enet * enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops);
+struct enet *enet_init(struct desc_data desc_data, ps_io_ops_t *io_ops);
 
 /* Read and write to the phy over the mdio interface */
-int enet_mdio_read(struct enet * enet, uint16_t phy, uint16_t reg);
-int enet_mdio_write(struct enet * enet, uint16_t phy, uint16_t reg, uint16_t data);
+int enet_mdio_read(struct enet *enet, uint16_t phy, uint16_t reg);
+int enet_mdio_write(struct enet *enet, uint16_t phy, uint16_t reg, uint16_t data);
 
-void enet_enable(struct enet* enet);
-int enet_enabled(struct enet* enet);
-void enet_disable(struct enet* enet);
+void enet_enable(struct enet *enet);
+int enet_enabled(struct enet *enet);
+void enet_disable(struct enet *enet);
 
-void enet_set_mac(struct enet* enet, unsigned char* mac);
-void enet_get_mac(struct enet* enet, unsigned char* mac);
+void enet_set_mac(struct enet *enet, unsigned char *mac);
+void enet_get_mac(struct enet *enet, unsigned char *mac);
 
-void enet_set_speed(struct enet* enet, int speed, int full_duplex);
+void enet_set_speed(struct enet *enet, int speed, int full_duplex);
 /* Clears ievents and returns the original value - before the clear */
-uint32_t enet_clr_events(struct enet* enet, uint32_t clr_bits);
+uint32_t enet_clr_events(struct enet *enet, uint32_t clr_bits);
 /* Sets the event mask */
-void enet_enable_events(struct enet* enet, uint32_t mask_bits);
+void enet_enable_events(struct enet *enet, uint32_t mask_bits);
 /* Returns the value of ievents */
-uint32_t enet_get_events(struct enet* enet);
+uint32_t enet_get_events(struct enet *enet);
 
-void enet_tx_enable(struct enet* enet);
-int enet_tx_enabled(struct enet* enet);
-void enet_rx_enable(struct enet* enet);
-int enet_rx_enabled(struct enet* enet);
+void enet_tx_enable(struct enet *enet);
+int enet_tx_enabled(struct enet *enet);
+void enet_rx_enable(struct enet *enet);
+int enet_rx_enabled(struct enet *enet);
 
-void enet_set_mdcclk(struct enet * enet, uint32_t fout);
+void enet_set_mdcclk(struct enet *enet, uint32_t fout);
 uint32_t enet_get_mdcclk(struct enet *imx_eth);
 
-void enet_print_state(struct enet * enet);
+void enet_print_state(struct enet *enet);
 
-void enet_prom_enable(struct enet * enet);
-void enet_prom_disable(struct enet * enet);
+void enet_prom_enable(struct enet *enet);
+void enet_prom_disable(struct enet *enet);
 

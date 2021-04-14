@@ -11,5 +11,5 @@
 #include "keyboard_vkey.h"
 
 int
-keyboard_cdev_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+keyboard_cdev_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_chardevice_t *dev);
 

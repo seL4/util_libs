@@ -5,10 +5,10 @@
  */
 #include "../clock.h"
 
-uint32_t exynos_pll_get_freq(clk_t* clk, int clkid, uint32_t pll_idx)
+uint32_t exynos_pll_get_freq(clk_t *clk, int clkid, uint32_t pll_idx)
 {
     uint32_t v, p, m, s;
-    clk_regs_io_t** clk_regs;
+    clk_regs_io_t **clk_regs;
     int c, r, o;
 
     clkid_decode(clkid, &c, &r, &o);

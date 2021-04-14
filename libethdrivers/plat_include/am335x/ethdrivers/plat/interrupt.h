@@ -50,21 +50,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    /****************************************************************************
-    **                       MACRO DEFINITIONS
-    ****************************************************************************/
-    /*
-    ** Macros which can be passed to IntPrioritySet API as hostIntRoute.
-    */
-    /* To route an interrupt to IRQ */
+/****************************************************************************
+**                       MACRO DEFINITIONS
+****************************************************************************/
+/*
+** Macros which can be passed to IntPrioritySet API as hostIntRoute.
+*/
+/* To route an interrupt to IRQ */
 #define AINTC_HOSTINT_ROUTE_IRQ                (0)
 
-    /* To route an interrupt to FIQ */
+/* To route an interrupt to FIQ */
 #define AINTC_HOSTINT_ROUTE_FIQ                (INTC_ILR_FIQNIRQ)
 
-    /*
-    ** Interrupt number list
-    */
+/*
+** Interrupt number list
+*/
 #define SYS_INT_EMUINT                         (0)
 #define SYS_INT_COMMTX                         (1)
 #define SYS_INT_COMMRX                         (2)
@@ -175,44 +175,44 @@ extern "C" {
 #define SYS_INT_DMA_INTR_PIN1                  (124)
 #define SYS_INT_SPI1INT                        (125)
 
-    /*****************************************************************************
-    **                     API FUNCTION PROTOTYPES
-    *****************************************************************************/
-    extern void IntAINTCInit (void);
-    extern void IntIfClkFreeRunSet(void);
-    extern void IntIfClkAutoGateSet(void);
-    extern void IntProtectionEnable(void);
-    extern void IntProtectionDisable(void);
-    extern void IntSyncClkFreeRunSet(void);
-    extern void IntSyncClkAutoGateSet(void);
-    extern void IntFuncClkFreeRunSet(void);
-    extern void IntFuncClkAutoGateSet(void);
-    extern void IntPriorityThresholdSet(unsigned int threshold);
-    extern void IntSoftwareIntSet(unsigned int intrNum);
-    extern void IntSoftwareIntClear(unsigned int intrNum);
-    extern void IntMasterIRQEnable(void);
-    extern void IntMasterIRQDisable(void);
-    extern void IntMasterFIQEnable(void);
-    extern void IntMasterFIQDisable(void);
-    extern void IntSystemEnable(unsigned int intrNum);
-    extern void IntSystemDisable(unsigned int intrNum);
-    extern void IntUnRegister(unsigned int intrNum);
-    extern void IntEnable(unsigned char  status);
-    extern void IntRegister(unsigned int intrNum, void (*pfnHandler)(void));
-    extern void IntPrioritySet(unsigned int intrNum, unsigned int priority,
-                               unsigned int hostIntRoute);
-    extern unsigned char IntDisable(void);
-    extern unsigned int IntMasterStatusGet(void);
-    extern unsigned int IntActiveIrqNumGet(void);
-    extern unsigned int IntActiveFiqNumGet(void);
-    extern unsigned int IntSpurIrqFlagGet(void);
-    extern unsigned int IntSpurFiqFlagGet(void);
-    extern unsigned int IntCurrIrqPriorityGet(void);
-    extern unsigned int IntCurrFiqPriorityGet(void);
-    extern unsigned int IntPriorityThresholdGet(void);
-    extern unsigned int IntRawStatusGet(unsigned int intrNum);
-    extern unsigned int IntPendingIrqMaskedStatusGet(unsigned int intrNum);
-    extern unsigned int IntPendingFiqMaskedStatusGet(unsigned int intrNum);
+/*****************************************************************************
+**                     API FUNCTION PROTOTYPES
+*****************************************************************************/
+extern void IntAINTCInit(void);
+extern void IntIfClkFreeRunSet(void);
+extern void IntIfClkAutoGateSet(void);
+extern void IntProtectionEnable(void);
+extern void IntProtectionDisable(void);
+extern void IntSyncClkFreeRunSet(void);
+extern void IntSyncClkAutoGateSet(void);
+extern void IntFuncClkFreeRunSet(void);
+extern void IntFuncClkAutoGateSet(void);
+extern void IntPriorityThresholdSet(unsigned int threshold);
+extern void IntSoftwareIntSet(unsigned int intrNum);
+extern void IntSoftwareIntClear(unsigned int intrNum);
+extern void IntMasterIRQEnable(void);
+extern void IntMasterIRQDisable(void);
+extern void IntMasterFIQEnable(void);
+extern void IntMasterFIQDisable(void);
+extern void IntSystemEnable(unsigned int intrNum);
+extern void IntSystemDisable(unsigned int intrNum);
+extern void IntUnRegister(unsigned int intrNum);
+extern void IntEnable(unsigned char  status);
+extern void IntRegister(unsigned int intrNum, void (*pfnHandler)(void));
+extern void IntPrioritySet(unsigned int intrNum, unsigned int priority,
+                           unsigned int hostIntRoute);
+extern unsigned char IntDisable(void);
+extern unsigned int IntMasterStatusGet(void);
+extern unsigned int IntActiveIrqNumGet(void);
+extern unsigned int IntActiveFiqNumGet(void);
+extern unsigned int IntSpurIrqFlagGet(void);
+extern unsigned int IntSpurFiqFlagGet(void);
+extern unsigned int IntCurrIrqPriorityGet(void);
+extern unsigned int IntCurrFiqPriorityGet(void);
+extern unsigned int IntPriorityThresholdGet(void);
+extern unsigned int IntRawStatusGet(unsigned int intrNum);
+extern unsigned int IntPendingIrqMaskedStatusGet(unsigned int intrNum);
+extern unsigned int IntPendingFiqMaskedStatusGet(unsigned int intrNum);
 
 #ifdef __cplusplus
 }

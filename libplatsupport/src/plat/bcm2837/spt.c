@@ -35,7 +35,7 @@ enum {
             0: 16-bit counters
             1: 32-bit counters
     */
-        COUNTER_WIDTH_BIT = 1,
+    COUNTER_WIDTH_BIT = 1,
     /*
         The prescale bits select the prescale for the down counter.
         Note: There are other pre-scale bits in this register (16:23) for
@@ -45,41 +45,41 @@ enum {
         10 : pre-scale is clock / 256
         11 : pre-scale is clock / 1
     */
-        PRESCALE_BIT = 2,
+    PRESCALE_BIT = 2,
 
     /*
         Interrupt enable bit.
             0: Timer interrupt disabled
             1: Timer interrupt enabled
     */
-        TIMER_INTERRUPT_ENABLE = 5,
+    TIMER_INTERRUPT_ENABLE = 5,
 
     /*
         Timer enable.
             0: Disabled
             1: Enabled
     */
-        TIMER_ENABLE = 7,
+    TIMER_ENABLE = 7,
 
     /*
         Timer behaviour when ARM is in debug halt mode:
             0: Timers keep running
             1: Timers halted.
     */
-        ARM_DEBUG_HALT = 8,
+    ARM_DEBUG_HALT = 8,
 
     /*
         Whether the free-run counter is enabled.
             0: Enabled
             1: Disabled
      */
-        FREE_RUN_ENABLE = 9,
+    FREE_RUN_ENABLE = 9,
 
     /*
         Free running scalar.  8 bits wide.  Reset value is 0x3E
         Freq = clk/(prescale + 1)
      */
-        FREE_RUN_PRESCALE = 16
+    FREE_RUN_PRESCALE = 16
 } control_reg;
 
 #define LOAD_WIDTH 32
@@ -149,7 +149,7 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
     spt->regs->pre_divider = 0;
     spt->regs->irq_clear = 1;
     spt->regs->ctrl = BIT(COUNTER_WIDTH_BIT) | (prescale_bits << PRESCALE_BIT) |
-                        BIT(TIMER_INTERRUPT_ENABLE) | BIT(FREE_RUN_ENABLE) | BIT(TIMER_ENABLE);
+                      BIT(TIMER_INTERRUPT_ENABLE) | BIT(FREE_RUN_ENABLE) | BIT(TIMER_ENABLE);
 
     return 0;
 }
@@ -188,7 +188,7 @@ int spt_init(spt_t *spt, spt_config_t config)
     }
 
     /* Save the mmio address */
-    spt->regs = (void *) ((uintptr_t) config.vaddr) + TIMER_BASE_OFFSET;
+    spt->regs = (void *)((uintptr_t) config.vaddr) + TIMER_BASE_OFFSET;
     clock_sys_t clk_sys;
     clock_sys_init_default(&clk_sys);
     clk = clk_get_clock(&clk_sys, CLK_SP804);

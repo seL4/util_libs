@@ -31,17 +31,16 @@ volatile struct irq_combiner_map *_combiner_regs = NULL;
 #define IRQ_SHIFT(cirq)   (COMBINER_IRQ_GET_INDEX(cirq))
 #define GROUP_INDEX_MASK  0xff
 
-static volatile struct irq_combiner_map*
-irq_combiner_get_regs(irq_combiner_t* combiner) {
+static volatile struct irq_combiner_map *irq_combiner_get_regs(irq_combiner_t *combiner)
+{
     assert(combiner);
     assert(combiner->priv);
-    return (volatile struct irq_combiner_map*)combiner->priv;
+    return (volatile struct irq_combiner_map *)combiner->priv;
 }
 
-static int
-exynos_irq_combiner_is_pending(irq_combiner_t* combiner, combiner_irq_t cirq)
+static int exynos_irq_combiner_is_pending(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
-    volatile struct irq_combiner_map* regs;
+    volatile struct irq_combiner_map *regs;
     int gidx, shift;
     regs = irq_combiner_get_regs(combiner);
     gidx = GROUP_INDEX(cirq);
@@ -49,10 +48,9 @@ exynos_irq_combiner_is_pending(irq_combiner_t* combiner, combiner_irq_t cirq)
     return !!(regs->g[gidx].masked_status & BIT(shift));
 }
 
-static int
-exynos_irq_combiner_is_enabled(irq_combiner_t* combiner, combiner_irq_t cirq)
+static int exynos_irq_combiner_is_enabled(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
-    volatile struct irq_combiner_map* regs;
+    volatile struct irq_combiner_map *regs;
     int gidx, shift;
     regs = irq_combiner_get_regs(combiner);
     gidx = GROUP_INDEX(cirq);
@@ -60,10 +58,9 @@ exynos_irq_combiner_is_enabled(irq_combiner_t* combiner, combiner_irq_t cirq)
     return !!(regs->g[gidx].enable_set & BIT(shift));
 }
 
-static int
-exynos_irq_combiner_set_enabled(irq_combiner_t* combiner, combiner_irq_t cirq, int v)
+static int exynos_irq_combiner_set_enabled(irq_combiner_t *combiner, combiner_irq_t cirq, int v)
 {
-    volatile struct irq_combiner_map* regs;
+    volatile struct irq_combiner_map *regs;
     int gidx, shift;
     regs = irq_combiner_get_regs(combiner);
     gidx = GROUP_INDEX(cirq);
@@ -76,10 +73,9 @@ exynos_irq_combiner_set_enabled(irq_combiner_t* combiner, combiner_irq_t cirq, i
     return 0;
 }
 
-static uint32_t
-exynos_irq_combiner_grp_pending(irq_combiner_t* combiner, int group)
+static uint32_t exynos_irq_combiner_grp_pending(irq_combiner_t *combiner, int group)
 {
-    volatile struct irq_combiner_map* regs;
+    volatile struct irq_combiner_map *regs;
     combiner_irq_t cirq;
     int gidx, shift;
     uint32_t v;
@@ -91,14 +87,13 @@ exynos_irq_combiner_grp_pending(irq_combiner_t* combiner, int group)
     return (v >> shift) & GROUP_INDEX_MASK;
 }
 
-static int
-irq_combiner_init_common(irq_combiner_t* combiner)
+static int irq_combiner_init_common(irq_combiner_t *combiner)
 {
     if (_combiner_regs == NULL) {
         return -1;
     } else {
         /* Initialise the structure */
-        combiner->priv = (void*)_combiner_regs;
+        combiner->priv = (void *)_combiner_regs;
         combiner->is_pending  = &exynos_irq_combiner_is_pending;
         combiner->is_enabled  = &exynos_irq_combiner_is_enabled;
         combiner->set_enabled = &exynos_irq_combiner_set_enabled;
@@ -107,8 +102,7 @@ irq_combiner_init_common(irq_combiner_t* combiner)
     }
 }
 
-int
-exynos_irq_combiner_init(void* base, irq_combiner_t* combiner)
+int exynos_irq_combiner_init(void *base, irq_combiner_t *combiner)
 {
     if (base) {
         _combiner_regs = (volatile struct irq_combiner_map *)base;
@@ -116,8 +110,7 @@ exynos_irq_combiner_init(void* base, irq_combiner_t* combiner)
     return irq_combiner_init_common(combiner);
 }
 
-int
-irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* combiner)
+int irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t *io_ops, irq_combiner_t *combiner)
 {
     /* Map memory */
     ZF_LOGD("Mapping device ID %d\n", id);
@@ -132,8 +125,7 @@ irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* 
     return irq_combiner_init_common(combiner);
 }
 
-int
-irq_combiner_nirqs(enum irq_combiner_id id)
+int irq_combiner_nirqs(enum irq_combiner_id id)
 {
     switch (id) {
     case IRQ_COMBINER0:

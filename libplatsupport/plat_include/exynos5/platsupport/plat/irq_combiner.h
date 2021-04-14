@@ -99,5 +99,5 @@ enum irq_combiner_id {
  * @param[out] combiner An IRQ combiner structure to populate
  * @return              0 on success.
  */
-int exynos_irq_combiner_init(void* base, irq_combiner_t* combiner);
+int exynos_irq_combiner_init(void *base, irq_combiner_t *combiner);
 

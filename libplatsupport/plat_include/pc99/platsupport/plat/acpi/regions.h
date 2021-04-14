@@ -64,7 +64,7 @@ typedef enum {
     ACPI_BOOT,
     ACPI_SPCR,
     ACPI_DMAR,
-    ACPI_ASF ,
+    ACPI_ASF,
     ACPI_HEST,
     ACPI_MCFG,
     ACPI_ASPT,
@@ -80,9 +80,9 @@ typedef enum {
 /*
  * type ID <-> signiture conversions
  */
-const char*
+const char *
 acpi_sig_str(region_type_t);
 
 region_type_t
-acpi_sig_id(const char* sig);
+acpi_sig_id(const char *sig);
 

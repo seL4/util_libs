@@ -102,39 +102,35 @@ typedef struct acpi_asf_addr {
  **** ASF record helpers ****
  ****************************/
 
-static inline acpi_asf_rec_hdr_t*
-acpi_asf_first_rec(acpi_asf_hdr_t* h)
+static inline acpi_asf_rec_hdr_t *acpi_asf_first_rec(acpi_asf_hdr_t *h)
 {
-    return (acpi_asf_rec_hdr_t*)((char*)h + sizeof(*h));
+    return (acpi_asf_rec_hdr_t *)((char *)h + sizeof(*h));
 }
 
-static inline acpi_asf_rec_hdr_t*
-acpi_asf_next_rec(acpi_asf_hdr_t* h, acpi_asf_rec_hdr_t* cur)
+static inline acpi_asf_rec_hdr_t *acpi_asf_next_rec(acpi_asf_hdr_t *h, acpi_asf_rec_hdr_t *cur)
 {
     (void)h;
     if (ACPI_ASF_IS_LAST_REC(cur)) {
         return NULL;
     }
-    return (acpi_asf_rec_hdr_t*)((char*)cur + cur->length);
+    return (acpi_asf_rec_hdr_t *)((char *)cur + cur->length);
 }
 
 /**********************
  **** ALRT helpers ****
  ***********************/
 
-static inline acpi_asf_dev_array_t*
-acpi_asf_alrt_first_dev(acpi_asf_alrt_t* h)
+static inline acpi_asf_dev_array_t *acpi_asf_alrt_first_dev(acpi_asf_alrt_t *h)
 {
-    return (acpi_asf_dev_array_t*)((char*)h + sizeof(*h));
+    return (acpi_asf_dev_array_t *)((char *)h + sizeof(*h));
 }
 
-static inline acpi_asf_dev_array_t*
-acpi_asf_alrt_next_dev(acpi_asf_alrt_t* h, acpi_asf_dev_array_t* cur)
+static inline acpi_asf_dev_array_t *acpi_asf_alrt_next_dev(acpi_asf_alrt_t *h, acpi_asf_dev_array_t *cur)
 {
-    char* next = (char*)cur + h->element_length;
-    char* end  = (char*)h + h->header.length;
+    char *next = (char *)cur + h->element_length;
+    char *end  = (char *)h + h->header.length;
     if (next < end) {
-        return (acpi_asf_dev_array_t*)next;
+        return (acpi_asf_dev_array_t *)next;
     } else {
         return NULL;
     }
@@ -144,19 +140,17 @@ acpi_asf_alrt_next_dev(acpi_asf_alrt_t* h, acpi_asf_dev_array_t* cur)
  **** RCTL helpers ****
  ***********************/
 
-static inline acpi_asf_ctl_array_t*
-acpi_asf_rctl_first_ctl(acpi_asf_rctl_t* h)
+static inline acpi_asf_ctl_array_t *acpi_asf_rctl_first_ctl(acpi_asf_rctl_t *h)
 {
-    return (acpi_asf_ctl_array_t*)((char*)h + sizeof(*h));
+    return (acpi_asf_ctl_array_t *)((char *)h + sizeof(*h));
 }
 
-static inline acpi_asf_ctl_array_t*
-acpi_asf_rtcl_next_ctl(acpi_asf_rctl_t* h, acpi_asf_ctl_array_t* cur)
+static inline acpi_asf_ctl_array_t *acpi_asf_rtcl_next_ctl(acpi_asf_rctl_t *h, acpi_asf_ctl_array_t *cur)
 {
-    char* next = (char*)cur + h->element_length;
-    char* end  = (char*)h + h->header.length;
+    char *next = (char *)cur + h->element_length;
+    char *end  = (char *)h + h->header.length;
     if (next < end) {
-        return (acpi_asf_ctl_array_t*)next;
+        return (acpi_asf_ctl_array_t *)next;
     } else
 
     {
@@ -168,19 +162,17 @@ acpi_asf_rtcl_next_ctl(acpi_asf_rctl_t* h, acpi_asf_ctl_array_t* cur)
  **** ADDR helpers ****
  ***********************/
 
-static inline acpi_asf_addr_smb_t*
-acpi_asf_addr_smb_first(acpi_asf_addr_t* h)
+static inline acpi_asf_addr_smb_t *acpi_asf_addr_smb_first(acpi_asf_addr_t *h)
 {
-    return (acpi_asf_addr_smb_t*)((char*)h + sizeof(*h));
+    return (acpi_asf_addr_smb_t *)((char *)h + sizeof(*h));
 }
 
-static inline acpi_asf_addr_smb_t*
-acpi_asf_addr_smb_next(acpi_asf_addr_t* h, acpi_asf_addr_smb_t* cur)
+static inline acpi_asf_addr_smb_t *acpi_asf_addr_smb_next(acpi_asf_addr_t *h, acpi_asf_addr_smb_t *cur)
 {
-    char* next = (char*)(cur + 1);
-    char* end  = (char*)h + h->header.length;
+    char *next = (char *)(cur + 1);
+    char *end  = (char *)h + h->header.length;
     if (next < end) {
-        return (acpi_asf_addr_smb_t*)next;
+        return (acpi_asf_addr_smb_t *)next;
     } else
 
     {

@@ -51,9 +51,9 @@ enum mux_feature {
  *                    subsystem data.
  * @return            0 on success
  */
-int exynos_mux_init(void* bank1,
-                    void* bank2,
-                    void* bank3,
-                    void* bank4,
-                    mux_sys_t* mux);
+int exynos_mux_init(void *bank1,
+                    void *bank2,
+                    void *bank3,
+                    void *bank4,
+                    mux_sys_t *mux);
 

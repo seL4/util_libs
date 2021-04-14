@@ -17,22 +17,19 @@
 
 // pretty print a table. table type is auto detected
 void
-acpi_print_table(const void* start);
+acpi_print_table(const void *start);
 
 // print the raw table in hex and ASCII
 void
-acpi_print_table_raw(const void* start, int length);
+acpi_print_table_raw(const void *start, int length);
 
 void
-acpi_print_regions(const RegionList_t* rl);
+acpi_print_regions(const RegionList_t *rl);
 
 #else
-static inline void
-acpi_print_table(const void* start UNUSED) {}
+static inline void acpi_print_table(const void *start UNUSED) {}
 
-static inline void
-acpi_print_table_raw(const void* start UNUSED, int length UNUSED) {}
+static inline void acpi_print_table_raw(const void *start UNUSED, int length UNUSED) {}
 
-static inline void
-acpi_print_regions(const RegionList_t* rl UNUSED) {}
+static inline void acpi_print_regions(const RegionList_t *rl UNUSED) {}
 #endif

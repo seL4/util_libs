@@ -9,13 +9,13 @@
 
 static int cmp(uint64_t a, uint64_t b)
 {
-     if (a > b) {
-         return 1;
-     } else if (a < b) {
-         return -1;
-     } else {
-         return 0;
-     }
+    if (a > b) {
+        return 1;
+    } else if (a < b) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
 #define TIMEOUT_CMP(t1, t2) (cmp(t1->timeout.abs_time, t2->timeout.abs_time))
@@ -115,7 +115,8 @@ int tqueue_register(tqueue_t *tq, unsigned int id, timeout_t *timeout)
     return 0;
 }
 
-int tqueue_cancel(tqueue_t *tq, unsigned int id) {
+int tqueue_cancel(tqueue_t *tq, unsigned int id)
+{
 
     if (!tq) {
         return EINVAL;
@@ -136,7 +137,8 @@ int tqueue_cancel(tqueue_t *tq, unsigned int id) {
     return 0;
 }
 
-int tqueue_update(tqueue_t *tq, uint64_t curr_time, uint64_t *next_time) {
+int tqueue_update(tqueue_t *tq, uint64_t curr_time, uint64_t *next_time)
+{
     if (!tq) {
         return EINVAL;
     }

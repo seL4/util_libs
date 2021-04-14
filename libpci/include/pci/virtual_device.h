@@ -37,8 +37,8 @@ typedef struct libpci_vdevice libpci_vdevice_t;
 
 typedef struct libpci_vdevice_mode {
     int mode; /* PCI_VDEVICE_MODE_* */
-    uint8_t (*callback_ioread) (libpci_vdevice_t* vdevice, int offset);
-    void (*callback_iowrite) (libpci_vdevice_t* vdevice, int offset, uint8_t val);
+    uint8_t (*callback_ioread)(libpci_vdevice_t *vdevice, int offset);
+    void (*callback_iowrite)(libpci_vdevice_t *vdevice, int offset, uint8_t val);
 } libpci_vdevice_mode_t;
 
 struct libpci_vdevice {
@@ -52,60 +52,60 @@ struct libpci_vdevice {
     /* Per-byte device config space virtualisation mode. */
     libpci_vdevice_mode_t mode[PCI_CONFIG_HEADER_SIZE_BYTES];
     /* Which physical device to pass through. */
-    libpci_device_t* physical_device_passthrough;
+    libpci_device_t *physical_device_passthrough;
 
     uint32_t rebased_addr[6];
     uint32_t rebased_writemask[6];
     uint32_t rebased_type[6];
 
-    void (*enable) (libpci_vdevice_t* self, uint8_t bus, uint8_t dev, uint8_t fun,
-                    libpci_device_t* pdevice_passthrough /* may be NULL. */);
+    void (*enable)(libpci_vdevice_t *self, uint8_t bus, uint8_t dev, uint8_t fun,
+                   libpci_device_t *pdevice_passthrough /* may be NULL. */);
 
-    void (*disable) (libpci_vdevice_t* self);
+    void (*disable)(libpci_vdevice_t *self);
 
-    bool (*match) (libpci_vdevice_t* self, uint8_t bus, uint8_t dev, uint8_t fun);
+    bool (*match)(libpci_vdevice_t *self, uint8_t bus, uint8_t dev, uint8_t fun);
 
-    void (*set_mode) (libpci_vdevice_t* self,
-        int offset, /* 0 ... PCI_STD_HEADER_SIZEOF - 1 */
-        libpci_vdevice_mode_t m /* The mode to set it to */
-    );
-
-    /* implicitly sets physical_device_passthrough to the given device. */
-    void (*rebase_addr_realdevice) (libpci_vdevice_t* self,
-        int base_addr_index, /* 0 ... 5 */
-        uint32_t base_addr, /* correctly aligned new address. */
-        libpci_device_t* dev /* contains physical device info */
-    );
+    void (*set_mode)(libpci_vdevice_t *self,
+                     int offset, /* 0 ... PCI_STD_HEADER_SIZEOF - 1 */
+                     libpci_vdevice_mode_t m /* The mode to set it to */
+                    );
 
     /* implicitly sets physical_device_passthrough to the given device. */
-    void (*rebase_ioaddr_realdevice) (libpci_vdevice_t* self,
-        int base_addr_index, /* 0 ... 5 */
-        uint32_t base_addr, /* correctly aligned new address. */
-        libpci_device_t* dev /* contains physical device info */
-    );
+    void (*rebase_addr_realdevice)(libpci_vdevice_t *self,
+                                   int base_addr_index, /* 0 ... 5 */
+                                   uint32_t base_addr, /* correctly aligned new address. */
+                                   libpci_device_t *dev /* contains physical device info */
+                                  );
 
-    void (*rebase_addr_virtdevice) (libpci_vdevice_t* self,
-        int base_addr_index, /* 0 ... 5 */
-        uint32_t base_addr, /* correctly aligned new address. */
-        uint32_t size_mask, /* the size mask. last 3 bits must be 0. */
-        bool prefetch, /* prefetchable? */
-        bool LWord64 /* Is this address the LWORD of a 64-bit address? */
-    );
+    /* implicitly sets physical_device_passthrough to the given device. */
+    void (*rebase_ioaddr_realdevice)(libpci_vdevice_t *self,
+                                     int base_addr_index, /* 0 ... 5 */
+                                     uint32_t base_addr, /* correctly aligned new address. */
+                                     libpci_device_t *dev /* contains physical device info */
+                                    );
 
-    void (*rebase_ioaddr_virtdevice) (libpci_vdevice_t* self,
-        int base_addr_index, /* 0 ... 5 */
-        uint32_t base_addr, /* correctly aligned new address. */
-        uint32_t size_mask /* the size mask. last 3 bits must be 0. */
-    );
+    void (*rebase_addr_virtdevice)(libpci_vdevice_t *self,
+                                   int base_addr_index, /* 0 ... 5 */
+                                   uint32_t base_addr, /* correctly aligned new address. */
+                                   uint32_t size_mask, /* the size mask. last 3 bits must be 0. */
+                                   bool prefetch, /* prefetchable? */
+                                   bool LWord64 /* Is this address the LWORD of a 64-bit address? */
+                                  );
 
-    uint32_t (*ioread) (libpci_vdevice_t* self,
+    void (*rebase_ioaddr_virtdevice)(libpci_vdevice_t *self,
+                                     int base_addr_index, /* 0 ... 5 */
+                                     uint32_t base_addr, /* correctly aligned new address. */
+                                     uint32_t size_mask /* the size mask. last 3 bits must be 0. */
+                                    );
+
+    uint32_t (*ioread)(libpci_vdevice_t *self,
+                       int offset /* 0 ... PCI_STD_HEADER_SIZEOF - 1 */,
+                       int size /* 1, 2 or 4 */);
+
+    void (*iowrite)(libpci_vdevice_t *self,
                     int offset /* 0 ... PCI_STD_HEADER_SIZEOF - 1 */,
-                    int size /* 1, 2 or 4 */);
-
-    void (*iowrite) (libpci_vdevice_t* self,
-                     int offset /* 0 ... PCI_STD_HEADER_SIZEOF - 1 */,
-                     int size /* 1, 2 or 4 */,
-                     uint32_t val);
+                    int size /* 1, 2 or 4 */,
+                    uint32_t val);
 };
 
-void libpci_vdevice_init(libpci_vdevice_t* vd);
+void libpci_vdevice_init(libpci_vdevice_t *vd);

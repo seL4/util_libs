@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#ifndef __ETHIF_AM335X_DRIVER_H
-#define __ETHIF_AM335X_DRIVER_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
@@ -19,5 +18,3 @@
  * @param[in] config        Unused, should be NULL
  */
 int ethif_am335x_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
-
-#endif

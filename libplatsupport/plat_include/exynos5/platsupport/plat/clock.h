@@ -73,7 +73,7 @@ enum clkregs {
     NCLKREGS
 };
 
-int exynos5_clock_sys_init(void* cpu, void* core, void* acp, void* isp, void* top,
-                           void* lex, void* r0x,  void* r1x, void* cdrex, void* mem,
-                           clock_sys_t* clock_sys);
+int exynos5_clock_sys_init(void *cpu, void *core, void *acp, void *isp, void *top,
+                           void *lex, void *r0x,  void *r1x, void *cdrex, void *mem,
+                           clock_sys_t *clock_sys);
 

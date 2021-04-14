@@ -18,7 +18,8 @@
  * @param success_memorder The memory order to enforce
  * @return 0 if the increment succeeds, non-zero if it would cause an overflow.
  */
-static inline int sync_atomic_increment_safe(volatile int *x, int *oldval, int success_memorder) {
+static inline int sync_atomic_increment_safe(volatile int *x, int *oldval, int success_memorder)
+{
     assert(x != NULL);
     assert(oldval != NULL);
     do {
@@ -39,7 +40,8 @@ static inline int sync_atomic_increment_safe(volatile int *x, int *oldval, int s
  * @param success_memorder The memory order to enforce if the decrement is successful
  * @return 0 if the decrement succeeds, non-zero if it would cause an overflow.
  */
-static inline int sync_atomic_decrement_safe(volatile int *x, int *oldval, int success_memorder) {
+static inline int sync_atomic_decrement_safe(volatile int *x, int *oldval, int success_memorder)
+{
     assert(x != NULL);
     assert(oldval != NULL);
     do {
@@ -53,12 +55,14 @@ static inline int sync_atomic_decrement_safe(volatile int *x, int *oldval, int s
 }
 
 /* Atomically increment an integer and return its new value. */
-static inline int sync_atomic_increment(volatile int *x, int memorder) {
+static inline int sync_atomic_increment(volatile int *x, int memorder)
+{
     return __atomic_add_fetch(x, 1, memorder);
 }
 
 /* Atomically decrement an integer and return its new value. */
-static inline int sync_atomic_decrement(volatile int *x, int memorder) {
+static inline int sync_atomic_decrement(volatile int *x, int memorder)
+{
     return __atomic_sub_fetch(x, 1, memorder);
 }
 

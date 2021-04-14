@@ -58,8 +58,9 @@ static const struct dev_defn dev_defn[] = {
     PC99_KEYBOARD_DEFN()
 };
 
-struct ps_chardevice*
-ps_cdev_init(enum chardev_id id, const ps_io_ops_t* io_ops, struct ps_chardevice* dev) {
+struct ps_chardevice *
+ps_cdev_init(enum chardev_id id, const ps_io_ops_t *io_ops, struct ps_chardevice *dev)
+{
     unsigned int i;
     for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
         if (dev_defn[i].id == id) {

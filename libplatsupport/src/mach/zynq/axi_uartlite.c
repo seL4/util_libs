@@ -32,10 +32,9 @@ struct zynq_axi_uartlite_regs {
 };
 typedef volatile struct zynq_axi_uartlite_regs zynq_axi_uartlite_regs_t;
 
-static inline zynq_axi_uartlite_regs_t*
-zynq_axi_uartlite_get_priv(ps_chardevice_t *d)
+static inline zynq_axi_uartlite_regs_t *zynq_axi_uartlite_get_priv(ps_chardevice_t *d)
 {
-    return (zynq_axi_uartlite_regs_t*)d->vaddr;
+    return (zynq_axi_uartlite_regs_t *)d->vaddr;
 }
 
 static int axi_uartlite_getchar(ps_chardevice_t *d)
@@ -91,11 +90,11 @@ static int axi_uartlite_putchar(ps_chardevice_t *d, int c)
     }
 }
 
-static ssize_t axi_uartlite_write(ps_chardevice_t* d, const void* vdata,
+static ssize_t axi_uartlite_write(ps_chardevice_t *d, const void *vdata,
                                   size_t count, chardev_callback_t rcb UNUSED,
-                                  void* token UNUSED)
+                                  void *token UNUSED)
 {
-    const char *data = (const char*)vdata;
+    const char *data = (const char *)vdata;
     for (int i = 0; i < count; i++) {
         if (axi_uartlite_putchar(d, *data++) < 0) {
             return i;
@@ -104,11 +103,11 @@ static ssize_t axi_uartlite_write(ps_chardevice_t* d, const void* vdata,
     return count;
 }
 
-static ssize_t axi_uartlite_read(ps_chardevice_t* d, void* vdata,
+static ssize_t axi_uartlite_read(ps_chardevice_t *d, void *vdata,
                                  size_t count, chardev_callback_t rcb UNUSED,
-                                 void* token UNUSED)
+                                 void *token UNUSED)
 {
-    char *data = (char*)vdata;
+    char *data = (char *)vdata;
     for (int i = 0; i < count; i++) {
         int ch = axi_uartlite_getchar(d);
         if (ch != EOF) {
@@ -120,7 +119,7 @@ static ssize_t axi_uartlite_read(ps_chardevice_t* d, void* vdata,
     return count;
 }
 
-int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev)
+int axi_uartlite_init(void *vaddr, ps_chardevice_t *dev)
 {
 
     memset(dev, 0, sizeof(*dev));
@@ -140,9 +139,9 @@ int axi_uartlite_init(void* vaddr, ps_chardevice_t* dev)
     return 0;
 }
 
-int axi_uartlite_init_defn(const struct dev_defn* defn,
-                           const ps_io_ops_t* ops,
-                           ps_chardevice_t* dev)
+int axi_uartlite_init_defn(const struct dev_defn *defn,
+                           const ps_io_ops_t *ops,
+                           ps_chardevice_t *dev)
 {
 
     void *vaddr = chardev_map(defn, ops);

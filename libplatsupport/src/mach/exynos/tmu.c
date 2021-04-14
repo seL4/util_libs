@@ -76,18 +76,16 @@ struct tmu_regs {
 };
 typedef volatile struct tmu_regs tmu_regs_t;
 
-static tmu_regs_t* _tmu_regs[NTMU];
+static tmu_regs_t *_tmu_regs[NTMU];
 
-static inline tmu_regs_t*
-tmu_priv_get_regs(tmu_t* tmu)
+static inline tmu_regs_t *tmu_priv_get_regs(tmu_t *tmu)
 {
-    return (tmu_regs_t*)tmu->priv;
+    return (tmu_regs_t *)tmu->priv;
 }
 
-static int
-do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
+static int do_exynos_tmu_init(enum tmu_id id, void *vaddr, tmu_t *tmu)
 {
-    tmu_regs_t* regs;
+    tmu_regs_t *regs;
     uint32_t v;
     uint32_t te1, te2;
 
@@ -106,7 +104,7 @@ do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
     }
 
     regs = _tmu_regs[id];
-    tmu->priv = (void*)_tmu_regs[id];
+    tmu->priv = (void *)_tmu_regs[id];
 
     /* Reset alarms */
     regs->int_enable = 0;
@@ -141,20 +139,17 @@ do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
     return 0;
 }
 
-int
-exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
+int exynos4_tmu_init(enum tmu_id id, void *vaddr, tmu_t *tmu)
 {
     return do_exynos_tmu_init(id, vaddr, tmu);
 }
 
-int
-exynos5_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
+int exynos5_tmu_init(enum tmu_id id, void *vaddr, tmu_t *tmu)
 {
     return do_exynos_tmu_init(id, vaddr, tmu);
 }
 
-int
-exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
+int exynos_tmu_init(enum tmu_id id, ps_io_ops_t *io_ops, tmu_t *tmu)
 {
     /* Check bounds */
     if (id < 0 || id >= NTMU) {
@@ -165,13 +160,12 @@ exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu)
     if (_tmu_regs[id] == NULL) {
         return -1;
     }
-    return do_exynos_tmu_init(id, (void*)_tmu_regs[id], tmu);
+    return do_exynos_tmu_init(id, (void *)_tmu_regs[id], tmu);
 }
 
-int
-exynos_tmu_get_temperature(tmu_t* tmu)
+int exynos_tmu_get_temperature(tmu_t *tmu)
 {
-    tmu_regs_t* regs;
+    tmu_regs_t *regs;
     uint32_t currTemp;
     temperature_t temperature;
     regs = tmu_priv_get_regs(tmu);
@@ -192,10 +186,9 @@ exynos_tmu_get_temperature(tmu_t* tmu)
     return temperature;
 }
 
-void
-exynos_tmu_handle_irq(tmu_t* tmu)
+void exynos_tmu_handle_irq(tmu_t *tmu)
 {
-    tmu_regs_t* regs;
+    tmu_regs_t *regs;
     uint32_t sts;
     temperature_t t = exynos_tmu_get_temperature(tmu);
     regs = tmu_priv_get_regs(tmu);
@@ -228,15 +221,14 @@ exynos_tmu_handle_irq(tmu_t* tmu)
     regs->int_clear = sts;
 }
 
-int
-exynos_tmu_set_alarms_rising(tmu_t* tmu,
-                             temperature_t level0,
-                             temperature_t level1,
-                             temperature_t level2,
-                             tmu_alarm_callback cb,
-                             void* token)
+int exynos_tmu_set_alarms_rising(tmu_t *tmu,
+                                 temperature_t level0,
+                                 temperature_t level1,
+                                 temperature_t level2,
+                                 tmu_alarm_callback cb,
+                                 void *token)
 {
-    tmu_regs_t* regs;
+    tmu_regs_t *regs;
     uint32_t threshold;
     uint32_t int_enable;
 
@@ -261,15 +253,14 @@ exynos_tmu_set_alarms_rising(tmu_t* tmu,
     return 0;
 }
 
-int
-exynos_tmu_set_alarms_falling(tmu_t* tmu,
-                              temperature_t level0,
-                              temperature_t level1,
-                              temperature_t level2,
-                              tmu_alarm_callback cb,
-                              void* token)
+int exynos_tmu_set_alarms_falling(tmu_t *tmu,
+                                  temperature_t level0,
+                                  temperature_t level1,
+                                  temperature_t level2,
+                                  tmu_alarm_callback cb,
+                                  void *token)
 {
-    tmu_regs_t* regs;
+    tmu_regs_t *regs;
     uint32_t threshold;
     uint32_t int_enable;
 

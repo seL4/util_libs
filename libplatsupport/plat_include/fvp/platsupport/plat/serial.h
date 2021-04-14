@@ -6,15 +6,15 @@
 
 #pragma once
 
-#define UART0_PADDR  0x1c090000 
-#define UART1_PADDR  0x1c0a0000 
-#define UART2_PADDR  0x1c0b0000 
-#define UART3_PADDR  0x1c0c0000 
+#define UART0_PADDR  0x1c090000
+#define UART1_PADDR  0x1c0a0000
+#define UART2_PADDR  0x1c0b0000
+#define UART3_PADDR  0x1c0c0000
 
-#define UART0_IRQ    37 
-#define UART1_IRQ    38 
-#define UART2_IRQ    39 
-#define UART3_IRQ    40 
+#define UART0_IRQ    37
+#define UART1_IRQ    38
+#define UART2_IRQ    39
+#define UART3_IRQ    40
 
 enum chardev_id {
     PL001_UART0,

@@ -54,8 +54,7 @@ const mux_group_bitoff_mapping_t mux_group_bitinfo_mapping_table[] = {
     { TK1MUX_GROUP_OFFSET_USB_VBUS_EN_CFG, 12, 20, 0x1F, 0x1F }
 };
 
-int
-array_size_bitinfo_mapping_table(void)
+int array_size_bitinfo_mapping_table(void)
 {
     return ARRAY_SIZE(mux_group_bitinfo_mapping_table);
 }
@@ -260,8 +259,7 @@ const mux_pin_group_mapping_t mux_pin_group_mapping_table[] = {
     { MUX_PAD_DP_HPD_PFF0, DAP5CFG }
 };
 
-int
-array_size_pin_group_mapping_table(void)
+int array_size_pin_group_mapping_table(void)
 {
     return ARRAY_SIZE(mux_pin_group_mapping_table);
 }

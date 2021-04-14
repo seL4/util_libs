@@ -36,15 +36,13 @@
 #define PITCR_MODE_SWSTROBE  0x4
 
 /* helper functions */
-static inline int
-set_pit_mode(ps_io_port_ops_t *ops, uint8_t channel, uint8_t mode)
+static inline int set_pit_mode(ps_io_port_ops_t *ops, uint8_t channel, uint8_t mode)
 {
     return ps_io_port_out(ops, PIT_IOPORT_PITCR, 1,
                           PITCR_SET_CHANNEL(PITCR_SET_OP_MODE(PITCR_SET_ACCESS_MODE(0, PITCR_ACCESS_LOHI), mode), channel));
 }
 
-static inline int
-configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
+static inline int configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
 {
 
     int error;
@@ -65,13 +63,13 @@ configure_pit(pit_t *pit, uint8_t mode, uint64_t ns)
     }
 
     /* program timeout */
-    error = ps_io_port_out(&pit->ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t) (ticks & 0xFF));
+    error = ps_io_port_out(&pit->ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t)(ticks & 0xFF));
     if (error) {
         ZF_LOGE("ps_io_port_out failed on channel %u\n", PIT_IOPORT_CHANNEL(0));
         return EIO;
     }
 
-    error = ps_io_port_out(&pit->ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t) (ticks >> 8) & 0xFF);
+    error = ps_io_port_out(&pit->ops, PIT_IOPORT_CHANNEL(0), 1, (uint8_t)(ticks >> 8) & 0xFF);
     if (error) {
         ZF_LOGE("ps_io_port_out failed on channel %u\n", PIT_IOPORT_CHANNEL(0));
         return EIO;

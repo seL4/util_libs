@@ -82,12 +82,12 @@ static struct mpsk_tbl _ampll_tbl[] = {
 
 /* some of the 180MHz derivations are note available here */
 static struct mpsk_tbl _epll_tbl[] = {
-    {  90, PLL_MPS( 60, 2, 3), 0},
-    { 180, PLL_MPS( 60, 2, 2), 0},
-    { 192, PLL_MPS( 64, 2, 2), 0},
+    {  90, PLL_MPS(60, 2, 3), 0},
+    { 180, PLL_MPS(60, 2, 2), 0},
+    { 192, PLL_MPS(64, 2, 2), 0},
     { 200, PLL_MPS(100, 3, 2), 0},
     { 400, PLL_MPS(100, 3, 1), 0},
-    { 408, PLL_MPS( 68, 2, 1), 0},
+    { 408, PLL_MPS(68, 2, 1), 0},
     { 416, PLL_MPS(104, 3, 1), 0}
 };
 
@@ -127,7 +127,7 @@ enum clkregs {
     NCLKREGS
 };
 
-volatile struct clk_regs* _clk_regs[NCLKREGS];
+volatile struct clk_regs *_clk_regs[NCLKREGS];
 
 static struct clock finpll_clk = { CLK_OPS_DEFAULT(MASTER) };
 /* --- Implement Me --- */
@@ -147,10 +147,9 @@ static struct clock sclkmpll_clk = { CLK_OPS(SCLKMPLL, pll, &sclkmpll_priv) };
 static struct clock sclkepll_clk = { CLK_OPS(SCLKEPLL, pll, &sclkepll_priv) };
 static struct clock sclkvpll_clk = { CLK_OPS(SCLKVPLL, pll, &sclkvpll_priv) };
 
-static clk_t*
-_div_init(clk_t* clk)
+static clk_t *_div_init(clk_t *clk)
 {
-    clk_t* parent;
+    clk_t *parent;
     switch (clk->id) {
     case CLK_SCLKAPLL:
         parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MOUTAPLL);
@@ -187,45 +186,41 @@ _div_init(clk_t* clk)
     return clk;
 }
 
-static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL   , div, CLKID_SCLKAPLL)    };
-static struct clock divcore_clk   = { CLK_OPS(DIVCORE    , div, CLKID_DIVCORE)     };
-static struct clock arm_clk       = { CLK_OPS(DIVCORE2   , div, CLKID_DIVCORE2)    };
+static struct clock sclkapll_clk  = { CLK_OPS(SCLKAPLL, div, CLKID_SCLKAPLL)    };
+static struct clock divcore_clk   = { CLK_OPS(DIVCORE, div, CLKID_DIVCORE)     };
+static struct clock arm_clk       = { CLK_OPS(DIVCORE2, div, CLKID_DIVCORE2)    };
 static struct clock corem0_clk    = { CLK_OPS(ACLK_COREM0, div, CLKID_ACLK_COREM0) };
 static struct clock corem1_clk    = { CLK_OPS(ACLK_COREM1, div, CLKID_ACLK_COREM1) };
-static struct clock cores_clk     = { CLK_OPS(ACLK_CORES , div, CLKID_ACLK_CORES)  };
-static struct clock periphclk_clk = { CLK_OPS(PERIPHCLK  , div, CLKID_PERIPHCLK)   };
-static struct clock atclk_clk     = { CLK_OPS(ATCLK      , div, CLKID_ATCLK)       };
-static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG   , div, CLKID_PCLK_DBG)    };
-static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM    , div, CLKID_SCLKHPM)     };
-static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY    , div, CLKID_DIVCOPY)     };
+static struct clock cores_clk     = { CLK_OPS(ACLK_CORES, div, CLKID_ACLK_CORES)  };
+static struct clock periphclk_clk = { CLK_OPS(PERIPHCLK, div, CLKID_PERIPHCLK)   };
+static struct clock atclk_clk     = { CLK_OPS(ATCLK, div, CLKID_ATCLK)       };
+static struct clock pclk_dbg_clk  = { CLK_OPS(PCLK_DBG, div, CLKID_PCLK_DBG)    };
+static struct clock sclkhpm_clk   = { CLK_OPS(SCLKHPM, div, CLKID_SCLKHPM)     };
+static struct clock divcopy_clk   = { CLK_OPS(DIVCOPY, div, CLKID_DIVCOPY)     };
 
 /***************
  **** MUXes ****
  ***************/
-static freq_t
-_mux_get_freq(clk_t* clk)
+static freq_t _mux_get_freq(clk_t *clk)
 {
     return clk_get_freq(clk->parent);
 }
 
-static freq_t
-_mux_set_freq(clk_t* clk, freq_t hz)
+static freq_t _mux_set_freq(clk_t *clk, freq_t hz)
 {
     /* TODO: we can choose a different source... */
     clk_set_freq(clk->parent, hz);
     return clk_get_freq(clk);
 }
 
-static void
-_mux_recal(clk_t* clk)
+static void _mux_recal(clk_t *clk)
 {
     assert(0);
 }
 
-static clk_t*
-_mux_init(clk_t* clk)
+static clk_t *_mux_init(clk_t *clk)
 {
-    clk_t* parent = NULL;
+    clk_t *parent = NULL;
     uint32_t mux;
     enum clk_id parent_id[2];
     assert(clk);
@@ -270,27 +265,23 @@ static struct clock muxhpm_clk = { CLK_OPS(MUXHPM, mux, NULL) };
 /***************
  ****  SPI  ****
  ***************/
-static freq_t
-_spi_get_freq(clk_t* clk)
+static freq_t _spi_get_freq(clk_t *clk)
 {
     return 0;
 }
 
-static freq_t
-_spi_set_freq(clk_t* clk, freq_t hz)
+static freq_t _spi_set_freq(clk_t *clk, freq_t hz)
 {
     (void)hz;
     return clk_get_freq(clk);
 }
 
-static void
-_spi_recal(clk_t* clk)
+static void _spi_recal(clk_t *clk)
 {
     assert(0);
 }
 
-static clk_t*
-_spi_init(clk_t* clk)
+static clk_t *_spi_init(clk_t *clk)
 {
     return clk;
 }
@@ -303,8 +294,7 @@ static struct clock spi1_isp_clk = { CLK_OPS(SPI1_ISP, spi, NULL) };
 
 /*******************************************/
 
-static int
-exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode mode)
+static int exynos4_gate_enable(clock_sys_t *sys, enum clock_gate gate, enum clock_gate_mode mode)
 {
     (void)sys;
     (void)gate;
@@ -312,37 +302,34 @@ exynos4_gate_enable(clock_sys_t* sys, enum clock_gate gate, enum clock_gate_mode
     return 0;
 }
 
-static int
-clock_sys_common_init(clock_sys_t* clock_sys)
+static int clock_sys_common_init(clock_sys_t *clock_sys)
 {
-    clock_sys->priv = (void*)_clk_regs;
+    clock_sys->priv = (void *)_clk_regs;
     clock_sys->get_clock = &ps_get_clock;
     clock_sys->gate_enable = &exynos4_gate_enable;
     return 0;
 }
 
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+int clock_sys_init(ps_io_ops_t *o, clock_sys_t *clock_sys)
 {
-    MAP_IF_NULL(o, CMU_LEFTBUS , _clk_regs[CLKREGS_LEFT]);
+    MAP_IF_NULL(o, CMU_LEFTBUS, _clk_regs[CLKREGS_LEFT]);
     MAP_IF_NULL(o, CMU_RIGHTBUS, _clk_regs[CLKREGS_RIGHT]);
-    MAP_IF_NULL(o, CMU_TOP     , _clk_regs[CLKREGS_TOP]);
-    MAP_IF_NULL(o, CMU_DMC1    , _clk_regs[CLKREGS_DMC1]);
-    MAP_IF_NULL(o, CMU_DMC2    , _clk_regs[CLKREGS_DMC2]);
-    MAP_IF_NULL(o, CMU_CPU1    , _clk_regs[CLKREGS_CPU1]);
-    MAP_IF_NULL(o, CMU_CPU2    , _clk_regs[CLKREGS_CPU2]);
-    MAP_IF_NULL(o, CMU_ISP     , _clk_regs[CLKREGS_ISP]);
+    MAP_IF_NULL(o, CMU_TOP, _clk_regs[CLKREGS_TOP]);
+    MAP_IF_NULL(o, CMU_DMC1, _clk_regs[CLKREGS_DMC1]);
+    MAP_IF_NULL(o, CMU_DMC2, _clk_regs[CLKREGS_DMC2]);
+    MAP_IF_NULL(o, CMU_CPU1, _clk_regs[CLKREGS_CPU1]);
+    MAP_IF_NULL(o, CMU_CPU2, _clk_regs[CLKREGS_CPU2]);
+    MAP_IF_NULL(o, CMU_ISP, _clk_regs[CLKREGS_ISP]);
     return clock_sys_common_init(clock_sys);
 }
 
-void
-clk_print_clock_tree(clock_sys_t* sys UNUSED)
+void clk_print_clock_tree(clock_sys_t *sys UNUSED)
 {
-    clk_t* clk = ps_clocks[CLK_MASTER];
+    clk_t *clk = ps_clocks[CLK_MASTER];
     clk_print_tree(clk, "");
 }
 
-clk_t* ps_clocks[] = {
+clk_t *ps_clocks[] = {
     [CLK_MASTER]         = &finpll_clk,
     [CLK_MOUTAPLL]       = &aoutpll_clk,
     [CLK_SCLKMPLL]       = &sclkmpll_clk,

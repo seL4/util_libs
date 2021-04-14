@@ -113,31 +113,28 @@ typedef struct acpi_dmar_rhsa {
  ********************************/
 
 /* Retrieve the header of the first entry */
-static inline acpi_dmar_remap_hdr_t*
-acpi_dmar_first_remap(acpi_dmar_hdr_t* tbl)
+static inline acpi_dmar_remap_hdr_t *acpi_dmar_first_remap(acpi_dmar_hdr_t *tbl)
 {
-    return (acpi_dmar_remap_hdr_t*)(tbl + 1);
+    return (acpi_dmar_remap_hdr_t *)(tbl + 1);
 }
 
 /* Retrieve the next DMAR sub header */
-static inline acpi_dmar_remap_hdr_t*
-acpi_dmar_next_remap(acpi_dmar_hdr_t* tbl,
-                     acpi_dmar_remap_hdr_t* hdr)
+static inline acpi_dmar_remap_hdr_t *acpi_dmar_next_remap(acpi_dmar_hdr_t *tbl,
+                                                          acpi_dmar_remap_hdr_t *hdr)
 {
-    void* next = (uint8_t*)hdr + hdr->length;
-    void* end  = (uint8_t*)tbl + tbl->header.length;
+    void *next = (uint8_t *)hdr + hdr->length;
+    void *end  = (uint8_t *)tbl + tbl->header.length;
     if (next < end) {
-        return (acpi_dmar_remap_hdr_t*)next;
+        return (acpi_dmar_remap_hdr_t *)next;
     } else {
         return NULL;
     }
 }
 
 /* Retrieve the DMAR sub header located at the specified index */
-static inline acpi_dmar_remap_hdr_t*
-acpi_dmar_remap_at(acpi_dmar_hdr_t* tbl, int index)
+static inline acpi_dmar_remap_hdr_t *acpi_dmar_remap_at(acpi_dmar_hdr_t *tbl, int index)
 {
-    acpi_dmar_remap_hdr_t* next = acpi_dmar_first_remap(tbl);
+    acpi_dmar_remap_hdr_t *next = acpi_dmar_first_remap(tbl);
     while (next != NULL && index-- > 0) {
         next = acpi_dmar_next_remap(tbl, next);
     }
@@ -145,9 +142,8 @@ acpi_dmar_remap_at(acpi_dmar_hdr_t* tbl, int index)
 }
 
 /* Retrieve the next DMAR sub header of the specified type */
-static inline acpi_dmar_remap_hdr_t*
-acpi_dmar_next_remap_type(acpi_dmar_hdr_t* tbl,
-                          acpi_dmar_remap_hdr_t* hdr, int type)
+static inline acpi_dmar_remap_hdr_t *acpi_dmar_next_remap_type(acpi_dmar_hdr_t *tbl,
+                                                               acpi_dmar_remap_hdr_t *hdr, int type)
 {
     do {
         hdr = acpi_dmar_next_remap(tbl, hdr);
@@ -161,10 +157,9 @@ acpi_dmar_next_remap_type(acpi_dmar_hdr_t* tbl,
 }
 
 /* Retrieve the first DMAR sub header of the specified type */
-static inline acpi_dmar_remap_hdr_t*
-acpi_dmar_first_remap_type(acpi_dmar_hdr_t* tbl, int type)
+static inline acpi_dmar_remap_hdr_t *acpi_dmar_first_remap_type(acpi_dmar_hdr_t *tbl, int type)
 {
-    acpi_dmar_remap_hdr_t* hdr = acpi_dmar_first_remap(tbl);
+    acpi_dmar_remap_hdr_t *hdr = acpi_dmar_first_remap(tbl);
     if (hdr == NULL) {
         return NULL;
     }
@@ -181,37 +176,33 @@ acpi_dmar_first_remap_type(acpi_dmar_hdr_t* tbl, int type)
  ***********************************/
 
 /* Retrieve the first device scope for a DRHD table */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_drhd_first_dscope(acpi_dmar_drhd_t* h)
+static inline acpi_dmar_dscope_t *acpi_dmar_drhd_first_dscope(acpi_dmar_drhd_t *h)
 {
-    return (acpi_dmar_dscope_t*)(h + 1);
+    return (acpi_dmar_dscope_t *)(h + 1);
 }
 
 /* Retrieve the first device scope for an RMRR table */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_rmrr_first_dscope(acpi_dmar_rmrr_t* h)
+static inline acpi_dmar_dscope_t *acpi_dmar_rmrr_first_dscope(acpi_dmar_rmrr_t *h)
 {
-    return (acpi_dmar_dscope_t*)(h + 1);
+    return (acpi_dmar_dscope_t *)(h + 1);
 }
 
 /* Retrieve the first device scope for an ATSR table */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_atsr_first_dscope(acpi_dmar_atsr_t* h)
+static inline acpi_dmar_dscope_t *acpi_dmar_atsr_first_dscope(acpi_dmar_atsr_t *h)
 {
-    return (acpi_dmar_dscope_t*)(h + 1);
+    return (acpi_dmar_dscope_t *)(h + 1);
 }
 
 /* Retrieve the first device scope (table independant) */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_first_dscope(acpi_dmar_remap_hdr_t* h)
+static inline acpi_dmar_dscope_t *acpi_dmar_first_dscope(acpi_dmar_remap_hdr_t *h)
 {
     switch (h->type) {
     case ACPI_DMAR_DRHD_TYPE:
-        return acpi_dmar_drhd_first_dscope((acpi_dmar_drhd_t*)h);
+        return acpi_dmar_drhd_first_dscope((acpi_dmar_drhd_t *)h);
     case ACPI_DMAR_RMRR_TYPE:
-        return acpi_dmar_rmrr_first_dscope((acpi_dmar_rmrr_t*)h);
+        return acpi_dmar_rmrr_first_dscope((acpi_dmar_rmrr_t *)h);
     case ACPI_DMAR_ATSR_TYPE:
-        return acpi_dmar_atsr_first_dscope((acpi_dmar_atsr_t*)h);
+        return acpi_dmar_atsr_first_dscope((acpi_dmar_atsr_t *)h);
     case ACPI_DMAR_RHSA_TYPE:
         return NULL; /* RHSA has no device scope */
     default:
@@ -220,37 +211,33 @@ acpi_dmar_first_dscope(acpi_dmar_remap_hdr_t* h)
 }
 
 /* Retrieve the next device scope */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_next_dscope(acpi_dmar_remap_hdr_t* sh, acpi_dmar_dscope_t* scope)
+static inline acpi_dmar_dscope_t *acpi_dmar_next_dscope(acpi_dmar_remap_hdr_t *sh, acpi_dmar_dscope_t *scope)
 {
-    void* next = (uint8_t*)scope + scope->length;
-    void* end  = (uint8_t*)sh + sh->length;
+    void *next = (uint8_t *)scope + scope->length;
+    void *end  = (uint8_t *)sh + sh->length;
     if (next < end) {
-        return (acpi_dmar_dscope_t*)next;
+        return (acpi_dmar_dscope_t *)next;
     } else {
         return NULL;
     }
 }
 
 /* Retrieve the device scope at the given index */
-static inline acpi_dmar_dscope_t*
-acpi_dmar_dscope_at(acpi_dmar_remap_hdr_t* sh, int index)
+static inline acpi_dmar_dscope_t *acpi_dmar_dscope_at(acpi_dmar_remap_hdr_t *sh, int index)
 {
-    acpi_dmar_dscope_t* next = acpi_dmar_first_dscope(sh);
+    acpi_dmar_dscope_t *next = acpi_dmar_first_dscope(sh);
     while (next != NULL && index-- > 0) {
         next = acpi_dmar_next_dscope(sh, next);
     }
     return next;
 }
 
-static inline acpi_device_path_t*
-acpi_dmar_path_first(acpi_dmar_dscope_t* dscope)
+static inline acpi_device_path_t *acpi_dmar_path_first(acpi_dmar_dscope_t *dscope)
 {
-    return (acpi_device_path_t*)(dscope + 1);
+    return (acpi_device_path_t *)(dscope + 1);
 }
 
-static inline int
-acpi_dmar_dscope_path_length(acpi_dmar_dscope_t* dscope)
+static inline int acpi_dmar_dscope_path_length(acpi_dmar_dscope_t *dscope)
 {
     int path_bytes = dscope->length - sizeof(*dscope);
     return path_bytes / sizeof(acpi_device_path_t);

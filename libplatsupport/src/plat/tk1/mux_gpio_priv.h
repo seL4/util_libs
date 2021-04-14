@@ -137,8 +137,7 @@ int array_size_pin_group_mapping_table(void);
  * @return  -1 on error
  *          positive integer offset on success.
  */
-static inline int
-tk1_mux_get_group_offset_for_pin(int mux_reg_index)
+static inline int tk1_mux_get_group_offset_for_pin(int mux_reg_index)
 {
     for (int i = 0; i < array_size_pin_group_mapping_table(); i++) {
         if (mux_pin_group_mapping_table[i].mux_reg_index == mux_reg_index) {
@@ -155,8 +154,7 @@ tk1_mux_get_group_offset_for_pin(int mux_reg_index)
 
 int array_size_bitinfo_mapping_table(void);
 
-static inline int
-tk1_mux_get_bitinfo_for_group(int group_offset, int desired_bitinfo)
+static inline int tk1_mux_get_bitinfo_for_group(int group_offset, int desired_bitinfo)
 {
     for (int i = 0; i < array_size_bitinfo_mapping_table(); i++) {
         if (mux_group_bitinfo_mapping_table[i].group_offset == group_offset) {

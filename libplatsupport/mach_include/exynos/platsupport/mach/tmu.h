@@ -14,8 +14,8 @@ typedef struct exynos_tmu tmu_t;
 
 typedef int temperature_t;
 
-typedef void (*tmu_alarm_callback)(tmu_t* tmu, temperature_t temperature,
-                                   int level, int rising, void* token);
+typedef void (*tmu_alarm_callback)(tmu_t *tmu, temperature_t temperature,
+                                   int level, int rising, void *token);
 
 struct exynos_tmu {
     enum tmu_id id;
@@ -23,10 +23,10 @@ struct exynos_tmu {
     /* IRQ callbacks */
     tmu_alarm_callback falling_alarm;
     tmu_alarm_callback rising_alarm;
-    void* falling_token;
-    void* rising_token;
+    void *falling_token;
+    void *rising_token;
     /* Private data */
-    void* priv;
+    void *priv;
 };
 
 /**
@@ -36,14 +36,14 @@ struct exynos_tmu {
  * @param[out] tmu   A TMU structure to populate
  * @return           0 on success
  */
-int exynos_tmu_init(enum tmu_id id, ps_io_ops_t* io_ops, tmu_t* tmu);
+int exynos_tmu_init(enum tmu_id id, ps_io_ops_t *io_ops, tmu_t *tmu);
 
 /**
  * Read the current temperature
  * @param[in] tmu  A handle to the TMU to probe
  * @return         The current temperature in degrees celcius
  */
-temperature_t exynos_tmu_get_temperature(tmu_t* tmu);
+temperature_t exynos_tmu_get_temperature(tmu_t *tmu);
 
 /**
  * Set alarms for rising temperatures
@@ -55,12 +55,12 @@ temperature_t exynos_tmu_get_temperature(tmu_t* tmu);
  * @param[in] token     A token to pass, unmodified, to the callback
  * @return              0 on success
  */
-int exynos_tmu_set_alarms_rising(tmu_t* tmu,
+int exynos_tmu_set_alarms_rising(tmu_t *tmu,
                                  temperature_t level0,
                                  temperature_t level1,
                                  temperature_t level2,
                                  tmu_alarm_callback cb,
-                                 void* token);
+                                 void *token);
 
 /**
  * Set alarms for falling temperatures
@@ -72,16 +72,16 @@ int exynos_tmu_set_alarms_rising(tmu_t* tmu,
  * @param[in] token     A token to pass, unmodified, to the callback
  * @return              0 on success
  */
-int exynos_tmu_set_alarms_falling(tmu_t* tmu,
+int exynos_tmu_set_alarms_falling(tmu_t *tmu,
                                   temperature_t level0,
                                   temperature_t level1,
                                   temperature_t level2,
                                   tmu_alarm_callback cb,
-                                  void* token);
+                                  void *token);
 
 /**
  * Allow the TMU to handle incoming IRQs
  * @param[in] tmu   A handle to the TMU that may have fired an IRQ
  */
-void exynos_tmu_handle_irq(tmu_t* tmu);
+void exynos_tmu_handle_irq(tmu_t *tmu);
 

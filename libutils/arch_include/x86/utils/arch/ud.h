@@ -10,6 +10,7 @@
 
 #define UD_INSTRUCTION_SIZE 2
 
-static inline void ALWAYS_INLINE utils_undefined_instruction(void) {
-    asm volatile ("ud2");
+static inline void ALWAYS_INLINE utils_undefined_instruction(void)
+{
+    asm volatile("ud2");
 }

@@ -140,11 +140,11 @@ struct exynos_i2c_regs {
 };
 
 struct i2c_bus_priv {
-    volatile struct exynos_i2c_regs* regs;
-    const char* tx_buf;
+    volatile struct exynos_i2c_regs *regs;
+    const char *tx_buf;
     int tx_len;
     int tx_count;
-    char* rx_buf;
+    char *rx_buf;
     int rx_len;
     int rx_count;
     enum mux_feature mux;
@@ -170,51 +170,44 @@ static struct i2c_bus_priv _i2c[NI2C] = {
 #endif /* EXYNOSX */
 };
 
-static inline struct i2c_bus_priv*
-i2c_bus_get_priv(i2c_bus_t* i2c_bus) {
-    return (struct i2c_bus_priv*)i2c_bus->priv;
+static inline struct i2c_bus_priv *i2c_bus_get_priv(i2c_bus_t *i2c_bus)
+{
+    return (struct i2c_bus_priv *)i2c_bus->priv;
 }
 
-static inline int
-irq_pending(struct i2c_bus_priv* dev)
+static inline int irq_pending(struct i2c_bus_priv *dev)
 {
     return !!(dev->regs->control & I2CCON_IRQ_PEND);
 }
 
-static inline void
-clear_pending(struct i2c_bus_priv* dev)
+static inline void clear_pending(struct i2c_bus_priv *dev)
 {
     uint32_t v = dev->regs->control;
     v &= ~(I2CCON_IRQ_PEND);
     dev->regs->control = v;
 }
 
-static inline int
-addressed_as_slave(struct i2c_bus_priv* dev)
+static inline int addressed_as_slave(struct i2c_bus_priv *dev)
 {
     return !!(dev->regs->status & I2CSTAT_ADDR_SLAVE);
 }
 
-static inline int
-busy(struct i2c_bus_priv* dev)
+static inline int busy(struct i2c_bus_priv *dev)
 {
     return !!(dev->regs->status & I2CSTAT_BUSY);
 }
 
-static inline int
-acked(struct i2c_bus_priv* dev)
+static inline int acked(struct i2c_bus_priv *dev)
 {
     return !(dev->regs->status & I2CSTAT_ACK);
 }
 
-static inline int
-enabled(struct i2c_bus_priv* dev)
+static inline int enabled(struct i2c_bus_priv *dev)
 {
     return !!(dev->regs->status & I2CSTAT_ENABLE);
 }
 
-static void
-master_txstart(struct i2c_bus_priv* dev, int slave)
+static void master_txstart(struct i2c_bus_priv *dev, int slave)
 {
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Tx mode **/
@@ -226,8 +219,7 @@ master_txstart(struct i2c_bus_priv* dev, int slave)
     dev->regs->status |= I2CSTAT_BUSY;
 }
 
-static void
-master_rxstart(struct i2c_bus_priv* dev, int slave)
+static void master_rxstart(struct i2c_bus_priv *dev, int slave)
 {
     dev->regs->control |= I2CCON_ACK_EN;
     /** Configure Master Rx mode **/
@@ -238,22 +230,20 @@ master_rxstart(struct i2c_bus_priv* dev, int slave)
     dev->regs->status |= I2CSTAT_BUSY;
 }
 
-static void
-slave_init(struct i2c_bus_priv* dev, char addr)
+static void slave_init(struct i2c_bus_priv *dev, char addr)
 {
     dev->regs->address = addr;
     /** Configure Master Rx mode **/
     dev->regs->status = I2CSTAT_ENABLE | I2CSTAT_MODE_SRX;
 }
 
-int
-exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len,
-                UNUSED bool send_stop,
-                i2c_callback_fn cb, void* token)
+int exynos_i2c_read(i2c_bus_t *i2c_bus, void *vdata, size_t len,
+                    UNUSED bool send_stop,
+                    i2c_callback_fn cb, void *token)
 {
-    struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
+    struct i2c_bus_priv *dev = i2c_bus_get_priv(i2c_bus);
 
-    dev->rx_buf = (char*)vdata;
+    dev->rx_buf = (char *)vdata;
     dev->rx_len = len;
     dev->rx_count = 0;
     i2c_bus->cb = cb;
@@ -275,14 +265,13 @@ exynos_i2c_read(i2c_bus_t* i2c_bus, void* vdata, size_t len,
     }
 }
 
-static int
-exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len,
-                 UNUSED bool send_stop,
-                 i2c_callback_fn cb, void* token)
+static int exynos_i2c_write(i2c_bus_t *i2c_bus, const void *vdata, size_t len,
+                            UNUSED bool send_stop,
+                            i2c_callback_fn cb, void *token)
 {
-    struct i2c_bus_priv* dev = i2c_bus_get_priv(i2c_bus);
+    struct i2c_bus_priv *dev = i2c_bus_get_priv(i2c_bus);
 
-    dev->tx_buf = (char*)vdata;
+    dev->tx_buf = (char *)vdata;
     dev->tx_len = len;
     dev->tx_count = 0;
     i2c_bus->cb = cb;
@@ -303,20 +292,18 @@ exynos_i2c_write(i2c_bus_t* i2c_bus, const void* vdata, size_t len,
     }
 }
 
-static int
-exynos_i2c_master_stop(i2c_bus_t* i2c_bus)
+static int exynos_i2c_master_stop(i2c_bus_t *i2c_bus)
 {
     assert(!"Not implemented");
     return -1;
 }
 
 /* Exynos4 manual Figure 14-6 p14-9 */
-static int
-exynos_i2c_start_read(i2c_slave_t* sl, void* vdata, size_t len,
-                      UNUSED bool end_with_repeat_start,
-                      i2c_callback_fn cb, void* token)
+static int exynos_i2c_start_read(i2c_slave_t *sl, void *vdata, size_t len,
+                                 UNUSED bool end_with_repeat_start,
+                                 i2c_callback_fn cb, void *token)
 {
-    struct i2c_bus_priv* dev;
+    struct i2c_bus_priv *dev;
 
     assert(sl != NULL && sl->bus != NULL);
 
@@ -325,7 +312,7 @@ exynos_i2c_start_read(i2c_slave_t* sl, void* vdata, size_t len,
     master_rxstart(dev, sl->address);
 
     /* Setup the RX descriptor */
-    dev->rx_buf = (char*)vdata;
+    dev->rx_buf = (char *)vdata;
     dev->rx_len = len;
     dev->rx_count = -1;
     sl->bus->cb = cb;
@@ -344,12 +331,11 @@ exynos_i2c_start_read(i2c_slave_t* sl, void* vdata, size_t len,
 }
 
 /* Exynos4 manual Figure 14-6 p14-8 */
-static int
-exynos_i2c_start_write(i2c_slave_t* sl, const void* vdata, size_t len,
-                       UNUSED bool end_with_repeat_start,
-                       i2c_callback_fn cb, void* token)
+static int exynos_i2c_start_write(i2c_slave_t *sl, const void *vdata, size_t len,
+                                  UNUSED bool end_with_repeat_start,
+                                  i2c_callback_fn cb, void *token)
 {
-    struct i2c_bus_priv* dev;
+    struct i2c_bus_priv *dev;
 
     assert(sl != NULL && sl->bus != NULL);
 
@@ -359,7 +345,7 @@ exynos_i2c_start_write(i2c_slave_t* sl, const void* vdata, size_t len,
 
     dev->tx_count = -1;
     dev->tx_len = len;
-    dev->tx_buf = (const char*)vdata;
+    dev->tx_buf = (const char *)vdata;
     sl->bus->cb = cb;
     sl->bus->token = token;
 
@@ -374,8 +360,7 @@ exynos_i2c_start_write(i2c_slave_t* sl, const void* vdata, size_t len,
     return dev->tx_count;
 }
 
-static void
-exynos_i2c_send_stop(i2c_bus_t* i2c_bus, enum i2c_stat status)
+static void exynos_i2c_send_stop(i2c_bus_t *i2c_bus, enum i2c_stat status)
 {
     struct i2c_bus_priv *dev = i2c_bus_get_priv(i2c_bus);
     dev->regs->status &= ~(I2CSTAT_BUSY);
@@ -385,14 +370,13 @@ exynos_i2c_send_stop(i2c_bus_t* i2c_bus, enum i2c_stat status)
     }
 }
 
-static enum i2c_mode
-exynos_i2c_probe_aas(i2c_bus_t* i2c_bus)
-{
-    struct i2c_bus_priv* dev;
+static enum i2c_mode exynos_i2c_probe_aas(i2c_bus_t *i2c_bus) {
+    struct i2c_bus_priv *dev;
     enum i2c_mode mode = I2CMODE_IDLE;
     dev = i2c_bus_get_priv(i2c_bus);
 
-    if (addressed_as_slave(dev)) {
+    if (addressed_as_slave(dev))
+    {
         if ((dev->regs->status & I2CSTAT_MODE_MASK) == I2CSTAT_MODE_STX) {
             mode = I2CMODE_TX;
         } else {
@@ -425,10 +409,9 @@ exynos_i2c_probe_aas(i2c_bus_t* i2c_bus)
     return mode;
 }
 
-static void
-exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
+static void exynos_i2c_handle_irq(i2c_bus_t *i2c_bus)
 {
-    struct i2c_bus_priv* dev;
+    struct i2c_bus_priv *dev;
     uint32_t v;
     dev = i2c_bus_get_priv(i2c_bus);
 
@@ -543,38 +526,34 @@ exynos_i2c_handle_irq(i2c_bus_t* i2c_bus)
     clear_pending(dev);
 }
 
-static long
-exynos_i2c_set_speed(i2c_bus_t* i2c_bus, UNUSED enum i2c_slave_speed speed)
+static long exynos_i2c_set_speed(i2c_bus_t *i2c_bus, UNUSED enum i2c_slave_speed speed)
 {
     ZF_LOGF("Not implemented");
     return -1;
 }
 
-static int
-exynos_i2c_set_self_slave_address(i2c_bus_t* i2c_bus, int addr)
+static int exynos_i2c_set_self_slave_address(i2c_bus_t *i2c_bus, int addr)
 {
-    struct i2c_bus_priv* dev;
+    struct i2c_bus_priv *dev;
     dev = i2c_bus_get_priv(i2c_bus);
     slave_init(dev, addr);
     dev->regs->line_control = BIT(2) | 0x3 ;
     return 0;
 }
 
-static void
-exynos_i2c_register_slave_event_handler(i2c_bus_t *bus,
-                                        i2c_aas_callback_fn cb, void *token)
+static void exynos_i2c_register_slave_event_handler(i2c_bus_t *bus,
+                                                    i2c_aas_callback_fn cb, void *token)
 {
     assert(bus != NULL);
     bus->aas_cb = cb;
     bus->aas_token = token;
 }
 
-static int
-exynos_i2c_slave_init(i2c_bus_t* i2c_bus, int address,
-                      enum i2c_slave_address_size address_size,
-                      enum i2c_slave_speed max_speed,
-                      uint32_t flags,
-                      i2c_slave_t* sl)
+static int exynos_i2c_slave_init(i2c_bus_t *i2c_bus, int address,
+                                 enum i2c_slave_address_size address_size,
+                                 enum i2c_slave_speed max_speed,
+                                 uint32_t flags,
+                                 i2c_slave_t *sl)
 {
     assert(sl != NULL);
 
@@ -594,8 +573,7 @@ exynos_i2c_slave_init(i2c_bus_t* i2c_bus, int address,
     return 0;
 }
 
-static int
-i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
+static int i2c_init_common(mux_sys_t *mux, i2c_bus_t *i2c, struct i2c_bus_priv *dev)
 {
     /* Check that our memory was mapped */
     if (dev->regs == NULL) {
@@ -623,7 +601,7 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     i2c->probe_aas   = exynos_i2c_probe_aas;
     i2c->master_stop = exynos_i2c_master_stop;
     i2c->handle_irq  = exynos_i2c_handle_irq;
-    i2c->priv        = (void*)dev;
+    i2c->priv        = (void *)dev;
 
     i2c->cb = NULL;
     i2c->token = NULL;
@@ -632,20 +610,18 @@ i2c_init_common(mux_sys_t* mux, i2c_bus_t* i2c, struct i2c_bus_priv* dev)
     return 0;
 }
 
-int
-exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c)
+int exynos_i2c_init(enum i2c_id id, void *base, mux_sys_t *mux, i2c_bus_t *i2c)
 {
-    struct i2c_bus_priv* dev = _i2c + id;
+    struct i2c_bus_priv *dev = _i2c + id;
     ZF_LOGD("Mapping i2c %d", id);
     dev->regs = base;
     return i2c_init_common(mux, i2c, dev);
 }
 
-int
-i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
+int i2c_init(enum i2c_id id, ps_io_ops_t *io_ops, i2c_bus_t *i2c)
 {
-    struct i2c_bus_priv* dev = _i2c + id;
-    mux_sys_t* mux = &io_ops->mux_sys;
+    struct i2c_bus_priv *dev = _i2c + id;
+    mux_sys_t *mux = &io_ops->mux_sys;
     /* Map memory */
     ZF_LOGD("Mapping i2c %d", id);
     switch (id) {

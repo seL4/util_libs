@@ -9,8 +9,7 @@
  * netdev.h - definitions an prototypes for network devices
  */
 
-#ifndef _NETDEV_H_
-#define _NETDEV_H_
+#pragma once
 
 #include <platsupport/io.h>
 #include "net.h"
@@ -29,7 +28,7 @@ int cpu_eth_init(void);
 
 /* Driver initialization prototypes */
 int at91emac_register(bd_t *bis, unsigned long iobase);
-int au1x00_enet_initialize(bd_t*);
+int au1x00_enet_initialize(bd_t *);
 int ax88180_initialize(bd_t *bis);
 int bcm_sf2_eth_register(bd_t *bis, u8 dev_num);
 int bfin_EMAC_initialize(bd_t *bis);
@@ -43,11 +42,11 @@ int dnet_eth_initialize(int id, void *regs, unsigned int phy_addr);
 int e1000_initialize(bd_t *bis);
 int eepro100_initialize(bd_t *bis);
 int enc28j60_initialize(unsigned int bus, unsigned int cs,
-	unsigned int max_hz, unsigned int mode);
+                        unsigned int max_hz, unsigned int mode);
 int ep93xx_eth_initialize(u8 dev_num, int base_addr);
-int eth_3com_initialize (bd_t * bis);
+int eth_3com_initialize(bd_t *bis);
 int ethoc_initialize(u8 dev_num, int base_addr);
-int fec_initialize (bd_t *bis);
+int fec_initialize(bd_t *bis);
 int fecmxc_initialize(bd_t *bis);
 int fecmxc_initialize_multi(bd_t *bis, int dev_id, int phy_id, uint32_t addr);
 int ftgmac100_initialize(bd_t *bits);
@@ -71,7 +70,7 @@ int ne2k_register(void);
 int npe_initialize(bd_t *bis);
 int ns8382x_initialize(bd_t *bis);
 int pcnet_initialize(bd_t *bis);
-int ppc_4xx_eth_initialize (bd_t *bis);
+int ppc_4xx_eth_initialize(bd_t *bis);
 int rtl8139_initialize(bd_t *bis);
 int rtl8169_initialize(bd_t *bis);
 int scc_initialize(bd_t *bis);
@@ -84,15 +83,15 @@ int uec_standard_init(bd_t *bis);
 int uli526x_initialize(bd_t *bis);
 int armada100_fec_register(unsigned long base_addr);
 int xilinx_axiemac_initialize(bd_t *bis, unsigned long base_addr,
-							unsigned long dma_addr);
+                              unsigned long dma_addr);
 int xilinx_emaclite_of_init(const void *blob);
 int xilinx_emaclite_initialize(bd_t *bis, unsigned long base_addr,
-							int txpp, int rxpp);
+                               int txpp, int rxpp);
 int xilinx_ll_temac_eth_init(bd_t *bis, unsigned long base_addr, int flags,
-						unsigned long ctrl_addr);
+                             unsigned long ctrl_addr);
 int zynq_gem_of_init(const void *blob);
 int zynq_gem_initialize(phys_addr_t base_addr,
-			int phy_addr, u32 emio);
+                        int phy_addr, u32 emio);
 void zynq_set_gem_ioops(ps_io_ops_t *io_ops);
 void zynq_gem_handle_irq(int irq);
 void zynq_set_gem_iobase(unsigned int base_addr);
@@ -102,9 +101,9 @@ void zynq_set_gem_iobase(unsigned int base_addr);
  * exported by a public hader file, we need a global definition at this point.
  */
 #if defined(CONFIG_XILINX_LL_TEMAC)
-#define XILINX_LL_TEMAC_M_FIFO		0	/* use FIFO Ctrl */
-#define XILINX_LL_TEMAC_M_SDMA_PLB	(1 << 0)/* use SDMA Ctrl via PLB */
-#define XILINX_LL_TEMAC_M_SDMA_DCR	(1 << 1)/* use SDMA Ctrl via DCR */
+#define XILINX_LL_TEMAC_M_FIFO      0   /* use FIFO Ctrl */
+#define XILINX_LL_TEMAC_M_SDMA_PLB  (1 << 0)/* use SDMA Ctrl via PLB */
+#define XILINX_LL_TEMAC_M_SDMA_DCR  (1 << 1)/* use SDMA Ctrl via DCR */
 #endif
 
 /* Boards with PCI network controllers can call this from their board_eth_init()
@@ -113,40 +112,40 @@ void zynq_set_gem_iobase(unsigned int base_addr);
 
 static inline int pci_eth_init(bd_t *bis)
 {
-	int num = 0;
+    int num = 0;
 
 #ifdef CONFIG_PCI
 
 #ifdef CONFIG_EEPRO100
-	num += eepro100_initialize(bis);
+    num += eepro100_initialize(bis);
 #endif
 #ifdef CONFIG_TULIP
-	num += dc21x4x_initialize(bis);
+    num += dc21x4x_initialize(bis);
 #endif
 #ifdef CONFIG_E1000
-	num += e1000_initialize(bis);
+    num += e1000_initialize(bis);
 #endif
 #ifdef CONFIG_PCNET
-	num += pcnet_initialize(bis);
+    num += pcnet_initialize(bis);
 #endif
 #ifdef CONFIG_NATSEMI
-	num += natsemi_initialize(bis);
+    num += natsemi_initialize(bis);
 #endif
 #ifdef CONFIG_NS8382X
-	num += ns8382x_initialize(bis);
+    num += ns8382x_initialize(bis);
 #endif
 #if defined(CONFIG_RTL8139)
-	num += rtl8139_initialize(bis);
+    num += rtl8139_initialize(bis);
 #endif
 #if defined(CONFIG_RTL8169)
-	num += rtl8169_initialize(bis);
+    num += rtl8169_initialize(bis);
 #endif
 #if defined(CONFIG_ULI526X)
-	num += uli526x_initialize(bis);
+    num += uli526x_initialize(bis);
 #endif
 
 #endif  /* CONFIG_PCI */
-	return num;
+    return num;
 }
 
 /*
@@ -157,39 +156,39 @@ static inline int pci_eth_init(bd_t *bis)
 #if defined(CONFIG_MV88E61XX_SWITCH)
 
 /* constants for any 88E61xx switch */
-#define MV88E61XX_MAX_PORTS_NUM	6
+#define MV88E61XX_MAX_PORTS_NUM 6
 
 enum mv88e61xx_cfg_mdip {
-	MV88E61XX_MDIP_NOCHANGE,
-	MV88E61XX_MDIP_REVERSE
+    MV88E61XX_MDIP_NOCHANGE,
+    MV88E61XX_MDIP_REVERSE
 };
 
 enum mv88e61xx_cfg_ledinit {
-	MV88E61XX_LED_INIT_DIS,
-	MV88E61XX_LED_INIT_EN
+    MV88E61XX_LED_INIT_DIS,
+    MV88E61XX_LED_INIT_EN
 };
 
 enum mv88e61xx_cfg_rgmiid {
-	MV88E61XX_RGMII_DELAY_DIS,
-	MV88E61XX_RGMII_DELAY_EN
+    MV88E61XX_RGMII_DELAY_DIS,
+    MV88E61XX_RGMII_DELAY_EN
 };
 
 enum mv88e61xx_cfg_prtstt {
-	MV88E61XX_PORTSTT_DISABLED,
-	MV88E61XX_PORTSTT_BLOCKING,
-	MV88E61XX_PORTSTT_LEARNING,
-	MV88E61XX_PORTSTT_FORWARDING
+    MV88E61XX_PORTSTT_DISABLED,
+    MV88E61XX_PORTSTT_BLOCKING,
+    MV88E61XX_PORTSTT_LEARNING,
+    MV88E61XX_PORTSTT_FORWARDING
 };
 
 struct mv88e61xx_config {
-	char *name;
-	u8 vlancfg[MV88E61XX_MAX_PORTS_NUM];
-	enum mv88e61xx_cfg_rgmiid rgmii_delay;
-	enum mv88e61xx_cfg_prtstt portstate;
-	enum mv88e61xx_cfg_ledinit led_init;
-	enum mv88e61xx_cfg_mdip mdip;
-	u32 ports_enabled;
-	u8 cpuport;
+    char *name;
+    u8 vlancfg[MV88E61XX_MAX_PORTS_NUM];
+    enum mv88e61xx_cfg_rgmiid rgmii_delay;
+    enum mv88e61xx_cfg_prtstt portstate;
+    enum mv88e61xx_cfg_ledinit led_init;
+    enum mv88e61xx_cfg_mdip mdip;
+    u32 ports_enabled;
+    u8 cpuport;
 };
 
 /*
@@ -211,12 +210,10 @@ struct mii_dev *fec_get_miibus(uint32_t base_addr, int dev_id);
 #ifdef CONFIG_PHYLIB
 struct phy_device;
 int fec_probe(bd_t *bd, int dev_id, uint32_t base_addr,
-		struct mii_dev *bus, struct phy_device *phydev);
+              struct mii_dev *bus, struct phy_device *phydev);
 #else
 /*
  * Allow FEC to fine-tune MII configuration on boards which require this.
  */
 int fecmxc_register_mii_postcall(struct eth_device *dev, int (*cb)(int));
 #endif
-
-#endif /* _NETDEV_H_ */

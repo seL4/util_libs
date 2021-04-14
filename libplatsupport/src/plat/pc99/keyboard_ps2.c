@@ -12,21 +12,18 @@
 #include <string.h>
 #include <assert.h>
 
-static void
-ps2_single_control(ps_io_ops_t *ops, int8_t byte)
+static void ps2_single_control(ps_io_ops_t *ops, int8_t byte)
 {
     ps_io_port_out(&ops->io_port_ops, PS2_IOPORT_CONTROL, 1, byte);
 }
 
-static void
-ps2_dual_control(ps_io_ops_t *ops, int8_t byte1, int8_t byte2)
+static void ps2_dual_control(ps_io_ops_t *ops, int8_t byte1, int8_t byte2)
 {
     ps_io_port_out(&ops->io_port_ops, PS2_IOPORT_CONTROL, 1, byte1);
     ps_io_port_out(&ops->io_port_ops, PS2_IOPORT_DATA, 1, byte2);
 }
 
-static uint8_t
-ps2_read_control_status(ps_io_ops_t *ops)
+static uint8_t ps2_read_control_status(ps_io_ops_t *ops)
 {
     uint32_t res = 0;
     int error = ps_io_port_in(&ops->io_port_ops, PS2_IOPORT_CONTROL, 1, &res);
@@ -35,8 +32,7 @@ ps2_read_control_status(ps_io_ops_t *ops)
     return (uint8_t) res;
 }
 
-static uint8_t
-ps2_read_data(ps_io_ops_t *ops)
+static uint8_t ps2_read_data(ps_io_ops_t *ops)
 {
     uint32_t res = 0;
     int error = ps_io_port_in(&ops->io_port_ops, PS2_IOPORT_DATA, 1, &res);
@@ -45,30 +41,26 @@ ps2_read_data(ps_io_ops_t *ops)
     return (uint8_t) res;
 }
 
-static void
-ps2_write_output(ps_io_ops_t *ops, uint8_t byte)
+static void ps2_write_output(ps_io_ops_t *ops, uint8_t byte)
 {
-    while ( (ps2_read_control_status(ops) & 0x2) != 0);
+    while ((ps2_read_control_status(ops) & 0x2) != 0);
     ps_io_port_out(&ops->io_port_ops, PS2_IOPORT_DATA, 1, byte);
 }
 
-static uint8_t
-ps2_read_output(ps_io_ops_t *ops)
+static uint8_t ps2_read_output(ps_io_ops_t *ops)
 {
-    while ( (ps2_read_control_status(ops) & 0x1) == 0);
+    while ((ps2_read_control_status(ops) & 0x1) == 0);
     return ps2_read_data(ops);
 }
 
-static void
-ps2_send_keyboard_cmd(ps_io_ops_t *ops, uint8_t cmd)
+static void ps2_send_keyboard_cmd(ps_io_ops_t *ops, uint8_t cmd)
 {
     do {
         ps2_write_output(ops, cmd);
     } while (ps2_read_output(ops) != KEYBOARD_ACK);
 }
 
-static void
-ps2_send_keyboard_cmd_param(ps_io_ops_t *ops, uint8_t cmd, uint8_t param)
+static void ps2_send_keyboard_cmd_param(ps_io_ops_t *ops, uint8_t cmd, uint8_t param)
 {
     do {
         ps2_write_output(ops, cmd);
@@ -78,8 +70,7 @@ ps2_send_keyboard_cmd_param(ps_io_ops_t *ops, uint8_t cmd, uint8_t param)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-static keyboard_key_event_t
-keyboard_state_push_ps2_keyevent(struct keyboard_state *s, uint16_t ps2_keyevent)
+static keyboard_key_event_t keyboard_state_push_ps2_keyevent(struct keyboard_state *s, uint16_t ps2_keyevent)
 {
     keyboard_key_event_t ev_none = { .vkey = -1, .pressed = false };
 
@@ -136,9 +127,8 @@ keyboard_state_push_ps2_keyevent(struct keyboard_state *s, uint16_t ps2_keyevent
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int
-keyboard_init(struct keyboard_state *state, const ps_io_ops_t* ops,
-              void (*handle_event_callback)(keyboard_key_event_t ev, void *cookie))
+int keyboard_init(struct keyboard_state *state, const ps_io_ops_t *ops,
+                  void (*handle_event_callback)(keyboard_key_event_t ev, void *cookie))
 {
     assert(state && ops);
     memset(state, 0, sizeof(struct keyboard_state));
@@ -191,23 +181,20 @@ keyboard_init(struct keyboard_state *state, const ps_io_ops_t* ops,
     return 0;
 }
 
-void
-keyboard_set_led(struct keyboard_state *state, char scroll_lock, char num_lock, char caps_lock)
+void keyboard_set_led(struct keyboard_state *state, char scroll_lock, char num_lock, char caps_lock)
 {
     ps2_send_keyboard_cmd_param(&state->ops, KEYBOARD_SET_LEDS,
                                 scroll_lock | num_lock << 1 | caps_lock << 2);
 }
 
-void
-keyboard_set_scanmode(struct keyboard_state *state, uint8_t mode)
+void keyboard_set_scanmode(struct keyboard_state *state, uint8_t mode)
 {
     ps2_send_keyboard_cmd(&state->ops, KEYBOARD_DISABLE_SCAN); /* Disable scanning. */
     ps2_send_keyboard_cmd_param(&state->ops, KEYBOARD_SET_SCANCODE_MODE, mode); /* Set scan code. */
     ps2_send_keyboard_cmd(&state->ops, KEYBOARD_ENABLE_SCAN); /* Re-Enable scanning. */
 }
 
-int
-keyboard_reset(struct keyboard_state *state)
+int keyboard_reset(struct keyboard_state *state)
 {
     /* Reset the keyboard device. */
     ps2_send_keyboard_cmd(&state->ops, KEYBOARD_RESET);
@@ -227,8 +214,7 @@ keyboard_reset(struct keyboard_state *state)
     return 0;
 }
 
-keyboard_key_event_t
-keyboard_poll_ps2_keyevent(struct keyboard_state *state)
+keyboard_key_event_t keyboard_poll_ps2_keyevent(struct keyboard_state *state)
 {
     if ((ps2_read_control_status(&state->ops) & 0x1) == 0) {
         /* No key events generated. */
@@ -238,8 +224,7 @@ keyboard_poll_ps2_keyevent(struct keyboard_state *state)
     return keyboard_state_push_ps2_keyevent(state, ps2_read_data(&state->ops));
 }
 
-void
-keyboard_poll_ps2_keyevents(struct keyboard_state *state, void *cookie)
+void keyboard_poll_ps2_keyevents(struct keyboard_state *state, void *cookie)
 {
     keyboard_key_event_t ev = { .vkey = -1, .pressed = false };
     do {

@@ -45,7 +45,8 @@ static inline off_t _next_pos(circ_buf_t *cb, off_t pos)
  *
  * @return NULL on failure.
  */
-static inline int circ_buf_init(size_t size, circ_buf_t *cb) {
+static inline int circ_buf_init(size_t size, circ_buf_t *cb)
+{
     if (size == 0 || !cb) {
         ZF_LOGE("Invalid arguments\n");
         return EINVAL;
@@ -65,7 +66,8 @@ static inline int circ_buf_init(size_t size, circ_buf_t *cb) {
  *
  * @return true indicates the buffer is full, false otherwise.
  */
-static inline bool circ_buf_is_full(circ_buf_t *cb) {
+static inline bool circ_buf_is_full(circ_buf_t *cb)
+{
     return _next_pos(cb, cb->tail) == cb->head;
 }
 
@@ -76,7 +78,8 @@ static inline bool circ_buf_is_full(circ_buf_t *cb) {
  *
  * @return true indicates the buffer is empty, false otherwise.
  */
-static inline bool circ_buf_is_empty(circ_buf_t *cb) {
+static inline bool circ_buf_is_empty(circ_buf_t *cb)
+{
     return cb->tail == cb->head;
 }
 
@@ -86,7 +89,8 @@ static inline bool circ_buf_is_empty(circ_buf_t *cb) {
  * @param cb Circular buffer to put via.
  * @param c  Byte to send.
  */
-static inline void circ_buf_put(circ_buf_t *cb, uint8_t c) {
+static inline void circ_buf_put(circ_buf_t *cb, uint8_t c)
+{
     cb->buf[cb->tail] = c;
     cb->tail = _next_pos(cb, cb->tail);
 }
@@ -98,7 +102,8 @@ static inline void circ_buf_put(circ_buf_t *cb, uint8_t c) {
  *
  * @return The byte received.
  */
-static inline uint8_t circ_buf_get(circ_buf_t *cb) {
+static inline uint8_t circ_buf_get(circ_buf_t *cb)
+{
     uint8_t c = cb->buf[cb->head];
     cb->head = _next_pos(cb, cb->head);
 

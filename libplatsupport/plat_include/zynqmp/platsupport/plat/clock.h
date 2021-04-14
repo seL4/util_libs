@@ -13,17 +13,15 @@
 
 #pragma once
 
-enum clk_id
-{
-   /* CPU Clocks */
-   CLK_CPU_1X,
-   /* ----- */
-   NCLOCKS,
+enum clk_id {
+    /* CPU Clocks */
+    CLK_CPU_1X,
+    /* ----- */
+    NCLOCKS,
 };
 
-enum clock_gate
-{
-   NCLKGATES,
+enum clock_gate {
+    NCLKGATES,
 };
 
 

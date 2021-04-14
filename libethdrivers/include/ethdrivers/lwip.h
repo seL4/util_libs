@@ -59,28 +59,33 @@ typedef struct lwip_iface {
  * @return              Pointer to initialized lwip_iface struct, or
  *                      NULL on error
  */
-lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config);
+lwip_iface_t *ethif_new_lwip_driver(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver,
+                                    void *driver_config);
 
 /**
  * Same as ethif_new_lwip_driver except if an allocated iface
  * and pbuf_dma is passed then malloc will not get called
  */
-lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver, void *driver_config, lwip_iface_t *iface);
+lwip_iface_t *ethif_new_lwip_driver_no_malloc(ps_io_ops_t io_ops, ps_dma_man_t *pbuf_dma, ethif_driver_init driver,
+                                              void *driver_config, lwip_iface_t *iface);
 
 /* Wrapper function for an LWIP driver for asking the underlying
  * eth driver to handle an IRQ */
-static inline void ethif_lwip_handle_irq(lwip_iface_t *iface, int irq) {
+static inline void ethif_lwip_handle_irq(lwip_iface_t *iface, int irq)
+{
     iface->driver.i_fn.raw_handleIRQ(&iface->driver, irq);
 }
 
 /* Wrapper function for an LWIP driver for asking the underlying
  * eth driver to manual check its state in the absence of interrupts */
-static inline void ethif_lwip_poll(lwip_iface_t *iface) {
+static inline void ethif_lwip_poll(lwip_iface_t *iface)
+{
     iface->driver.i_fn.raw_poll(&iface->driver);
 }
 
 /* Retrieve the netif_init_fn for this iface for passing to netif_add */
-static inline netif_init_fn ethif_get_ethif_init(lwip_iface_t *iface) {
+static inline netif_init_fn ethif_get_ethif_init(lwip_iface_t *iface)
+{
     return iface->ethif_init;
 }
 

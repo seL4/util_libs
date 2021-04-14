@@ -24,19 +24,17 @@ typedef struct acpi_mcfg {
 
 #pragma pack(pop)
 
-static inline acpi_mcfg_desc_t*
-acpi_mcfg_desc_first(acpi_mcfg_t* hdr)
+static inline acpi_mcfg_desc_t *acpi_mcfg_desc_first(acpi_mcfg_t *hdr)
 {
-    return (acpi_mcfg_desc_t*)(hdr + 1);
+    return (acpi_mcfg_desc_t *)(hdr + 1);
 }
 
-static inline acpi_mcfg_desc_t*
-acpi_mcfg_desc_next(acpi_mcfg_t* mcfg, acpi_mcfg_desc_t* cur)
+static inline acpi_mcfg_desc_t *acpi_mcfg_desc_next(acpi_mcfg_t *mcfg, acpi_mcfg_desc_t *cur)
 {
-    char* next = (char*)(cur + 1);
-    char* end = (char*)mcfg + mcfg->header.length;
+    char *next = (char *)(cur + 1);
+    char *end = (char *)mcfg + mcfg->header.length;
     if (next < end) {
-        return (acpi_mcfg_desc_t*)next;
+        return (acpi_mcfg_desc_t *)next;
     } else {
         return NULL;
     }

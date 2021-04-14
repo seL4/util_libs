@@ -13,24 +13,24 @@ struct omap3_mux_regs {
 };
 
 static struct omap3_mux {
-    volatile struct omap3_mux_regs*    mux;
+    volatile struct omap3_mux_regs    *mux;
 } _mux;
 
-static inline struct omap3_mux* get_mux_priv(mux_sys_t* mux) {
-    return (struct omap3_mux*)mux->priv;
+static inline struct omap3_mux *get_mux_priv(mux_sys_t *mux)
+{
+    return (struct omap3_mux *)mux->priv;
 }
 
-static inline void set_mux_priv(mux_sys_t* mux, struct omap3_mux* omap3_mux)
+static inline void set_mux_priv(mux_sys_t *mux, struct omap3_mux *omap3_mux)
 {
     assert(mux != NULL);
     assert(omap3_mux != NULL);
     mux->priv = omap3_mux;
 }
 
-static int
-omap3_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
+static int omap3_mux_feature_enable(mux_sys_t *mux, mux_feature_t mux_feature, UNUSED enum mux_gpio_dir mgd)
 {
-    struct omap3_mux* m;
+    struct omap3_mux *m;
     if (mux == NULL || mux->priv == NULL) {
         return -1;
     }
@@ -43,24 +43,21 @@ omap3_mux_feature_enable(mux_sys_t* mux, mux_feature_t mux_feature, UNUSED enum 
     }
 }
 
-static int
-omap3_mux_init_common(mux_sys_t* mux)
+static int omap3_mux_init_common(mux_sys_t *mux)
 {
     set_mux_priv(mux, &_mux);
     mux->feature_enable = &omap3_mux_feature_enable;
     return 0;
 }
 
-int
-omap3_mux_init(void* bank1,
-               mux_sys_t* mux)
+int omap3_mux_init(void *bank1,
+                   mux_sys_t *mux)
 {
     (void)bank1;
     return omap3_mux_init_common(mux);
 }
 
-int
-mux_sys_init(ps_io_ops_t* io_ops, UNUSED void *dependencies, mux_sys_t* mux)
+int mux_sys_init(ps_io_ops_t *io_ops, UNUSED void *dependencies, mux_sys_t *mux)
 {
     (void)io_ops;
     return omap3_mux_init_common(mux);

@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-int axi_uartlite_init(void* vaddr, ps_chardevice_t *dev);
+int axi_uartlite_init(void *vaddr, ps_chardevice_t *dev);

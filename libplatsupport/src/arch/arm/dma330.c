@@ -201,32 +201,29 @@ typedef volatile struct dma330_map {
 
 struct channel_data {
     dma330_signal_cb cb;
-    void* token;
+    void *token;
 };
 
 struct dma330_dev {
-    dma330_map_t* regs;
+    dma330_map_t *regs;
     struct channel_data channel_data[8];
 } _dma330_dev[NPL330];
 
-static inline int
-dmac_busy(dma330_t dma330)
+static inline int dmac_busy(dma330_t dma330)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     return !!(regs->debug.dbgstatus & DBGSTS_BUSY);
 }
 
-static inline uintptr_t
-dmac_get_pc(dma330_t dma330, int channel)
+static inline uintptr_t dmac_get_pc(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     return regs->chstat[channel].cpc;
 }
 
-static inline uint32_t
-dmac_has_fault(dma330_t dma330, int channel)
+static inline uint32_t dmac_has_fault(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     if (channel < 0) {
         return regs->ctrl.fsm & BIT(0);
     } else {
@@ -234,10 +231,9 @@ dmac_has_fault(dma330_t dma330, int channel)
     }
 }
 
-static inline uint32_t
-dmac_get_status(dma330_t dma330, int channel)
+static inline uint32_t dmac_get_status(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     if (channel < 0) {
         return regs->ctrl.dsr;
     } else {
@@ -245,10 +241,9 @@ dmac_get_status(dma330_t dma330, int channel)
     }
 }
 
-static inline uint32_t
-dmac_get_fault_type(dma330_t dma330, int channel)
+static inline uint32_t dmac_get_fault_type(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     if (channel < 1) {
         return regs->ctrl.ftm;
     } else {
@@ -256,12 +251,11 @@ dmac_get_fault_type(dma330_t dma330, int channel)
     }
 }
 
-UNUSED static void
-dmac_channel_dump(dma330_t dma330, int channel)
+UNUSED static void dmac_channel_dump(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
-    char* sts_str;
-    char* sec_str;
+    dma330_map_t *regs = dma330->regs;
+    char *sts_str;
+    char *sec_str;
     uint32_t v, sts;
     int i = channel;
     if (i < 0) {
@@ -340,10 +334,9 @@ dmac_channel_dump(dma330_t dma330, int channel)
     }
 }
 
-UNUSED static void
-dmac_dump(dma330_t dma330)
+UNUSED static void dmac_dump(dma330_t dma330)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     uint32_t v;
     int i;
     printf("#### DMA330 ####\n");
@@ -377,10 +370,9 @@ dmac_dump(dma330_t dma330)
     printf("################\n");
 }
 
-UNUSED static void
-dmac_print_fault(dma330_t dma330, int channel)
+UNUSED static void dmac_print_fault(dma330_t dma330, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     uint32_t ft, src, dst, pc;
     if (channel < 0) {
         ft = regs->ctrl.ftm;
@@ -433,10 +425,9 @@ dmac_print_fault(dma330_t dma330, int channel)
     printf("\n");
 }
 
-UNUSED static void
-program_dump(void *vbin)
+UNUSED static void program_dump(void *vbin)
 {
-    uint8_t* bin = (uint8_t*)vbin;
+    uint8_t *bin = (uint8_t *)vbin;
     int i = 0;
     printf("DMAC program @ 0x%08x", (uint32_t)bin);
     while ((bin[0] | bin[1] | bin[2] | bin[3] | bin[4] | bin[5]) != 0) {
@@ -449,10 +440,9 @@ program_dump(void *vbin)
     printf("\n----\n");
 }
 
-static void
-dmac_exec(dma330_t dma330, uint64_t instruction, int channel)
+static void dmac_exec(dma330_t dma330, uint64_t instruction, int channel)
 {
-    dma330_map_t* regs = dma330->regs;
+    dma330_map_t *regs = dma330->regs;
     uint32_t inst1, inst0;
     inst1 = instruction >> 16;
     inst0 = instruction << 16;
@@ -471,8 +461,7 @@ dmac_exec(dma330_t dma330, uint64_t instruction, int channel)
     regs->debug.dbgcmd = DBGCMD_EXEC;
 }
 
-int
-dma330_init_base(enum dma330_id id, void* dma330_base, clock_sys_t* clk_sys, dma330_t* dma330)
+int dma330_init_base(enum dma330_id id, void *dma330_base, clock_sys_t *clk_sys, dma330_t *dma330)
 {
     assert(sizeof(struct dma330_map) == 0x1000);
     assert(id >= 0);
@@ -484,7 +473,7 @@ dma330_init_base(enum dma330_id id, void* dma330_base, clock_sys_t* clk_sys, dma
     if (dma330_base == NULL) {
         return -1;
     } else {
-        struct dma330_dev* dev;
+        struct dma330_dev *dev;
         uint32_t v;
         dev = &_dma330_dev[id];
         *dma330 = dev;
@@ -515,10 +504,9 @@ dma330_init_base(enum dma330_id id, void* dma330_base, clock_sys_t* clk_sys, dma
     }
 };
 
-int
-dma330_init(enum dma330_id id, struct ps_io_ops* ops, dma330_t* dma330)
+int dma330_init(enum dma330_id id, struct ps_io_ops *ops, dma330_t *dma330)
 {
-    void* base;
+    void *base;
     assert(dma330);
     assert(ops);
     assert(id >= 0);
@@ -533,8 +521,7 @@ dma330_init(enum dma330_id id, struct ps_io_ops* ops, dma330_t* dma330)
     }
 };
 
-int
-dma330_xfer(dma330_t* dma330_ptr, int ch, uintptr_t program, dma330_signal_cb cb, void* token)
+int dma330_xfer(dma330_t *dma330_ptr, int ch, uintptr_t program, dma330_signal_cb cb, void *token)
 {
     dma330_t dma330 = *dma330_ptr;
     if (ch < 0 || ch > 8) {
@@ -567,8 +554,7 @@ dma330_xfer(dma330_t* dma330_ptr, int ch, uintptr_t program, dma330_signal_cb cb
     return 0;
 }
 
-int
-dma330_handle_irq(dma330_t* dma330_ptr)
+int dma330_handle_irq(dma330_t *dma330_ptr)
 {
     dma330_t dma330 = *dma330_ptr;
     uint32_t int_stat;
@@ -616,15 +602,13 @@ dma330_handle_irq(dma330_t* dma330_ptr)
  *** Compiler and presets ***
  ****************************/
 
-int
-dma330_compile(char* source_code, void* bin)
+int dma330_compile(char *source_code, void *bin)
 {
     assert(!"Not implemented");
     return -1;
 }
 
-void
-dma330_copy_compile(int channel, void* vbin)
+void dma330_copy_compile(int channel, void *vbin)
 {
 #if 0
     /* Reserved bytes */
@@ -639,8 +623,8 @@ dma330_copy_compile(int channel, void* vbin)
     "DMAWMB"                    /* Write barrier     */
     "DMAEND"                    /* End program       */
 #endif
-    uint8_t* bin = (uint8_t*)vbin;
-    uint8_t* loop0;
+    uint8_t *bin = (uint8_t *)vbin;
+    uint8_t *loop0;
     /* Place holders for configuration */
     APPEND_INSTRUCTION(bin, MOV_SAR(0));
     APPEND_INSTRUCTION(bin, MOV_DAR(0));
@@ -659,12 +643,11 @@ dma330_copy_compile(int channel, void* vbin)
     APPEND_INSTRUCTION(bin, END);
 }
 
-int
-dma330_copy_configure(uintptr_t pdst, uintptr_t psrc, size_t len, void* vbin)
+int dma330_copy_configure(uintptr_t pdst, uintptr_t psrc, size_t len, void *vbin)
 {
     ZF_LOGD("Copy configure @ 0x%x: 0x%x -> 0x%x (%d bytes)\n",
-         (uint32_t)vbin, (uint32_t)psrc, (uint32_t)pdst, len);
-    char* bin = (char*)vbin;
+            (uint32_t)vbin, (uint32_t)psrc, (uint32_t)pdst, len);
+    char *bin = (char *)vbin;
     uint32_t cfg = 0;
     cfg |= CCR_CFG_SRC(CCR_PROT_CTRL(2) | CCR_AUTO_INC);
     cfg |= CCR_CFG_DST(CCR_PROT_CTRL(2) | CCR_AUTO_INC);

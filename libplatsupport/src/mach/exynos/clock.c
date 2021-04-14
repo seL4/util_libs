@@ -10,10 +10,9 @@
  *** DIV ***
  ***********/
 
-freq_t
-_div_get_freq(clk_t* clk)
+freq_t _div_get_freq(clk_t *clk)
 {
-    clk_regs_io_t** clk_regs;
+    clk_regs_io_t **clk_regs;
     uint32_t div;
     uint32_t fin;
     int clkid;
@@ -24,10 +23,9 @@ _div_get_freq(clk_t* clk)
     return fin / (div + 1);
 }
 
-freq_t
-_div_set_freq(clk_t* clk, freq_t hz)
+freq_t _div_set_freq(clk_t *clk, freq_t hz)
 {
-    clk_regs_io_t** clk_regs;
+    clk_regs_io_t **clk_regs;
     uint32_t div;
     uint32_t fin;
     int clkid;
@@ -52,8 +50,7 @@ _div_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-void
-_div_recal(clk_t* clk)
+void _div_recal(clk_t *clk)
 {
     assert(0);
 }
@@ -62,10 +59,9 @@ _div_recal(clk_t* clk)
  *** PLL ***
  ***********/
 
-freq_t
-_pll_get_freq(clk_t* clk)
+freq_t _pll_get_freq(clk_t *clk)
 {
-    const struct pll_priv* pll_priv;
+    const struct pll_priv *pll_priv;
     int clkid, pll_idx;
 
     pll_priv = exynos_clk_get_priv_pll(clk);
@@ -75,12 +71,11 @@ _pll_get_freq(clk_t* clk)
     return exynos_pll_get_freq(clk, clkid, pll_idx);
 }
 
-freq_t
-_pll_set_freq(clk_t* clk, freq_t hz)
+freq_t _pll_set_freq(clk_t *clk, freq_t hz)
 {
-    volatile struct pll_regs* pll_regs;
-    const struct pll_priv* pll_priv;
-    clk_regs_io_t** clk_regs;
+    volatile struct pll_regs *pll_regs;
+    const struct pll_priv *pll_priv;
+    clk_regs_io_t **clk_regs;
     struct mpsk_tbl *tbl;
     int tbl_size;
     int mhz = hz / (1 * MHZ);
@@ -98,7 +93,7 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     /* prepare searching the correct frequency parameter */
     tbl = pll_priv->tbl;
     tbl_size = pll_priv->pll_tbl_size;
-    pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
+    pll_regs = (volatile struct pll_regs *)&clk_regs[c]->pll_lock[pll_idx];
     /* Search the table for an appropriate frequency value and get parameters */
     mps = tbl[tbl_size - 1].mps;
     k   = tbl[tbl_size - 1].k;
@@ -125,16 +120,14 @@ _pll_set_freq(clk_t* clk, freq_t hz)
     return clk_get_freq(clk);
 }
 
-void
-_pll_recal(clk_t* clk)
+void _pll_recal(clk_t *clk)
 {
     assert(0);
 }
 
-clk_t*
-_pll_init(clk_t* clk)
+clk_t *_pll_init(clk_t *clk)
 {
-    clk_t* parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
+    clk_t *parent = clk_get_clock(clk_get_clock_sys(clk), CLK_MASTER);
     clk_init(parent);
     clk_register_child(parent, clk);
     return clk;

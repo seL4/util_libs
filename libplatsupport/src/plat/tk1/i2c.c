@@ -284,16 +284,14 @@ typedef struct tk1_i2c_state_ {
     } slave;
 } tk1_i2c_state_t;
 
-static inline tk1_i2c_state_t *
-tk1_i2c_get_state(i2c_bus_t *ib)
+static inline tk1_i2c_state_t *tk1_i2c_get_state(i2c_bus_t *ib)
 {
     assert(ib != NULL);
     assert(ib->priv != NULL);
     return (tk1_i2c_state_t *)ib->priv;
 }
 
-static inline tk1_i2c_regs_t *
-tk1_i2c_get_priv(i2c_bus_t *ib)
+static inline tk1_i2c_regs_t *tk1_i2c_get_priv(i2c_bus_t *ib)
 {
     assert(tk1_i2c_get_state(ib)->regs != NULL);
     return (tk1_i2c_regs_t *)tk1_i2c_get_state(ib)->regs;
@@ -305,8 +303,7 @@ typedef struct tk1_i2c_pktheaders_ {
     uint32_t i2c;
 } tk1_i2c_pktheaders_t;
 
-static void
-tk1_i2c_set_packet_mode(i2c_bus_t *ib, bool enabled)
+static void tk1_i2c_set_packet_mode(i2c_bus_t *ib, bool enabled)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -317,8 +314,7 @@ tk1_i2c_set_packet_mode(i2c_bus_t *ib, bool enabled)
     }
 }
 
-static void
-tk1_i2c_config_commit(i2c_bus_t *ib, uint8_t which_configs)
+static void tk1_i2c_config_commit(i2c_bus_t *ib, uint8_t which_configs)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     uint32_t val = 0;
@@ -343,8 +339,7 @@ tk1_i2c_config_commit(i2c_bus_t *ib, uint8_t which_configs)
     }
 }
 
-static void
-tk1_i2c_flush_fifos(i2c_bus_t *ib, enum i2c_xfer_mode mode)
+static void tk1_i2c_flush_fifos(i2c_bus_t *ib, enum i2c_xfer_mode mode)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     uint32_t mask;
@@ -363,8 +358,7 @@ tk1_i2c_flush_fifos(i2c_bus_t *ib, enum i2c_xfer_mode mode)
     }
 }
 
-static void
-tk1_i2c_set_mode(i2c_bus_t *ib, enum i2c_xfer_mode mode)
+static void tk1_i2c_set_mode(i2c_bus_t *ib, enum i2c_xfer_mode mode)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -377,8 +371,7 @@ tk1_i2c_set_mode(i2c_bus_t *ib, enum i2c_xfer_mode mode)
     tk1_i2c_config_commit(ib, COMMIT_MASTER_BIT);
 }
 
-static int
-tk1_i2c_handle_arbitration_loss(i2c_bus_t *ib)
+static int tk1_i2c_handle_arbitration_loss(i2c_bus_t *ib)
 {
     UNUSED tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -392,8 +385,7 @@ tk1_i2c_handle_arbitration_loss(i2c_bus_t *ib)
     return 0;
 }
 
-static int
-tk1_i2c_handle_nack(i2c_bus_t *ib)
+static int tk1_i2c_handle_nack(i2c_bus_t *ib)
 {
     /* I2C Reference rev6, 33.4.4: "Error Handling":
      *  "When an error occurs due to NACK, a stop condition is put on the bus
@@ -420,8 +412,7 @@ tk1_i2c_handle_nack(i2c_bus_t *ib)
     return 0;
 }
 
-static bool
-tk1_i2c_bus_is_locked_up(i2c_bus_t *ib)
+static bool tk1_i2c_bus_is_locked_up(i2c_bus_t *ib)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -441,8 +432,7 @@ tk1_i2c_bus_is_locked_up(i2c_bus_t *ib)
  *                                  STOP signal after the bus clear operation.
  * @return true if the bus clear operation was successful.
  */
-static bool
-tk1_i2c_bus_clear(i2c_bus_t *ib, bool send_stop_afterward)
+static bool tk1_i2c_bus_clear(i2c_bus_t *ib, bool send_stop_afterward)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -481,10 +471,9 @@ static const char *i2c_speed_names[] = {
     [I2C_SLAVE_SPEED_HIGHSPEED] = "high-speed"
 };
 
-static int32_t
-tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
-                               enum i2c_slave_speed speed,
-                               uint32_t variant_constant)
+static int32_t tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
+                                              enum i2c_slave_speed speed,
+                                              uint32_t variant_constant)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(bus);
     uint32_t        tlow, thigh;
@@ -530,10 +519,10 @@ tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
     case I2C_SLAVE_SPEED_HIGHSPEED:
         tlow = read_masked(&r->hs_interface_timing0,
                            (TK1I2C_HS_IFACE_TIMING0_TLOW_MASK << TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT))
-                           >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
+               >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
         thigh = read_masked(&r->hs_interface_timing0,
-                           (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
-                           >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
+                            (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
+                >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
 
         ZF_LOGD("Reading highspeed tlow/high: tLOW %d, tHIGH %d.",
                 tlow, thigh);
@@ -544,10 +533,10 @@ tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
     case I2C_SLAVE_SPEED_FASTPLUS:
         tlow = read_masked(&r->interface_timing0,
                            (TK1I2C_IFACE_TIMING0_TLOW_MASK << TK1I2C_IFACE_TIMING0_TLOW_SHIFT))
-                           >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
+               >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
         thigh = read_masked(&r->interface_timing0,
                             (TK1I2C_IFACE_TIMING0_THIGH_MASK << TK1I2C_IFACE_TIMING0_THIGH_SHIFT))
-                            >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
+                >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
 
         ZF_LOGD("Reading std/fast/f+ tlow/high: tLOW %d, tHIGH %d.",
                 tlow, thigh);
@@ -560,14 +549,13 @@ tk1_i2c_calc_divisor_value_for(i2c_bus_t *bus,
     ZF_LOGD("tLOW is %d, tHIGH is %d.", tlow, thigh);
     target_scl_freq_hz = i2c_speed_freqs[speed];
     return ((TK1_CAR_PLLP_INPUT_FREQ_HZ / target_scl_freq_hz)
-        / (tlow+thigh+variant_constant)) - 1;
+            / (tlow + thigh + variant_constant)) - 1;
 }
 
-static uint32_t
-tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
-                                      uint32_t divisor,
-                                      enum i2c_slave_speed speed,
-                                      uint32_t vc)
+static uint32_t tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
+                                                 uint32_t divisor,
+                                                 enum i2c_slave_speed speed,
+                                                 uint32_t vc)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     uint32_t        tlow, thigh;
@@ -576,10 +564,10 @@ tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
     case I2C_SLAVE_SPEED_HIGHSPEED:
         tlow = read_masked(&r->hs_interface_timing0,
                            (TK1I2C_HS_IFACE_TIMING0_TLOW_MASK << TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT))
-                           >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
+               >> TK1I2C_HS_IFACE_TIMING0_TLOW_SHIFT;
         thigh = read_masked(&r->hs_interface_timing0,
-                           (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
-                           >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
+                            (TK1I2C_HS_IFACE_TIMING0_THIGH_MASK << TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT))
+                >> TK1I2C_HS_IFACE_TIMING0_THIGH_SHIFT;
         break;
 
     case I2C_SLAVE_SPEED_STANDARD:
@@ -587,21 +575,20 @@ tk1_i2c_calc_baud_resulting_from(i2c_bus_t *ib,
     case I2C_SLAVE_SPEED_FASTPLUS:
         tlow = read_masked(&r->interface_timing0,
                            (TK1I2C_IFACE_TIMING0_TLOW_MASK << TK1I2C_IFACE_TIMING0_TLOW_SHIFT))
-                           >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
+               >> TK1I2C_IFACE_TIMING0_TLOW_SHIFT;
         thigh = read_masked(&r->interface_timing0,
                             (TK1I2C_IFACE_TIMING0_THIGH_MASK << TK1I2C_IFACE_TIMING0_THIGH_SHIFT))
-                            >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
+                >> TK1I2C_IFACE_TIMING0_THIGH_SHIFT;
         break;
 
     default:
         return -1;
     }
 
-    return TK1_CAR_PLLP_INPUT_FREQ_HZ / ((tlow+thigh+vc) * (divisor));
+    return TK1_CAR_PLLP_INPUT_FREQ_HZ / ((tlow + thigh + vc) * (divisor));
 }
 
-static long
-tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
+static long tk1_i2c_set_speed(i2c_bus_t *bus, enum i2c_slave_speed speed)
 {
     int32_t         divisor;
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(bus);
@@ -625,7 +612,7 @@ tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
            > i2c_speed_freqs[speed]) {
         ZF_LOGV(PREFIX"Resulting baud is %d. Recalculating divisor up from %d to %d.",
                 r, tk1_i2c_calc_baud_resulting_from(bus, divisor, speed, variant_constant),
-                divisor, divisor+1);
+                divisor, divisor + 1);
         divisor++;
     }
     ZF_LOGV(PREFIX"Calculated I2C divisor at %d. Effective baud is %d. Previous values: std %d, hs %d.",
@@ -639,7 +626,7 @@ tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
         write_masked(&r->clk_divisor,
                      0xFFFF,
                      ((divisor & TK1I2C_CLK_DIVISOR_HS_MODE_MASK)
-                     << TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT));
+                      << TK1I2C_CLK_DIVISOR_HS_MODE_SHIFT));
         break;
 
     case I2C_SLAVE_SPEED_STANDARD:
@@ -648,7 +635,7 @@ tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
         write_masked(&r->clk_divisor,
                      0xFFFF0000,
                      ((divisor & TK1I2C_CLK_DIVISOR_STD_FAST_MODE_MASK)
-                     << TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT));
+                      << TK1I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT));
         break;
 
     default:
@@ -662,8 +649,7 @@ tk1_i2c_set_speed(i2c_bus_t* bus, enum i2c_slave_speed speed)
     return i2c_speed_freqs[speed];
 }
 
-static inline void
-tk1_i2c_toggle_irq(i2c_bus_t *ib, bool enable, uint32_t irqs)
+static inline void tk1_i2c_toggle_irq(i2c_bus_t *ib, bool enable, uint32_t irqs)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -674,26 +660,23 @@ tk1_i2c_toggle_irq(i2c_bus_t *ib, bool enable, uint32_t irqs)
     }
 }
 
-static inline void
-tk1_i2c_acknowledge_irq(i2c_bus_t *ib, uint32_t irqs)
+static inline void tk1_i2c_acknowledge_irq(i2c_bus_t *ib, uint32_t irqs)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
-    
+
     r->interrupt_status |= irqs;
 }
 
-static inline void
-tk1_i2c_callback(i2c_bus_t *ib, enum i2c_stat stat, size_t nbytes)
+static inline void tk1_i2c_callback(i2c_bus_t *ib, enum i2c_stat stat, size_t nbytes)
 {
     if (ib->cb != NULL) {
         ib->cb(ib, stat, nbytes, ib->token);
     }
 }
 
-static tk1_i2c_pktheaders_t
-tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
-                                   bool is_write,
-                                   bool send_repeat_start_not_stop)
+static tk1_i2c_pktheaders_t tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
+                                                               bool is_write,
+                                                               bool send_repeat_start_not_stop)
 {
     tk1_i2c_pktheaders_t headers;
     tk1_i2c_state_t *state;
@@ -707,32 +690,32 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
     headers.io0 = headers.io1 = headers.i2c = 0;
 
     headers.io0 = (0 << TK1I2C_TXPKT0_PKTTYPE_SHIFT)
-        | (TK1I2C_TXPKT0_PROTOCOL_I2C << TK1I2C_TXPKT0_PROTOCOL_SHIFT)
-        /* Linux uses a 0-based device index for the ID. */
-        | (state->controller_id << TK1I2C_TXPKT0_CONTROLLER_ID_SHIFT)
-        /* The PktID is optional, AFAICT. Linux uses the value "1" always. */
-        | (1 << TK1I2C_TXPKT0_PKTID_SHIFT)
-        /* TK1 TRM Section 33.2.2.1: Table 133:
-         *  "For I2C, ProtHdrSize = 0 for request packets and 1 for response
-         *  packets"
-         *
-         * Values:
-         *  0 = 1 word; 1 = 2 words; 3 = 4 words.
-         */
-        | (0 << TK1I2C_TXPKT0_PROTHDR_SIZE_SHIFT);
+                  | (TK1I2C_TXPKT0_PROTOCOL_I2C << TK1I2C_TXPKT0_PROTOCOL_SHIFT)
+                  /* Linux uses a 0-based device index for the ID. */
+                  | (state->controller_id << TK1I2C_TXPKT0_CONTROLLER_ID_SHIFT)
+                  /* The PktID is optional, AFAICT. Linux uses the value "1" always. */
+                  | (1 << TK1I2C_TXPKT0_PKTID_SHIFT)
+                  /* TK1 TRM Section 33.2.2.1: Table 133:
+                   *  "For I2C, ProtHdrSize = 0 for request packets and 1 for response
+                   *  packets"
+                   *
+                   * Values:
+                   *  0 = 1 word; 1 = 2 words; 3 = 4 words.
+                   */
+                  | (0 << TK1I2C_TXPKT0_PROTHDR_SIZE_SHIFT);
 
     headers.io1 = ((nbytes - 1) & TK1I2C_TXPKT1_PAYLOAD_SIZE_MASK)
-        << TK1I2C_TXPKT1_PAYLOAD_SIZE_SHIFT;
+                  << TK1I2C_TXPKT1_PAYLOAD_SIZE_SHIFT;
 
     headers.i2c = TK1I2C_I2CPKT_IRQ_ON_COMPLETION_BIT
-        | (send_repeat_start_not_stop ? TK1I2C_I2CPKT_SEND_REPEAT_START_NOT_STOP_BIT : 0)
-        | (is_write ? 0 : TK1I2C_I2CPKT_READ_XFER_BIT)
-        | TK1I2C_I2CPKT_RESPONSE_PKT_ENABLE_BIT;
+                  | (send_repeat_start_not_stop ? TK1I2C_I2CPKT_SEND_REPEAT_START_NOT_STOP_BIT : 0)
+                  | (is_write ? 0 : TK1I2C_I2CPKT_READ_XFER_BIT)
+                  | TK1I2C_I2CPKT_RESPONSE_PKT_ENABLE_BIT;
 
     if (sl->address_size == I2C_SLAVE_ADDR_10BIT) {
         headers.i2c |= TK1I2C_I2CPKT_10_BIT_ADDRESS_BIT;
         headers.i2c |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_MASK)
-                << TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_SHIFT;
+                       << TK1I2C_I2CPKT_SLAVE_ADDR_10BIT_SHIFT;
     } else {
         /* TK1 TRM Section 33.2.5, Table 135:
          *  "Slave Address. Bit 0 is ignored for 7-bit addressing, but should
@@ -740,7 +723,7 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
          */
         headers.i2c |= (is_write ? 0 : 1);
         headers.i2c |= (sl->address & TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_MASK)
-                << TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_SHIFT;
+                       << TK1I2C_I2CPKT_SLAVE_ADDR_7BIT_SHIFT;
     }
 
     if (sl->max_speed == I2C_SLAVE_SPEED_HIGHSPEED) {
@@ -750,7 +733,7 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
          * set_hsmode_master_addr.
          */
         headers.i2c |= state->master.hsmode_master_address
-            << TK1I2C_I2CPKT_HS_MASTER_ADDR_SHIFT;
+                       << TK1I2C_I2CPKT_HS_MASTER_ADDR_SHIFT;
     }
 
     if (sl->i2c_opts & I2C_SLAVE_OPTS_DEVICE_DOES_NOT_ACK) {
@@ -772,11 +755,10 @@ tk1_i2c_prepare_mmode_xfer_headers(i2c_slave_t *sl, size_t nbytes,
  *
  * @return number of bytes that were written out to the FIFO from the buffer.
  */
-static size_t
-tk1_i2c_fill_tx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
-                     const void *const _data, size_t buffsize)
+static size_t tk1_i2c_fill_tx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
+                                   const void *const _data, size_t buffsize)
 {
-    tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib); 
+    tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     volatile uint32_t *tx_fifo_reg;
     size_t i, empty_fifo_words, buff_remaining;
     uint32_t *data = (uint32_t *)_data;
@@ -784,11 +766,11 @@ tk1_i2c_fill_tx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
     if (mode == I2C_MODE_MASTER) {
         tx_fifo_reg = &r->tx_packet_fifo;
         empty_fifo_words = r->fifo_status >> TK1I2C_FIFO_STATUS_MMODE_TX_EMPTY_SHIFT
-              & TK1I2C_FIFO_STATUS_MMODE_TX_EMPTY_MASK;
+                           & TK1I2C_FIFO_STATUS_MMODE_TX_EMPTY_MASK;
     } else {
         tx_fifo_reg = &r->tx_packet_fifo;
         empty_fifo_words = r->fifo_status >> TK1I2C_FIFO_STATUS_SMODE_TX_EMPTY_SHIFT
-              & TK1I2C_FIFO_STATUS_SMODE_TX_EMPTY_MASK;
+                           & TK1I2C_FIFO_STATUS_SMODE_TX_EMPTY_MASK;
     }
 
     buff_remaining = buffsize;
@@ -823,9 +805,8 @@ tk1_i2c_fill_tx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
  *
  * @return number of bytes read from the FIFO into the buffer.
  */
-static size_t
-tk1_i2c_drain_rx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
-                      void *const _data, size_t buffsize)
+static size_t tk1_i2c_drain_rx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
+                                    void *const _data, size_t buffsize)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     volatile uint32_t *rx_fifo_reg;
@@ -835,11 +816,11 @@ tk1_i2c_drain_rx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
     if (mode == I2C_MODE_MASTER) {
         rx_fifo_reg = &r->rx_fifo;
         avail_fifo_words = r->fifo_status >> TK1I2C_FIFO_STATUS_MMODE_RX_FULL_SHIFT
-              & TK1I2C_FIFO_STATUS_MMODE_RX_FULL_MASK;
+                           & TK1I2C_FIFO_STATUS_MMODE_RX_FULL_MASK;
     } else {
         rx_fifo_reg = &r->rx_fifo;
         avail_fifo_words = r->fifo_status >> TK1I2C_FIFO_STATUS_SMODE_RX_FULL_SHIFT
-              & TK1I2C_FIFO_STATUS_SMODE_RX_FULL_MASK;
+                           & TK1I2C_FIFO_STATUS_SMODE_RX_FULL_MASK;
     }
 
     buff_remaining = buffsize;
@@ -879,7 +860,7 @@ tk1_i2c_drain_rx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
                 "\tOther word was 0x%x. pkt trans status 0x%x. After reading, fifo status is %d",
                 i, avail_fifo_words, *rx_fifo_reg, r->packet_transfer_status,
                 (r->fifo_status >> TK1I2C_FIFO_STATUS_MMODE_RX_FULL_SHIFT
-              & TK1I2C_FIFO_STATUS_MMODE_RX_FULL_MASK));
+                 & TK1I2C_FIFO_STATUS_MMODE_RX_FULL_MASK));
         tk1_i2c_flush_fifos(ib, mode);
     }
 
@@ -892,13 +873,12 @@ tk1_i2c_drain_rx_fifo(i2c_bus_t *ib, enum i2c_xfer_mode mode,
  * RX fifo for an ongoing receive operation.
  */
 #define IRQPREFIX "I2C %p: IRQ: "
-static void
-tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
+static void tk1_i2c_mmode_handle_irq(i2c_bus_t *ib)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
     tk1_i2c_state_t *s = tk1_i2c_get_state(ib);
     UNUSED uint32_t int_status;
-    int err, do_callback=0, callback_status, callback_nbytes=0, reason_known=0;
+    int err, do_callback = 0, callback_status, callback_nbytes = 0, reason_known = 0;
 
     const uint32_t error_int_statuses_mask =
         TK1I2C_INTSTATUS_MMODE_TX_FIFO_OVF_BIT
@@ -1063,22 +1043,19 @@ tk1_i2c_mmode_handle_irq(i2c_bus_t* ib)
     return;
 }
 
-UNUSED static int
-tk1_i2c_mmode_xfer(i2c_slave_t *sl, void *data, size_t nbytes, bool is_write)
+UNUSED static int tk1_i2c_mmode_xfer(i2c_slave_t *sl, void *data, size_t nbytes, bool is_write)
 {
     return 0;
 }
 
-UNUSED static int
-tk1_i2c_smode_xfer(void *data, size_t nbytes, bool is_write)
+UNUSED static int tk1_i2c_smode_xfer(void *data, size_t nbytes, bool is_write)
 {
     return 0;
 }
 
-static int
-tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
-                   bool end_with_repeat_start,
-                   i2c_callback_fn cb, void* token)
+static int tk1_i2c_mmode_read(i2c_slave_t *slave, void *buf, size_t size,
+                              bool end_with_repeat_start,
+                              i2c_callback_fn cb, void *token)
 {
     assert(slave != NULL);
     assert(slave->bus != NULL);
@@ -1134,10 +1111,9 @@ tk1_i2c_mmode_read(i2c_slave_t* slave, void* buf, size_t size,
     return 0;
 }
 
-static int
-tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
-                    bool end_with_repeat_start,
-                    i2c_callback_fn cb, void* token)
+static int tk1_i2c_mmode_write(i2c_slave_t *slave, const void *buf, size_t size,
+                               bool end_with_repeat_start,
+                               i2c_callback_fn cb, void *token)
 {
     assert(slave != NULL);
     assert(slave->bus != NULL);
@@ -1210,27 +1186,24 @@ tk1_i2c_mmode_write(i2c_slave_t *slave, const void* buf, size_t size,
     return s->master.xfer_cursor;
 }
 
-static void
-tk1_i2c_set_hsmode_master_address(i2c_bus_t* ib, int addr)
+static void tk1_i2c_set_hsmode_master_address(i2c_bus_t *ib, int addr)
 {
     tk1_i2c_state_t *s = tk1_i2c_get_state(ib);
 
     s->master.hsmode_master_address = addr & TK1I2C_I2CPKT_HS_MASTER_ADDR_MASK;
 }
 
-static void
-tk1_i2c_register_slave_event_handler(i2c_bus_t* ib,
-                                     i2c_aas_callback_fn aas_cb, void *token)
+static void tk1_i2c_register_slave_event_handler(i2c_bus_t *ib,
+                                                 i2c_aas_callback_fn aas_cb, void *token)
 {
     ib->aas_cb = aas_cb;
     ib->aas_token = token;
 }
 
-static int
-tk1_i2c_slave_init(i2c_bus_t* ib, int address,
-               enum i2c_slave_address_size address_size,
-               enum i2c_slave_speed max_speed,
-               uint32_t flags, i2c_slave_t* sl)
+static int tk1_i2c_slave_init(i2c_bus_t *ib, int address,
+                              enum i2c_slave_address_size address_size,
+                              enum i2c_slave_speed max_speed,
+                              uint32_t flags, i2c_slave_t *sl)
 {
     assert(sl != NULL);
 
@@ -1251,44 +1224,40 @@ tk1_i2c_slave_init(i2c_bus_t* ib, int address,
     return 0;
 }
 
-static void
-tk1_i2c_set_mmode_trigger_levels(i2c_bus_t *ib,
-                                  uint8_t tx_trig, uint8_t rx_trig)
+static void tk1_i2c_set_mmode_trigger_levels(i2c_bus_t *ib,
+                                             uint8_t tx_trig, uint8_t rx_trig)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
     r->fifo_control &= ~((TK1I2C_FIFO_CONTROL_MMODE_TX_TRIG_MASK << TK1I2C_FIFO_CONTROL_MMODE_TX_TRIG_SHIFT)
-        | (TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_MASK << TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_SHIFT));
+                         | (TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_MASK << TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_SHIFT));
 
     r->fifo_control |= ((tx_trig & TK1I2C_FIFO_CONTROL_MMODE_TX_TRIG_MASK)
                         << TK1I2C_FIFO_CONTROL_MMODE_TX_TRIG_SHIFT)
-                    | ((rx_trig & TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_MASK)
-                        << TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_SHIFT);
+                       | ((rx_trig & TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_MASK)
+                          << TK1I2C_FIFO_CONTROL_MMODE_RX_TRIG_SHIFT);
 }
 
-UNUSED static void
-tk1_i2c_set_smode_trigger_levels(i2c_bus_t *ib,
-                                  uint8_t tx_trig, uint8_t rx_trig)
+UNUSED static void tk1_i2c_set_smode_trigger_levels(i2c_bus_t *ib,
+                                                    uint8_t tx_trig, uint8_t rx_trig)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
     r->fifo_control &= ~((TK1I2C_FIFO_CONTROL_SMODE_TX_TRIG_MASK << TK1I2C_FIFO_CONTROL_SMODE_TX_TRIG_SHIFT)
-        | (TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_MASK << TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_SHIFT));
+                         | (TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_MASK << TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_SHIFT));
 
     r->fifo_control |= ((tx_trig & TK1I2C_FIFO_CONTROL_SMODE_TX_TRIG_MASK)
                         << TK1I2C_FIFO_CONTROL_SMODE_TX_TRIG_SHIFT)
-                    | ((rx_trig & TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_MASK)
-                        << TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_SHIFT);
+                       | ((rx_trig & TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_MASK)
+                          << TK1I2C_FIFO_CONTROL_SMODE_RX_TRIG_SHIFT);
 }
 
-static int
-tk1_i2c_master_stop(i2c_bus_t *ib)
+static int tk1_i2c_master_stop(i2c_bus_t *ib)
 {
     return tk1_i2c_bus_clear(ib, true);
 }
 
-static int
-tk1_i2c_initialize_controller(i2c_bus_t *ib)
+static int tk1_i2c_initialize_controller(i2c_bus_t *ib)
 {
     tk1_i2c_regs_t *r = tk1_i2c_get_priv(ib);
 
@@ -1306,7 +1275,7 @@ tk1_i2c_initialize_controller(i2c_bus_t *ib)
     tk1_i2c_flush_fifos(ib, I2C_MODE_MASTER);
     tk1_i2c_flush_fifos(ib, I2C_MODE_SLAVE);
 
-    /* ACK all IRQs that the chip currently has active, in case one was 
+    /* ACK all IRQs that the chip currently has active, in case one was
      * asserted. Perhaps the driver is being restarted, for example.
      */
     tk1_i2c_acknowledge_irq(ib, r->interrupt_status);
@@ -1349,9 +1318,8 @@ tk1_i2c_initialize_controller(i2c_bus_t *ib)
     return 0;
 }
 
-int
-tegra_i2c_init(int controller_id, void *vaddr, ps_io_ops_t *io_ops,
-               i2c_bus_t *ib)
+int tegra_i2c_init(int controller_id, void *vaddr, ps_io_ops_t *io_ops,
+                   i2c_bus_t *ib)
 {
     tk1_i2c_state_t *s;
     int error;
@@ -1375,7 +1343,7 @@ tegra_i2c_init(int controller_id, void *vaddr, ps_io_ops_t *io_ops,
     ib->handle_irq                  = &tk1_i2c_mmode_handle_irq;
     ib->set_speed                   = &tk1_i2c_set_speed;
     ib->set_self_slave_address      = NULL;
-    ib->register_slave_event_handler= &tk1_i2c_register_slave_event_handler;
+    ib->register_slave_event_handler = &tk1_i2c_register_slave_event_handler;
     ib->set_hsmode_master_address   = &tk1_i2c_set_hsmode_master_address;
     /* Bus clear */
     ib->master_stop                 = &tk1_i2c_master_stop;
@@ -1390,8 +1358,7 @@ tegra_i2c_init(int controller_id, void *vaddr, ps_io_ops_t *io_ops,
     return 0;
 }
 
-int
-i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c_bus)
+int i2c_init(enum i2c_id id, ps_io_ops_t *io_ops, i2c_bus_t *i2c_bus)
 {
     void *vaddr;
 

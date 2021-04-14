@@ -8,7 +8,7 @@
 #include <platsupport/gpio.h>
 
 
-int gpio_sys_init(ps_io_ops_t* io_ops, gpio_sys_t* gpio_sys)
+int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t *gpio_sys)
 {
     return 0;
 }

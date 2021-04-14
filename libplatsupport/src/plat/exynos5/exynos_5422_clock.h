@@ -24,14 +24,14 @@
 #define CLKID_SCLKMPLL     CLKID(TOP, 32, 0)
 
 static enum clk_id clk_src_peri_blk[] = {
-                                            CLK_MASTER,
-                                            CLK_SCLKCPLL,
-                                            -1, //CLK_SCLKDPLL
-                                            CLK_SCLKMPLL,
-                                            -1, //CLK_SCKLSPLL
-                                            -1, //CLK_SCKLIPLL
-                                            CLK_SCLKEPLL,
-                                            -1 //CLK_SCLKRPLL,
-                                        };
+    CLK_MASTER,
+    CLK_SCLKCPLL,
+    -1, //CLK_SCLKDPLL
+    CLK_SCLKMPLL,
+    -1, //CLK_SCKLSPLL
+    -1, //CLK_SCKLIPLL
+    CLK_SCLKEPLL,
+    -1 //CLK_SCLKRPLL,
+};
 
 

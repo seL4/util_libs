@@ -40,8 +40,7 @@
 /* Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
  * ALL RIGHTS RESERVED
  */
-#ifndef __LWIPLIB_H__
-#define __LWIPLIB_H__
+#pragma once
 
 #include <lwip/opt.h>
 
@@ -258,5 +257,3 @@ typedef struct cpsw_config {
 #endif
     s32_t ret;   /* Return  Success/Failure */
 } CPSW_CONF_IF;
-
-#endif /* __LWIPLIB_H__ */

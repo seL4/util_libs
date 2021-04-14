@@ -23,12 +23,11 @@
 
 #define UART_REG(base, x)    ((volatile uint32_t *)((uintptr_t)(base) + (x)))
 
-static void
-uart_handle_irq(ps_chardevice_t* d UNUSED)
+static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t *d, int c)
 {
     while (!(*UART_REG(d->vaddr, USR) & USR_TXEMP));
 
@@ -40,17 +39,17 @@ int uart_putchar(ps_chardevice_t* d, int c)
     return 0;
 }
 
-int uart_getchar(ps_chardevice_t* d UNUSED)
+int uart_getchar(ps_chardevice_t *d UNUSED)
 {
     return EOF;
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn,
+              const ps_io_ops_t *ops,
+              ps_chardevice_t *dev)
 {
     /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
+    void *vaddr = chardev_map(defn, ops);
     memset(dev, 0, sizeof(*dev));
     if (vaddr == NULL) {
         return -1;
@@ -58,7 +57,7 @@ int uart_init(const struct dev_defn* defn,
 
     /* Set up all the  device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*)vaddr;
+    dev->vaddr      = (void *)vaddr;
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;

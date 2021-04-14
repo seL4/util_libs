@@ -23,4 +23,4 @@
  * @param[in] bytes     The number of bytes to print
  * @param[in] word_size The number of bytes in a displayed word
  */
-void utils_memory_dump(void* address, size_t bytes, int word_size);
+void utils_memory_dump(void *address, size_t bytes, int word_size);

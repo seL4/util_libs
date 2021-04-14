@@ -47,13 +47,13 @@
 extern "C" {
 #endif
 
-    /** Cache Line size in ARM Cortex-A8.                                         */
+/** Cache Line size in ARM Cortex-A8.                                         */
 #define SOC_CACHELINE_SIZE_MAX               (64)
 
-    /** @brief Base address of AINTC memory mapped registers                      */
+/** @brief Base address of AINTC memory mapped registers                      */
 #define SOC_AINTC_REGS                       (0x48200000)
 
-    /** @brief Base addresses of UART memory mapped registers                     */
+/** @brief Base addresses of UART memory mapped registers                     */
 #define SOC_UART_0_REGS                      (0x44E09000)
 #define SOC_UART_1_REGS                      (0x48022000)
 #define SOC_UART_2_REGS                      (0x48024000)
@@ -61,20 +61,20 @@ extern "C" {
 #define SOC_UART_4_REGS                      (0x481A8000)
 #define SOC_UART_5_REGS                      (0x481AA000)
 
-    /** @brief Base addresses of USB memory mapped registers                     */
+/** @brief Base addresses of USB memory mapped registers                     */
 #define SOC_USB_0_BASE                       (0x47401400)
 #define SOC_USB_1_BASE                       (0x47401C00)
-    /** @brief Base addresses of SPI memory mapped registers                      */
+/** @brief Base addresses of SPI memory mapped registers                      */
 #define SOC_SPI_0_REGS                       (0x48030000)
 #define SOC_SPI_1_REGS                       (0x481A0000)
 
-    /** @brief Base addresses of GPIO memory mapped registers                     */
+/** @brief Base addresses of GPIO memory mapped registers                     */
 #define SOC_GPIO_0_REGS                      (0x44E07000)
 #define SOC_GPIO_1_REGS                      (0x4804C000)
 #define SOC_GPIO_2_REGS                      (0x481AC000)
 #define SOC_GPIO_3_REGS                      (0x481AE000)
 
-    /** @brief Base addresses of DMTIMER memory mapped registers                  */
+/** @brief Base addresses of DMTIMER memory mapped registers                  */
 #define SOC_DMTIMER_0_REGS                   (0x44E05000)
 #define SOC_DMTIMER_1_REGS                   (0x44E31000)
 #define SOC_DMTIMER_2_REGS                   (0x48040000)
@@ -84,27 +84,27 @@ extern "C" {
 #define SOC_DMTIMER_6_REGS                   (0x48048000)
 #define SOC_DMTIMER_7_REGS                   (0x4804A000)
 
-    /** @brief Base address of MMC memory mapped registers                        */
+/** @brief Base address of MMC memory mapped registers                        */
 #define SOC_MMCHS_0_REGS                     (0x48060000)
 #define SOC_MMCHS_1_REGS                     (0x481D8000)
 #define SOC_MMCHS_2_REGS                     (0x47810000)
 
-    /** @brief Base address of GPMC memory mapped registers                       */
+/** @brief Base address of GPMC memory mapped registers                       */
 #define SOC_GPMC_0_REGS                      (0x50000000)
 
-    /** @brief Base address of GPMC memory mapped registers                       */
+/** @brief Base address of GPMC memory mapped registers                       */
 #define SOC_ELM_0_REGS                       (0x48080000)
 
-    /** @brief Base address of I2C memory mapped registers                        */
+/** @brief Base address of I2C memory mapped registers                        */
 #define SOC_I2C_0_REGS                       (0x44E0B000)
 #define SOC_I2C_1_REGS                       (0x4802A000)
 #define SOC_I2C_2_REGS                       (0x4819C000)
 
-    /** @brief Base address of WDT memory mapped registers                        */
+/** @brief Base address of WDT memory mapped registers                        */
 #define SOC_WDT_0_REGS                       (0x44E33000)
 #define SOC_WDT_1_REGS                       (0x44E35000)
 
-    /** @brief Base address of CPSW memory mapped registers                       */
+/** @brief Base address of CPSW memory mapped registers                       */
 #define SOC_CPSW_SS_REGS                     (0x4A100000)
 #define SOC_CPSW_MDIO_REGS                   (0x4A101000)
 #define SOC_CPSW_WR_REGS                     (0x4A101200)
@@ -118,18 +118,18 @@ extern "C" {
 #define SOC_CPSW_SLIVER_2_REGS               (0x4A100DC0)
 #define SOC_CPSW_CPPI_RAM_REGS               (0x4A102000)
 
-    /** @brief Base address of McASP memory mapped registers                      */
+/** @brief Base address of McASP memory mapped registers                      */
 #define SOC_MCASP_1_CTRL_REGS                (0x4803C000)
 #define SOC_MCASP_1_FIFO_REGS                (SOC_MCASP_1_CTRL_REGS + 0x1000)
 #define SOC_MCASP_1_DATA_REGS                (0x46400000)
 
-    /** @brief Base address of EMIF memory mapped registers                       */
+/** @brief Base address of EMIF memory mapped registers                       */
 #define SOC_EMIF_0_REGS                      (0x4C000000)
 
-    /** @brief Base addresses of RTC memory mapped registers                      */
+/** @brief Base addresses of RTC memory mapped registers                      */
 #define SOC_RTC_0_REGS                       (0x44E3E000)
 
-    /** @brief Base addresses of PRCM memory mapped registers                     */
+/** @brief Base addresses of PRCM memory mapped registers                     */
 #define SOC_PRCM_REGS                        (0x44E00000)
 #define SOC_CM_PER_REGS                      (SOC_PRCM_REGS + 0)
 #define SOC_CM_WKUP_REGS                     (SOC_PRCM_REGS + 0x400)
@@ -148,27 +148,27 @@ extern "C" {
 #define SOC_PRM_GFX_REGS                     (SOC_PRCM_REGS + 0x1100)
 #define SOC_PRM_CEFUSE_REGS                  (SOC_PRCM_REGS + 0x1200)
 
-    /** @brief Base address of control module memory mapped registers             */
+/** @brief Base address of control module memory mapped registers             */
 #define SOC_CONTROL_REGS                     (0x44E10000)
 
-    /** @brief Base address of Channel controller  memory mapped registers        */
+/** @brief Base address of Channel controller  memory mapped registers        */
 #define SOC_EDMA30CC_0_REGS                  (0x49000000)
 
-    /** @brief Base address of DCAN module memory mapped registers                */
+/** @brief Base address of DCAN module memory mapped registers                */
 #define SOC_DCAN_0_REGS                      (0x481CC000)
 #define SOC_DCAN_1_REGS                      (0x481D0000)
 
-    /******************************************************************************\
-    *  Parameterizable Configuration:- These are fed directly from the RTL
-    *  parameters for the given SOC
-    \******************************************************************************/
+/******************************************************************************\
+*  Parameterizable Configuration:- These are fed directly from the RTL
+*  parameters for the given SOC
+\******************************************************************************/
 #define TPCC_MUX(n)                         0xF90 + ((n) * 4)
 
 #define SOC_LCDC_0_REGS                     0x4830E000
 
 #define SOC_ADC_TSC_0_REGS                  0x44E0D000
 
-    /** @brief Base addresses of PWMSS memory mapped registers.                   */
+/** @brief Base addresses of PWMSS memory mapped registers.                   */
 
 #define SOC_PWMSS0_REGS                     (0x48300000)
 #define SOC_PWMSS1_REGS                     (0x48302000)

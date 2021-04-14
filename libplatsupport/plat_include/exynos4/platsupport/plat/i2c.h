@@ -25,5 +25,5 @@ enum i2c_id {
  * @param[in]   mux     Mux system for exynos
  * @param[out]  i2c     I2C bus struct to be populated
  */
-int exynos_i2c_init(enum i2c_id id, void* base, mux_sys_t* mux, i2c_bus_t* i2c);
+int exynos_i2c_init(enum i2c_id id, void *base, mux_sys_t *mux, i2c_bus_t *i2c);
 

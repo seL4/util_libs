@@ -164,31 +164,28 @@ typedef struct acpi_madt {
  ********************************/
 
 /* Retrieve the header of the first entry */
-static inline acpi_madt_ics_hdr_t*
-acpi_madt_first_ics(acpi_madt_t* tbl)
+static inline acpi_madt_ics_hdr_t *acpi_madt_first_ics(acpi_madt_t *tbl)
 {
-    return (acpi_madt_ics_hdr_t*)(tbl + 1);
+    return (acpi_madt_ics_hdr_t *)(tbl + 1);
 }
 
 /* Retrieve the next DMAR sub header */
-static inline acpi_madt_ics_hdr_t*
-acpi_madt_next_ics(acpi_madt_t* tbl,
-                   acpi_madt_ics_hdr_t* hdr)
+static inline acpi_madt_ics_hdr_t *acpi_madt_next_ics(acpi_madt_t *tbl,
+                                                      acpi_madt_ics_hdr_t *hdr)
 {
-    void* next = (uint8_t*)hdr + hdr->length;
-    void* end  = (uint8_t*)tbl + tbl->header.length;
+    void *next = (uint8_t *)hdr + hdr->length;
+    void *end  = (uint8_t *)tbl + tbl->header.length;
     if (next < end) {
-        return (acpi_madt_ics_hdr_t*)next;
+        return (acpi_madt_ics_hdr_t *)next;
     } else {
         return NULL;
     }
 }
 
 /* Retrieve the DMAR sub header located at the specified index */
-static inline acpi_madt_ics_hdr_t*
-acpi_madt_ics_at(acpi_madt_t* tbl, int index)
+static inline acpi_madt_ics_hdr_t *acpi_madt_ics_at(acpi_madt_t *tbl, int index)
 {
-    acpi_madt_ics_hdr_t* next = acpi_madt_first_ics(tbl);
+    acpi_madt_ics_hdr_t *next = acpi_madt_first_ics(tbl);
     while (next != NULL && index-- > 0) {
         next = acpi_madt_next_ics(tbl, next);
     }
@@ -196,9 +193,8 @@ acpi_madt_ics_at(acpi_madt_t* tbl, int index)
 }
 
 /* Retrieve the next DMAR sub header of the specified type */
-static inline acpi_madt_ics_hdr_t*
-acpi_madt_next_ics_type(acpi_madt_t* tbl,
-                        acpi_madt_ics_hdr_t* hdr, int type)
+static inline acpi_madt_ics_hdr_t *acpi_madt_next_ics_type(acpi_madt_t *tbl,
+                                                           acpi_madt_ics_hdr_t *hdr, int type)
 {
     do {
         hdr = acpi_madt_next_ics(tbl, hdr);
@@ -212,10 +208,9 @@ acpi_madt_next_ics_type(acpi_madt_t* tbl,
 }
 
 /* Retrieve the first DMAR sub header of the specified type */
-static inline acpi_madt_ics_hdr_t*
-acpi_madt_first_ics_type(acpi_madt_t* tbl, int type)
+static inline acpi_madt_ics_hdr_t *acpi_madt_first_ics_type(acpi_madt_t *tbl, int type)
 {
-    acpi_madt_ics_hdr_t* hdr = acpi_madt_first_ics(tbl);
+    acpi_madt_ics_hdr_t *hdr = acpi_madt_first_ics(tbl);
     if (hdr == NULL) {
         return NULL;
     }

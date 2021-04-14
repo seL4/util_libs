@@ -123,7 +123,7 @@ static struct mux_feature_data spi1_isp_data[] = {
     { .port = GPIOPORT_NONE }
 };
 
-struct mux_feature_data* feature_data[] = {
+struct mux_feature_data *feature_data[] = {
     [MUX_I2C0]       = i2c0_data,
     [MUX_I2C1]       = i2c1_data,
     [MUX_I2C2]       = i2c2_data,

@@ -40,7 +40,7 @@ enum spi_id {
     SPI4 = SPI1_ISP
 };
 
-int exynos_spi_init(enum spi_id id, void* base,
-                    mux_sys_t* mux_sys, clock_sys_t* clock_sys,
-                    spi_bus_t** spi_bus);
+int exynos_spi_init(enum spi_id id, void *base,
+                    mux_sys_t *mux_sys, clock_sys_t *clock_sys,
+                    spi_bus_t **spi_bus);
 

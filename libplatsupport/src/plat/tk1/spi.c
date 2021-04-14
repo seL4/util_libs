@@ -103,7 +103,7 @@ struct spi_regs {
 };
 
 struct spi_bus {
-    volatile struct spi_regs* regs;
+    volatile struct spi_regs *regs;
     uint32_t clock_mode;           // see table 147 on page 2436 of the TRM
     bool in_progress;
     uint8_t *txbuf;
@@ -111,7 +111,7 @@ struct spi_bus {
     size_t txsize, rxsize;
     spi_chipselect_fn cs;
     spi_callback_fn cb;
-    void* token;
+    void *token;
     spi_slave_config_t *curr_slave;
 };
 
@@ -123,23 +123,22 @@ static spi_bus_t _spi[] = {
     [SPI0] = { .regs = NULL, .clock_mode = 0 },
 };
 
-int
-tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
-               mux_sys_t* mux_sys, clock_sys_t* clock_sys,
-               spi_bus_t** ret_spi_bus)
+int tegra_spi_init(enum spi_id id, volatile void *base, spi_chipselect_fn cs_func,
+                   mux_sys_t *mux_sys, clock_sys_t *clock_sys,
+                   spi_bus_t **ret_spi_bus)
 {
-    spi_bus_t* spi_bus = &_spi[id];
+    spi_bus_t *spi_bus = &_spi[id];
     spi_bus->cs = cs_func;
     spi_bus->regs = base + spi_controller_offsets[id];
 
     // Clear relevant bits in fifo status register
     uint32_t fifo_status = SPI_FIFO_STS_RX_FIFO_FLUSH |
-                  SPI_FIFO_STS_TX_FIFO_FLUSH |
-                  SPI_FIFO_STS_ERR           |
-                  SPI_FIFO_STS_TX_FIFO_OVF   |
-                  SPI_FIFO_STS_TX_FIFO_UNR   |
-                  SPI_FIFO_STS_RX_FIFO_OVF   |
-                  SPI_FIFO_STS_RX_FIFO_UNR;
+                           SPI_FIFO_STS_TX_FIFO_FLUSH |
+                           SPI_FIFO_STS_ERR           |
+                           SPI_FIFO_STS_TX_FIFO_OVF   |
+                           SPI_FIFO_STS_TX_FIFO_UNR   |
+                           SPI_FIFO_STS_RX_FIFO_OVF   |
+                           SPI_FIFO_STS_RX_FIFO_UNR;
     spi_bus->regs->fifo_status = fifo_status;
 
     uint32_t command1 = spi_bus->regs->command1;
@@ -171,14 +170,14 @@ tegra_spi_init(enum spi_id id, volatile void* base, spi_chipselect_fn cs_func,
     return 0;
 }
 
-static void
-finish_spi_transfer(spi_bus_t* spi_bus) {
+static void finish_spi_transfer(spi_bus_t *spi_bus)
+{
     // Drain RX FIFO
     size_t size = spi_bus->txsize + spi_bus->rxsize;
     for (int i = 0; i < size; i++) {
         uint32_t data_in = spi_bus->regs->rx_fifo;
         if (spi_bus->rxbuf != NULL) {
-            spi_bus->rxbuf[i] = (uint8_t) (data_in & 0xFF);
+            spi_bus->rxbuf[i] = (uint8_t)(data_in & 0xFF);
         }
     }
 
@@ -193,8 +192,7 @@ finish_spi_transfer(spi_bus_t* spi_bus) {
     spi_bus->cb(spi_bus, size, spi_bus->token);
 }
 
-void
-spi_handle_irq(spi_bus_t* spi_bus)
+void spi_handle_irq(spi_bus_t *spi_bus)
 {
     if (spi_bus->regs->xfer_status & SPI_XFER_STS_RDY) {
         finish_spi_transfer(spi_bus);
@@ -219,8 +217,8 @@ spi_handle_irq(spi_bus_t* spi_bus)
     }
 }
 
-static void
-start_spi_transfer(spi_bus_t* spi_bus) {
+static void start_spi_transfer(spi_bus_t *spi_bus)
+{
     // Assert chip select
     if (spi_bus->cs != NULL) {
         spi_bus->cs(spi_bus->curr_slave, SPI_CS_ASSERT);
@@ -241,9 +239,8 @@ start_spi_transfer(spi_bus_t* spi_bus) {
     spi_bus->regs->command1 |= SPI_CMD1_GO;
 }
 
-int
-spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
-         void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token)
+int spi_xfer(spi_bus_t *spi_bus, const void *txdata, size_t txcnt,
+             void *rxdata, size_t rxcnt, spi_callback_fn cb, void *token)
 {
     if (spi_bus->in_progress) {
         ZF_LOGE("SPI transaction in progress");
@@ -258,8 +255,8 @@ spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
         return -3;
     }
 
-    spi_bus->txbuf = (uint8_t*) txdata;
-    spi_bus->rxbuf = (uint8_t*) rxdata;
+    spi_bus->txbuf = (uint8_t *) txdata;
+    spi_bus->rxbuf = (uint8_t *) rxdata;
     spi_bus->txsize = txcnt;
     spi_bus->rxsize = rxcnt;
     spi_bus->in_progress = true;
@@ -270,8 +267,7 @@ spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
     return 0;
 }
 
-void
-spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
+void spi_prepare_transfer(spi_bus_t *spi_bus, const spi_slave_config_t *cfg)
 {
     // TODO: implement support for multiple slaves
     spi_bus->curr_slave = (spi_slave_config_t *)cfg;

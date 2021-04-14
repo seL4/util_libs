@@ -45,9 +45,9 @@
 extern "C" {
 #endif
 
-    /**************************************************************************\
-    * Register macros for PARAMENTRY
-    \**************************************************************************/
+/**************************************************************************\
+* Register macros for PARAMENTRY
+\**************************************************************************/
 #define EDMA3CC_PaRAM_BASE            (0x4000)
 #define EDMA3CC_OPT(n)                (EDMA3CC_PaRAM_BASE + 0x0 + (0x20 * n))
 #define EDMA3CC_SRC(n)                (EDMA3CC_PaRAM_BASE + 0x4 + (0x20 * n))
@@ -58,9 +58,9 @@ extern "C" {
 #define EDMA3CC_SRC_DST_CIDX(n)       (EDMA3CC_PaRAM_BASE + 0x18 + (0x20 * n))
 #define EDMA3CC_CCNT(n)               (EDMA3CC_PaRAM_BASE + 0x1C + (0x20 * n))
 
-    /**************************************************************************\
-    * Register macros for Structure
-    \**************************************************************************/
+/**************************************************************************\
+* Register macros for Structure
+\**************************************************************************/
 #define EDMA3CC_REVID                (0x0)
 #define EDMA3CC_CCCFG                (0x4)
 #define EDMA3CC_DCHMAP(n)            (0x100 + (n * 4))
@@ -139,11 +139,11 @@ extern "C" {
 #define EDMA3CC_S_QSER(n)            (0x2090 + (0x200 * n))
 #define EDMA3CC_S_QSECR(n)           (0x2094 + (0x200 * n))
 
-    /**************************************************************************\
-    * Field Definition Macros
-    \**************************************************************************/
+/**************************************************************************\
+* Field Definition Macros
+\**************************************************************************/
 
-    /* DRAE */
+/* DRAE */
 
 #define EDMA3CC_DRAE_E31 (0x80000000u)
 #define EDMA3CC_DRAE_E31_SHIFT (0x0000001Fu)
@@ -210,7 +210,7 @@ extern "C" {
 #define EDMA3CC_DRAE_E0 (0x00000001u)
 #define EDMA3CC_DRAE_E0_SHIFT (0x00000000u)
 
-    /* EVENT */
+/* EVENT */
 
 #define EDMA3CC_EVENT_RESV (0xFFFFFF00u)
 #define EDMA3CC_EVENT_RESV_SHIFT (0x00000008u)
@@ -225,112 +225,112 @@ extern "C" {
 #define EDMA3CC_EVENT_ENUM (0x0000003Fu)
 #define EDMA3CC_EVENT_ENUM_SHIFT (0x00000000u)
 
-    /* ER */
+/* ER */
 
 #define EDMA3CC_ER_REG (0xFFFFFFFFu)
 #define EDMA3CC_ER_REG_SHIFT (0x00000000u)
 
-    /* ECR */
+/* ECR */
 
 #define EDMA3CC_ECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_ECR_REG_SHIFT (0x00000000u)
 
-    /* ESR */
+/* ESR */
 
 #define EDMA3CC_ESR_REG (0xFFFFFFFFu)
 #define EDMA3CC_ESR_REG_SHIFT (0x00000000u)
 
-    /* CER */
+/* CER */
 
 #define EDMA3CC_CER_REG (0xFFFFFFFFu)
 #define EDMA3CC_CER_REG_SHIFT (0x00000000u)
 
-    /* EER */
+/* EER */
 
 #define EDMA3CC_EER_REG (0xFFFFFFFFu)
 #define EDMA3CC_EER_REG_SHIFT (0x00000000u)
 
-    /* EECR */
+/* EECR */
 
 #define EDMA3CC_EECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_EECR_REG_SHIFT (0x00000000u)
 
-    /* EESR */
+/* EESR */
 
 #define EDMA3CC_EESR_REG (0xFFFFFFFFu)
 #define EDMA3CC_EESR_REG_SHIFT (0x00000000u)
 
-    /* SER */
+/* SER */
 
 #define EDMA3CC_SER_REG (0xFFFFFFFFu)
 #define EDMA3CC_SER_REG_SHIFT (0x00000000u)
 
-    /* SECR */
+/* SECR */
 
 #define EDMA3CC_SECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_SECR_REG_SHIFT (0x00000000u)
 
-    /* IER */
+/* IER */
 
 #define EDMA3CC_IER_REG (0xFFFFFFFFu)
 #define EDMA3CC_IER_REG_SHIFT (0x00000000u)
 
-    /* IECR */
+/* IECR */
 
 #define EDMA3CC_IECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_IECR_REG_SHIFT (0x00000000u)
 
-    /* IESR */
+/* IESR */
 
 #define EDMA3CC_IESR_REG (0xFFFFFFFFu)
 #define EDMA3CC_IESR_REG_SHIFT (0x00000000u)
 
-    /* IPR */
+/* IPR */
 
 #define EDMA3CC_IPR_REG (0xFFFFFFFFu)
 #define EDMA3CC_IPR_REG_SHIFT (0x00000000u)
 
-    /* ICR */
+/* ICR */
 
 #define EDMA3CC_ICR_REG (0xFFFFFFFFu)
 #define EDMA3CC_ICR_REG_SHIFT (0x00000000u)
 
-    /* IEVAL */
+/* IEVAL */
 
 #define EDMA3CC_IEVAL_REG (0xFFFFFFFFu)
 #define EDMA3CC_IEVAL_REG_SHIFT (0x00000000u)
 
-    /* QER */
+/* QER */
 
 #define EDMA3CC_QER_REG (0xFFFFFFFFu)
 #define EDMA3CC_QER_REG_SHIFT (0x00000000u)
 
-    /* QEER */
+/* QEER */
 
 #define EDMA3CC_QEER_REG (0xFFFFFFFFu)
 #define EDMA3CC_QEER_REG_SHIFT (0x00000000u)
 
-    /* QEECR */
+/* QEECR */
 
 #define EDMA3CC_QEECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_QEECR_REG_SHIFT (0x00000000u)
 
-    /* QEESR */
+/* QEESR */
 
 #define EDMA3CC_QEESR_REG (0xFFFFFFFFu)
 #define EDMA3CC_QEESR_REG_SHIFT (0x00000000u)
 
-    /* QSER */
+/* QSER */
 
 #define EDMA3CC_QSER_REG (0xFFFFFFFFu)
 #define EDMA3CC_QSER_REG_SHIFT (0x00000000u)
 
-    /* QSECR */
+/* QSECR */
 
 #define EDMA3CC_QSECR_REG (0xFFFFFFFFu)
 #define EDMA3CC_QSECR_REG_SHIFT (0x00000000u)
 
-    /* OPT */
+/* OPT */
 
 #define EDMA3CC_OPT_PRIVID (0x0F000000u)
 #define EDMA3CC_OPT_PRIVID_SHIFT (0x00000018u)
@@ -365,22 +365,22 @@ extern "C" {
 #define EDMA3CC_OPT_SAM (0x00000001u)
 #define EDMA3CC_OPT_SAM_SHIFT (0x00000000u)
 
-    /* SRC */
+/* SRC */
 
 #define EDMA3CC_SRC_SRC (0xFFFFFFFFu)
 #define EDMA3CC_SRC_SRC_SHIFT (0x00000000u)
 
-    /* A_B_CNT */
+/* A_B_CNT */
 
 #define EDMA3CC_A_B_CNT_BCNT (0xFFFF0000u)
 #define EDMA3CC_A_B_CNT_BCNT_SHIFT (0x00000010u)
 
-    /* DST */
+/* DST */
 
 #define EDMA3CC_DST_DST (0xFFFFFFFFu)
 #define EDMA3CC_DST_DST_SHIFT (0x00000000u)
 
-    /* SRC_DST_BIDX */
+/* SRC_DST_BIDX */
 
 #define EDMA3CC_SRC_DST_BIDX_DSTBIDX (0xFFFF0000u)
 #define EDMA3CC_SRC_DST_BIDX_DSTBIDX_SHIFT (0x00000010u)
@@ -388,7 +388,7 @@ extern "C" {
 #define EDMA3CC_SRC_DST_BIDX_SRCBIDX (0x0000FFFFu)
 #define EDMA3CC_SRC_DST_BIDX_SRCBIDX_SHIFT (0x00000000u)
 
-    /* LINK_BCNTRLD */
+/* LINK_BCNTRLD */
 
 #define EDMA3CC_LINK_BCNTRLD_BCNTRLD (0xFFFF0000u)
 #define EDMA3CC_LINK_BCNTRLD_BCNTRLD_SHIFT (0x00000010u)
@@ -396,7 +396,7 @@ extern "C" {
 #define EDMA3CC_LINK_BCNTRLD_LINK (0x0000FFFFu)
 #define EDMA3CC_LINK_BCNTRLD_LINK_SHIFT (0x00000000u)
 
-    /* SRC_DST_CIDX */
+/* SRC_DST_CIDX */
 
 #define EDMA3CC_SRC_DST_CIDX_DSTCIDX (0xFFFF0000u)
 #define EDMA3CC_SRC_DST_CIDX_DSTCIDX_SHIFT (0x00000010u)
@@ -404,17 +404,17 @@ extern "C" {
 #define EDMA3CC_SRC_DST_CIDX_SRCCIDX (0x0000FFFFu)
 #define EDMA3CC_SRC_DST_CIDX_SRCCIDX_SHIFT (0x00000000u)
 
-    /* CCNT */
+/* CCNT */
 
 #define EDMA3CC_CCNT_CCNT (0x0000FFFFu)
 #define EDMA3CC_CCNT_CCNT_SHIFT (0x00000000u)
 
-    /* PID */
+/* PID */
 
 #define EDMA3CC_PID_PID (0xFFFFFFFFu)
 #define EDMA3CC_PID_PID_SHIFT (0x00000000u)
 
-    /* CCCFG */
+/* CCCFG */
 
 #define EDMA3CC_CCCFG_MP_EXIST (0x02000000u)
 #define EDMA3CC_CCCFG_MP_EXIST_SHIFT (0x00000019u)
@@ -422,7 +422,7 @@ extern "C" {
 #define EDMA3CC_CCCFG_CHMAP_EXIST_SHIFT (0x00000018u)
 #define EDMA3CC_CCCFG_NUM_REGN (0x00300000u)
 #define EDMA3CC_CCCFG_NUM_REGN_SHIFT (0x00000014u)
-    /*----NUM_REGN Tokens----*/
+/*----NUM_REGN Tokens----*/
 #define EDMA3CC_CCCFG_NUM_REGN_0REGIONS (0x00000000u)
 #define EDMA3CC_CCCFG_NUM_REGN_2REGIONS (0x00000001u)
 #define EDMA3CC_CCCFG_NUM_REGN_4REGIONS (0x00000002u)
@@ -440,7 +440,7 @@ extern "C" {
 #define EDMA3CC_CCCFG_NUM_EVQUE_8EVTQ (0x00000007u)
 #define EDMA3CC_CCCFG_NUM_PAENTRY (0x00007000u)
 #define EDMA3CC_CCCFG_NUM_PAENTRY_SHIFT (0x0000000Cu)
-    /*----NUM_PAENTRY Tokens----*/
+/*----NUM_PAENTRY Tokens----*/
 #define EDMA3CC_CCCFG_NUM_PAENTRY_16 (0x00000000u)
 #define EDMA3CC_CCCFG_NUM_PAENTRY_32 (0x00000001u)
 #define EDMA3CC_CCCFG_NUM_PAENTRY_64 (0x00000002u)
@@ -450,7 +450,7 @@ extern "C" {
 
 #define EDMA3CC_CCCFG_NUM_INTCH (0x00000700u)
 #define EDMA3CC_CCCFG_NUM_INTCH_SHIFT (0x00000008u)
-    /*----NUM_INTCH Tokens----*/
+/*----NUM_INTCH Tokens----*/
 #define EDMA3CC_CCCFG_NUM_INTCH_8 (0x00000001u)
 #define EDMA3CC_CCCFG_NUM_INTCH_16 (0x00000002u)
 #define EDMA3CC_CCCFG_NUM_INTCH_32 (0x00000003u)
@@ -458,7 +458,7 @@ extern "C" {
 
 #define EDMA3CC_CCCFG_NUM_QDMACH (0x00000070u)
 #define EDMA3CC_CCCFG_NUM_QDMACH_SHIFT (0x00000004u)
-    /*----NUM_QDMACH Tokens----*/
+/*----NUM_QDMACH Tokens----*/
 #define EDMA3CC_CCCFG_NUM_QDMACH_NONE (0x00000000u)
 #define EDMA3CC_CCCFG_NUM_QDMACH_2 (0x00000001u)
 #define EDMA3CC_CCCFG_NUM_QDMACH_4 (0x00000002u)
@@ -467,7 +467,7 @@ extern "C" {
 
 #define EDMA3CC_CCCFG_NUM_DMACH (0x00000007u)
 #define EDMA3CC_CCCFG_NUM_DMACH_SHIFT (0x00000000u)
-    /*----NUM_DMACH Tokens----*/
+/*----NUM_DMACH Tokens----*/
 #define EDMA3CC_CCCFG_NUM_DMACH_NONE (0x00000000u)
 #define EDMA3CC_CCCFG_NUM_DMACH_4 (0x00000001u)
 #define EDMA3CC_CCCFG_NUM_DMACH_8 (0x00000002u)
@@ -475,14 +475,14 @@ extern "C" {
 #define EDMA3CC_CCCFG_NUM_DMACH_32 (0x00000004u)
 #define EDMA3CC_CCCFG_NUM_DMACH_64 (0x00000005u)
 
-    /* QCHMAP */
+/* QCHMAP */
 
 #define EDMA3CC_QCHMAP_PAENTRY (0x00003FE0u)
 #define EDMA3CC_QCHMAP_PAENTRY_SHIFT (0x00000005u)
 #define EDMA3CC_QCHMAP_TRWORD (0x0000001Cu)
 #define EDMA3CC_QCHMAP_TRWORD_SHIFT (0x00000002u)
 
-    /* DMAQNUM */
+/* DMAQNUM */
 
 #define EDMA3CC_DMAQNUM_E7 (0x70000000u)
 #define EDMA3CC_DMAQNUM_E7_SHIFT (0x0000001Cu)
@@ -501,7 +501,7 @@ extern "C" {
 #define EDMA3CC_DMAQNUM_E0 (0x00000007u)
 #define EDMA3CC_DMAQNUM_E0_SHIFT (0x00000000u)
 
-    /* QDMAQNUM */
+/* QDMAQNUM */
 
 #define EDMA3CC_QDMAQNUM_E7 (0x70000000u)
 #define EDMA3CC_QDMAQNUM_E7_SHIFT (0x0000001Cu)
@@ -520,7 +520,7 @@ extern "C" {
 #define EDMA3CC_QDMAQNUM_E0 (0x00000007u)
 #define EDMA3CC_QDMAQNUM_E0_SHIFT (0x00000000u)
 
-    /* QUEPRI */
+/* QUEPRI */
 
 #define EDMA3CC_QUEPRI_PRIQ2 (0x00000700u)
 #define EDMA3CC_QUEPRI_PRIQ2_SHIFT (0x00000008u)
@@ -529,7 +529,7 @@ extern "C" {
 #define EDMA3CC_QUEPRI_PRIQ0 (0x00000007u)
 #define EDMA3CC_QUEPRI_PRIQ0_SHIFT (0x00000000u)
 
-    /* EMR */
+/* EMR */
 
 #define EDMA3CC_EMR_E31 (0x80000000u)
 #define EDMA3CC_EMR_E31_SHIFT (0x0000001Fu)
@@ -596,7 +596,7 @@ extern "C" {
 #define EDMA3CC_EMR_E0 (0x00000001u)
 #define EDMA3CC_EMR_E0_SHIFT (0x00000000u)
 
-    /* EMCR */
+/* EMCR */
 
 #define EDMA3CC_EMCR_E31 (0x80000000u)
 #define EDMA3CC_EMCR_E31_SHIFT (0x0000001Fu)
@@ -663,7 +663,7 @@ extern "C" {
 #define EDMA3CC_EMCR_E0 (0x00000001u)
 #define EDMA3CC_EMCR_E0_SHIFT (0x00000000u)
 
-    /* QEMR */
+/* QEMR */
 
 #define EDMA3CC_QEMR_E7 (0x00000080u)
 #define EDMA3CC_QEMR_E7_SHIFT (0x00000007u)
@@ -682,7 +682,7 @@ extern "C" {
 #define EDMA3CC_QEMR_E0 (0x00000001u)
 #define EDMA3CC_QEMR_E0_SHIFT (0x00000000u)
 
-    /* QEMCR */
+/* QEMCR */
 
 #define EDMA3CC_QEMCR_E7 (0x00000080u)
 #define EDMA3CC_QEMCR_E7_SHIFT (0x00000007u)
@@ -701,7 +701,7 @@ extern "C" {
 #define EDMA3CC_QEMCR_E0 (0x00000001u)
 #define EDMA3CC_QEMCR_E0_SHIFT (0x00000000u)
 
-    /* CCERR */
+/* CCERR */
 
 #define EDMA3CC_CCERR_TCCERR (0x00010000u)
 #define EDMA3CC_CCERR_TCCERR_SHIFT (0x00000010u)
@@ -712,7 +712,7 @@ extern "C" {
 #define EDMA3CC_CCERR_QTHRXCD0 (0x00000001u)
 #define EDMA3CC_CCERR_QTHRXCD0_SHIFT (0x00000000u)
 
-    /* CCERRCLR */
+/* CCERRCLR */
 
 #define EDMA3CC_CCERRCLR_TCCERR (0x00010000u)
 #define EDMA3CC_CCERRCLR_TCCERR_SHIFT (0x00000010u)
@@ -725,12 +725,12 @@ extern "C" {
 #define EDMA3CC_CCERRCLR_QTHRXCD0 (0x00000001u)
 #define EDMA3CC_CCERRCLR_QTHRXCD0_SHIFT (0x00000000u)
 
-    /* EEVAL */
+/* EEVAL */
 
 #define EDMA3CC_EEVAL_EVAL (0x00000001u)
 #define EDMA3CC_EEVAL_EVAL_SHIFT (0x00000000u)
 
-    /* QRAE */
+/* QRAE */
 
 #define EDMA3CC_QRAE_E7 (0x00000080u)
 #define EDMA3CC_QRAE_E7_SHIFT (0x00000007u)
@@ -749,7 +749,7 @@ extern "C" {
 #define EDMA3CC_QRAE_E0 (0x00000001u)
 #define EDMA3CC_QRAE_E0_SHIFT (0x00000000u)
 
-    /* QSTAT */
+/* QSTAT */
 
 #define EDMA3CC_QSTAT_THRXCD (0x01000000u)
 #define EDMA3CC_QSTAT_THRXCD_SHIFT (0x00000018u)
@@ -762,7 +762,7 @@ extern "C" {
 #define EDMA3CC_QSTAT_STRTPTR (0x0000000Fu)
 #define EDMA3CC_QSTAT_STRTPTR_SHIFT (0x00000000u)
 
-    /* QWMTHRA */
+/* QWMTHRA */
 
 #define EDMA3CC_QWMTHRA_Q2 (0x001F0000u)
 #define EDMA3CC_QWMTHRA_Q2_SHIFT (0x00000010u)
@@ -774,7 +774,7 @@ extern "C" {
 #define EDMA3CC_QWMTHRA_Q0_SHIFT (0x00000000u)
 #define EDMA3CC_QWMTHRA_Q0_MAX (0x00000010u)
 
-    /* CCSTAT */
+/* CCSTAT */
 
 #define EDMA3CC_CCSTAT_QUEACTV2 (0x00040000u)
 #define EDMA3CC_CCSTAT_QUEACTV2_SHIFT (0x00000012u)
@@ -795,7 +795,7 @@ extern "C" {
 #define EDMA3CC_CCSTAT_EVTACTV (0x00000001u)
 #define EDMA3CC_CCSTAT_EVTACTV_SHIFT (0x00000000u)
 
-    /* ER */
+/* ER */
 
 #define EDMA3CC_ER_E31 (0x80000000u)
 #define EDMA3CC_ER_E31_SHIFT (0x0000001Fu)
@@ -862,7 +862,7 @@ extern "C" {
 #define EDMA3CC_ER_E0 (0x00000001u)
 #define EDMA3CC_ER_E0_SHIFT (0x00000000u)
 
-    /* ECR */
+/* ECR */
 
 #define EDMA3CC_ECR_E31 (0x80000000u)
 #define EDMA3CC_ECR_E31_SHIFT (0x0000001Fu)
@@ -929,7 +929,7 @@ extern "C" {
 #define EDMA3CC_ECR_E0 (0x00000001u)
 #define EDMA3CC_ECR_E0_SHIFT (0x00000000u)
 
-    /* ESR */
+/* ESR */
 
 #define EDMA3CC_ESR_E31 (0x80000000u)
 #define EDMA3CC_ESR_E31_SHIFT (0x0000001Fu)
@@ -996,7 +996,7 @@ extern "C" {
 #define EDMA3CC_ESR_E0 (0x00000001u)
 #define EDMA3CC_ESR_E0_SHIFT (0x00000000u)
 
-    /* CER */
+/* CER */
 
 #define EDMA3CC_CER_E31 (0x80000000u)
 #define EDMA3CC_CER_E31_SHIFT (0x0000001Fu)
@@ -1063,7 +1063,7 @@ extern "C" {
 #define EDMA3CC_CER_E0 (0x00000001u)
 #define EDMA3CC_CER_E0_SHIFT (0x00000000u)
 
-    /* EER */
+/* EER */
 
 #define EDMA3CC_EER_E31 (0x80000000u)
 #define EDMA3CC_EER_E31_SHIFT (0x0000001Fu)
@@ -1131,7 +1131,7 @@ extern "C" {
 #define EDMA3CC_EER_E0 (0x00000001u)
 #define EDMA3CC_EER_E0_SHIFT (0x00000000u)
 
-    /* EECR */
+/* EECR */
 
 #define EDMA3CC_EECR_E31 (0x80000000u)
 #define EDMA3CC_EECR_E31_SHIFT (0x0000001Fu)
@@ -1198,7 +1198,7 @@ extern "C" {
 #define EDMA3CC_EECR_E0 (0x00000001u)
 #define EDMA3CC_EECR_E0_SHIFT (0x00000000u)
 
-    /* EESR */
+/* EESR */
 
 #define EDMA3CC_EESR_E31 (0x80000000u)
 #define EDMA3CC_EESR_E31_SHIFT (0x0000001Fu)
@@ -1265,7 +1265,7 @@ extern "C" {
 #define EDMA3CC_EESR_E0 (0x00000001u)
 #define EDMA3CC_EESR_E0_SHIFT (0x00000000u)
 
-    /* SER */
+/* SER */
 
 #define EDMA3CC_SER_E31 (0x80000000u)
 #define EDMA3CC_SER_E31_SHIFT (0x0000001Fu)
@@ -1332,7 +1332,7 @@ extern "C" {
 #define EDMA3CC_SER_E0 (0x00000001u)
 #define EDMA3CC_SER_E0_SHIFT (0x00000000u)
 
-    /* SECR */
+/* SECR */
 
 #define EDMA3CC_SECR_E31 (0x80000000u)
 #define EDMA3CC_SECR_E31_SHIFT (0x0000001Fu)
@@ -1399,7 +1399,7 @@ extern "C" {
 #define EDMA3CC_SECR_E0 (0x00000001u)
 #define EDMA3CC_SECR_E0_SHIFT (0x00000000u)
 
-    /* IER */
+/* IER */
 
 #define EDMA3CC_IER_I31 (0x80000000u)
 #define EDMA3CC_IER_I31_SHIFT (0x0000001Fu)
@@ -1466,7 +1466,7 @@ extern "C" {
 #define EDMA3CC_IER_I0 (0x00000001u)
 #define EDMA3CC_IER_I0_SHIFT (0x00000000u)
 
-    /* IECR */
+/* IECR */
 
 #define EDMA3CC_IECR_I31 (0x80000000u)
 #define EDMA3CC_IECR_I31_SHIFT (0x0000001Fu)
@@ -1533,7 +1533,7 @@ extern "C" {
 #define EDMA3CC_IECR_I0 (0x00000001u)
 #define EDMA3CC_IECR_I0_SHIFT (0x00000000u)
 
-    /* IESR */
+/* IESR */
 
 #define EDMA3CC_IESR_I31 (0x80000000u)
 #define EDMA3CC_IESR_I31_SHIFT (0x0000001Fu)
@@ -1600,7 +1600,7 @@ extern "C" {
 #define EDMA3CC_IESR_I0 (0x00000001u)
 #define EDMA3CC_IESR_I0_SHIFT (0x00000000u)
 
-    /* IPR */
+/* IPR */
 
 #define EDMA3CC_IPR_I31 (0x80000000u)
 #define EDMA3CC_IPR_I31_SHIFT (0x0000001Fu)
@@ -1667,7 +1667,7 @@ extern "C" {
 #define EDMA3CC_IPR_I0 (0x00000001u)
 #define EDMA3CC_IPR_I0_SHIFT (0x00000000u)
 
-    /* ICR */
+/* ICR */
 
 #define EDMA3CC_ICR_I31 (0x80000000u)
 #define EDMA3CC_ICR_I31_SHIFT (0x0000001Fu)
@@ -1734,12 +1734,12 @@ extern "C" {
 #define EDMA3CC_ICR_I0 (0x00000001u)
 #define EDMA3CC_ICR_I0_SHIFT (0x00000000u)
 
-    /* IEVAL */
+/* IEVAL */
 
 #define EDMA3CC_IEVAL_EVAL (0x00000001u)
 #define EDMA3CC_IEVAL_EVAL_SHIFT (0x00000000u)
 
-    /* QER */
+/* QER */
 
 #define EDMA3CC_QER_E7 (0x00000080u)
 #define EDMA3CC_QER_E7_SHIFT (0x00000007u)
@@ -1758,7 +1758,7 @@ extern "C" {
 #define EDMA3CC_QER_E0 (0x00000001u)
 #define EDMA3CC_QER_E0_SHIFT (0x00000000u)
 
-    /* QEER */
+/* QEER */
 
 #define EDMA3CC_QEER_E7 (0x00000080u)
 #define EDMA3CC_QEER_E7_SHIFT (0x00000007u)
@@ -1771,7 +1771,7 @@ extern "C" {
 #define EDMA3CC_QEER_E1_SHIFT (0x00000001u)
 #define EDMA3CC_QEER_E0_SHIFT (0x00000000u)
 
-    /* QEECR */
+/* QEECR */
 
 #define EDMA3CC_QEECR_E7 (0x00000080u)
 #define EDMA3CC_QEECR_E7_SHIFT (0x00000007u)
@@ -1790,7 +1790,7 @@ extern "C" {
 #define EDMA3CC_QEECR_E0 (0x00000001u)
 #define EDMA3CC_QEECR_E0_SHIFT (0x00000000u)
 
-    /* QEESR */
+/* QEESR */
 
 #define EDMA3CC_QEESR_E7 (0x00000080u)
 #define EDMA3CC_QEESR_E7_SHIFT (0x00000007u)
@@ -1809,7 +1809,7 @@ extern "C" {
 #define EDMA3CC_QEESR_E0 (0x00000001u)
 #define EDMA3CC_QEESR_E0_SHIFT (0x00000000u)
 
-    /* QSER */
+/* QSER */
 
 #define EDMA3CC_QSER_E7 (0x00000080u)
 #define EDMA3CC_QSER_E7_SHIFT (0x00000007u)
@@ -1828,7 +1828,7 @@ extern "C" {
 #define EDMA3CC_QSER_E0 (0x00000001u)
 #define EDMA3CC_QSER_E0_SHIFT (0x00000000u)
 
-    /* QSECR */
+/* QSECR */
 
 #define EDMA3CC_QSECR_E7 (0x00000080u)
 #define EDMA3CC_QSECR_E7_SHIFT (0x00000007u)

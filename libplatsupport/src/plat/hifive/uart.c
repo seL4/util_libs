@@ -36,15 +36,14 @@ struct uart {
 };
 typedef volatile struct uart uart_regs_t;
 
-static inline uart_regs_t*
-uart_get_priv(ps_chardevice_t *d)
+static inline uart_regs_t *uart_get_priv(ps_chardevice_t *d)
 {
-    return (uart_regs_t*)d->vaddr;
+    return (uart_regs_t *)d->vaddr;
 }
 
 int uart_getchar(ps_chardevice_t *d)
 {
-    uart_regs_t* regs = uart_get_priv(d);
+    uart_regs_t *regs = uart_get_priv(d);
     uint32_t reg = regs->rxdata;
     int c = -1;
 
@@ -54,13 +53,13 @@ int uart_getchar(ps_chardevice_t *d)
     return c;
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t *d, int c)
 {
-    uart_regs_t* regs = uart_get_priv(d);
+    uart_regs_t *regs = uart_get_priv(d);
     if (!(regs->txdata & UART_TX_DATA_FULL)) {
         if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
             regs->txdata = '\r' & UART_TX_DATA_MASK;
-            while(regs->txdata & UART_TX_DATA_FULL) {}
+            while (regs->txdata & UART_TX_DATA_FULL) {}
         }
         regs->txdata = c & UART_TX_DATA_MASK;
         return c;
@@ -69,20 +68,19 @@ int uart_putchar(ps_chardevice_t* d, int c)
     }
 }
 
-static void
-uart_handle_irq(ps_chardevice_t* d UNUSED)
+static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
     // IRQs are cleared when the TX/RX watermark conditions are no longer met
     // so there is nothing to do here.
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn,
+              const ps_io_ops_t *ops,
+              ps_chardevice_t *dev)
 {
-    uart_regs_t* regs;
+    uart_regs_t *regs;
     /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
+    void *vaddr = chardev_map(defn, ops);
     if (vaddr == NULL) {
         return -1;
     }
@@ -91,7 +89,7 @@ int uart_init(const struct dev_defn* defn,
 
     /* Set up all the  device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*)vaddr;
+    dev->vaddr      = (void *)vaddr;
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;

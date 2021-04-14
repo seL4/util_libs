@@ -5,17 +5,17 @@
  */
 #include "../clock.h"
 
-uint32_t exynos_pll_get_freq(clk_t* clk, int clkid, uint32_t pll_idx)
+uint32_t exynos_pll_get_freq(clk_t *clk, int clkid, uint32_t pll_idx)
 {
     uint32_t v, p, m, s;
     uint32_t muxstat;
-    clk_regs_io_t** clk_regs;
-    volatile struct pll_regs* pll_regs;
+    clk_regs_io_t **clk_regs;
+    volatile struct pll_regs *pll_regs;
     int c, r, o;
 
     clkid_decode(clkid, &c, &r, &o);
     clk_regs = clk_get_clk_regs(clk);
-    pll_regs = (volatile struct pll_regs*)&clk_regs[c]->pll_lock[pll_idx];
+    pll_regs = (volatile struct pll_regs *)&clk_regs[c]->pll_lock[pll_idx];
 
     muxstat = exynos_cmu_get_srcstat(clk_regs, clkid);
     if (muxstat & 0x1) {

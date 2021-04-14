@@ -33,8 +33,8 @@ enum serial_parity {
  * @return   : 0 on success
  */
 int serial_init(enum chardev_id id,
-                ps_io_ops_t* ops,
-                ps_chardevice_t* dev);
+                ps_io_ops_t *ops,
+                ps_chardevice_t *dev);
 
 /*
  * Performs line configuration of a serial port
@@ -43,7 +43,7 @@ int serial_init(enum chardev_id id,
  * @param char_size: The desired character size
  * @param stop_bits: The number of stop bits
  */
-int serial_configure(ps_chardevice_t* dev,
+int serial_configure(ps_chardevice_t *dev,
                      long bps,
                      int  char_size,
                      enum serial_parity parity,

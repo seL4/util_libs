@@ -12,11 +12,11 @@ typedef struct irq_combiner irq_combiner_t;
 typedef int combiner_irq_t;
 
 struct irq_combiner {
-    int (*is_pending)(irq_combiner_t* combiner, combiner_irq_t cirq);
-    int (*is_enabled)(irq_combiner_t* combiner, combiner_irq_t cirq);
-    int (*set_enabled)(irq_combiner_t* combiner, combiner_irq_t cirq, int v);
-    uint32_t (*grp_pending)(irq_combiner_t* combiner, int group);
-    void* priv;
+    int (*is_pending)(irq_combiner_t *combiner, combiner_irq_t cirq);
+    int (*is_enabled)(irq_combiner_t *combiner, combiner_irq_t cirq);
+    int (*set_enabled)(irq_combiner_t *combiner, combiner_irq_t cirq, int v);
+    uint32_t (*grp_pending)(irq_combiner_t *combiner, int group);
+    void *priv;
 };
 
 #include <platsupport/plat/irq_combiner.h>
@@ -34,7 +34,7 @@ struct irq_combiner {
  * @param[out] combiner An IRQ combiner structure to populate
  * @return              0 on success.
  */
-int irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t* io_ops, irq_combiner_t* combiner);
+int irq_combiner_init(enum irq_combiner_id id, ps_io_ops_t *io_ops, irq_combiner_t *combiner);
 
 /**
  * Find the number of IRQ groups managed by the combiner. This will typically
@@ -61,7 +61,7 @@ int irq_combiner_irq(enum irq_combiner_id id, int group);
  * @return             0 if the IRQ is not pending, 1 if the IRQ is pending, or
  *                     -1 on error.
  */
-static inline int irq_combiner_is_pending(irq_combiner_t* combiner, combiner_irq_t cirq)
+static inline int irq_combiner_is_pending(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
     assert(combiner);
     assert(combiner->is_pending);
@@ -75,7 +75,7 @@ static inline int irq_combiner_is_pending(irq_combiner_t* combiner, combiner_irq
  * @return             0 if the IRQ is not enabled, 1 if the IRQ is enabled, or
  *                     -1 on error.
  */
-static inline int irq_combiner_is_enabled(irq_combiner_t* combiner, combiner_irq_t cirq)
+static inline int irq_combiner_is_enabled(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
     assert(combiner);
     assert(combiner->is_pending);
@@ -89,7 +89,7 @@ static inline int irq_combiner_is_enabled(irq_combiner_t* combiner, combiner_irq
  * @param[in] cirq     A combiner IRQ id as constructed from COMBINER_IRQ(grp, idx)
  * @return             0 on success.
  */
-static inline int irq_combiner_enable_irq(irq_combiner_t* combiner, combiner_irq_t cirq)
+static inline int irq_combiner_enable_irq(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
     assert(combiner);
     assert(combiner->is_pending);
@@ -103,7 +103,7 @@ static inline int irq_combiner_enable_irq(irq_combiner_t* combiner, combiner_irq
  * @param[in] cirq     A combiner IRQ id as constructed from COMBINER_IRQ(grp, idx)
  * @return             0 on success.
  */
-static inline int irq_combiner_disable_irq(irq_combiner_t* combiner, combiner_irq_t cirq)
+static inline int irq_combiner_disable_irq(irq_combiner_t *combiner, combiner_irq_t cirq)
 {
     assert(combiner);
     assert(combiner->is_pending);
@@ -116,7 +116,7 @@ static inline int irq_combiner_disable_irq(irq_combiner_t* combiner, combiner_ir
  * @param[in] group    The Combiner group number to query
  * @return             A bitfield of pending IRQs for this group.
  */
-static inline uint32_t irq_combiner_group_pending(irq_combiner_t* combiner, int group)
+static inline uint32_t irq_combiner_group_pending(irq_combiner_t *combiner, int group)
 {
     assert(combiner);
     assert(combiner->is_pending);

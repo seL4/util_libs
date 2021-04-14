@@ -9,6 +9,7 @@
 
 #define UD_INSTRUCTION_SIZE 4
 
-static inline void ALWAYS_INLINE utils_undefined_instruction(void) {
-    asm volatile (".word 0x00000000");
+static inline void ALWAYS_INLINE utils_undefined_instruction(void)
+{
+    asm volatile(".word 0x00000000");
 }

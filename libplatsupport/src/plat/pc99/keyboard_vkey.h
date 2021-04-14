@@ -42,14 +42,14 @@ typedef struct keycode_state {
         http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
 */
 enum virtual_keycode_enum {
-    VK_LBUTTON = 0x1 ,  /* Left mouse button */
-    VK_RBUTTON = 0x2 ,  /* Right mouse button */
-    VK_CANCEL = 0x3 ,  /* Control-break processing */
-    VK_MBUTTON = 0x4 ,  /* Middle mouse button (three-button mouse) */
-    VK_XBUTTON1 = 0x5 ,  /*  X1 mouse button */
-    VK_XBUTTON2 = 0x6 ,  /*  X2 mouse button */
-    VK_BACK = 0x8 ,  /* BACKSPACE key */
-    VK_TAB = 0x9 ,  /* TAB key */
+    VK_LBUTTON = 0x1,   /* Left mouse button */
+    VK_RBUTTON = 0x2,   /* Right mouse button */
+    VK_CANCEL = 0x3,   /* Control-break processing */
+    VK_MBUTTON = 0x4,   /* Middle mouse button (three-button mouse) */
+    VK_XBUTTON1 = 0x5,   /*  X1 mouse button */
+    VK_XBUTTON2 = 0x6,   /*  X2 mouse button */
+    VK_BACK = 0x8,   /* BACKSPACE key */
+    VK_TAB = 0x9,   /* TAB key */
     VK_CLEAR = 0x0C,  /* CLEAR key */
     VK_RETURN = 0x0D,  /* ENTER key */
     VK_CONTROL = 0x11,  /* CTRL key */
@@ -335,7 +335,7 @@ void keycode_init(
 );
 
 #if KEYBOARD_KEY_DEBUG
-const char* keycode_vkey_desc(uint16_t vk);
+const char *keycode_vkey_desc(uint16_t vk);
 #endif
 
 int16_t keycode_info_char_modifier(keycode_info_t *info, bool ctrl, bool shift);
@@ -345,10 +345,10 @@ int16_t keycode_info_char(keycode_state_t *s, keycode_info_t *info);
 int16_t keycode_ps2_to_vkey(int32_t ps2_keycode);
 
 keycode_info_t *keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed,
-                                           void* cookie);
+                                           void *cookie);
 
 int16_t keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, bool pressed,
-                                           void* cookie);
+                                           void *cookie);
 
 bool keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey);
 

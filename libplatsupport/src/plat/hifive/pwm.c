@@ -41,7 +41,7 @@ int pwm_stop(pwm_t *pwm)
 {
     /* Disable timer. */
     pwm->pwm_map->pwmcmp0 = PWMCMP_MASK;
-    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS|PWMENONESHOT|PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
+    pwm->pwm_map->pwmcfg &= ~(PWMENALWAYS | PWMENONESHOT | PWMCMP0IP | PWMCMP1IP | PWMCMP2IP | PWMCMP3IP);
     pwm->pwm_map->pwmcount = 0;
 
     return 0;
@@ -49,7 +49,7 @@ int pwm_stop(pwm_t *pwm)
 
 int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 {
-    if(pwm->mode == UPCOUNTER) {
+    if (pwm->mode == UPCOUNTER) {
         ZF_LOGE("pwm is in UPCOUNTER mode and doesn't support setting timeouts.");
         return -1;
     }
@@ -69,7 +69,7 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
      */
     size_t prescale = num_ticks >> (PWMCMP_WIDTH);
     size_t base_2 = LOG_BASE_2(prescale);
-    if (BIT(base_2)< prescale) {
+    if (BIT(base_2) < prescale) {
         base_2++;
     }
     assert(prescale < BIT(PWMSCALE_MASK));
@@ -77,9 +77,9 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
     /* There will be a loss of resolution by this shift.
      * We add 1 so that we sleep for at least as long as needed.
      */
-    pwm->pwm_map->pwmcmp0 = (num_ticks >> base_2) +1;
+    pwm->pwm_map->pwmcmp0 = (num_ticks >> base_2) + 1;
     /* assert we didn't overflow... */
-    assert((num_ticks >> base_2) +1);
+    assert((num_ticks >> base_2) + 1);
     /* Reset the counter mode and prescaler, for some reason this doesn't work in pwm_stop */
     pwm->pwm_map->pwmcfg &= ~(PWMSCALE_MASK);
     if (periodic) {
@@ -93,11 +93,11 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 
 void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 {
-    if(pwm->mode == UPCOUNTER) {
+    if (pwm->mode == UPCOUNTER) {
         pwm->time_h++;
     }
 
-    pwm->pwm_map->pwmcfg &= ~(PWMCMP0IP|PWMCMP1IP|PWMCMP2IP|PWMCMP3IP);
+    pwm->pwm_map->pwmcfg &= ~(PWMCMP0IP | PWMCMP1IP | PWMCMP2IP | PWMCMP3IP);
 }
 
 uint64_t pwm_get_time(pwm_t *pwm)
@@ -115,7 +115,7 @@ uint64_t pwm_get_time(pwm_t *pwm)
 
 int pwm_init(pwm_t *pwm, pwm_config_t config)
 {
-    pwm->pwm_map = (volatile struct pwm_map*) config.vaddr;
+    pwm->pwm_map = (volatile struct pwm_map *) config.vaddr;
     uint8_t scale = 0;
     if (config.mode == UPCOUNTER) {
         scale = PWMSCALE_MASK;
@@ -125,7 +125,7 @@ int pwm_init(pwm_t *pwm, pwm_config_t config)
     pwm->pwm_map->pwmcmp1 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp2 = PWMCMP_MASK;
     pwm->pwm_map->pwmcmp3 = PWMCMP_MASK;
-    pwm->pwm_map->pwmcfg =  (scale & PWMSCALE_MASK) | PWMZEROCMP | PWMSTICKY;
+    pwm->pwm_map->pwmcfg = (scale & PWMSCALE_MASK) | PWMZEROCMP | PWMSTICKY;
 
     return 0;
 }

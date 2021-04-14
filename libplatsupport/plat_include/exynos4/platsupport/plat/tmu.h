@@ -34,5 +34,5 @@ enum tmu_id {
  * @param[out] tmu   A TMU structure to populate
  * @return           0 on success
  */
-int exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu);
+int exynos4_tmu_init(enum tmu_id id, void *vaddr, tmu_t *tmu);
 

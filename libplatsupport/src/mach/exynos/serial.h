@@ -6,4 +6,4 @@
 
 #include "../../chardev.h"
 
-int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev);
+int uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, struct ps_chardevice *dev);

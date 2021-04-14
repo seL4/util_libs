@@ -45,21 +45,21 @@
 extern "C" {
 #endif
 
-    /***********************************************************************\
-     * Register arrays Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Register arrays Definition
+\***********************************************************************/
 
-    /***********************************************************************\
-     * Bundle arrays Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Bundle arrays Definition
+\***********************************************************************/
 
-    /***********************************************************************\
-     * Bundles Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Bundles Definition
+\***********************************************************************/
 
-    /*************************************************************************\
-     * Registers Definition
-    \*************************************************************************/
+/*************************************************************************\
+ * Registers Definition
+\*************************************************************************/
 
 #define CPSW_SS_ID_VER   (0x0)
 #define CPSW_SS_CONTROL   (0x4)
@@ -75,11 +75,11 @@ extern "C" {
 #define CPSW_SS_TS_LTYPE   (0x2c)
 #define CPSW_SS_DLR_LTYPE   (0x30)
 
-    /**************************************************************************\
-     * Field Definition Macros
-    \**************************************************************************/
+/**************************************************************************\
+ * Field Definition Macros
+\**************************************************************************/
 
-    /* ID_VER */
+/* ID_VER */
 #define CPSW_SS_ID_VER_CPSW_3G_IDENT   (0xFFFF0000u)
 #define CPSW_SS_ID_VER_CPSW_3G_IDENT_SHIFT   (0x00000010u)
 
@@ -92,7 +92,7 @@ extern "C" {
 #define CPSW_SS_ID_VER_CPSW_3G_RTL_VER   (0x0000F800u)
 #define CPSW_SS_ID_VER_CPSW_3G_RTL_VER_SHIFT   (0x0000000Bu)
 
-    /* CONTROL */
+/* CONTROL */
 #define CPSW_SS_CONTROL_DLR_EN   (0x00000008u)
 #define CPSW_SS_CONTROL_DLR_EN_SHIFT   (0x00000003u)
 
@@ -105,11 +105,11 @@ extern "C" {
 #define CPSW_SS_CONTROL_VLAN_AWARE   (0x00000002u)
 #define CPSW_SS_CONTROL_VLAN_AWARE_SHIFT   (0x00000001u)
 
-    /* SOFT_RESET */
+/* SOFT_RESET */
 #define CPSW_SS_SOFT_RESET_SOFT_RESET   (0x00000001u)
 #define CPSW_SS_SOFT_RESET_SOFT_RESET_SHIFT   (0x00000000u)
 
-    /* STAT_PORT_EN */
+/* STAT_PORT_EN */
 #define CPSW_SS_STAT_PORT_EN_P0_STAT_EN   (0x00000001u)
 #define CPSW_SS_STAT_PORT_EN_P0_STAT_EN_SHIFT   (0x00000000u)
 
@@ -119,7 +119,7 @@ extern "C" {
 #define CPSW_SS_STAT_PORT_EN_P2_STAT_EN   (0x00000004u)
 #define CPSW_SS_STAT_PORT_EN_P2_STAT_EN_SHIFT   (0x00000002u)
 
-    /* PTYPE */
+/* PTYPE */
 #define CPSW_SS_PTYPE_ESC_PRI_LD_VAL   (0x0000001Fu)
 #define CPSW_SS_PTYPE_ESC_PRI_LD_VAL_SHIFT   (0x00000000u)
 
@@ -150,26 +150,26 @@ extern "C" {
 #define CPSW_SS_PTYPE_P2_PTYPE_ESC   (0x00000400u)
 #define CPSW_SS_PTYPE_P2_PTYPE_ESC_SHIFT   (0x0000000Au)
 
-    /* SOFT_IDLE */
+/* SOFT_IDLE */
 #define CPSW_SS_SOFT_IDLE_SOFT_IDLE   (0x00000001u)
 #define CPSW_SS_SOFT_IDLE_SOFT_IDLE_SHIFT   (0x00000000u)
 
-    /* THRU_RATE */
+/* THRU_RATE */
 #define CPSW_SS_THRU_RATE_CPDMA_THRU_RATE   (0x0000000Fu)
 #define CPSW_SS_THRU_RATE_CPDMA_THRU_RATE_SHIFT   (0x00000000u)
 
 #define CPSW_SS_THRU_RATE_SL_RX_THRU_RATE   (0x0000F000u)
 #define CPSW_SS_THRU_RATE_SL_RX_THRU_RATE_SHIFT   (0x0000000Cu)
 
-    /* GAP_THRESH */
+/* GAP_THRESH */
 #define CPSW_SS_GAP_THRESH_GAP_THRESH   (0x0000001Fu)
 #define CPSW_SS_GAP_THRESH_GAP_THRESH_SHIFT   (0x00000000u)
 
-    /* TX_START_WDS */
+/* TX_START_WDS */
 #define CPSW_SS_TX_START_WDS_TX_START_WDS   (0x000007FFu)
 #define CPSW_SS_TX_START_WDS_TX_START_WDS_SHIFT   (0x00000000u)
 
-    /* FLOW_CONTROL */
+/* FLOW_CONTROL */
 #define CPSW_SS_FLOW_CONTROL_P0_FLOW_EN   (0x00000001u)
 #define CPSW_SS_FLOW_CONTROL_P0_FLOW_EN_SHIFT   (0x00000000u)
 
@@ -179,21 +179,21 @@ extern "C" {
 #define CPSW_SS_FLOW_CONTROL_P2_FLOW_EN   (0x00000004u)
 #define CPSW_SS_FLOW_CONTROL_P2_FLOW_EN_SHIFT   (0x00000002u)
 
-    /* VLAN_LTYPE */
+/* VLAN_LTYPE */
 #define CPSW_SS_VLAN_LTYPE_VLAN_LTYPE1   (0x0000FFFFu)
 #define CPSW_SS_VLAN_LTYPE_VLAN_LTYPE1_SHIFT   (0x00000000u)
 
 #define CPSW_SS_VLAN_LTYPE_VLAN_LTYPE2   (0xFFFF0000u)
 #define CPSW_SS_VLAN_LTYPE_VLAN_LTYPE2_SHIFT   (0x00000010u)
 
-    /* TS_LTYPE */
+/* TS_LTYPE */
 #define CPSW_SS_TS_LTYPE_TS_LTYPE1   (0x0000FFFFu)
 #define CPSW_SS_TS_LTYPE_TS_LTYPE1_SHIFT   (0x00000000u)
 
 #define CPSW_SS_TS_LTYPE_TS_LTYPE2   (0x003F0000u)
 #define CPSW_SS_TS_LTYPE_TS_LTYPE2_SHIFT   (0x00000010u)
 
-    /* DLR_LTYPE */
+/* DLR_LTYPE */
 #define CPSW_SS_DLR_LTYPE_DLR_LTYPE   (0x0000FFFFu)
 #define CPSW_SS_DLR_LTYPE_DLR_LTYPE_SHIFT   (0x00000000u)
 

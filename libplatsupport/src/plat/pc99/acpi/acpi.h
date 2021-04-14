@@ -55,14 +55,14 @@
  * sum bytes at the given location
  */
 uint8_t
-acpi_calc_checksum(const char* start, int length);
+acpi_calc_checksum(const char *start, int length);
 
 /*
  * return the length of any table
  * returns -1 if the table is not recognised
  */
 size_t
-acpi_table_length(const void* tbl);
+acpi_table_length(const void *tbl);
 
 /*
  * Copies the tables from src to dst. Linkage is done on the fly.
@@ -83,5 +83,5 @@ acpi_table_length(const void* tbl);
  * This function returns zero on success and non-zero on failure
  */
 int
-acpi_copy_tables(const RegionList_t* src, RegionList_t* dst);
+acpi_copy_tables(const RegionList_t *src, RegionList_t *dst);
 

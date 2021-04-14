@@ -77,12 +77,12 @@ enum clock_gate {
  * @param[in] cpu_clk  One of the CPU clocks
  * @return             0 on success
  */
-int clk_cpu_clk_select_621(clk_t* cpu_clk);
+int clk_cpu_clk_select_621(clk_t *cpu_clk);
 
 /**
  * Select 421 CPU clock ratio
  * @param[in] cpu_clk  One of the CPU clocks
  * @return             0 on success
  */
-int clk_cpu_clk_select_421(clk_t* cpu_clk);
+int clk_cpu_clk_select_421(clk_t *cpu_clk);
 

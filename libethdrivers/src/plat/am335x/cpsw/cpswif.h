@@ -46,8 +46,7 @@
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
 
-#ifndef __CPSWIF_H__
-#define __CPSWIF_H__
+#pragma once
 
 /***************************************************************************/
 /*
@@ -222,5 +221,3 @@ struct beaglebone_eth_data {
 extern u32_t cpswif_netif_status(struct netif *netif);
 extern u32_t cpswif_link_status(struct eth_driver *driver, u32_t inst_num, u32_t slv_port_num);
 extern err_t cpswif_init(struct eth_driver *driver);
-
-#endif /* _CPSWIF_H__ */

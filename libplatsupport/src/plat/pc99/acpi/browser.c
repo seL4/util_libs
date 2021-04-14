@@ -15,14 +15,13 @@
 #include <stdio.h>
 #include <string.h>
 
-static int
-_browse_tables(void* table, size_t offset)
+static int _browse_tables(void *table, size_t offset)
 {
     /*
      * NOTE: offset added to address JUST BEFORE moving
      * to the next table
      */
-    void* vector[26] = {NULL};
+    void *vector[26] = {NULL};
 
     printf("reading table at %p\n", table);
 
@@ -37,9 +36,9 @@ _browse_tables(void* table, size_t offset)
         case ACPI_RSDP: {
             printf("Root System Descriptor table Pointer\n");
             acpi_print_table(table);
-            acpi_rsdp_t* rsdp = (acpi_rsdp_t*)table;
-            vector[0] = (void*)rsdp->rsdt_address;
-            vector[1] = (void*)(uintptr_t)rsdp->xsdt_address;
+            acpi_rsdp_t *rsdp = (acpi_rsdp_t *)table;
+            vector[0] = (void *)rsdp->rsdt_address;
+            vector[1] = (void *)(uintptr_t)rsdp->xsdt_address;
             printf("\n");
             printf("a - RSDT at %p\n", vector[0]);
             printf("b - XSDT at %p\n", vector[1]);
@@ -48,15 +47,15 @@ _browse_tables(void* table, size_t offset)
         case ACPI_RSDT: {
             printf("Root System Descriptor Table\n");
             acpi_print_table(table);
-            acpi_rsdt_t* rsdt = (acpi_rsdt_t*)table;
+            acpi_rsdt_t *rsdt = (acpi_rsdt_t *)table;
             printf("\n");
             int i = 0;
-            uint32_t* entry = acpi_rsdt_first(rsdt);
+            uint32_t *entry = acpi_rsdt_first(rsdt);
             while (entry != NULL) {
                 char sig[5];
                 sig[4] = '\0';
-                memcpy(sig, (char*)(*entry) + offset, 4);
-                vector[i] = (void*)(*entry);
+                memcpy(sig, (char *)(*entry) + offset, 4);
+                vector[i] = (void *)(*entry);
                 printf("%c - %s table at %p\n", i + 'a', sig, vector[i]);
                 i++;
                 entry = acpi_rsdt_next(rsdt, entry);
@@ -66,14 +65,14 @@ _browse_tables(void* table, size_t offset)
         case ACPI_XSDT: {
             printf("eXtended root System Descriptor Table\n");
             acpi_print_table(table);
-            acpi_xsdt_t* xsdt = (acpi_xsdt_t*)table;
+            acpi_xsdt_t *xsdt = (acpi_xsdt_t *)table;
             printf("\n");
             int i = 0;
-            uint64_t* entry = acpi_xsdt_first(xsdt);
+            uint64_t *entry = acpi_xsdt_first(xsdt);
             while (entry != NULL) {
                 char sig[5];
                 sig[4] = '\0';
-                char* _e = (char*)(uintptr_t)(*entry);
+                char *_e = (char *)(uintptr_t)(*entry);
                 memcpy(sig, _e, 4);
                 vector[i] = _e;
                 printf("%c - %s table at %p\n", i + 'a', sig, vector[i]);
@@ -85,11 +84,11 @@ _browse_tables(void* table, size_t offset)
         case ACPI_FADT: {
             printf("Fixed ACPI Description Table\n");
             acpi_print_table(table);
-            acpi_fadt_t* fadt = (acpi_fadt_t*)table;
-            vector[0] = (void*)fadt->facs_address;
-            vector[1] = (void*)fadt->dsdt_address;
-            vector[2] = (void*)(uintptr_t)fadt->x_facs_address;
-            vector[3] = (void*)(uintptr_t)fadt->x_dsdt_address;
+            acpi_fadt_t *fadt = (acpi_fadt_t *)table;
+            vector[0] = (void *)fadt->facs_address;
+            vector[1] = (void *)fadt->dsdt_address;
+            vector[2] = (void *)(uintptr_t)fadt->x_facs_address;
+            vector[3] = (void *)(uintptr_t)fadt->x_dsdt_address;
             printf("\n");
             printf("a -  FACS at %p\n", vector[0]);
             printf("b -  DSDT at %p\n", vector[1]);
@@ -100,9 +99,9 @@ _browse_tables(void* table, size_t offset)
         case ACPI_FACS: {
             printf("Firmware ACPI Constrol Structure\n");
             acpi_print_table(table);
-            acpi_facs_t* facs = (acpi_facs_t*)table;
-            vector[0] = (void*)facs->firmware_walking_vector;
-            vector[3] = (void*)(uintptr_t)facs->x_firmware_walking_vector;
+            acpi_facs_t *facs = (acpi_facs_t *)table;
+            vector[0] = (void *)facs->firmware_walking_vector;
+            vector[3] = (void *)(uintptr_t)facs->x_firmware_walking_vector;
             printf("\n");
             printf("a - Firware Walking vector at %p\n", vector[0]);
             printf("b - X Firware walking vector at %p\n", vector[1]);
@@ -182,7 +181,7 @@ _browse_tables(void* table, size_t offset)
             if (input >= 'a' && input <= 'z') {
                 // input steps into another table
                 if (vector[input - 'a'] != NULL) {
-                    void* next_tbl;
+                    void *next_tbl;
                     next_tbl = vector[input - 'a'] + offset;
                     if (_browse_tables(next_tbl, offset)) {
                         return 1 /* quit */;
@@ -212,14 +211,12 @@ _browse_tables(void* table, size_t offset)
     } while (1);
 }
 
-void
-acpi_browse_tables(const acpi_rsdp_t* rsdp, size_t offset)
+void acpi_browse_tables(const acpi_rsdp_t *rsdp, size_t offset)
 {
-    _browse_tables((void*)rsdp, offset);
+    _browse_tables((void *)rsdp, offset);
 }
 
-static int
-_browse_regions(const RegionList_t* rlist, int parent)
+static int _browse_regions(const RegionList_t *rlist, int parent)
 {
     /*
      * NOTE: We don't use offsets here because we are following
@@ -240,9 +237,9 @@ _browse_regions(const RegionList_t* rlist, int parent)
         int child_count = 0;
         int i;
         for (i = 0; i < rlist->region_count; i++) {
-            const Region_t* r = rlist->regions + i;
+            const Region_t *r = rlist->regions + i;
             if (r->parent == parent) {
-                const char* sig = acpi_sig_str(r->type);
+                const char *sig = acpi_sig_str(r->type);
                 char key = child_count + 'a';
                 printf("%c - %s at %p\n", key, sig, r->start);
                 children[child_count++] = i;
@@ -287,8 +284,7 @@ _browse_regions(const RegionList_t* rlist, int parent)
     while (1);
 }
 
-void
-acpi_browse_regions(const RegionList_t* rlist)
+void acpi_browse_regions(const RegionList_t *rlist)
 {
     _browse_regions(rlist, NOPARENT);
 }

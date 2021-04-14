@@ -33,8 +33,7 @@ typedef volatile struct rtc_regs {
     uint32_t rtcicr;    /* interrupt clear reg: don't care. */
 } rtc_regs_t;
 
-static inline rtc_regs_t *
-rtc_get_regs(rtc_t *rtc)
+static inline rtc_regs_t *rtc_get_regs(rtc_t *rtc)
 {
     assert(rtc != NULL);
     assert(rtc->vaddr != NULL);

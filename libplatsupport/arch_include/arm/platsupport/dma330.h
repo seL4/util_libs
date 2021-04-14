@@ -14,7 +14,7 @@
 /* ARM PL-330 (DMA-330) DMA controller */
 
 struct dma330_dev;
-typedef struct dma330_dev* dma330_t;
+typedef struct dma330_dev *dma330_t;
 
 /**
  * Callback for signal handling
@@ -25,7 +25,7 @@ typedef struct dma330_dev* dma330_t;
  * @param[in] token   The token that the caller registered with this callback.
  * @return            The application should return 0 if the transfer should be halted.
  */
-typedef int (*dma330_signal_cb)(dma330_t* dma330, int signal, uintptr_t pc, uint32_t status, void* token);
+typedef int (*dma330_signal_cb)(dma330_t *dma330, int signal, uintptr_t pc, uint32_t status, void *token);
 
 /**
  * Initialise the DMA controller
@@ -34,7 +34,7 @@ typedef int (*dma330_signal_cb)(dma330_t* dma330, int signal, uintptr_t pc, uint
  * @param[out] dma330  on success, contains a handle to the initialised device
  * @return             0 on success
  */
-int dma330_init(enum dma330_id id, struct ps_io_ops* ops, dma330_t* dma330);
+int dma330_init(enum dma330_id id, struct ps_io_ops *ops, dma330_t *dma330);
 
 /**
  * Initialise the DMA controller with a provided base address
@@ -44,8 +44,8 @@ int dma330_init(enum dma330_id id, struct ps_io_ops* ops, dma330_t* dma330);
  * @param[out] dma330      on success, contains a handle to the initialised device
  * @return                 0 on success
  */
-int dma330_init_base(enum dma330_id id, void* dma330_base, clock_sys_t* clk_sys,
-                     dma330_t* dma330);
+int dma330_init_base(enum dma330_id id, void *dma330_base, clock_sys_t *clk_sys,
+                     dma330_t *dma330);
 
 /**
  * Initiates a DMA transfer
@@ -56,14 +56,14 @@ int dma330_init_base(enum dma330_id id, void* dma330_base, clock_sys_t* clk_sys,
  * @param[in] token   A token to pass, unmodified, to the callback.
  * @return            0 on success
  */
-int dma330_xfer(dma330_t* dma330, int channel, uintptr_t program, dma330_signal_cb cb, void* token);
+int dma330_xfer(dma330_t *dma330, int channel, uintptr_t program, dma330_signal_cb cb, void *token);
 
 /**
  * Allows the dma engine to handle an IRQ
  * @param[in] dma330 a handle to the dma device
  * @return           0 if an IRQ was indeed pending
  */
-int dma330_handle_irq(dma330_t* dma330);
+int dma330_handle_irq(dma330_t *dma330);
 
 /***********************
  *** Program presets ***
@@ -76,7 +76,7 @@ int dma330_handle_irq(dma330_t* dma330);
  * @param[out] bin          The resulting binary program
  * @return                  0 on success, or line number on failure
  */
-int dma330_compile(char* source_code, void* bin);
+int dma330_compile(char *source_code, void *bin);
 
 /**
  * Loads a preset micro code for a copy program
@@ -84,7 +84,7 @@ int dma330_compile(char* source_code, void* bin);
  * @param[in]  channel      The channel which the program will be executed on
  * @param[out] bin          An address to store the compiled dma330 program to
  */
-void dma330_copy_compile(int channel, void* bin);
+void dma330_copy_compile(int channel, void *bin);
 
 /**
  * Configures a copy program.
@@ -95,5 +95,5 @@ void dma330_copy_compile(int channel, void* bin);
  * @param[in]    len   The number of bytes to copy
  * @param[inout] vbin  The virtual address of a compiled copy program binary
  */
-int dma330_copy_configure(uintptr_t psrc, uintptr_t pdst, size_t len, void* vbin);
+int dma330_copy_configure(uintptr_t psrc, uintptr_t pdst, size_t len, void *vbin);
 

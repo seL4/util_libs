@@ -29,24 +29,21 @@ struct src_regs {
 };
 typedef volatile struct src_regs src_regs_t;
 
-static src_regs_t* src_regs;
+static src_regs_t *src_regs;
 
-static inline void
-src_set_regs(src_dev_t* d, src_regs_t* r)
+static inline void src_set_regs(src_dev_t *d, src_regs_t *r)
 {
-    d->priv = (void*)r;
+    d->priv = (void *)r;
 }
 
-static inline src_regs_t*
-src_get_regs(src_dev_t* d)
+static inline src_regs_t *src_get_regs(src_dev_t *d)
 {
-    return (src_regs_t*)d->priv;
+    return (src_regs_t *)d->priv;
 }
 
-void
-reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
+void reset_controller_assert_reset(src_dev_t *dev, enum src_rst_id id)
 {
-    src_regs_t* regs;
+    src_regs_t *regs;
     int reset_bit;
     static const int reset_map[] = {
         [SRCRST_CORE3]      = 16, [SRCRST_CORE2]   = 15,
@@ -64,8 +61,7 @@ reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
     }
 }
 
-int
-reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
+int reset_controller_init(enum src_id id, ps_io_ops_t *ops, src_dev_t *dev)
 {
     assert(sizeof(struct src_regs) == 0x48);
     if (id < 0 || id >= NSRC) {

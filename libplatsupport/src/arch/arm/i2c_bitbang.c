@@ -16,128 +16,118 @@
 
 #define DEFAULT_SPEED 100*1000
 
-static inline struct i2c_bb*
-i2c_bus_get_priv(struct i2c_bus* i2c_bus) {
-    return (struct i2c_bb*)i2c_bus->priv;
+static inline struct i2c_bb *i2c_bus_get_priv(struct i2c_bus *i2c_bus)
+{
+    return (struct i2c_bb *)i2c_bus->priv;
 }
 
-static inline void
-_hold(struct i2c_bb* d)
+static inline void _hold(struct i2c_bb *d)
 {
     ps_udelay(1000000 / d->speed + 1);
 }
 
-static inline void
-pin_l(struct i2c_bb* d, int gpio)
+static inline void pin_l(struct i2c_bb *d, int gpio)
 {
     gpio_t g;
     gpio_new(d->gpio_sys, gpio, GPIO_DIR_OUT, &g);
     gpio_clr(&g);
 }
 
-static inline int
-pin_r(struct i2c_bb* d, int gpio)
+static inline int pin_r(struct i2c_bb *d, int gpio)
 {
     gpio_t g;
     gpio_new(d->gpio_sys, gpio, GPIO_DIR_IN, &g);
     return gpio_get(&g);
 }
 
-static inline void
-pin_h(struct i2c_bb* d, int gpio)
+static inline void pin_h(struct i2c_bb *d, int gpio)
 {
     pin_r(d, gpio);
 }
 
-static inline int  sda_r (struct i2c_bb* d)
+static inline int  sda_r(struct i2c_bb *d)
 {
     return pin_r(d, d->sda);
 }
-static inline void sda_l (struct i2c_bb* d)
+static inline void sda_l(struct i2c_bb *d)
 {
     pin_l(d, d->sda);
 }
-static inline void sda_h (struct i2c_bb* d)
+static inline void sda_h(struct i2c_bb *d)
 {
     pin_h(d, d->sda);
 }
 
-static inline void scl_l (struct i2c_bb* d)
+static inline void scl_l(struct i2c_bb *d)
 {
     pin_l(d, d->scl);
 }
-static inline void scl_h (struct i2c_bb* d)
+static inline void scl_h(struct i2c_bb *d)
 {
     while (!pin_r(d, d->scl));
 }
 
-static inline void
-clk(struct i2c_bb* d)
+static inline void clk(struct i2c_bb *d)
 {
-    _hold  (d);
-    scl_h  (d);
-    _hold  (d);
-    scl_l  (d);
+    _hold(d);
+    scl_h(d);
+    _hold(d);
+    scl_l(d);
 }
 
-static inline void
-i2c_bb_start(struct i2c_bb* d)
+static inline void i2c_bb_start(struct i2c_bb *d)
 {
     /* init */
     while (!sda_r(d));
-    _hold  (d);
+    _hold(d);
     /* Start */
-    sda_l  (d);
-    _hold  (d);
-    scl_l  (d);
+    sda_l(d);
+    _hold(d);
+    scl_l(d);
 }
 
-static inline void
-i2c_bb_stop(struct i2c_bb* d)
+static inline void i2c_bb_stop(struct i2c_bb *d)
 {
-    sda_l  (d);
-    _hold  (d);
-    scl_h  (d);
+    sda_l(d);
+    _hold(d);
+    scl_h(d);
     ps_udelay(1000);
     while (!sda_r(d));
-    _hold  (d);
+    _hold(d);
 }
 
-static inline void
-i2c_bb_sendbit(struct i2c_bb* d, int bit)
+static inline void i2c_bb_sendbit(struct i2c_bb *d, int bit)
 {
     /* Setup bit */
     if (bit) {
-        sda_h (d);
+        sda_h(d);
     } else {
-        sda_l (d);
+        sda_l(d);
     }
-    _hold  (d);
+    _hold(d);
     /* Raise clock, wait for clock stretching */
-    scl_h  (d);
-    _hold  (d);
+    scl_h(d);
+    _hold(d);
     /* Lower clock */
-    scl_l  (d);
+    scl_l(d);
 }
 
-static inline int
-i2c_bb_readbit(struct i2c_bb* d)
+static inline int i2c_bb_readbit(struct i2c_bb *d)
 {
     int bit;
     /* Release SDA */
-    sda_r  (d);
-    _hold  (d);
+    sda_r(d);
+    _hold(d);
     /* Raise clock, wait for clock stretching */
-    scl_h  (d);
+    scl_h(d);
     /* Data now read to be read */
     bit = sda_r(d);
-    _hold  (d);
-    scl_l  (d);
+    _hold(d);
+    scl_l(d);
     return bit;
 }
 
-static int
-i2c_bb_sendbyte(struct i2c_bb* d, char b)
+static int i2c_bb_sendbyte(struct i2c_bb *d, char b)
 {
     int i;
     unsigned char mask = 0x80;
@@ -149,8 +139,7 @@ i2c_bb_sendbyte(struct i2c_bb* d, char b)
     return i2c_bb_readbit(d);
 }
 
-static int
-i2c_bb_readbyte(struct i2c_bb* d, int send_nak)
+static int i2c_bb_readbyte(struct i2c_bb *d, int send_nak)
 {
     int i;
     char data = 0;
@@ -162,41 +151,37 @@ i2c_bb_readbyte(struct i2c_bb* d, int send_nak)
     return data;
 }
 
-static int
-i2c_bb_read(i2c_bus_t* bus, void* buf, size_t size,
-            UNUSED bool end_with_repeat_start,
-            i2c_callback_fn cb, void* token)
+static int i2c_bb_read(i2c_bus_t *bus, void *buf, size_t size,
+                       UNUSED bool end_with_repeat_start,
+                       i2c_callback_fn cb, void *token)
 {
     assert(!"Not implemented\n");
     return -1;
 }
 
-static int
-i2c_bb_write(i2c_bus_t* bus, const void* buf, size_t size,
-             UNUSED bool end_with_repeat_start,
-             i2c_callback_fn cb, void* token)
+static int i2c_bb_write(i2c_bus_t *bus, const void *buf, size_t size,
+                        UNUSED bool end_with_repeat_start,
+                        i2c_callback_fn cb, void *token)
 {
     assert(!"Not implemented\n");
     return -1;
 }
 
-static int
-i2c_bb_master_stop(i2c_bus_t* bus)
+static int i2c_bb_master_stop(i2c_bus_t *bus)
 {
     assert(!"Not implemented\n");
     return -1;
 }
 
-static int
-i2c_bb_start_read(i2c_slave_t *sl,
-                  void* vdata, size_t size,
-                  UNUSED bool end_with_repeat_start,
-                  i2c_callback_fn cb, void* token)
+static int i2c_bb_start_read(i2c_slave_t *sl,
+                             void *vdata, size_t size,
+                             UNUSED bool end_with_repeat_start,
+                             i2c_callback_fn cb, void *token)
 {
-    struct i2c_bb* d;
+    struct i2c_bb *d;
     int nak;
     int count;
-    char* data = (char*)vdata;
+    char *data = (char *)vdata;
 
     assert(sl != NULL && sl->bus != NULL);
 
@@ -220,16 +205,15 @@ i2c_bb_start_read(i2c_slave_t *sl,
     return count;
 }
 
-static int
-i2c_bb_start_write(i2c_slave_t *sl,
-                   const void* vdata, size_t size,
-                   UNUSED bool end_with_repeat_start,
-                   i2c_callback_fn cb, void* token)
+static int i2c_bb_start_write(i2c_slave_t *sl,
+                              const void *vdata, size_t size,
+                              UNUSED bool end_with_repeat_start,
+                              i2c_callback_fn cb, void *token)
 {
-    struct i2c_bb* d;
+    struct i2c_bb *d;
     int nak;
     int count;
-    const char* data = (const char*)vdata;
+    const char *data = (const char *)vdata;
 
     assert(sl != NULL && sl->bus != NULL);
 
@@ -252,28 +236,25 @@ i2c_bb_start_write(i2c_slave_t *sl,
     return count;
 }
 
-static void
-i2c_bb_handle_irq(i2c_bus_t* i2c_bus)
+static void i2c_bb_handle_irq(i2c_bus_t *i2c_bus)
 {
-    struct i2c_bb* d;
+    struct i2c_bb *d;
     /* BB is a blocking call, but in case someone tried to poll, we ignore the call */
     d = i2c_bus_get_priv(i2c_bus);
     (void)d;
 }
 
-static int
-i2c_bb_set_self_slave_address(i2c_bus_t *i2c_bus, int addr)
+static int i2c_bb_set_self_slave_address(i2c_bus_t *i2c_bus, int addr)
 {
-    struct i2c_bb* d;
+    struct i2c_bb *d;
     d = i2c_bus_get_priv(i2c_bus);
     (void)d;
     assert(!"Not implemented");
     return -1;
 }
 
-static void
-i2c_bb_register_slave_event_handler(i2c_bus_t *bus,
-                                    i2c_aas_callback_fn aas_cb, void* aas_token)
+static void i2c_bb_register_slave_event_handler(i2c_bus_t *bus,
+                                                i2c_aas_callback_fn aas_cb, void *aas_token)
 {
     assert(bus != NULL);
     bus->aas_cb = aas_cb;
@@ -287,10 +268,9 @@ static const uint32_t i2c_speed_freqs[] = {
     [I2C_SLAVE_SPEED_HIGHSPEED] = 3400000
 };
 
-static long
-i2c_bb_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
+static long i2c_bb_set_speed(i2c_bus_t *i2c_bus, enum i2c_slave_speed speed)
 {
-    struct i2c_bb* d;
+    struct i2c_bb *d;
     d = i2c_bus_get_priv(i2c_bus);
 
     if (speed < I2C_SLAVE_SPEED_STANDARD || speed > I2C_SLAVE_SPEED_HIGHSPEED) {
@@ -302,12 +282,11 @@ i2c_bb_set_speed(i2c_bus_t* i2c_bus, enum i2c_slave_speed speed)
     return speed;
 }
 
-static int
-i2c_bb_slave_init(i2c_bus_t* i2c_bus, int address,
-                  enum i2c_slave_address_size address_size,
-                  enum i2c_slave_speed max_speed,
-                  uint32_t flags,
-                  i2c_slave_t* sl)
+static int i2c_bb_slave_init(i2c_bus_t *i2c_bus, int address,
+                             enum i2c_slave_address_size address_size,
+                             enum i2c_slave_speed max_speed,
+                             uint32_t flags,
+                             i2c_slave_t *sl)
 {
     assert(sl != NULL);
 
@@ -323,9 +302,8 @@ i2c_bb_slave_init(i2c_bus_t* i2c_bus, int address,
     return 0;
 }
 
-int
-i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda,
-            struct i2c_bb* i2c_bb, struct i2c_bus* i2c)
+int i2c_bb_init(gpio_sys_t *gpio_sys, gpio_id_t scl, gpio_id_t sda,
+                struct i2c_bb *i2c_bb, struct i2c_bus *i2c)
 {
     /* Initialise the BB structure */
     i2c_bb->scl = scl;
@@ -341,7 +319,7 @@ i2c_bb_init(gpio_sys_t* gpio_sys, gpio_id_t scl, gpio_id_t sda,
     i2c->register_slave_event_handler = i2c_bb_register_slave_event_handler;
     i2c->master_stop = i2c_bb_master_stop;
     i2c->handle_irq  = i2c_bb_handle_irq;
-    i2c->priv        = (void*)i2c_bb;
+    i2c->priv        = (void *)i2c_bb;
     /* Done */
     return 0;
 }

@@ -48,27 +48,27 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    /*****************************************************************************/
-    /*
-    ** Structure to save CPSW context
-    */
-    typedef struct mdioContext {
-        unsigned int mdioCtrl;
-    } MDIOCONTEXT;
+/*****************************************************************************/
+/*
+** Structure to save CPSW context
+*/
+typedef struct mdioContext {
+    unsigned int mdioCtrl;
+} MDIOCONTEXT;
 
-    /*
-    ** Prototypes for the APIs
-    */
-    extern unsigned int MDIOPhyAliveStatusGet(unsigned int baseAddr);
-    extern unsigned int MDIOPhyLinkStatusGet(unsigned int baseAddr);
-    extern void MDIOInit(unsigned int baseAddr, unsigned int mdioInputFreq,
-                         unsigned int mdioOutputFreq);
-    extern unsigned int MDIOPhyRegRead(unsigned int baseAddr, unsigned int phyAddr,
-                                       unsigned int regNum, volatile unsigned short *dataPtr);
-    extern void MDIOPhyRegWrite(unsigned int baseAddr, unsigned int phyAddr,
-                                unsigned int regNum, unsigned short RegVal);
-    extern void MDIOContextSave(unsigned int baseAddr, MDIOCONTEXT *contextPtr);
-    extern void MDIOContextRestore(unsigned int baseAddr, MDIOCONTEXT *contextPtr);
+/*
+** Prototypes for the APIs
+*/
+extern unsigned int MDIOPhyAliveStatusGet(unsigned int baseAddr);
+extern unsigned int MDIOPhyLinkStatusGet(unsigned int baseAddr);
+extern void MDIOInit(unsigned int baseAddr, unsigned int mdioInputFreq,
+                     unsigned int mdioOutputFreq);
+extern unsigned int MDIOPhyRegRead(unsigned int baseAddr, unsigned int phyAddr,
+                                   unsigned int regNum, volatile unsigned short *dataPtr);
+extern void MDIOPhyRegWrite(unsigned int baseAddr, unsigned int phyAddr,
+                            unsigned int regNum, unsigned short RegVal);
+extern void MDIOContextSave(unsigned int baseAddr, MDIOCONTEXT *contextPtr);
+extern void MDIOContextRestore(unsigned int baseAddr, MDIOCONTEXT *contextPtr);
 #ifdef __cplusplus
 }
 #endif

@@ -63,7 +63,7 @@ static pmem_region_t pmems[] = {
 #define N_IRQS ARRAY_SIZE(irqs)
 #define N_PMEMS ARRAY_SIZE(pmems)
 
- size_t get_num_irqs(void *data)
+size_t get_num_irqs(void *data)
 {
     return N_IRQS;
 }

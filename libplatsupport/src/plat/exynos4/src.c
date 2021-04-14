@@ -17,41 +17,38 @@
 #define SYSREG_PHY_CONFIG_PHY_EN   BIT(0)
 
 struct src_priv {
-    void* sysreg_vaddr[1];
-    void* pwrreg_vaddr[5];
+    void *sysreg_vaddr[1];
+    void *pwrreg_vaddr[5];
 };
 
 struct src_priv _src_priv;
 
-static inline struct src_priv*
-src_get_priv(src_dev_t* d) {
-    return (struct src_priv*)d->priv;
+static inline struct src_priv *src_get_priv(src_dev_t *d)
+{
+    return (struct src_priv *)d->priv;
 }
 
-static inline volatile uint32_t*
-sreg(struct src_priv* src, int offset)
+static inline volatile uint32_t *sreg(struct src_priv *src, int offset)
 {
-    void* reg = src->sysreg_vaddr[offset >> 12] + (offset & MASK(12));
-    return (volatile uint32_t*)reg;
+    void *reg = src->sysreg_vaddr[offset >> 12] + (offset & MASK(12));
+    return (volatile uint32_t *)reg;
 }
 
-static inline volatile uint32_t*
-preg(struct src_priv* src, int offset)
+static inline volatile uint32_t *preg(struct src_priv *src, int offset)
 {
-    void* reg_base;
+    void *reg_base;
     reg_base = src->pwrreg_vaddr[offset >> 12];
     if (reg_base) {
-        return (volatile uint32_t*)(reg_base + (offset & MASK(12)));
+        return (volatile uint32_t *)(reg_base + (offset & MASK(12)));
     } else {
         return NULL;
     }
 }
 
-int
-sysreg_usbphy_enable(src_dev_t* dev)
+int sysreg_usbphy_enable(src_dev_t *dev)
 {
-    volatile uint32_t* a;
-    struct src_priv* priv = src_get_priv(dev);
+    volatile uint32_t *a;
+    struct src_priv *priv = src_get_priv(dev);
     a = sreg(priv, SYSREG_PHY_CONFIG_OFFSET);
     if (a) {
         *a |= SYSREG_PHY_CONFIG_PHY_EN;
@@ -63,11 +60,10 @@ sysreg_usbphy_enable(src_dev_t* dev)
     return 0;
 }
 
-int
-sysreg_swrst_enable(src_dev_t* dev)
+int sysreg_swrst_enable(src_dev_t *dev)
 {
-    struct src_priv* priv = src_get_priv(dev);
-    volatile uint32_t* a;
+    struct src_priv *priv = src_get_priv(dev);
+    volatile uint32_t *a;
     a = preg(priv, PWRREG_SWRST_OFFSET);
     if (a) {
         LOG_INFO("Software reset triggered");
@@ -78,8 +74,7 @@ sysreg_swrst_enable(src_dev_t* dev)
     return 0;
 }
 
-void
-reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
+void reset_controller_assert_reset(src_dev_t *dev, enum src_rst_id id)
 {
     switch (id) {
     case SRCRST_SW_RST:
@@ -93,10 +88,9 @@ reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
     }
 }
 
-int
-reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
+int reset_controller_init(enum src_id id, ps_io_ops_t *ops, src_dev_t *dev)
 {
-    struct src_priv* src_priv = &_src_priv;
+    struct src_priv *src_priv = &_src_priv;
     int i;
     /* Sanity check the provided ID */
     if (id < 0 || id >= NSRC) {
@@ -118,7 +112,7 @@ reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
             void *vaddr;
             vaddr = ps_io_map(&ops->io_mapper,
                               EXYNOS_PMU_PADDR + i * BIT(12),
-                              0x1000 , 0, PS_MEM_NORMAL);
+                              0x1000, 0, PS_MEM_NORMAL);
 
             src_priv->pwrreg_vaddr[i] = vaddr;
         }

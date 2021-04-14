@@ -37,8 +37,9 @@ static const struct dev_defn dev_defn[] = {
     UART_DEFN(5)
 };
 
-struct ps_chardevice*
-ps_cdev_init(enum chardev_id id, const ps_io_ops_t* o, struct ps_chardevice* d) {
+struct ps_chardevice *
+ps_cdev_init(enum chardev_id id, const ps_io_ops_t *o, struct ps_chardevice *d)
+{
     unsigned int i;
     for (i = 0; i < ARRAY_SIZE(dev_defn); i++) {
         if (dev_defn[i].id == id) {

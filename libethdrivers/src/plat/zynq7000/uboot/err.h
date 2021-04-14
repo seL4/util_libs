@@ -3,8 +3,7 @@
  * Copyright Linux
  */
 
-#ifndef _LINUX_ERR_H
-#define _LINUX_ERR_H
+#pragma once
 
 #include <errno.h>
 
@@ -17,7 +16,7 @@
  * This should be a per-architecture thing, to allow different
  * error and pointer decisions.
  */
-#define MAX_ERRNO	4095
+#define MAX_ERRNO   4095
 
 #ifndef __ASSEMBLY__
 
@@ -25,17 +24,17 @@
 
 static inline void *ERR_PTR(long error)
 {
-	return (void *) error;
+    return (void *) error;
 }
 
 static inline long PTR_ERR(const void *ptr)
 {
-	return (long) ptr;
+    return (long) ptr;
 }
 
 static inline long IS_ERR(const void *ptr)
 {
-	return IS_ERR_VALUE((unsigned long)ptr);
+    return IS_ERR_VALUE((unsigned long)ptr);
 }
 
 /**
@@ -45,12 +44,10 @@ static inline long IS_ERR(const void *ptr)
  * Explicitly cast an error-valued pointer to another pointer type in such a
  * way as to make it clear that's what's going on.
  */
-static inline void * __must_check ERR_CAST(__force const void *ptr)
+static inline void *__must_check ERR_CAST(__force const void *ptr)
 {
-	/* cast away the const */
-	return (void *) ptr;
+    /* cast away the const */
+    return (void *) ptr;
 }
 
 #endif
-
-#endif /* _LINUX_ERR_H */

@@ -36,7 +36,7 @@ typedef struct {
 
 static inline timer_properties_t get_pit_properties(void)
 {
-   return (timer_properties_t) {
+    return (timer_properties_t) {
         .upcounter = false,
         .timeouts = true,
         .relative_timeouts = true,

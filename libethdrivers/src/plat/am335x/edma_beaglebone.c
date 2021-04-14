@@ -134,8 +134,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_L3_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKCTRL) &
-             CM_PER_L3_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKCTRL) &
+            CM_PER_L3_CLKCTRL_MODULEMODE));
 
     /* Writing to MODULEMODE field of CM_PER_L3_INSTR_CLKCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_L3_INSTR_CLKCTRL) |=
@@ -143,8 +143,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_L3_INSTR_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_INSTR_CLKCTRL) &
-             CM_PER_L3_INSTR_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_INSTR_CLKCTRL) &
+            CM_PER_L3_INSTR_CLKCTRL_MODULEMODE));
 
     /* Writing to CLKTRCTRL field of CM_PER_L3_CLKSTCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKSTCTRL) |=
@@ -152,8 +152,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for CLKTRCTRL field to reflect the written value. */
     while (CM_PER_L3_CLKSTCTRL_CLKTRCTRL_SW_WKUP !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKSTCTRL) &
-             CM_PER_L3_CLKSTCTRL_CLKTRCTRL));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKSTCTRL) &
+            CM_PER_L3_CLKSTCTRL_CLKTRCTRL));
 
     /* Writing to CLKTRCTRL field of CM_PER_OCPWP_L3_CLKSTCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_OCPWP_L3_CLKSTCTRL) |=
@@ -161,8 +161,8 @@ void EDMAModuleClkConfig(void)
 
     /*Waiting for CLKTRCTRL field to reflect the written value. */
     while (CM_PER_OCPWP_L3_CLKSTCTRL_CLKTRCTRL_SW_WKUP !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_OCPWP_L3_CLKSTCTRL) &
-             CM_PER_OCPWP_L3_CLKSTCTRL_CLKTRCTRL));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_OCPWP_L3_CLKSTCTRL) &
+            CM_PER_OCPWP_L3_CLKSTCTRL_CLKTRCTRL));
 
     /* Writing to CLKTRCTRL field of CM_PER_L3S_CLKSTCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_L3S_CLKSTCTRL) |=
@@ -170,15 +170,15 @@ void EDMAModuleClkConfig(void)
 
     /*Waiting for CLKTRCTRL field to reflect the written value. */
     while (CM_PER_L3S_CLKSTCTRL_CLKTRCTRL_SW_WKUP !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3S_CLKSTCTRL) &
-             CM_PER_L3S_CLKSTCTRL_CLKTRCTRL));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3S_CLKSTCTRL) &
+            CM_PER_L3S_CLKSTCTRL_CLKTRCTRL));
 
     /* Checking fields for necessary values.  */
 
     /* Waiting for IDLEST field in CM_PER_L3_CLKCTRL register to be set to 0x0. */
     while ((CM_PER_L3_CLKCTRL_IDLEST_FUNC << CM_PER_L3_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKCTRL) &
-             CM_PER_L3_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKCTRL) &
+            CM_PER_L3_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for IDLEST field in CM_PER_L3_INSTR_CLKCTRL register to attain the
@@ -186,32 +186,32 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_L3_INSTR_CLKCTRL_IDLEST_FUNC <<
             CM_PER_L3_INSTR_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_INSTR_CLKCTRL) &
-             CM_PER_L3_INSTR_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_INSTR_CLKCTRL) &
+            CM_PER_L3_INSTR_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for CLKACTIVITY_L3_GCLK field in CM_PER_L3_CLKSTCTRL register to
     ** attain the desired value.
     */
     while (CM_PER_L3_CLKSTCTRL_CLKACTIVITY_L3_GCLK !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKSTCTRL) &
-             CM_PER_L3_CLKSTCTRL_CLKACTIVITY_L3_GCLK));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3_CLKSTCTRL) &
+            CM_PER_L3_CLKSTCTRL_CLKACTIVITY_L3_GCLK));
 
     /*
     ** Waiting for CLKACTIVITY_OCPWP_L3_GCLK field in CM_PER_OCPWP_L3_CLKSTCTRL
     ** register to attain the desired value.
     */
     while (CM_PER_OCPWP_L3_CLKSTCTRL_CLKACTIVITY_OCPWP_L3_GCLK !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_OCPWP_L3_CLKSTCTRL) &
-             CM_PER_OCPWP_L3_CLKSTCTRL_CLKACTIVITY_OCPWP_L3_GCLK));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_OCPWP_L3_CLKSTCTRL) &
+            CM_PER_OCPWP_L3_CLKSTCTRL_CLKACTIVITY_OCPWP_L3_GCLK));
 
     /*
     ** Waiting for CLKACTIVITY_L3S_GCLK field in CM_PER_L3S_CLKSTCTRL register
     ** to attain the desired value.
     */
     while (CM_PER_L3S_CLKSTCTRL_CLKACTIVITY_L3S_GCLK !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_L3S_CLKSTCTRL) &
-             CM_PER_L3S_CLKSTCTRL_CLKACTIVITY_L3S_GCLK));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_L3S_CLKSTCTRL) &
+            CM_PER_L3S_CLKSTCTRL_CLKACTIVITY_L3S_GCLK));
 
     /* Configuring clocks for EDMA3 TPCC and TPTCs. */
 
@@ -221,8 +221,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_TPCC_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPCC_CLKCTRL) &
-             CM_PER_TPCC_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPCC_CLKCTRL) &
+            CM_PER_TPCC_CLKCTRL_MODULEMODE));
 
     /* Writing to MODULEMODE field of CM_PER_TPTC0_CLKCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) |=
@@ -230,8 +230,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_TPTC0_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
-             CM_PER_TPTC0_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
+            CM_PER_TPTC0_CLKCTRL_MODULEMODE));
 
     /* Writing to MODULEMODE field of CM_PER_TPTC1_CLKCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) |=
@@ -239,8 +239,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_TPTC1_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
-             CM_PER_TPTC1_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
+            CM_PER_TPTC1_CLKCTRL_MODULEMODE));
 
     /* Writing to MODULEMODE field of CM_PER_TPTC2_CLKCTRL register. */
     HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) |=
@@ -248,8 +248,8 @@ void EDMAModuleClkConfig(void)
 
     /* Waiting for MODULEMODE field to reflect the written value. */
     while (CM_PER_TPTC2_CLKCTRL_MODULEMODE_ENABLE !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
-             CM_PER_TPTC2_CLKCTRL_MODULEMODE));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
+            CM_PER_TPTC2_CLKCTRL_MODULEMODE));
 
     /*
     ** Waiting for IDLEST field in CM_PER_TPCC_CLKCTRL register to attain the
@@ -257,8 +257,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPCC_CLKCTRL_IDLEST_FUNC <<
             CM_PER_TPCC_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPCC_CLKCTRL) &
-             CM_PER_TPCC_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPCC_CLKCTRL) &
+            CM_PER_TPCC_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for IDLEST field in CM_PER_TPTC0_CLKCTRL register to attain the
@@ -266,8 +266,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC0_CLKCTRL_IDLEST_FUNC <<
             CM_PER_TPTC0_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
-             CM_PER_TPTC0_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
+            CM_PER_TPTC0_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for STBYST field in CM_PER_TPTC0_CLKCTRL register to attain the
@@ -275,8 +275,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC0_CLKCTRL_STBYST_FUNC <<
             CM_PER_TPTC0_CLKCTRL_STBYST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
-             CM_PER_TPTC0_CLKCTRL_STBYST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC0_CLKCTRL) &
+            CM_PER_TPTC0_CLKCTRL_STBYST));
 
     /*
     ** Waiting for IDLEST field in CM_PER_TPTC1_CLKCTRL register to attain the
@@ -284,8 +284,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC1_CLKCTRL_IDLEST_FUNC <<
             CM_PER_TPTC1_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
-             CM_PER_TPTC1_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
+            CM_PER_TPTC1_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for STBYST field in CM_PER_TPTC1_CLKCTRL register to attain the
@@ -293,8 +293,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC1_CLKCTRL_STBYST_FUNC <<
             CM_PER_TPTC1_CLKCTRL_STBYST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
-             CM_PER_TPTC1_CLKCTRL_STBYST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC1_CLKCTRL) &
+            CM_PER_TPTC1_CLKCTRL_STBYST));
 
     /*
     ** Waiting for IDLEST field in CM_PER_TPTC2_CLKCTRL register to attain the
@@ -302,8 +302,8 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC2_CLKCTRL_IDLEST_FUNC <<
             CM_PER_TPTC2_CLKCTRL_IDLEST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
-             CM_PER_TPTC2_CLKCTRL_IDLEST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
+            CM_PER_TPTC2_CLKCTRL_IDLEST));
 
     /*
     ** Waiting for STBYST field in CM_PER_TPTC2_CLKCTRL register to attain the
@@ -311,6 +311,6 @@ void EDMAModuleClkConfig(void)
     */
     while ((CM_PER_TPTC2_CLKCTRL_STBYST_FUNC <<
             CM_PER_TPTC2_CLKCTRL_STBYST_SHIFT) !=
-            (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
-             CM_PER_TPTC2_CLKCTRL_STBYST));
+           (HWREG(SOC_CM_PER_REGS + CM_PER_TPTC2_CLKCTRL) &
+            CM_PER_TPTC2_CLKCTRL_STBYST));
 }

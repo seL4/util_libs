@@ -16,8 +16,7 @@
 static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 #define CYCLES_PER_US(cpufreq) (cpufreq / 1000000)
 
-static void
-ps_do_cycle_delay(uint64_t cycles)
+static void ps_do_cycle_delay(uint64_t cycles)
 {
     uint64_t end = rdtsc_pure() + cycles;
 
@@ -28,18 +27,16 @@ ps_do_cycle_delay(uint64_t cycles)
     }
 }
 
-void
-ps_udelay(unsigned long us)
+void ps_udelay(unsigned long us)
 {
     ps_do_cycle_delay((uint64_t)us * CYCLES_PER_US(cpufreq_hint));
 }
 
-void
-ps_cpufreq_hint(unsigned long hz)
+void ps_cpufreq_hint(unsigned long hz)
 {
     if (hz == 0) {
         ZF_LOGW("%s:%d - Invalid CPU frequency for delay loop, use the default\n",
-		__FILE__, __LINE__);
+                __FILE__, __LINE__);
         hz = DEFAULT_CPUFREQ;
     }
 

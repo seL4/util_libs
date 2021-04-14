@@ -12,7 +12,7 @@
 /* Initializes the XADC
  * Returns 0 on success, -1 on error
  */
-int xadc_init(ps_io_ops_t* ops);
+int xadc_init(ps_io_ops_t *ops);
 
 /* Returns the contents of an XADC register.
  * Only the least significant 6 bits of the

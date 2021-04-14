@@ -558,16 +558,14 @@ const clk_register_t tk1_clk_registers[] = {
     CLK_REGISTER_ENTRY(CLK_MISC), // CLK_RST_CONTROLLER_EMC_PLLC_SHAPER_CTRL_0
 };
 
-static clk_t *
-tk1_car_get_clock(clock_sys_t *cs, enum clk_id id)
+static clk_t *tk1_car_get_clock(clock_sys_t *cs, enum clk_id id)
 {
     assert(cs != NULL);
     return NULL;
 }
 
-static int
-tk1_car_gate_enable(clock_sys_t* clock_sys,
-                    enum clock_gate gate, enum clock_gate_mode mode)
+static int tk1_car_gate_enable(clock_sys_t *clock_sys,
+                               enum clock_gate gate, enum clock_gate_mode mode)
 {
     /* The TK1 CAR controller only supports enabling and disabling the clock
      * signal to a device: there are no idle/sleep clock modes, so we ignore
@@ -585,8 +583,7 @@ tk1_car_gate_enable(clock_sys_t* clock_sys,
     return 0;
 }
 
-int
-tegra_car_init(void *regs_vaddr, clock_sys_t *cs)
+int tegra_car_init(void *regs_vaddr, clock_sys_t *cs)
 {
     if (regs_vaddr == NULL) {
         ZF_LOGE("MMIO vaddr for CAR regs cannot be NULL!");
@@ -600,8 +597,7 @@ tegra_car_init(void *regs_vaddr, clock_sys_t *cs)
     return 0;
 }
 
-int
-clock_sys_init(ps_io_ops_t* o, clock_sys_t* clock_sys)
+int clock_sys_init(ps_io_ops_t *o, clock_sys_t *clock_sys)
 {
     void *car_vaddr = NULL;
 

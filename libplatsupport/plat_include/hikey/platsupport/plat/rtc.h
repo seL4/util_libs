@@ -19,7 +19,8 @@ typedef enum rtc_id {
     NUM_RTCS = 2,
 } rtc_id_t;
 
-static inline void *rtc_get_paddr(rtc_id_t id) {
+static inline void *rtc_get_paddr(rtc_id_t id)
+{
     switch (id) {
     case RTC0:
         return (void *) RTC0_PADDR;
@@ -30,7 +31,8 @@ static inline void *rtc_get_paddr(rtc_id_t id) {
     }
 }
 
-static inline long rtc_get_irq(rtc_id_t id) {
+static inline long rtc_get_irq(rtc_id_t id)
+{
     switch (id) {
     case RTC0:
         return RTC0_INTERRUPT;

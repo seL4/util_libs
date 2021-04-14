@@ -32,7 +32,7 @@ typedef struct time_manager {
      * @param id   memory to store the allocated id in.
      * @return 0 on success, EINVAL if data or id is invalid, ENOMEM if no ids are available.
      */
-     int (*alloc_id)(void *data, unsigned int *id);
+    int (*alloc_id)(void *data, unsigned int *id);
 
     /*
      * Allocate a specific id to register callbacks with.
@@ -42,7 +42,7 @@ typedef struct time_manager {
      * @return 0 on success, EINVAL if data or id is invalid, EADDRINUSE if the id
      *              is already in use.
      */
-     int (*alloc_id_at)(void *data, unsigned int id);
+    int (*alloc_id_at)(void *data, unsigned int id);
 
     /*
      * Inform the timer manager that this id is free and no longer going to be used, which
@@ -51,7 +51,7 @@ typedef struct time_manager {
      * @param data data specific to this implementation
      * @param id   id allocated by tm_new_id to be free'd.
      */
-     int (*free_id)(void *data, unsigned int id);
+    int (*free_id)(void *data, unsigned int id);
 
     /*
      * Register a callback to call when a specific timeout id fires. The implementation does not spin and
@@ -72,8 +72,8 @@ typedef struct time_manager {
      * @param token      token to pass to the callback function.
      * @return           0 on success, errno on error.
      */
-     int (*register_cb)(void *data, timeout_type_t type, uint64_t ns,
-                     uint64_t start, uint32_t id, timeout_cb_fn_t callback, uintptr_t token);
+    int (*register_cb)(void *data, timeout_type_t type, uint64_t ns,
+                       uint64_t start, uint32_t id, timeout_cb_fn_t callback, uintptr_t token);
 
     /*
      * Turn off a callback. The callback will not be called unless it is registered again, however the
@@ -83,30 +83,30 @@ typedef struct time_manager {
      * @param id   id of the callback. If this id already exists the callback will be updated.
      * @return     0 on success, EINVAL if data or id are invalid.
      */
-     int (*deregister_cb)(void *data, uint32_t id);
+    int (*deregister_cb)(void *data, uint32_t id);
 
-      /*
-       * Signal to the timer manager to check if any callbacks are due to be called,
-       * based on the passed in valid for time.
-       *
-       * @param data data specific to this implementation
-       * @param time  the current time.
-       *
-       * @return 0 on success, EINVAL if data is invalid.
-       */
-      int (*update_with_time)(void *data, uint64_t time);
+    /*
+     * Signal to the timer manager to check if any callbacks are due to be called,
+     * based on the passed in valid for time.
+     *
+     * @param data data specific to this implementation
+     * @param time  the current time.
+     *
+     * @return 0 on success, EINVAL if data is invalid.
+     */
+    int (*update_with_time)(void *data, uint64_t time);
 
-      /*
-       * Get the current time in nanoseconds.
-       *
-       * @param data    data specific to this implementation
-       * @param[out]    time memory to return the time in nanoseconds
-       * @return        0 on success, EINVAL id data or time are invalid.
-       */
-      int (*get_time)(void *data, uint64_t *time);
+    /*
+     * Get the current time in nanoseconds.
+     *
+     * @param data    data specific to this implementation
+     * @param[out]    time memory to return the time in nanoseconds
+     * @return        0 on success, EINVAL id data or time are invalid.
+     */
+    int (*get_time)(void *data, uint64_t *time);
 
-      /* data specific to this implementation and passed to all functions */
-      void *data;
+    /* data specific to this implementation and passed to all functions */
+    void *data;
 
 } time_manager_t;
 
@@ -141,7 +141,8 @@ static inline int tm_free_id(time_manager_t *tm, unsigned int id)
 
 
 static inline int tm_register_cb(time_manager_t *tm, timeout_type_t type, uint64_t ns,
-                                 uint64_t start, uint32_t id, timeout_cb_fn_t callback, uintptr_t token) {
+                                 uint64_t start, uint32_t id, timeout_cb_fn_t callback, uintptr_t token)
+{
     __TM_VALID_ARGS(register_cb);
     return tm->register_cb(tm->data, type, ns, start, id, callback, token);
 }
@@ -157,7 +158,7 @@ static inline int tm_register_cb(time_manager_t *tm, timeout_type_t type, uint64
  * @return         0 on success, errno on error.
  */
 static inline int tm_register_abs_cb(time_manager_t *tm, uint64_t abs_ns, uint32_t id,
-                                                timeout_cb_fn_t callback, uintptr_t token)
+                                     timeout_cb_fn_t callback, uintptr_t token)
 {
     __TM_VALID_ARGS(register_cb);
     return tm->register_cb(tm->data, TIMEOUT_ABSOLUTE, abs_ns, 0, id, callback, token);
@@ -175,7 +176,7 @@ static inline int tm_register_abs_cb(time_manager_t *tm, uint64_t abs_ns, uint32
  * @return           0 on success, errno on error.
  */
 static inline int tm_register_rel_cb(time_manager_t *tm, uint64_t rel_ns, uint32_t id,
-                                                timeout_cb_fn_t callback, uintptr_t token)
+                                     timeout_cb_fn_t callback, uintptr_t token)
 {
     __TM_VALID_ARGS(register_cb);
     return tm->register_cb(tm->data, TIMEOUT_RELATIVE, rel_ns, 0, id, callback, token);
@@ -195,7 +196,7 @@ static inline int tm_register_rel_cb(time_manager_t *tm, uint64_t rel_ns, uint32
  * @return           0 on success, errno on error.
  */
 static inline int tm_register_periodic_cb(time_manager_t *tm, uint64_t period_ns, uint64_t start,
-                                                uint32_t id, timeout_cb_fn_t callback, uintptr_t token)
+                                          uint32_t id, timeout_cb_fn_t callback, uintptr_t token)
 {
     __TM_VALID_ARGS(register_cb);
     return tm->register_cb(tm->data, TIMEOUT_PERIODIC, period_ns, start, id, callback, token);

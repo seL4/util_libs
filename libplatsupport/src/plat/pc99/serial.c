@@ -38,7 +38,7 @@
 int uart_getchar(ps_chardevice_t *device)
 {
     uint32_t res;
-    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
+    uint32_t io_port = (uint32_t)(uintptr_t)device->vaddr;
 
     /* Check if character is available. */
     int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
@@ -58,9 +58,9 @@ int uart_getchar(ps_chardevice_t *device)
     return (int) res;
 }
 
-static int serial_ready(ps_chardevice_t* device)
+static int serial_ready(ps_chardevice_t *device)
 {
-    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
+    uint32_t io_port = (uint32_t)(uintptr_t)device->vaddr;
     uint32_t res;
     int error = ps_io_port_in(&device->ioops.io_port_ops, CONSOLE(io_port, LSR), 1, &res);
     if (error != 0) {
@@ -69,9 +69,9 @@ static int serial_ready(ps_chardevice_t* device)
     return res & SERIAL_LSR_TRANSMITTER_EMPTY;
 }
 
-int uart_putchar(ps_chardevice_t* device, int c)
+int uart_putchar(ps_chardevice_t *device, int c)
 {
-    uint32_t io_port = (uint32_t) (uintptr_t)device->vaddr;
+    uint32_t io_port = (uint32_t)(uintptr_t)device->vaddr;
 
     /* Check if serial is ready. */
     if (!serial_ready(device)) {
@@ -91,18 +91,17 @@ int uart_putchar(ps_chardevice_t* device, int c)
     return c;
 }
 
-static void uart_handle_irq(ps_chardevice_t* device UNUSED)
+static void uart_handle_irq(ps_chardevice_t *device UNUSED)
 {
     /* No IRQ handling required here. */
 }
 
-int
-uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_chardevice_t *dev)
 {
     memset(dev, 0, sizeof(*dev));
     /* Set up all the  device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*) defn->paddr; /* Save the IO port base number. */
+    dev->vaddr      = (void *) defn->paddr; /* Save the IO port base number. */
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
@@ -110,7 +109,7 @@ uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* 
     dev->ioops      = *ops;
 
     /* Initialise the device. */
-    uint32_t io_port = (uint32_t) (uintptr_t)dev->vaddr;
+    uint32_t io_port = (uint32_t)(uintptr_t)dev->vaddr;
 
     /* clear DLAB - Divisor Latch Access Bit */
     if (ps_io_port_out(&dev->ioops.io_port_ops, CONSOLE(io_port, LCR), 1, 0x00 & ~SERIAL_DLAB) != 0) {

@@ -146,18 +146,18 @@ void EVMPortMIIModeSelect(void)
  */
 void EVMMACAddrGet(unsigned int addrIdx, unsigned char *macAddr)
 {
-    macAddr[0] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_LO(addrIdx))
-                   >> 8) & 0xFF;
-    macAddr[1] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_LO(addrIdx)))
-                  & 0xFF;
-    macAddr[2] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
-                   >> 24) & 0xFF;
-    macAddr[3] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
-                   >> 16) & 0xFF;
-    macAddr[4] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
-                   >> 8) & 0xFF;
-    macAddr[5] =  (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx)))
-                  & 0xFF;
+    macAddr[0] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_LO(addrIdx))
+                  >> 8) & 0xFF;
+    macAddr[1] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_LO(addrIdx)))
+                 & 0xFF;
+    macAddr[2] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
+                  >> 24) & 0xFF;
+    macAddr[3] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
+                  >> 16) & 0xFF;
+    macAddr[4] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx))
+                  >> 8) & 0xFF;
+    macAddr[5] = (HWREG(SOC_CONTROL_REGS + CONTROL_MAC_ID_HI(addrIdx)))
+                 & 0xFF;
 }
 
 /****************************** End Of File *********************************/

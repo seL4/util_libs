@@ -17,8 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static char
-pprint(char c)
+static char pprint(char c)
 {
     if (c < 0x32) {
         return '.';
@@ -29,16 +28,14 @@ pprint(char c)
     return '.';
 }
 
-void
-colour_bf(int i, const char* ptr)
+void colour_bf(int i, const char *ptr)
 {
     if (i == 3 && ((*ptr) & 0xff) == 0xbf) {
         printf("\033[01;31m");
     }
 }
 
-void
-colour_1a(int i, const char* ptr)
+void colour_1a(int i, const char *ptr)
 {
     (void)i;
     if (((*ptr) & 0xff) == 0x1a) {
@@ -46,8 +43,7 @@ colour_1a(int i, const char* ptr)
     }
 }
 
-void
-colour_1d(int i, const char* ptr)
+void colour_1d(int i, const char *ptr)
 {
     (void)i;
     if (((*ptr) & 0xff) == 0x1d) {
@@ -55,8 +51,7 @@ colour_1d(int i, const char* ptr)
     }
 }
 
-static void
-colour(int i, const char* ptr)
+static void colour(int i, const char *ptr)
 {
     colour_bf(i, ptr);
     colour_1a(i, ptr);
@@ -64,8 +59,7 @@ colour(int i, const char* ptr)
 }
 
 // print the raw table with "indent" printed before each column
-void
-acpi_print_table_raw(const void* start, int length)
+void acpi_print_table_raw(const void *start, int length)
 {
     int i, j;
     const char *ptr = start;
@@ -73,7 +67,7 @@ acpi_print_table_raw(const void* start, int length)
 
     while (1) {
         // store pointer to start of row for txt printing later
-        const char* row_start = ptr;
+        const char *row_start = ptr;
 
         // Col1 : position
         printf("0x%p: ", row_start);
@@ -106,11 +100,10 @@ acpi_print_table_raw(const void* start, int length)
     }
 }
 
-static void
-print_path(acpi_dmar_dscope_t* dscope)
+static void print_path(acpi_dmar_dscope_t *dscope)
 {
     int entries = acpi_dmar_dscope_path_length(dscope);
-    acpi_device_path_t* path = acpi_dmar_path_first(dscope);
+    acpi_device_path_t *path = acpi_dmar_path_first(dscope);
     printf("\t\t<<<Path>>>\n");
     while (entries-- > 0) {
         printf("\t\tPCI device number = 0x%02x, ", path->device & 0xff);
@@ -119,8 +112,7 @@ print_path(acpi_dmar_dscope_t* dscope)
     }
 }
 
-static void
-print_dscope(acpi_dmar_remap_hdr_t* head, acpi_dmar_dscope_t* dscope)
+static void print_dscope(acpi_dmar_remap_hdr_t *head, acpi_dmar_dscope_t *dscope)
 {
     while (dscope != NULL) {
         printf("\t<<Device Scope>>\n\t");
@@ -153,17 +145,16 @@ print_dscope(acpi_dmar_remap_hdr_t* head, acpi_dmar_dscope_t* dscope)
     }
 }
 
-static void
-print_dmar(acpi_dmar_hdr_t* dmar)
+static void print_dmar(acpi_dmar_hdr_t *dmar)
 {
     acpi_print_table_raw(dmar, dmar->header.length);
 
-    acpi_dmar_remap_hdr_t* sub = acpi_dmar_first_remap(dmar);
+    acpi_dmar_remap_hdr_t *sub = acpi_dmar_first_remap(dmar);
     while (sub != NULL) {
         switch (sub->type) {
         case ACPI_DMAR_DRHD_TYPE:
             printf("\n<DMA Remapping Hardware Unit Definition>\n");
-            acpi_dmar_drhd_t* drhd = (acpi_dmar_drhd_t*)sub;
+            acpi_dmar_drhd_t *drhd = (acpi_dmar_drhd_t *)sub;
             printf("Flags 0x%02x\n", drhd->flags & 0xff);
             printf("Segment number 0x%04x\n",
                    drhd->segment_number & 0xffff);
@@ -174,7 +165,7 @@ print_dmar(acpi_dmar_hdr_t* dmar)
             break;
         case ACPI_DMAR_RMRR_TYPE:
             printf("\n<Reserved Memory Region Reporting>\n");
-            acpi_dmar_rmrr_t* rmrr = (acpi_dmar_rmrr_t*)sub;
+            acpi_dmar_rmrr_t *rmrr = (acpi_dmar_rmrr_t *)sub;
             printf("Segment number 0x%04x\n",
                    rmrr->segment_number & 0xffff);
             printf("Memory range 0x%016lx -> 0x%016lx\n",
@@ -185,7 +176,7 @@ print_dmar(acpi_dmar_hdr_t* dmar)
             break;
         case ACPI_DMAR_ATSR_TYPE:
             printf("\n<root port ATS capbility Reporting>\n");
-            acpi_dmar_atsr_t* atsr = (acpi_dmar_atsr_t*)sub;
+            acpi_dmar_atsr_t *atsr = (acpi_dmar_atsr_t *)sub;
             printf("Flags 0x%02x\n", atsr->flags & 0xff);
             printf("Segment number 0x%04x\n",
                    atsr->segment_number & 0xffff);
@@ -194,7 +185,7 @@ print_dmar(acpi_dmar_hdr_t* dmar)
             break;
         case ACPI_DMAR_RHSA_TYPE:
             printf("\n<Remapping Hardware Affinity>\n");
-            acpi_dmar_rhsa_t* rhsa = (acpi_dmar_rhsa_t*)sub;
+            acpi_dmar_rhsa_t *rhsa = (acpi_dmar_rhsa_t *)sub;
             printf("Base address 0x%016lx\n",
                    (unsigned long)rhsa->base_address);
             printf("Proximity domain 0x%08x\n",
@@ -210,8 +201,7 @@ print_dmar(acpi_dmar_hdr_t* dmar)
     }
 }
 
-static void
-print_mcfg_desc(acpi_mcfg_desc_t* mcfg_desc)
+static void print_mcfg_desc(acpi_mcfg_desc_t *mcfg_desc)
 {
     printf("<PCI Device Description %p>\n", mcfg_desc);
     printf("Address: 0x%016lx\n", (unsigned long)mcfg_desc->address);
@@ -220,64 +210,59 @@ print_mcfg_desc(acpi_mcfg_desc_t* mcfg_desc)
            mcfg_desc->bus_start);
 }
 
-static void
-print_mcfg(acpi_mcfg_t* mcfg)
+static void print_mcfg(acpi_mcfg_t *mcfg)
 {
     acpi_print_table_raw(mcfg, mcfg->header.length);
-    acpi_mcfg_desc_t* cur = acpi_mcfg_desc_first(mcfg);
+    acpi_mcfg_desc_t *cur = acpi_mcfg_desc_first(mcfg);
     while (cur != NULL) {
         print_mcfg_desc(cur);
         cur = acpi_mcfg_desc_next(mcfg, cur);
     }
 }
 
-static void
-print_rsdt(acpi_rsdt_t* rsdt)
+static void print_rsdt(acpi_rsdt_t *rsdt)
 {
     acpi_print_table_raw(rsdt, rsdt->header.length);
     printf("Child tables:\n");
-    uint32_t* next = acpi_rsdt_first(rsdt);
+    uint32_t *next = acpi_rsdt_first(rsdt);
     int entries = acpi_rsdt_entry_count(rsdt);
     int i = 0;
     while (next != NULL) {
-        printf("%d/%d -> %p\n", i++, entries, (void*)*next);
+        printf("%d/%d -> %p\n", i++, entries, (void *)*next);
         next = acpi_rsdt_next(rsdt, next);
     }
     printf("\n");
 }
 
-static void
-print_xsdt(acpi_xsdt_t* xsdt)
+static void print_xsdt(acpi_xsdt_t *xsdt)
 {
     acpi_print_table_raw(xsdt, xsdt->header.length);
     printf("Child tables:\n");
-    uint64_t* next = acpi_xsdt_first(xsdt);
+    uint64_t *next = acpi_xsdt_first(xsdt);
     int entries = acpi_xsdt_entry_count(xsdt);
     int i = 0;
     while (next != NULL) {
         printf("%d/%d -> %p\n", i++, entries,
-               (void*)(uintptr_t)*next);
+               (void *)(uintptr_t)*next);
         next = acpi_xsdt_next(xsdt, next);
     }
     printf("\n");
 }
 
-static void
-print_rsdp(acpi_rsdp_t* rsdp)
+static void print_rsdp(acpi_rsdp_t *rsdp)
 {
     acpi_print_table_raw(rsdp, rsdp->length);
-    printf("RSDT->%p\n", (void*)rsdp->rsdt_address);
-    printf("XSDT->%p\n", (void*)(uintptr_t)rsdp->xsdt_address);
+    printf("RSDT->%p\n", (void *)rsdp->rsdt_address);
+    printf("XSDT->%p\n", (void *)(uintptr_t)rsdp->xsdt_address);
     printf("\n");
 }
 
-static void
-print_madt(acpi_madt_t* madt)
+static void print_madt(acpi_madt_t *madt)
 {
     acpi_print_table_raw(madt, madt->header.length);
-    acpi_madt_ics_hdr_t* entry = acpi_madt_first_ics(madt);
+    acpi_madt_ics_hdr_t *entry = acpi_madt_first_ics(madt);
     while (entry != NULL) {
-        char* txt;
+        char *txt;
         switch (entry->type) {
         case ACPI_APIC_LOCAL:
             txt = "LOCAL";
@@ -328,33 +313,31 @@ print_madt(acpi_madt_t* madt)
     }
 }
 
-void
-acpi_print_table(const void* start)
+void acpi_print_table(const void *start)
 {
     // for now, just find the length of the table and print
     // in raw format
     int len = acpi_table_length(start);
     if (len > 0) {
         if (ACPI_TABLE_TEST(start, DMAR)) {
-            print_dmar((acpi_dmar_hdr_t*)start);
+            print_dmar((acpi_dmar_hdr_t *)start);
         } else if (ACPI_TABLE_TEST(start, MCFG)) {
-            print_mcfg((acpi_mcfg_t*)start);
+            print_mcfg((acpi_mcfg_t *)start);
         } else if (ACPI_TABLE_TEST(start, RSDT)) {
-            print_rsdt((acpi_rsdt_t*)start);
+            print_rsdt((acpi_rsdt_t *)start);
         } else if (ACPI_TABLE_TEST(start, XSDT)) {
-            print_xsdt((acpi_xsdt_t*)start);
+            print_xsdt((acpi_xsdt_t *)start);
         } else if (ACPI_TABLE_TEST(start, RSDP)) {
-            print_rsdp((acpi_rsdp_t*)start);
+            print_rsdp((acpi_rsdp_t *)start);
         } else if (ACPI_TABLE_TEST(start, MADT)) {
-            print_madt((acpi_madt_t*)start);
+            print_madt((acpi_madt_t *)start);
         } else {
             acpi_print_table_raw(start, len);
         }
     }
 }
 
-void
-acpi_print_regions(const RegionList_t* rl)
+void acpi_print_regions(const RegionList_t *rl)
 {
     printf("\n");
     printf("index | Signiture  | Address                | "
@@ -366,8 +349,8 @@ acpi_print_regions(const RegionList_t* rl)
     printf("\n");
 
     for (i = 0; i < rl->region_count; i++) {
-        const Region_t* r = rl->regions + i;
-        const char* sig = acpi_sig_str(r->type);
+        const Region_t *r = rl->regions + i;
+        const char *sig = acpi_sig_str(r->type);
         int sig_len = strlen(sig);
         printf("  %2d  | ", i);
         printf("\"%s\"",  acpi_sig_str(r->type));

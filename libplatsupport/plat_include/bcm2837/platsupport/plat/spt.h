@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
- #pragma once
+#pragma once
 
 #include <platsupport/timer.h>
 
@@ -29,7 +29,7 @@ typedef struct arm_timer {
 
 typedef struct {
     freq_t freq;
-    volatile arm_timer_t* regs;
+    volatile arm_timer_t *regs;
     uint32_t prescaler;
     uint64_t counter_start;
 } spt_t;

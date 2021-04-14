@@ -69,7 +69,7 @@ struct keyboard_state {
    The handle_event_callback parameter is optional, and may be set to NULL. Events are be
    returned by keyboard_poll_ps2_keyevents().
 */
-int keyboard_init(struct keyboard_state *state, const ps_io_ops_t* ops,
+int keyboard_init(struct keyboard_state *state, const ps_io_ops_t *ops,
                   void (*handle_event_callback)(keyboard_key_event_t ev, void *cookie));
 
 void keyboard_set_scanmode(struct keyboard_state *state, uint8_t mode);

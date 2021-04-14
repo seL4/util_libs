@@ -77,60 +77,55 @@ enum pll_tbl_type {
 };
 
 struct pll_priv {
-    struct mpsk_tbl* tbl;
+    struct mpsk_tbl *tbl;
     enum pll_tbl_type type;
     int pll_tbl_size;
     int pll_offset;
     int clkid;
 };
 
-static inline clk_regs_io_t**
-clk_sys_get_clk_regs(clock_sys_t* clock_sys)
+static inline clk_regs_io_t **clk_sys_get_clk_regs(clock_sys_t *clock_sys)
 {
-    clk_regs_io_t** clk_regs_ptr = (clk_regs_io_t**)clock_sys->priv;
+    clk_regs_io_t **clk_regs_ptr = (clk_regs_io_t **)clock_sys->priv;
     return clk_regs_ptr;
 };
 
-static inline clk_regs_io_t**
-clk_get_clk_regs(clk_t* clk)
+static inline clk_regs_io_t **clk_get_clk_regs(clk_t *clk)
 {
     return clk_sys_get_clk_regs(clk->clk_sys);
 };
 
-static inline const struct pll_priv*
-exynos_clk_get_priv_pll(clk_t* clk) {
-    return (const struct pll_priv*)clk->priv;
+static inline const struct pll_priv *exynos_clk_get_priv_pll(clk_t *clk)
+{
+    return (const struct pll_priv *)clk->priv;
 }
 
-static inline int
-exynos_clk_get_priv_id(clk_t* clk)
+static inline int exynos_clk_get_priv_id(clk_t *clk)
 {
     return (int)clk->priv;
 }
 
 /* Generic exynos devider */
-freq_t _div_get_freq(clk_t* clk);
-freq_t _div_set_freq(clk_t* clk, freq_t hz);
-void   _div_recal(clk_t* clk);
+freq_t _div_get_freq(clk_t *clk);
+freq_t _div_set_freq(clk_t *clk, freq_t hz);
+void   _div_recal(clk_t *clk);
 /* Generic exynos PLL */
-freq_t _pll_get_freq(clk_t* clk);
-freq_t _pll_set_freq(clk_t* clk, freq_t hz);
-void   _pll_recal(clk_t* clk);
-clk_t* _pll_init(clk_t* clk);
+freq_t _pll_get_freq(clk_t *clk);
+freq_t _pll_set_freq(clk_t *clk, freq_t hz);
+void   _pll_recal(clk_t *clk);
+clk_t *_pll_init(clk_t *clk);
 /* PLL get_freq */
-uint32_t exynos_pll_get_freq(clk_t* clk, int clkid, uint32_t pll_idx);
+uint32_t exynos_pll_get_freq(clk_t *clk, int clkid, uint32_t pll_idx);
 
 /**** helpers ****/
-static inline void
-clkid_decode(int clkid, int* cmu, int* reg, int* off)
+static inline void clkid_decode(int clkid, int *cmu, int *reg, int *off)
 {
     *cmu = CLKID_GET_CMU(clkid);
     *reg = CLKID_GET_IDX(clkid);
     *off = CLKID_GET_OFFSET(clkid);
 }
 
-static inline int
-clkid_change_reg(int clkid, int change)
+static inline int clkid_change_reg(int clkid, int change)
 {
     int r;
     /* extract reg value and apply change */
@@ -141,16 +136,14 @@ clkid_change_reg(int clkid, int change)
     return clkid | ((r & 0x3f) << 3);
 }
 
-static inline int
-clkbf_get(volatile uint32_t* reg, int start_bit, int nbits)
+static inline int clkbf_get(volatile uint32_t *reg, int start_bit, int nbits)
 {
     uint32_t v;
     v = *reg;
     return (v >> start_bit) & MASK(nbits);
 }
 
-static inline void
-clkbf_set(volatile uint32_t* reg, int start_bit, int nbits, int v)
+static inline void clkbf_set(volatile uint32_t *reg, int start_bit, int nbits, int v)
 {
     uint32_t o;
     v <<= start_bit;
@@ -158,24 +151,21 @@ clkbf_set(volatile uint32_t* reg, int start_bit, int nbits, int v)
     *reg = o | v;
 }
 
-static inline int
-exynos_cmu_get_src(clk_regs_io_t** regs, int clkid)
+static inline int exynos_cmu_get_src(clk_regs_io_t **regs, int clkid)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
     return clkbf_get(&regs[c]->src[r], o * CLK_SRC_BITS, CLK_SRC_BITS);
 }
 
-static inline int
-exynos_cmu_get_srcstat(clk_regs_io_t** regs, int clkid)
+static inline int exynos_cmu_get_srcstat(clk_regs_io_t **regs, int clkid)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
     return clkbf_get(&regs[c]->srcstat[r], o * CLK_SRC_BITS, CLK_SRC_BITS);
 }
 
-static inline void
-exynos_cmu_set_src(clk_regs_io_t** regs, int clkid, int src)
+static inline void exynos_cmu_set_src(clk_regs_io_t **regs, int clkid, int src)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
@@ -183,8 +173,7 @@ exynos_cmu_set_src(clk_regs_io_t** regs, int clkid, int src)
     clkbf_set(&regs[c]->src[r], o * CLK_SRC_BITS, CLK_SRC_BITS, src);
 }
 
-static inline void
-exynos_cmu_set_src_mask(clk_regs_io_t** regs, int clkid, int val)
+static inline void exynos_cmu_set_src_mask(clk_regs_io_t **regs, int clkid, int val)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
@@ -192,16 +181,14 @@ exynos_cmu_set_src_mask(clk_regs_io_t** regs, int clkid, int val)
     clkbf_set(&regs[c]->srcmask[r], o * CLK_SRCMASK_BITS, CLK_SRCMASK_BIT, val);
 }
 
-static inline int
-exynos_cmu_get_div(clk_regs_io_t** regs, int clkid, int span)
+static inline int exynos_cmu_get_div(clk_regs_io_t **regs, int clkid, int span)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
     return clkbf_get(&regs[c]->div[r], o * CLK_DIV_BITS, CLK_DIV_BITS * span);
 }
 
-static inline void
-exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
+static inline void exynos_cmu_set_div(clk_regs_io_t **regs, int clkid, int span, int div)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
@@ -210,31 +197,28 @@ exynos_cmu_set_div(clk_regs_io_t** regs, int clkid, int span, int div)
     while (clkbf_get(&regs[c]->divstat[r], o * CLK_DIVSTAT_BITS, CLK_DIVSTAT_BIT));
 }
 
-static inline int
-exynos_cmu_get_gate(clk_regs_io_t** regs, int clkid)
+static inline int exynos_cmu_get_gate(clk_regs_io_t **regs, int clkid)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
     return clkbf_get(&regs[c]->gate[r], o * CLK_GATE_BITS, CLK_GATE_BITS);
 }
 
-static inline void
-exynos_cmu_set_gate(clk_regs_io_t** regs, int clkid, int v)
+static inline void exynos_cmu_set_gate(clk_regs_io_t **regs, int clkid, int v)
 {
     int c, r, o;
     clkid_decode(clkid, &c, &r, &o);
     clkbf_set(&regs[c]->gate[r], o * CLK_GATE_BITS, CLK_GATE_BITS, v);
 }
 
-static inline void
-exynos_mpll_get_pms(int v, uint32_t* p, uint32_t* m, uint32_t* s)
+static inline void exynos_mpll_get_pms(int v, uint32_t *p, uint32_t *m, uint32_t *s)
 {
     *m = (v >> 16) & 0x1ff;
     *p = (v >>  8) &  0x3f;
     *s = (v >>  0) &   0x7;
 }
 
-static inline uint32_t
-exynos_pll_calc_freq(uint64_t fin, uint32_t p, uint32_t m, uint32_t s) {
+static inline uint32_t exynos_pll_calc_freq(uint64_t fin, uint32_t p, uint32_t m, uint32_t s)
+{
     return (fin * m / p) >> s;
 }

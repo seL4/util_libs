@@ -34,18 +34,18 @@ struct libpci_virtual_pci {
     uint32_t num_virtual_devices;
     uint32_t current_addr;
 
-    bool (*device_allow) (libpci_virtual_pci_t* self, libpci_device_t *device);
-    bool (*device_allow_id) (libpci_virtual_pci_t* self, uint16_t vendor_id, uint16_t device_id);
-    bool (*device_disallow) (libpci_virtual_pci_t* self, const libpci_device_t *device);
-    bool (*device_check) (libpci_virtual_pci_t* self, uint8_t bus, uint8_t dev, uint8_t fun);
+    bool (*device_allow)(libpci_virtual_pci_t *self, libpci_device_t *device);
+    bool (*device_allow_id)(libpci_virtual_pci_t *self, uint16_t vendor_id, uint16_t device_id);
+    bool (*device_disallow)(libpci_virtual_pci_t *self, const libpci_device_t *device);
+    bool (*device_check)(libpci_virtual_pci_t *self, uint8_t bus, uint8_t dev, uint8_t fun);
 
-    libpci_vdevice_t* (*vdevice_assign) (libpci_virtual_pci_t* self);
-    void (*vdevice_resign) (libpci_virtual_pci_t* self, libpci_vdevice_t* vdev);
-    libpci_vdevice_t* (*vdevice_check) (libpci_virtual_pci_t* self,
-            uint8_t bus, uint8_t dev, uint8_t fun);
+    libpci_vdevice_t *(*vdevice_assign)(libpci_virtual_pci_t *self);
+    void (*vdevice_resign)(libpci_virtual_pci_t *self, libpci_vdevice_t *vdev);
+    libpci_vdevice_t *(*vdevice_check)(libpci_virtual_pci_t *self,
+                                       uint8_t bus, uint8_t dev, uint8_t fun);
 
-    int (*ioread) (libpci_virtual_pci_t* self, uint32_t port_no, uint32_t* val, uint32_t size);
-    int (*iowrite) (libpci_virtual_pci_t* self, uint32_t port_no, uint32_t val, uint32_t size);
+    int (*ioread)(libpci_virtual_pci_t *self, uint32_t port_no, uint32_t *val, uint32_t size);
+    int (*iowrite)(libpci_virtual_pci_t *self, uint32_t port_no, uint32_t val, uint32_t size);
 };
 
-void libpci_virtual_pci_init(libpci_virtual_pci_t* vp);
+void libpci_virtual_pci_init(libpci_virtual_pci_t *vp);

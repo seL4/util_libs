@@ -17,7 +17,7 @@
 typedef struct pmic {
     i2c_slave_t i2c_slave;
     i2c_kvslave_t kvslave;
-    void* priv;;
+    void *priv;;
 } pmic_t;
 
 enum ldo_mode {
@@ -34,12 +34,12 @@ enum ldo_mode {
  * @param[out] pmic A pmic structure to initialise
  * @return          0 on success
  */
-int pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic);
+int pmic_init(i2c_bus_t *i2c, int addr, pmic_t *pmic);
 
 /**
  * Print the status of of the PMIC and its power rails
  */
-void pmic_print_status(pmic_t* pmic);
+void pmic_print_status(pmic_t *pmic);
 
 /**
  * Returns the number of LDOs that the PMIC controls
@@ -47,7 +47,7 @@ void pmic_print_status(pmic_t* pmic);
  * @return              The number of LDOs that the PMIC controls,
  *                      or -1 on failure.
  */
-int pmic_nldo(pmic_t* pmic);
+int pmic_nldo(pmic_t *pmic);
 
 /**
  * Configure a low dropout regulator
@@ -58,7 +58,7 @@ int pmic_nldo(pmic_t* pmic);
  * @return              On success, returns the actual output millivolts of the
  *                      regulator. Otherwise, returns -1.
  */
-int pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt);
+int pmic_ldo_cfg(pmic_t *pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt);
 
 /**
  * Configure a low dropout regulator
@@ -70,7 +70,7 @@ int pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt);
  * @return              On success, returns the actual output millivolts of the
  *                      regulator. Otherwise, returns -1.
  */
-int pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode);
+int pmic_ldo_get_cfg(pmic_t *pmic, int ldo, enum ldo_mode *ldo_mode);
 
 /**
  * Configures the reset delay of the reset button.
@@ -80,7 +80,7 @@ int pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode);
  * @return         On success, returns the actual number of milli seconds
  *                 that the delay was programmed to be. Otherwise, returns -1.
  */
-int pmic_set_reset_delay(pmic_t* pmic, int ms);
+int pmic_set_reset_delay(pmic_t *pmic, int ms);
 
 /**
  * Retrieve the configured reset delay
@@ -88,5 +88,5 @@ int pmic_set_reset_delay(pmic_t* pmic, int ms);
  * @return         On success, returns the reset delay in milli seconds.
  *                 Otherwise, returns -1.
  */
-int pmic_get_reset_delay(pmic_t* pmic);
+int pmic_get_reset_delay(pmic_t *pmic);
 

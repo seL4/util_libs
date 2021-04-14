@@ -80,7 +80,7 @@ void CPSWSSReset(unsigned int baseAddr)
     HWREG(baseAddr + CPSW_SS_SOFT_RESET) = CPSW_SS_SOFT_RESET_SOFT_RESET;
 
     while (HWREG(baseAddr + CPSW_SS_SOFT_RESET)
-            & CPSW_SS_SOFT_RESET_SOFT_RESET);
+           & CPSW_SS_SOFT_RESET_SOFT_RESET);
 }
 
 /**
@@ -200,8 +200,8 @@ void CPSWSlReset(unsigned int baseAddr)
 
     /* Wait till the reset completes */
     while (CPSW_SL_SOFT_RESET_SOFT_RESET ==
-            ((HWREG(baseAddr + CPSW_SL_SOFT_RESET))
-             & CPSW_SL_SOFT_RESET_SOFT_RESET));
+           ((HWREG(baseAddr + CPSW_SL_SOFT_RESET))
+            & CPSW_SL_SOFT_RESET_SOFT_RESET));
 }
 
 /**
@@ -260,7 +260,7 @@ void CPSWWrReset(unsigned int baseAddr)
     HWREG(baseAddr + CPSW_WR_SOFT_RESET) = CPSW_WR_SOFT_RESET_SOFT_RESET;
 
     while (HWREG(baseAddr + CPSW_WR_SOFT_RESET)
-            & CPSW_WR_SOFT_RESET_SOFT_RESET);
+           & CPSW_WR_SOFT_RESET_SOFT_RESET);
 }
 
 /**
@@ -340,7 +340,7 @@ unsigned int CPSWWrCoreIntStatusGet(unsigned int baseAddr, unsigned int core,
                                     unsigned int channel, unsigned int intFlag)
 {
     return (HWREG(baseAddr + CPSW_WR_C_RX_THRESH_STAT(core) + intFlag)
-            &  (BIT(channel)));
+            & (BIT(channel)));
 }
 
 /**
@@ -705,7 +705,7 @@ void CPSWCPDMAReset(unsigned int baseAddr)
 
     /* Wait till the reset completes */
     while (HWREG(baseAddr + CPSW_CPDMA_CPDMA_SOFT_RESET)
-            & CPSW_CPDMA_CPDMA_SOFT_RESET_SOFT_RESET);
+           & CPSW_CPDMA_CPDMA_SOFT_RESET_SOFT_RESET);
 
     /* Initialize all the header descriptor pointer registers */
     for (cnt =  0; cnt < CPSW_MAX_HEADER_DESC; cnt++) {
@@ -1029,7 +1029,7 @@ void CPSWCPDMACmdIdleEnable(unsigned int baseAddr)
 
     /* Wait till the state changes to idle */
     while ((HWREG(baseAddr + CPSW_CPDMA_DMASTATUS) & CPSW_CPDMA_DMASTATUS_IDLE)
-            != CPSW_CPDMA_DMASTATUS_IDLE);
+           != CPSW_CPDMA_DMASTATUS_IDLE);
 }
 
 /**
@@ -1172,7 +1172,7 @@ unsigned int CPSWCPDMARxIntStatMaskedGet(unsigned int baseAddr,
 void CPSWContextSave(CPSWCONTEXT *contextPtr)
 {
     unsigned int idx;
-    unsigned int *cppiDest = (unsigned int*)contextPtr->cppiRamBase;
+    unsigned int *cppiDest = (unsigned int *)contextPtr->cppiRamBase;
 
     CPSWCPDMACmdIdleEnable(contextPtr->cpdmaBase);
 
@@ -1233,7 +1233,7 @@ void CPSWContextSave(CPSWCONTEXT *contextPtr)
 void CPSWContextRestore(CPSWCONTEXT *contextPtr)
 {
     unsigned int idx;
-    unsigned int *cppiDest = (unsigned int*)contextPtr->cppiRamBase;
+    unsigned int *cppiDest = (unsigned int *)contextPtr->cppiRamBase;
 
     /* Restore the CPPI RAM contents */
     for (idx = 0; idx < (CPSW_SIZE_CPPI_RAM / 4); idx++, cppiDest++) {

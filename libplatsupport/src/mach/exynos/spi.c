@@ -117,7 +117,7 @@ enum spi_mode {
 };
 
 struct spi_bus {
-    volatile struct spi_regs* regs;
+    volatile struct spi_regs *regs;
     enum mux_feature mux;
     enum clk_id clkid;
     int mode: 1;              //0 -- Master, 1 -- Slave
@@ -131,7 +131,7 @@ struct spi_bus {
     size_t txcnt, rxcnt;
     size_t txsize, rxsize;
     spi_callback_fn cb;
-    void* token;
+    void *token;
 };
 
 static spi_bus_t _spi[NSPI] = {
@@ -144,8 +144,7 @@ static spi_bus_t _spi[NSPI] = {
 #endif /* EXYNOSX */
 };
 
-static void
-spi_reset(spi_bus_t *spi_bus)
+static void spi_reset(spi_bus_t *spi_bus)
 {
     uint32_t v;
 
@@ -170,8 +169,7 @@ spi_reset(spi_bus_t *spi_bus)
     spi_bus->regs->ch_cfg = v;
 }
 
-static void
-spi_config(spi_bus_t *spi_bus)
+static void spi_config(spi_bus_t *spi_bus)
 {
     uint32_t v;
 
@@ -228,8 +226,7 @@ spi_config(spi_bus_t *spi_bus)
     spi_bus->regs->cs_reg = v;
 }
 
-static void
-spi_cs(spi_bus_t* spi_bus, enum spi_cs_state state)
+static void spi_cs(spi_bus_t *spi_bus, enum spi_cs_state state)
 {
     if (!spi_bus->cs_auto) {
         uint32_t v;
@@ -243,8 +240,7 @@ spi_cs(spi_bus_t* spi_bus, enum spi_cs_state state)
     }
 }
 
-static int
-spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
+static int spi_init_common(spi_bus_t *spi_bus, mux_sys_t *mux_sys, clock_sys_t *clock_sys)
 {
     if (mux_sys && mux_sys_valid(mux_sys)) {
         mux_feature_enable(mux_sys, spi_bus->mux, MUX_DIR_NOT_A_GPIO);
@@ -268,8 +264,7 @@ spi_init_common(spi_bus_t* spi_bus, mux_sys_t* mux_sys, clock_sys_t* clock_sys)
     return 0;
 }
 
-int
-transfer_data(spi_bus_t* spi_bus)
+int transfer_data(spi_bus_t *spi_bus)
 {
     int rxfifo_cnt, txfifo_cnt, txfifo_space;
     uint32_t stat;
@@ -333,18 +328,16 @@ transfer_data(spi_bus_t* spi_bus)
     return 1;
 }
 
-void
-spi_handle_irq(spi_bus_t* spi_bus)
+void spi_handle_irq(spi_bus_t *spi_bus)
 {
     transfer_data(spi_bus);
 }
 
-int
-spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
-         void* rxdata, size_t rxcnt, spi_callback_fn cb, void* token)
+int spi_xfer(spi_bus_t *spi_bus, const void *txdata, size_t txcnt,
+             void *rxdata, size_t rxcnt, spi_callback_fn cb, void *token)
 {
-    spi_bus->txbuf = (const char*)txdata;
-    spi_bus->rxbuf = (char*)rxdata;
+    spi_bus->txbuf = (const char *)txdata;
+    spi_bus->rxbuf = (char *)rxdata;
     spi_bus->rxsize = rxcnt;
     spi_bus->txsize = txcnt;
     spi_bus->rxcnt = 0;
@@ -372,14 +365,12 @@ spi_xfer(spi_bus_t* spi_bus, const void* txdata, size_t txcnt,
     return spi_bus->rxcnt;
 }
 
-long
-spi_set_speed(spi_bus_t* spi_bus, long bps)
+long spi_set_speed(spi_bus_t *spi_bus, long bps)
 {
     return 0;
 }
 
-void
-spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
+void spi_prepare_transfer(spi_bus_t *spi_bus, const spi_slave_config_t *cfg)
 {
     if (spi_bus->clk && clk_get_freq(spi_bus->clk) != cfg->speed_hz) {
         clk_set_freq(spi_bus->clk, cfg->speed_hz);
@@ -391,13 +382,12 @@ spi_prepare_transfer(spi_bus_t* spi_bus, const spi_slave_config_t* cfg)
     }
 }
 
-int
-exynos_spi_init(enum spi_id id, void* base,
-                mux_sys_t* mux_sys, clock_sys_t* clock_sys,
-                spi_bus_t** ret_spi_bus)
+int exynos_spi_init(enum spi_id id, void *base,
+                    mux_sys_t *mux_sys, clock_sys_t *clock_sys,
+                    spi_bus_t **ret_spi_bus)
 {
     if (id >= 0 && id < NSPI) {
-        spi_bus_t* spi_bus = _spi + id;
+        spi_bus_t *spi_bus = _spi + id;
         *ret_spi_bus = spi_bus;
         spi_bus->regs = base;
         return spi_init_common(spi_bus, mux_sys, clock_sys);
@@ -406,10 +396,9 @@ exynos_spi_init(enum spi_id id, void* base,
     }
 }
 
-int
-spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** ret_spi_bus)
+int spi_init(enum spi_id id, ps_io_ops_t *io_ops, spi_bus_t **ret_spi_bus)
 {
-    spi_bus_t* spi_bus = _spi + id;
+    spi_bus_t *spi_bus = _spi + id;
     *ret_spi_bus = spi_bus;
     /* Map memory */
     DSPI("Mapping spi %d\n", id);

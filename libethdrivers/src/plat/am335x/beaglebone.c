@@ -19,11 +19,10 @@
 #define MAX_PKT_SIZE 1520
 #define DMA_ALIGN 32
 
-static void
-low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
+static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 {
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
-    struct cpswportif *cpswif = (struct cpswportif*) eth_data->cpswPortIf;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
+    struct cpswportif *cpswif = (struct cpswportif *) eth_data->cpswPortIf;
 
     for (int temp = 0; temp < LEN_MAC_ADDRESS; temp++) {
         mac[temp] = cpswif->eth_addr[temp];
@@ -34,7 +33,7 @@ low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 
 static void fill_rx_bufs(struct eth_driver *driver)
 {
-    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data *)driver->eth_data;
 
     THREAD_MEMORY_RELEASE();
 
@@ -42,7 +41,8 @@ static void fill_rx_bufs(struct eth_driver *driver)
         /* request a buffer */
         void *cookie;
         int next_rdt = (dev->rdt + 1) % dev->rx_size;
-        uintptr_t phys = driver->i_cb.allocate_rx_buf ? driver->i_cb.allocate_rx_buf(driver->cb_cookie, MAX_PKT_SIZE, &cookie) : 0;
+        uintptr_t phys = driver->i_cb.allocate_rx_buf ? driver->i_cb.allocate_rx_buf(driver->cb_cookie, MAX_PKT_SIZE,
+                                                                                     &cookie) : 0;
         if (!phys) {
             break;
         }
@@ -72,11 +72,11 @@ static void fill_rx_bufs(struct eth_driver *driver)
 static void free_desc_ring(struct beaglebone_eth_data *dev, ps_dma_man_t *dma_man)
 {
     if (dev->rx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->rx_ring, sizeof(struct descriptor) * dev->rx_size);
+        dma_unpin_free(dma_man, (void *)dev->rx_ring, sizeof(struct descriptor) * dev->rx_size);
         dev->rx_ring = NULL;
     }
     if (dev->tx_ring) {
-        dma_unpin_free(dma_man, (void*)dev->tx_ring, sizeof(struct descriptor) * dev->tx_size);
+        dma_unpin_free(dma_man, (void *)dev->tx_ring, sizeof(struct descriptor) * dev->tx_size);
         dev->tx_ring = NULL;
     }
     if (dev->rx_cookies) {
@@ -104,8 +104,8 @@ static int initialize_desc_ring(struct beaglebone_eth_data *dev, ps_dma_man_t *d
     ps_dma_cache_clean_invalidate(dma_man, rx_ring.virt, sizeof(struct descriptor) * dev->rx_size);
     ps_dma_cache_clean_invalidate(dma_man, tx_ring.virt, sizeof(struct descriptor) * dev->tx_size);
 
-    dev->rx_cookies = malloc(sizeof(void*) * dev->rx_size);
-    dev->tx_cookies = malloc(sizeof(void*) * dev->tx_size);
+    dev->rx_cookies = malloc(sizeof(void *) * dev->rx_size);
+    dev->tx_cookies = malloc(sizeof(void *) * dev->tx_size);
     dev->tx_lengths = malloc(sizeof(unsigned int) * dev->tx_size);
     if (!dev->rx_cookies || !dev->tx_cookies || !dev->tx_lengths) {
         if (dev->rx_cookies) {
@@ -154,7 +154,7 @@ static int initialize_desc_ring(struct beaglebone_eth_data *dev, ps_dma_man_t *d
 
 static void complete_rx(struct eth_driver *eth_driver)
 {
-    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data*)eth_driver->eth_data;
+    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data *)eth_driver->eth_data;
     unsigned int rdt = dev->rdt;
 
     while ((dev->rdh != rdt) && ((dev->rx_ring[dev->rdh].flags_pktlen & CPDMA_BUF_DESC_OWNER) != CPDMA_BUF_DESC_OWNER)) {
@@ -174,16 +174,18 @@ static void complete_rx(struct eth_driver *eth_driver)
         eth_driver->i_cb.rx_complete(eth_driver->cb_cookie, 1, &cookie, &len);
 
         /* Acknowledge that this packet is processed */
-        CPSWCPDMARxCPWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg), 0, (uintptr_t)  (((volatile struct descriptor *) dev->rx_ring_phys) + (orig_rdh)));
+        CPSWCPDMARxCPWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg), 0,
+                           (uintptr_t)(((volatile struct descriptor *) dev->rx_ring_phys) + (orig_rdh)));
         dev->rx_ring[orig_rdh].flags_pktlen = CPDMA_BUF_DESC_OWNER;
-        CPSWCPDMARxHdrDescPtrWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg), ((struct descriptor *) dev->rx_ring_phys) + dev->rdh, 0);
+        CPSWCPDMARxHdrDescPtrWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg),
+                                   ((struct descriptor *) dev->rx_ring_phys) + dev->rdh, 0);
 
     }
 }
 
 static void complete_tx(struct eth_driver *driver)
 {
-    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data *)driver->eth_data;
     volatile u32_t cnt = 0xFFFF;
 
     int orig_tdh = dev->tdh;
@@ -198,7 +200,7 @@ static void complete_tx(struct eth_driver *driver)
         /* If CPDMA failed to transmit, give it a chance once more */
         if (0 == cnt) {
             CPSWCPDMATxHdrDescPtrWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg),
-                                       (uintptr_t)  (((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdh)), 0);
+                                       (uintptr_t)(((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdh)), 0);
             return;
         }
 
@@ -215,14 +217,15 @@ static void complete_tx(struct eth_driver *driver)
         dev->tx_ring[orig_tdh].flags_pktlen &= ~(CPDMA_BUF_DESC_EOP);
 
         /* Acknowledge CPSW */
-        CPSWCPDMATxCPWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg), 0, (uintptr_t)  (((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdh - 1)));
+        CPSWCPDMATxCPWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg), 0,
+                           (uintptr_t)(((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdh - 1)));
 
     }
 }
 
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie)
 {
-    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *dev = (struct beaglebone_eth_data *)driver->eth_data;
 
     /* Ensure we have room */
     if (num > dev->tx_remain) {
@@ -261,7 +264,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
     /* For the first time, write the HDP with the filled bd */
     if (dev->tdt - num == 0) {
         CPSWCPDMATxHdrDescPtrWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg),
-                                   (uintptr_t) ((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdt - num) , 0);
+                                   (uintptr_t)((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdt - num), 0);
     } else {
         /**
          * Chain the bd's. If the DMA engine, already reached the end of the chain,
@@ -269,7 +272,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
          */
         if (dev->tx_ring[ring].flags_pktlen & CPDMA_BUF_DESC_EOQ) {
             CPSWCPDMATxHdrDescPtrWrite(VPTR_CPSW_CPDMA(dev->iomm_address.eth_mmio_cpsw_reg),
-                                       (uintptr_t) ((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdt - num) , 0);
+                                       (uintptr_t)((volatile struct descriptor *) dev->tx_ring_phys) + (dev->tdt - num), 0);
 
         }
 
@@ -281,7 +284,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 static void handle_irq(struct eth_driver *driver, int irq)
 {
 
-    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data*)driver->eth_data;
+    struct beaglebone_eth_data *eth_data = (struct beaglebone_eth_data *)driver->eth_data;
 
     if (irq == SYS_INT_3PGSWRXINT0) {
         complete_rx(driver);
@@ -328,26 +331,28 @@ int ethif_am335x_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *c
     int err;
     struct EthVirtAddr *eth_addresses = (struct EthVirtAddr *) config;
 
-    eth_data = (struct beaglebone_eth_data*)malloc(sizeof(struct beaglebone_eth_data));
+    eth_data = (struct beaglebone_eth_data *)malloc(sizeof(struct beaglebone_eth_data));
     if (eth_data == NULL) {
         ZF_LOGE("Failed to allocate eth data struct");
         return -1;
     }
 
-    cpswPortIf = (struct cpswportif*) calloc(MAX_CPSW_INST * MAX_SLAVEPORT_PER_INST, sizeof(struct cpswportif));
+    cpswPortIf = (struct cpswportif *) calloc(MAX_CPSW_INST * MAX_SLAVEPORT_PER_INST, sizeof(struct cpswportif));
     if (cpswPortIf == NULL) {
         ZF_LOGE("Failed to allocate cpswPortIf");
         return -1;
     }
 
-    cpswinst_data = (struct cpswinst_data*) calloc(MAX_CPSW_INST, sizeof(struct cpswinst));
+    cpswinst_data = (struct cpswinst_data *) calloc(MAX_CPSW_INST, sizeof(struct cpswinst));
     if (cpswinst_data == NULL) {
         ZF_LOGE("Failed to allocate cpswinst");
         return -1;
     }
 
-    compile_time_assert("CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT  <= max_rx_cppi", CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT <= (SIZE_CPPI_RAM >> 1) / sizeof(struct descriptor));
-    compile_time_assert("CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT  <= max_tx_cppi", CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT <= (SIZE_CPPI_RAM >> 1) / sizeof(struct descriptor));
+    compile_time_assert("CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT  <= max_rx_cppi",
+                        CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT <= (SIZE_CPPI_RAM >> 1) / sizeof(struct descriptor));
+    compile_time_assert("CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT  <= max_tx_cppi",
+                        CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT <= (SIZE_CPPI_RAM >> 1) / sizeof(struct descriptor));
 
     /* Trim the number of buffers requested to the maximum count the hardware can support */
     eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;

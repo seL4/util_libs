@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#ifndef __ETHIF_ZYNQ7000_DRIVER_H
-#define __ETHIF_ZYNQ7000_DRIVER_H
+#pragma once
 
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
@@ -21,5 +20,3 @@
  * @param[in] config        Platform Specific configuration data
  */
 int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
-
-#endif

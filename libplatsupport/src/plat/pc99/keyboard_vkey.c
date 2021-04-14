@@ -15,7 +15,7 @@
 /* This requires ISO-C99 gcc standard. */
 /* ref: http://www.unix-manuals.com/refs/misc/ascii-table.html */
 keycode_info_t keycodes[VK_MAX_ENUM] = {
-    [0 ... (VK_MAX_ENUM - 1)] = { -1, -1, -1},
+    [0 ...(VK_MAX_ENUM - 1)] = { -1, -1, -1},
 
     [VK_ESCAPE] =  {VK_ESCAPE, VK_ESCAPE, -1},
     [VK_OEM_3] = {'`', '~', -1},
@@ -92,7 +92,7 @@ keycode_info_t keycodes[VK_MAX_ENUM] = {
          of this lookup table from 65535 to 256 bytes.
 */
 int16_t ps2_to_vkey[PS2_MAX_KEYCODES_BASIC] = {
-    [0 ... (PS2_MAX_KEYCODES_BASIC - 1)] = -1,
+    [0 ...(PS2_MAX_KEYCODES_BASIC - 1)] = -1,
 
     [PS2_KEY_ESC] = VK_ESCAPE,
     [PS2_KEY_F1] = VK_F1,
@@ -181,11 +181,10 @@ int16_t ps2_to_vkey[PS2_MAX_KEYCODES_BASIC] = {
     [PS2_KEY_NUM_DOT] = VK_DECIMAL
 };
 
-void
-keycode_init(keycode_state_t *s,
-             void (*handle_keyevent_callback)(int16_t vkey, bool pressed, void *cookie),
-             void (*handle_chartyped_callback)(int c, void *cookie),
-             void (*handle_led_state_changed_callback)(void *cookie))
+void keycode_init(keycode_state_t *s,
+                  void (*handle_keyevent_callback)(int16_t vkey, bool pressed, void *cookie),
+                  void (*handle_chartyped_callback)(int c, void *cookie),
+                  void (*handle_led_state_changed_callback)(void *cookie))
 {
     memset(s, 0, sizeof(keycode_state_t));
 
@@ -196,8 +195,7 @@ keycode_init(keycode_state_t *s,
 }
 
 #if KEYBOARD_KEY_DEBUG
-const char*
-keycode_vkey_desc(uint16_t vk)
+const char *keycode_vkey_desc(uint16_t vk)
 {
     switch (vk) {
     case VK_LBUTTON:
@@ -543,8 +541,7 @@ keycode_vkey_desc(uint16_t vk)
 }
 #endif /* KEYBOARD_KEY_DEBUG */
 
-int16_t
-keycode_info_char_modifier(keycode_info_t *info, bool ctrl, bool shift)
+int16_t keycode_info_char_modifier(keycode_info_t *info, bool ctrl, bool shift)
 {
     if (ctrl && !shift && info->ctrlchar != -1) {
         return info->ctrlchar;
@@ -552,15 +549,13 @@ keycode_info_char_modifier(keycode_info_t *info, bool ctrl, bool shift)
     return shift ? info->uppercase : info->ch;
 }
 
-int16_t
-keycode_info_char(keycode_state_t *s, keycode_info_t *info)
+int16_t keycode_info_char(keycode_state_t *s, keycode_info_t *info)
 {
     return keycode_info_char_modifier(info, s->keystate[VK_CONTROL],
                                       s->keystate[VK_SHIFT] ^ s->caps_lock);
 }
 
-int16_t
-keycode_ps2_to_vkey(int32_t ps2_keycode)
+int16_t keycode_ps2_to_vkey(int32_t ps2_keycode)
 {
     if (ps2_keycode >= 0 && ps2_keycode < PS2_MAX_KEYCODES_BASIC) {
         return ps2_to_vkey[ps2_keycode];
@@ -607,15 +602,13 @@ keycode_ps2_to_vkey(int32_t ps2_keycode)
     return -1;
 }
 
-static void
-keycode_update_combined_vkeys(keycode_state_t *s)
+static void keycode_update_combined_vkeys(keycode_state_t *s)
 {
     s->keystate[VK_CONTROL] = s->keystate[VK_LCONTROL] || s->keystate[VK_RCONTROL];
     s->keystate[VK_SHIFT] = s->keystate[VK_LSHIFT] || s->keystate[VK_RSHIFT];
 }
 
-keycode_info_t *
-keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed, void* cookie)
+keycode_info_t *keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed, void *cookie)
 {
     assert(s);
 
@@ -659,15 +652,13 @@ keycode_process_vkey_event(keycode_state_t *s, int32_t vkey, bool pressed, void*
     return NULL;
 }
 
-int16_t
-keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, bool pressed, void* cookie)
+int16_t keycode_process_vkey_event_to_char(keycode_state_t *s, int32_t vkey, bool pressed, void *cookie)
 {
     keycode_info_t *info = keycode_process_vkey_event(s, vkey, pressed, cookie);
     return info ? keycode_info_char(s, info) : -1;
 }
 
-bool
-keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey)
+bool keycode_get_async_vkey_state(keycode_state_t *s, int32_t vkey)
 {
     assert(vkey >= 0 && vkey < VK_MAX_ENUM);
     return s->keystate[vkey];

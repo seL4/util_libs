@@ -18,7 +18,8 @@
  * control bit is set in the control register.
  */
 
-int system_timer_init(system_timer_t *timer, system_timer_config_t config) {
+int system_timer_init(system_timer_t *timer, system_timer_config_t config)
+{
     if (timer == NULL || config.vaddr == NULL) {
         return EINVAL;
     }
@@ -28,7 +29,8 @@ int system_timer_init(system_timer_t *timer, system_timer_config_t config) {
     return 0;
 }
 
-uint64_t system_timer_get_time(system_timer_t *timer) {
+uint64_t system_timer_get_time(system_timer_t *timer)
+{
     if (timer == NULL) {
         return EINVAL;
     }
@@ -47,7 +49,8 @@ uint64_t system_timer_get_time(system_timer_t *timer) {
     return time;
 }
 
-int system_timer_set_timeout(system_timer_t *timer, uint64_t ns) {
+int system_timer_set_timeout(system_timer_t *timer, uint64_t ns)
+{
     if (timer == NULL) {
         return EINVAL;
     }
@@ -80,7 +83,8 @@ int system_timer_set_timeout(system_timer_t *timer, uint64_t ns) {
     return 0;
 }
 
-int system_timer_handle_irq(system_timer_t *timer) {
+int system_timer_handle_irq(system_timer_t *timer)
+{
     if (timer == NULL) {
         return EINVAL;
     }
@@ -90,7 +94,8 @@ int system_timer_handle_irq(system_timer_t *timer) {
     return 0;
 }
 
-int system_timer_reset(system_timer_t *timer) {
+int system_timer_reset(system_timer_t *timer)
+{
     if (timer == NULL) {
         return EINVAL;
     }

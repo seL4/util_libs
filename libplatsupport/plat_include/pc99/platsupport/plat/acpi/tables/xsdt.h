@@ -16,27 +16,24 @@ typedef struct acpi_xsdt {
 #pragma pack(pop)
 
 /* retrieve the number of entries in an xsdt table */
-static inline int
-acpi_xsdt_entry_count(acpi_xsdt_t* t)
+static inline int acpi_xsdt_entry_count(acpi_xsdt_t *t)
 {
     return (t->header.length - sizeof(*t)) / sizeof(uint64_t);
 }
 
 /* Retrieve the location of the first item in the list */
-static inline uint64_t*
-acpi_xsdt_first(acpi_xsdt_t* hdr)
+static inline uint64_t *acpi_xsdt_first(acpi_xsdt_t *hdr)
 {
-    return (uint64_t*)(hdr + 1);
+    return (uint64_t *)(hdr + 1);
 }
 
 /* Retrieve the location of the next item in the list */
-static inline uint64_t*
-acpi_xsdt_next(acpi_xsdt_t* hdr, uint64_t* cur)
+static inline uint64_t *acpi_xsdt_next(acpi_xsdt_t *hdr, uint64_t *cur)
 {
-    char* next = (char*)(cur + 1);
-    char* end = (char*)hdr + hdr->header.length;
+    char *next = (char *)(cur + 1);
+    char *end = (char *)hdr + hdr->header.length;
     if (next < end) {
-        return (uint64_t*)next;
+        return (uint64_t *)next;
     } else {
         return NULL;
     }

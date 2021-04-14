@@ -27,11 +27,11 @@
 
 typedef struct {
     region_type_t t;
-    const char* s;
+    const char *s;
 } sig_map_t;
 
 #define SIG_MAP_T(lbl) [ACPI_##lbl] = ACPI_SIG_##lbl
-static const char* sig_map[] = {
+static const char *sig_map[] = {
     SIG_MAP_T(RSDP),
     SIG_MAP_T(RSDT),
     SIG_MAP_T(XSDT),
@@ -54,7 +54,7 @@ static const char* sig_map[] = {
     SIG_MAP_T(BOOT),
     SIG_MAP_T(SPCR),
     SIG_MAP_T(DMAR),
-    SIG_MAP_T(ASF ),
+    SIG_MAP_T(ASF),
     SIG_MAP_T(HEST),
     SIG_MAP_T(MCFG),
     SIG_MAP_T(ASPT)
@@ -64,10 +64,10 @@ static const char* sig_map[] = {
 void qsort(void *base, size_t nmemb, size_t size,
            int(*compar)(const void *, const void *));
 
-static int region_start_compar(const void* _r1, const void* _r2)
+static int region_start_compar(const void *_r1, const void *_r2)
 {
-    Region_t* r1 = (Region_t*) _r1;
-    Region_t* r2 = (Region_t*) _r2;
+    Region_t *r1 = (Region_t *) _r1;
+    Region_t *r2 = (Region_t *) _r2;
 
     // test start address
     if (r1->start < r2->start) {
@@ -89,15 +89,14 @@ static int region_start_compar(const void* _r1, const void* _r2)
     return 0;
 }
 
-void
-consolidate_regions(const RegionList_t* regions_in, RegionList_t* consolidated)
+void consolidate_regions(const RegionList_t *regions_in, RegionList_t *consolidated)
 {
     int i, j;
     memcpy(consolidated, regions_in, sizeof(RegionList_t));
     sort_regions(consolidated);
     for (i = 0, j = 0; j < consolidated->region_count; i++, j++) {
         if (consolidated->regions[i].start + consolidated->regions[i].size ==
-                consolidated->regions[j].start) {
+            consolidated->regions[j].start) {
             consolidated->regions[i].size += consolidated->regions[j].size;
             j++; /* incremented again by for loop */
         } else {
@@ -106,15 +105,13 @@ consolidate_regions(const RegionList_t* regions_in, RegionList_t* consolidated)
     }
 }
 
-void
-sort_regions(RegionList_t* regions)
+void sort_regions(RegionList_t *regions)
 {
     qsort(regions->regions, regions->region_count,
           sizeof(regions->regions), &region_start_compar);
 }
 
-const char*
-acpi_sig_str(region_type_t t)
+const char *acpi_sig_str(region_type_t t)
 {
     if (t < ACPI_NTYPES) {
         return sig_map[t];
@@ -123,8 +120,7 @@ acpi_sig_str(region_type_t t)
     }
 }
 
-region_type_t
-acpi_sig_id(const char* sig)
+region_type_t acpi_sig_id(const char *sig)
 {
     if (strncmp(sig_map[ACPI_RSDP], sig, 6) == 0) {
         return ACPI_RSDP;
@@ -139,8 +135,7 @@ acpi_sig_id(const char* sig)
     return ACPI_UNKNOWN_TYPE;
 }
 
-int
-add_region(RegionList_t* region_list, const Region_t region)
+int add_region(RegionList_t *region_list, const Region_t region)
 {
     if (region_list->region_count < MAX_REGIONS - 1) {
         int next_index = region_list->region_count++;
@@ -151,8 +146,7 @@ add_region(RegionList_t* region_list, const Region_t region)
     }
 }
 
-int
-remove_region(RegionList_t* region_list, int index)
+int remove_region(RegionList_t *region_list, int index)
 {
     if (index >= region_list->region_count) {
         return !0;
@@ -167,18 +161,17 @@ remove_region(RegionList_t* region_list, int index)
     return 0;
 }
 
-int
-find_space(const RegionList_t* rlist, size_t size,
-           region_type_t type)
+int find_space(const RegionList_t *rlist, size_t size,
+               region_type_t type)
 {
 
     int best_fit = -1;
-    const Region_t* best = NULL;
+    const Region_t *best = NULL;
 
     int i;
     for (i = 0; i < rlist->region_count; i++) {
         DPRINTF(1, "examining %d of %d\n", i, rlist->region_count);
-        const Region_t* this = rlist->regions + i;
+        const Region_t *this = rlist->regions + i;
         if (this->type == type && this->size > size) {
             if (best_fit == -1 || this->size < best->size) {
                 DPRINTF(1, "Best fit!\n");
@@ -190,11 +183,10 @@ find_space(const RegionList_t* rlist, size_t size,
     return best_fit;
 }
 
-int
-split_region(RegionList_t* rlist, int index, size_t size)
+int split_region(RegionList_t *rlist, int index, size_t size)
 {
     int ret;
-    Region_t* r = &rlist->regions[index];
+    Region_t *r = &rlist->regions[index];
 
     /* check params */
     if (index >= rlist->region_count || index < 0) {
@@ -216,9 +208,8 @@ split_region(RegionList_t* rlist, int index, size_t size)
     return ret;
 }
 
-int
-find_region(const RegionList_t* rlist, int start_index,
-            region_type_t type)
+int find_region(const RegionList_t *rlist, int start_index,
+                region_type_t type)
 {
 
     for (; start_index < rlist->region_count; start_index++) {
@@ -229,8 +220,7 @@ find_region(const RegionList_t* rlist, int start_index,
     return -1;
 }
 
-acpi_header_t *
-acpi_find_region(acpi_t *acpi, region_type_t region)
+acpi_header_t *acpi_find_region(acpi_t *acpi, region_type_t region)
 {
     RegionList_t *regions = acpi->regions;
     int index = find_region(regions, 0, region);

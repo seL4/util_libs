@@ -30,10 +30,10 @@ typedef struct {
     /* we are either using the HPET or the PIT */
     union {
         struct {
-             hpet_t device;
-             pmem_region_t region;
-             uint64_t period;
-             hpet_config_t config;
+            hpet_t device;
+            pmem_region_t region;
+            uint64_t period;
+            hpet_config_t config;
         } hpet;
         struct {
             pit_t device;
@@ -125,7 +125,7 @@ static int hpet_ltimer_handle_irq(pc99_ltimer_t *pc99_ltimer)
         int error;
         do {
             error = hpet_set_timeout(&pc99_ltimer->hpet.device,
-                hpet_get_time(&pc99_ltimer->hpet.device) + pc99_ltimer->hpet.period);
+                                     hpet_get_time(&pc99_ltimer->hpet.device) + pc99_ltimer->hpet.period);
             retries--;
         } while (error == ETIME && retries > 0);
         if (error == ETIME) {
@@ -148,7 +148,7 @@ static void handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void 
     assert(!error);
 
     error = pc99_ltimer->type == PIT ? pit_ltimer_handle_irq(pc99_ltimer)
-                                     : hpet_ltimer_handle_irq(pc99_ltimer);
+            : hpet_ltimer_handle_irq(pc99_ltimer);
     assert(!error);
 
     /* the only interrupts we get are from timeout interrupts */
@@ -229,7 +229,7 @@ static int pit_ltimer_set_timeout(void *data, uint64_t ns, timeout_type_t type)
     }
 
     int error = pit_set_timeout(&pc99_ltimer->pit.device, ns, type == TIMEOUT_PERIODIC);
-    if (error == EINVAL && type == TIMEOUT_ABSOLUTE ) {
+    if (error == EINVAL && type == TIMEOUT_ABSOLUTE) {
         /* we capped the value we set at the highest value for the PIT, however this
          * could still have been too small - in this case the absolute timeout has
          * already passed */
@@ -280,8 +280,8 @@ static void destroy(void *data)
     ps_free(&pc99_ltimer->ops.malloc_ops, sizeof(pc99_ltimer), pc99_ltimer);
 }
 
-static inline int
-ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token)
+static inline int ltimer_init_common(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t callback,
+                                     void *callback_token)
 {
     pc99_ltimer_t *pc99_ltimer = ltimer->data;
     pc99_ltimer->ops = ops;
@@ -433,7 +433,7 @@ int _ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops, acpi_t *acpi)
 {
     pmem_region_t hpet_region;
 
-    int error = (acpi != NULL) ? hpet_parse_acpi(acpi, &hpet_region): 1;
+    int error = (acpi != NULL) ? hpet_parse_acpi(acpi, &hpet_region) : 1;
 
     if (!error) {
         ps_irq_t irq;
@@ -477,7 +477,7 @@ int ltimer_hpet_describe_with_region(ltimer_t *ltimer, ps_io_ops_t ops, pmem_reg
         irq->msi.handle = 0;
         irq->msi.vector = DEFAULT_HPET_MSI_VECTOR;
     } else {
-     /* try a IOAPIC */
+        /* try a IOAPIC */
         irq->type = PS_IOAPIC;
         irq->ioapic.pin = FFS(hpet_ioapic_irq_delivery_mask(vaddr)) - 1;
         irq->ioapic.level = hpet_level(vaddr);
@@ -503,12 +503,17 @@ int ltimer_pit_describe(ltimer_t *ltimer, ps_io_ops_t ops)
     pc99_ltimer->type = PIT;
     if (config_set(CONFIG_IRQ_IOAPIC)) {
         /* Use the IOAPIC if we can */
-        pc99_ltimer->irq = (ps_irq_t) { .type = PS_IOAPIC, .ioapic = { .ioapic = 0, .pin = PIT_INTERRUPT,
-                                                                       .level = 0, .polarity = 0,
-                                                                       .vector = PIT_INTERRUPT }};
+        pc99_ltimer->irq = (ps_irq_t) {
+            .type = PS_IOAPIC, .ioapic = { .ioapic = 0, .pin = PIT_INTERRUPT,
+                                           .level = 0, .polarity = 0,
+                                           .vector = PIT_INTERRUPT
+                                         }
+        };
     } else {
         /* Default to the PIC */
-        pc99_ltimer->irq = (ps_irq_t) { .type = PS_INTERRUPT, .irq = { .number = PIT_INTERRUPT }};
+        pc99_ltimer->irq = (ps_irq_t) {
+            .type = PS_INTERRUPT, .irq = { .number = PIT_INTERRUPT }
+        };
     }
     pc99_ltimer->irq_id = PS_INVALID_IRQ_ID;
     ltimer->get_num_irqs = get_num_irqs;

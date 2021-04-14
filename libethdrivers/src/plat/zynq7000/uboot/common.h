@@ -16,7 +16,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -24,11 +24,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __COMMON_H_
-#define __COMMON_H_	1
+#pragma once
 
-#undef	_LINUX_CONFIG_H
-#define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
+#undef  _LINUX_CONFIG_H
+#define _LINUX_CONFIG_H 1   /* avoid reading Linux autoconf.h file  */
 
 #include "config.h"
 #include "../unimplemented.h"
@@ -47,17 +46,17 @@
 #endif
 
 
-#define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
-#define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
+#define ROUND(a,b)      (((a) + (b) - 1) & ~((b) - 1))
+#define roundup(x, y)       ((((x) + ((y) - 1)) / (y)) * (y))
 
-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+#define __ALIGN_MASK(x,mask)    (((x)+(mask))&~(mask))
 
 
 
 #ifdef ETH_DEBUG
-#define _DEBUG	1
+#define _DEBUG  1
 #else
-#define _DEBUG	0
+#define _DEBUG  0
 #endif
 
 /*
@@ -65,25 +64,22 @@
  * computed by a preprocessor in the best case, allowing for the best
  * optimization.
  */
-#define debug_cond(cond, fmt, args...)		\
-	do {					\
-		if (cond)			\
-			printf(fmt, ##args);	\
-	} while (0)
+#define debug_cond(cond, fmt, args...)      \
+    do {                    \
+        if (cond)           \
+            printf(fmt, ##args);    \
+    } while (0)
 
-#define debug(fmt, args...)			\
-	debug_cond(_DEBUG, fmt, ##args)
+#define debug(fmt, args...)         \
+    debug_cond(_DEBUG, fmt, ##args)
 
 /**
  * container_of - cast a member of a structure out to the containing structure
- * @ptr:	the pointer to the member.
- * @type:	the type of the container struct this is embedded in.
- * @member:	the name of the member within the struct.
+ * @ptr:    the pointer to the member.
+ * @type:   the type of the container struct this is embedded in.
+ * @member: the name of the member within the struct.
  *
  */
-#define container_of(ptr, type, member) ({			\
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-	(type *)( (char *)__mptr - offsetof(type,member) );})
-
-
-#endif	/* __COMMON_H_ */
+#define container_of(ptr, type, member) ({          \
+    const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+    (type *)( (char *)__mptr - offsetof(type,member) );})

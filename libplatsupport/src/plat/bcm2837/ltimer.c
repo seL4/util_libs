@@ -59,14 +59,14 @@ static int get_nth_irq(void *data, size_t n, ps_irq_t *irq)
 {
     assert(n < get_num_irqs(data));
     switch (n) {
-        case SP804_TIMER:
-            irq->irq.number = SP804_TIMER_IRQ;
-            irq->type = PS_INTERRUPT;
-            break;
-        case SYSTEM_TIMER:
-            irq->irq.number = SYSTEM_TIMER_MATCH_IRQ(SYSTEM_TIMER_MATCH);
-            irq->type = PS_INTERRUPT;
-            break;
+    case SP804_TIMER:
+        irq->irq.number = SP804_TIMER_IRQ;
+        irq->type = PS_INTERRUPT;
+        break;
+    case SYSTEM_TIMER:
+        irq->irq.number = SYSTEM_TIMER_MATCH_IRQ(SYSTEM_TIMER_MATCH);
+        irq->type = PS_INTERRUPT;
+        break;
     }
     return 0;
 }
@@ -89,17 +89,17 @@ static int handle_irq(void *data, ps_irq_t *irq)
     spt_ltimer_t *spt_ltimer = data;
 
     switch (irq->irq.number) {
-        case SP804_TIMER_IRQ:
-            spt_handle_irq(&spt_ltimer->spt);
-            if (spt_ltimer->period > 0) {
-                spt_set_timeout(&spt_ltimer->spt, spt_ltimer->period);
-            }
-            break;
-        case SYSTEM_TIMER_MATCH_IRQ(SYSTEM_TIMER_MATCH):
-            system_timer_handle_irq(&spt_ltimer->system);
-            break;
-        default:
-            return EINVAL;
+    case SP804_TIMER_IRQ:
+        spt_handle_irq(&spt_ltimer->spt);
+        if (spt_ltimer->period > 0) {
+            spt_set_timeout(&spt_ltimer->spt, spt_ltimer->period);
+        }
+        break;
+    case SYSTEM_TIMER_MATCH_IRQ(SYSTEM_TIMER_MATCH):
+        system_timer_handle_irq(&spt_ltimer->system);
+        break;
+    default:
+        return EINVAL;
     }
 
     /* Both IRQs correspond to timeouts, the timestamp is not expected to roll over
@@ -138,7 +138,7 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
         return system_timer_set_timeout(&spt_ltimer->system, ns);
     case TIMEOUT_PERIODIC:
         spt_ltimer->period = ns;
-        /* fall through */
+    /* fall through */
     case TIMEOUT_RELATIVE:
         return spt_set_timeout(&spt_ltimer->spt, ns);
     }

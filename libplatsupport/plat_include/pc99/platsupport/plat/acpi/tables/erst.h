@@ -27,20 +27,18 @@ typedef struct acpi_erst {
 #pragma pack(pop)
 
 /* Retrieve the location of the first item in the list */
-static inline acpi_erst_entry_t*
-acpi_erst_first(acpi_erst_t* hdr)
+static inline acpi_erst_entry_t *acpi_erst_first(acpi_erst_t *hdr)
 {
-    return (acpi_erst_entry_t*)(hdr + 1);
+    return (acpi_erst_entry_t *)(hdr + 1);
 }
 
 /* Retrieve the location of the next item in the list */
-static inline acpi_erst_entry_t*
-acpi_erst_next(acpi_erst_t* hdr, acpi_erst_entry_t* cur)
+static inline acpi_erst_entry_t *acpi_erst_next(acpi_erst_t *hdr, acpi_erst_entry_t *cur)
 {
-    char* next = (char*)(cur + 1);
-    char* end = (char*)hdr + hdr->header.length;
+    char *next = (char *)(cur + 1);
+    char *end = (char *)hdr + hdr->header.length;
     if (next < end) {
-        return (acpi_erst_entry_t*)next;
+        return (acpi_erst_entry_t *)next;
     } else {
         return NULL;
     }

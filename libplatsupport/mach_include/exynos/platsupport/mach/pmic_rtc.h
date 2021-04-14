@@ -33,7 +33,7 @@ typedef struct pmic_rtc {
  * @param[out] pmic_rtc A handle to an rtc structure to initialise
  * @return              0 on success
  */
-int pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc);
+int pmic_rtc_init(i2c_bus_t *i2c, pmic_rtc_t *pmic_rtc);
 
 /**
  * Read the time from the MAX77686 RTC
@@ -41,7 +41,7 @@ int pmic_rtc_init(i2c_bus_t* i2c, pmic_rtc_t* pmic_rtc);
  * @param[out] time     A time structure to populate
  * @return              0 on success
  */
-int pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time);
+int pmic_rtc_get_time(pmic_rtc_t *pmic_rtc, struct rtc_time *time);
 
 /**
  * Set the time on the MAX77686 RTC
@@ -49,14 +49,14 @@ int pmic_rtc_get_time(pmic_rtc_t* pmic_rtc, struct rtc_time* time);
  * @param[in]  time     The time to set
  * @return              0 on success
  */
-int pmic_rtc_set_time(pmic_rtc_t* pmic_rtc, const struct rtc_time* time);
+int pmic_rtc_set_time(pmic_rtc_t *pmic_rtc, const struct rtc_time *time);
 
 /**
  * Return the number of alarms that this device supports
  * @param[in]  pmic_rtc A handle to the pmic_rtc
  * @return     The number of alarms that the device supports, -1 on error
  */
-int pmic_rtc_nalarms(pmic_rtc_t* pmic_rtc);
+int pmic_rtc_nalarms(pmic_rtc_t *pmic_rtc);
 
 /**
  * Set an alarm on the MAX77686 RTC
@@ -65,7 +65,7 @@ int pmic_rtc_nalarms(pmic_rtc_t* pmic_rtc);
  * @param[out] alarm    A time structure to populate
  * @return              0 on success
  */
-int pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm);
+int pmic_rtc_get_alarm(pmic_rtc_t *pmic_rtc, int id, struct rtc_time *alarm);
 
 /**
  * Set an alarm on the MAX77686 RTC
@@ -74,5 +74,5 @@ int pmic_rtc_get_alarm(pmic_rtc_t* pmic_rtc, int id, struct rtc_time* alarm);
  * @param[out] alarm    a time structure to populate
  * @return              0 on success
  */
-int pmic_rtc_set_alarm(pmic_rtc_t* pmic_rtc, int id, const struct rtc_time* alarm);
+int pmic_rtc_set_alarm(pmic_rtc_t *pmic_rtc, int id, const struct rtc_time *alarm);
 

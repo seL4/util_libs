@@ -411,7 +411,7 @@ void EDMA3ClrMissEvt(unsigned int baseAdd,
     } else {
         HWREG(baseAdd + EDMA3CC_S_SECRH(regionId)) = (0x01u << (chNum - 32));
         /*clear EMCRH to clean any previous NULL request                         */
-        HWREG(baseAdd + EDMA3CC_EMCRH) |= (0x01u <<  (chNum - 32));
+        HWREG(baseAdd + EDMA3CC_EMCRH) |= (0x01u << (chNum - 32));
     }
 }
 
@@ -780,7 +780,7 @@ void EDMA3ClrIntr(unsigned int baseAdd, unsigned int value)
  */
 void EDMA3GetPaRAM(unsigned int baseAdd,
                    unsigned int PaRAMId,
-                   EDMA3CCPaRAMEntry* currPaRAM)
+                   EDMA3CCPaRAMEntry *currPaRAM)
 {
     unsigned int i = 0;
     unsigned int *sr;
@@ -809,7 +809,7 @@ void EDMA3GetPaRAM(unsigned int baseAdd,
 void EDMA3QdmaGetPaRAM(unsigned int baseAdd,
                        UNUSED unsigned int chNum,
                        unsigned int paRAMId,
-                       EDMA3CCPaRAMEntry* currPaRAM)
+                       EDMA3CCPaRAMEntry *currPaRAM)
 {
     unsigned int i = 0;
     unsigned int *sr;
@@ -845,7 +845,7 @@ void EDMA3QdmaGetPaRAM(unsigned int baseAdd,
  */
 void EDMA3SetPaRAM(unsigned int baseAdd,
                    unsigned int chNum,
-                   EDMA3CCPaRAMEntry* newPaRAM)
+                   EDMA3CCPaRAMEntry *newPaRAM)
 {
     unsigned int PaRAMId = chNum; /* PaRAM mapped to channel Number         */
     unsigned int i = 0;
@@ -886,7 +886,7 @@ void EDMA3SetPaRAM(unsigned int baseAdd,
 void EDMA3QdmaSetPaRAM(unsigned int baseAdd,
                        UNUSED unsigned int chNum,
                        unsigned int paRAMId,
-                       EDMA3CCPaRAMEntry* newPaRAM)
+                       EDMA3CCPaRAMEntry *newPaRAM)
 {
     unsigned int i = 0;
     unsigned int *sr = (unsigned int *)newPaRAM;
@@ -939,7 +939,7 @@ void EDMA3QdmaSetPaRAMEntry(unsigned int baseAdd,
                             unsigned int newPaRAMEntryVal)
 {
     if ((paRAMEntry > EDMA3CC_PARAM_ENTRY_OPT) ||
-            (paRAMEntry < EDMA3CC_PARAM_ENTRY_CCNT)) {
+        (paRAMEntry < EDMA3CC_PARAM_ENTRY_CCNT)) {
         HWREG(baseAdd + EDMA3CC_OPT(paRAMId) +
               (unsigned int)(paRAMEntry * 0x04)) = newPaRAMEntryVal;
     }
@@ -983,11 +983,11 @@ unsigned int EDMA3QdmaGetPaRAMEntry(unsigned int baseAdd,
 {
     unsigned int paRAMEntryVal = 0;
     if ((paRAMEntry > EDMA3CC_PARAM_ENTRY_OPT) ||
-            (paRAMEntry < EDMA3CC_PARAM_ENTRY_CCNT)) {
+        (paRAMEntry < EDMA3CC_PARAM_ENTRY_CCNT)) {
         paRAMEntryVal = HWREG(baseAdd + EDMA3CC_OPT(paRAMId) +
                               (unsigned int)(paRAMEntry * 0x04));
     }
-    return(paRAMEntryVal);
+    return (paRAMEntryVal);
 }
 
 /**
@@ -1046,7 +1046,7 @@ unsigned int EDMA3RequestChannel(unsigned int baseAdd,
          */
         EDMA3EnableChInShadowReg(baseAdd, chType, chNum);
 
-        EDMA3MapChToEvtQ( baseAdd, chType, chNum, evtQNum);
+        EDMA3MapChToEvtQ(baseAdd, chType, chNum, evtQNum);
         if (EDMA3_CHANNEL_TYPE_DMA == chType) {
             /* Interrupt channel nums are < 32 */
             if (tccNum < SOC_EDMA3_NUM_DMACH) {
@@ -1121,7 +1121,7 @@ unsigned int EDMA3FreeChannel(unsigned int baseAdd, unsigned int chType,
          */
         EDMA3DisableChInShadowReg(baseAdd, chType, chNum);
 
-        EDMA3UnmapChToEvtQ( baseAdd, chType, chNum);
+        EDMA3UnmapChToEvtQ(baseAdd, chType, chNum);
         if (EDMA3_CHANNEL_TYPE_DMA == chType) {
             /* Interrupt channel nums are < 32 */
             if (tccNum < SOC_EDMA3_NUM_DMACH) {

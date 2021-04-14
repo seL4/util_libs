@@ -28,52 +28,45 @@ struct slcr_regs {
 };
 typedef volatile struct slcr_regs slcr_regs_t;
 
-slcr_regs_t* slcr_regs;
+slcr_regs_t *slcr_regs;
 
-static inline void
-slcr_set_regs(src_dev_t* d, slcr_regs_t* r)
+static inline void slcr_set_regs(src_dev_t *d, slcr_regs_t *r)
 {
-    d->priv = (void*)r;
+    d->priv = (void *)r;
 }
 
-static inline slcr_regs_t*
-slcr_get_regs(src_dev_t* d)
+static inline slcr_regs_t *slcr_get_regs(src_dev_t *d)
 {
-    return (slcr_regs_t*)d->priv;
+    return (slcr_regs_t *)d->priv;
 }
 
-static inline int
-reset_controller_unlock(src_dev_t* d)
+static inline int reset_controller_unlock(src_dev_t *d)
 {
-    slcr_regs_t* r = slcr_get_regs(d);
+    slcr_regs_t *r = slcr_get_regs(d);
     r->lock.unlock = UNLOCK_KEY;
     return !(r->lock.locksta & SLCR_LOCKSTA_LOCKED);
 }
 
-static inline int
-reset_controller_lock(src_dev_t* d)
+static inline int reset_controller_lock(src_dev_t *d)
 {
-    slcr_regs_t* r = slcr_get_regs(d);
+    slcr_regs_t *r = slcr_get_regs(d);
     r->lock.lock = LOCK_KEY;
     return !!(r->lock.locksta & SLCR_LOCKSTA_LOCKED);
 }
 
-void
-reset_controller_assert_reset(src_dev_t* dev, enum src_rst_id id)
+void reset_controller_assert_reset(src_dev_t *dev, enum src_rst_id id)
 {
     (void)dev;
     (void)id;
 }
 
-void*
-reset_controller_get_clock_regs(src_dev_t* dev)
+void *reset_controller_get_clock_regs(src_dev_t *dev)
 {
-    void* slcr = (void*)slcr_get_regs(dev);
+    void *slcr = (void *)slcr_get_regs(dev);
     return (slcr + SLCR_CLK_OFFSET);
 }
 
-int
-reset_controller_init(enum src_id id, ps_io_ops_t* ops, src_dev_t* dev)
+int reset_controller_init(enum src_id id, ps_io_ops_t *ops, src_dev_t *dev)
 {
     /* Input bounds check */
     if (id < 0 || id >= NSRC) {

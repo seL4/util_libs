@@ -38,7 +38,7 @@ static inline void *ps_pmem_map(ps_io_ops_t *ops, pmem_region_t region, bool cac
 {
     void *vaddr = ps_io_map(&ops->io_mapper, region.base_addr, region.length, cached, flags);
     if (vaddr == NULL) {
-        ZF_LOGE("Failed to map paddr %p length %" PRIu64 "\n", (void *) (uintptr_t) region.base_addr, region.length);
+        ZF_LOGE("Failed to map paddr %p length %" PRIu64 "\n", (void *)(uintptr_t) region.base_addr, region.length);
     }
     return vaddr;
 }
@@ -51,6 +51,7 @@ static inline void *ps_pmem_map(ps_io_ops_t *ops, pmem_region_t region, bool cac
  * @param vaddr  the pmem_region is mapped to,
  * @param mapper to unmap with.
  */
-static inline void ps_pmem_unmap(ps_io_ops_t *ops, pmem_region_t region, void *vaddr) {
+static inline void ps_pmem_unmap(ps_io_ops_t *ops, pmem_region_t region, void *vaddr)
+{
     ps_io_unmap(&ops->io_mapper, vaddr, region.length);
 }

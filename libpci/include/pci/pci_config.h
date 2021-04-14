@@ -40,49 +40,71 @@ struct libpci_device_iocfg {
 typedef struct libpci_device_iocfg libpci_device_iocfg_t;
 
 /* Get the size of a PCI config space element. */
-static inline int libpci_device_cfg_sizeof(int offset) {
+static inline int libpci_device_cfg_sizeof(int offset)
+{
     switch (offset) {
-        case PCI_VENDOR_ID: return 2;
-        case PCI_DEVICE_ID: return 2;
+    case PCI_VENDOR_ID:
+        return 2;
+    case PCI_DEVICE_ID:
+        return 2;
 
-        case PCI_COMMAND: return 2;
-        case PCI_STATUS: return 2;
+    case PCI_COMMAND:
+        return 2;
+    case PCI_STATUS:
+        return 2;
 
-        case PCI_CLASS_REVISION: return 1;
-        case PCI_CLASS_PROG: return 1;
-        case PCI_CLASS_DEVICE: return 2;
+    case PCI_CLASS_REVISION:
+        return 1;
+    case PCI_CLASS_PROG:
+        return 1;
+    case PCI_CLASS_DEVICE:
+        return 2;
 
-        case PCI_CACHE_LINE_SIZE: return 1;
-        case PCI_LATENCY_TIMER: return 1;
-        case PCI_HEADER_TYPE: return 1;
-        case PCI_BIST: return 1;
+    case PCI_CACHE_LINE_SIZE:
+        return 1;
+    case PCI_LATENCY_TIMER:
+        return 1;
+    case PCI_HEADER_TYPE:
+        return 1;
+    case PCI_BIST:
+        return 1;
 
-        case PCI_BASE_ADDRESS_0:
-        case PCI_BASE_ADDRESS_1:
-        case PCI_BASE_ADDRESS_2:
-        case PCI_BASE_ADDRESS_3:
-        case PCI_BASE_ADDRESS_4:
-        case PCI_BASE_ADDRESS_5:
-            return 4;
+    case PCI_BASE_ADDRESS_0:
+    case PCI_BASE_ADDRESS_1:
+    case PCI_BASE_ADDRESS_2:
+    case PCI_BASE_ADDRESS_3:
+    case PCI_BASE_ADDRESS_4:
+    case PCI_BASE_ADDRESS_5:
+        return 4;
 
-        case PCI_CARDBUS_CIS: return 4;
-        case PCI_SUBSYSTEM_VENDOR_ID: return 2;
-        case PCI_SUBSYSTEM_ID: return 2;
-        case PCI_ROM_ADDRESS: return 4;
+    case PCI_CARDBUS_CIS:
+        return 4;
+    case PCI_SUBSYSTEM_VENDOR_ID:
+        return 2;
+    case PCI_SUBSYSTEM_ID:
+        return 2;
+    case PCI_ROM_ADDRESS:
+        return 4;
 
-        case PCI_INTERRUPT_LINE: return 1;
-        case PCI_INTERRUPT_PIN: return 1;
-        case PCI_MIN_GNT: return 1;
-        case PCI_MAX_LAT: return 1;
+    case PCI_INTERRUPT_LINE:
+        return 1;
+    case PCI_INTERRUPT_PIN:
+        return 1;
+    case PCI_MIN_GNT:
+        return 1;
+    case PCI_MAX_LAT:
+        return 1;
     }
     return 0;
 }
 
 /* Get the base address at a given index. Will automatically handle split 64-bit addreses. */
-static inline uint64_t libpci_device_iocfg_get_baseaddr(libpci_device_iocfg_t *cfg, int index) {
+static inline uint64_t libpci_device_iocfg_get_baseaddr(libpci_device_iocfg_t *cfg, int index)
+{
     assert(cfg && index >= 0 && index < 6);
-    if (cfg->base_addr_type[index] != PCI_BASE_ADDRESS_MEM_TYPE_64)
-           return (uint64_t) cfg->base_addr[index];
+    if (cfg->base_addr_type[index] != PCI_BASE_ADDRESS_MEM_TYPE_64) {
+        return (uint64_t) cfg->base_addr[index];
+    }
     /* 64-bit mode BARs must have a word after it. */
     assert(index < 5);
     /* And the word before it better be set to 64L mode. */
@@ -92,7 +114,8 @@ static inline uint64_t libpci_device_iocfg_get_baseaddr(libpci_device_iocfg_t *c
 
 /* Get the 32-bit base address at given index. Will automatically handle split 64-bit addresses,
  * and cast them (with an assert check that the upper 32-bits are zero). */
-static inline uint32_t libpci_device_iocfg_get_baseaddr32(libpci_device_iocfg_t *cfg, int index) {
+static inline uint32_t libpci_device_iocfg_get_baseaddr32(libpci_device_iocfg_t *cfg, int index)
+{
     uint64_t baddr = libpci_device_iocfg_get_baseaddr(cfg, index);
     assert((baddr & 0xFFFFFFFFUL) == baddr);
     if ((baddr & 0xFFFFFFFFUL) != baddr) {
@@ -105,22 +128,28 @@ static inline uint32_t libpci_device_iocfg_get_baseaddr32(libpci_device_iocfg_t 
 
 /* Returns true if the given device has at least one IO port base addr associated,
  * false otherwise. */
-static inline bool libpci_device_iocfg_uses_iomem(libpci_device_iocfg_t *cfg) {
-   assert(cfg);
-   for (int i = 0; i < 6; i++) {
-        if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) continue;
+static inline bool libpci_device_iocfg_uses_iomem(libpci_device_iocfg_t *cfg)
+{
+    assert(cfg);
+    for (int i = 0; i < 6; i++) {
+        if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) {
+            continue;
+        }
         return true;
-   }
-   return false;
+    }
+    return false;
 }
 
 /* Print out detailed info about a device's base addresses. */
-static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, bool compact) {
-    for(int i = 0; i < 6; i++) {
+static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, bool compact)
+{
+    for (int i = 0; i < 6; i++) {
         if (compact) {
             /* Display in compact space mode, shoving as much information as possible in a few
              * lines. This is similar to how the Linux kernel PCI debug displays in dmesg. */
-            if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) continue;
+            if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) {
+                continue;
+            }
             if (cfg->base_addr_space[i] == PCI_BASE_ADDRESS_SPACE_IO) {
                 printf("    BAR%d : [ io 0x%"PRIx64" sz 0x%x szmask 0x%x ]\n", i,
                        libpci_device_iocfg_get_baseaddr(cfg, i),
@@ -137,14 +166,22 @@ static inline void libpci_device_iocfg_debug_print(libpci_device_iocfg_t *cfg, b
         } else {
             /* Very verbose and space wasting debug output. */
             printf("    BASE_ADDR[%d] ----\n", i);
-            if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) continue;
+            if (cfg->base_addr[i] == 0 || cfg->base_addr_64H[i]) {
+                continue;
+            }
             printf("        base_addr_space[%d]: 0x%x [%s]\n", i, cfg->base_addr_space[i],
                    cfg->base_addr_space[i] ? "PCI_BASE_ADDRESS_SPACE_IO" :
-                                                 "PCI_BASE_ADDRESS_SPACE_MEMORY");
+                   "PCI_BASE_ADDRESS_SPACE_MEMORY");
             printf("        base_addr_type[%d]: 0x%x [ ", i, cfg->base_addr_type[i]);
-            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_32) printf("32bit ");
-            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_64) printf("64bit ");
-            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_1M) printf("<1M ");
+            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_32) {
+                printf("32bit ");
+            }
+            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_64) {
+                printf("64bit ");
+            }
+            if (cfg->base_addr_type[i] == PCI_BASE_ADDRESS_MEM_TYPE_1M) {
+                printf("<1M ");
+            }
             printf("]\n");
             printf("        base_addr_prefetchable[%d]: %s\n", i, cfg->base_addr_prefetchable[i]
                    ? "yes" : "no");

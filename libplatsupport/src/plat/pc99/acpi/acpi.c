@@ -15,8 +15,7 @@
 
 
 // sum bytes at the given location
-uint8_t
-acpi_calc_checksum(const char* start, int length)
+uint8_t acpi_calc_checksum(const char *start, int length)
 {
     uint8_t checksum = 0;
     while (length-- > 0) {
@@ -25,18 +24,17 @@ acpi_calc_checksum(const char* start, int length)
     return checksum;
 }
 
-size_t
-acpi_table_length(const void* tbl)
+size_t acpi_table_length(const void *tbl)
 {
-    const char* table = (const char*)tbl;
+    const char *table = (const char *)tbl;
     size_t length;
 
     if (HAS_GENERIC_HEADER(table)) {
-        length = ((acpi_header_t*)table)->length;
+        length = ((acpi_header_t *)table)->length;
     } else if (ACPI_TABLE_TEST(table, FACS)) {
-        length =  ((acpi_facs_t*)table)->length;
+        length = ((acpi_facs_t *)table)->length;
     } else if (ACPI_TABLE_TEST(table, RSDP)) {
-        length = ((acpi_rsdp_t*)table)->length;
+        length = ((acpi_rsdp_t *)table)->length;
         if (length == 0) {
             /* some platforms do not initliase length of rsdp */
             length = sizeof(acpi_rsdp_t);
@@ -55,8 +53,7 @@ acpi_table_length(const void* tbl)
  * region. If insufficient memory is available in an alternate
  * region, the root pointer region will be used
  */
-static int
-split_available(RegionList_t* dst, size_t size, int force_ptr)
+static int split_available(RegionList_t *dst, size_t size, int force_ptr)
 {
     /* default: no region found */
     int index = -1;
@@ -79,13 +76,12 @@ split_available(RegionList_t* dst, size_t size, int force_ptr)
     return index;
 }
 
-static int
-create_copy_region(const Region_t* src, RegionList_t* dlist,
-                   int parent, int force_ptr)
+static int create_copy_region(const Region_t *src, RegionList_t *dlist,
+                              int parent, int force_ptr)
 {
     int index = split_available(dlist, src->size, force_ptr);
     if (index >= 0) {
-        Region_t* dst = &dlist->regions[index];
+        Region_t *dst = &dlist->regions[index];
         dst->type = src->type;
         dst->parent = parent;
         memcpy(dst->start, src->start, src->size);
@@ -102,9 +98,8 @@ create_copy_region(const Region_t* src, RegionList_t* dlist,
  * "table_index" is the table to be copied (index into slist)
  * "parent" is the index of the parent table (index into dlist)
  */
-static void*
-_acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
-                  int table_index, int parent)
+static void *_acpi_copy_tables(const RegionList_t *slist, RegionList_t *dlist,
+                               int table_index, int parent)
 {
     int index;
     const Region_t *src;
@@ -122,8 +117,8 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
         /* Split region */
         index = create_copy_region(src, dlist, parent, 1);
         if (index >= 0) {
-            Region_t* dst = &dlist->regions[index];
-            acpi_rsdp_t *dst_tbl = (acpi_rsdp_t*)dst->start;
+            Region_t *dst = &dlist->regions[index];
+            acpi_rsdp_t *dst_tbl = (acpi_rsdp_t *)dst->start;
 
             int child;
             dst_tbl->rsdt_address = 0;
@@ -132,7 +127,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             /* find and copy RSDT */
             child = find_region(slist, 0, ACPI_RSDT);
             if (child >= 0) {
-                void* p = _acpi_copy_tables(slist, dlist,
+                void *p = _acpi_copy_tables(slist, dlist,
                                             child, index);
                 /* This downcast is correct as an RSDP is defined as being in the bottom 4G of memory */
                 dst_tbl->rsdt_address = (uint32_t)(uintptr_t)p;
@@ -145,7 +140,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             child = find_region(slist, 0, ACPI_XSDT);
             if (child >= 0) {
                 /* PRE: RSDT must be found in dlist */
-                void* p = _acpi_copy_tables(slist, dlist,
+                void *p = _acpi_copy_tables(slist, dlist,
                                             child, index);
                 dst_tbl->xsdt_address = (uint64_t)(uintptr_t)p;
                 ZF_LOGD("Got address %p\n", p);
@@ -182,18 +177,18 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
         if (index >= 0) {
             acpi_rsdt_t *dst_tbl;
             uint32_t *subtables;
-            Region_t* dst = &dlist->regions[index];
+            Region_t *dst = &dlist->regions[index];
             dst->type = src->type;
             dst->parent = parent;
 
             /* copy header */
-            dst_tbl = (acpi_rsdt_t*)dst->start;
+            dst_tbl = (acpi_rsdt_t *)dst->start;
             memcpy(dst->start, src->start, hdr_size);
 
             /* copy subtable */
             subtables = acpi_rsdt_first(dst_tbl);
             for (int i = 0; i < children; i++) {
-                void* p;
+                void *p;
                 p = _acpi_copy_tables(slist, dlist, child[i], index);
                 ZF_LOGD("Got address %p\n", p);
                 if (p == NULL) {
@@ -242,7 +237,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             acpi_xsdt_t *xsdt;
             uint32_t *rentry;
             uint64_t *xentry;
-            Region_t* dst = &dlist->regions[index];
+            Region_t *dst = &dlist->regions[index];
             dst->type = src->type;
             dst->parent = parent;
 
@@ -250,7 +245,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
             memcpy(dst->start, src->start, hdr_size);
 
             /* copy entries */
-            xsdt = (acpi_xsdt_t*)dst->start;
+            xsdt = (acpi_xsdt_t *)dst->start;
             rentry = acpi_rsdt_first(rsdt);
             xentry = acpi_xsdt_first(xsdt);
             while (entries-- > 0) {
@@ -270,7 +265,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
         index = create_copy_region(src, dlist, parent, 0);
         break;
 
-        /* unknown table */
+    /* unknown table */
     default:
         index = -1;
         break;
@@ -284,8 +279,7 @@ _acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist,
     }
 }
 
-int
-acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist)
+int acpi_copy_tables(const RegionList_t *slist, RegionList_t *dlist)
 {
     int i;
     for (i = 0; i < slist->region_count; i++) {
@@ -307,8 +301,7 @@ acpi_copy_tables(const RegionList_t* slist, RegionList_t* dlist)
 /* only need to parse the tables once */
 static acpi_t *acpi_singleton = NULL;
 
-acpi_t *
-create_acpi(ps_io_mapper_t io_mapper)
+acpi_t *create_acpi(ps_io_mapper_t io_mapper)
 {
     acpi_t *acpi = (acpi_t *) malloc(sizeof(acpi_t));
     if (acpi == NULL) {
@@ -331,8 +324,7 @@ create_acpi(ps_io_mapper_t io_mapper)
     return acpi;
 }
 
-acpi_t *
-acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
+acpi_t *acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
 {
     if (acpi_singleton != NULL) {
         /* acpi already initialised */
@@ -340,7 +332,7 @@ acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
     }
 
     acpi_t *acpi = create_acpi(io_mapper);
-    if(acpi == NULL) {
+    if (acpi == NULL) {
         ZF_LOGE("Failed to create acpi object");
         return NULL;
     }
@@ -348,7 +340,7 @@ acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
 
     ZF_LOGV("Parsing ACPI tables\n");
     int error = acpi_parse_tables(acpi);
-    if(error) {
+    if (error) {
         ZF_LOGE("Failed to parse acpi tables\n");
         free(acpi->regions);
         free(acpi);
@@ -359,8 +351,7 @@ acpi_init_with_rsdp(ps_io_mapper_t io_mapper, acpi_rsdp_t rsdp)
     return acpi;
 }
 
-acpi_t *
-acpi_init(ps_io_mapper_t io_mapper)
+acpi_t *acpi_init(ps_io_mapper_t io_mapper)
 {
     if (acpi_singleton != NULL) {
         /* acpi already initialised */
@@ -368,7 +359,7 @@ acpi_init(ps_io_mapper_t io_mapper)
     }
 
     acpi_t *acpi = create_acpi(io_mapper);
-    if(acpi == NULL) {
+    if (acpi == NULL) {
         ZF_LOGE("Failed to create acpi object");
         return NULL;
     }
@@ -394,7 +385,7 @@ acpi_init(ps_io_mapper_t io_mapper)
 
     ZF_LOGV("Parsing ACPI tables\n");
     int error = acpi_parse_tables(acpi);
-    if(error) {
+    if (error) {
         ZF_LOGE("Failed to parse acpi tables\n");
         free(acpi->regions);
         free(acpi);

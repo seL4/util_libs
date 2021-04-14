@@ -46,21 +46,21 @@
 extern "C" {
 #endif
 
-    /***********************************************************************\
-     * Register arrays Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Register arrays Definition
+\***********************************************************************/
 
-    /***********************************************************************\
-     * Bundle arrays Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Bundle arrays Definition
+\***********************************************************************/
 
-    /***********************************************************************\
-     * Bundles Definition
-    \***********************************************************************/
+/***********************************************************************\
+ * Bundles Definition
+\***********************************************************************/
 
-    /*************************************************************************\
-     * Registers Definition
-    \*************************************************************************/
+/*************************************************************************\
+ * Registers Definition
+\*************************************************************************/
 
 #define CPSW_SL_IDVER   (0x0)
 #define CPSW_SL_MACCONTROL   (0x4)
@@ -74,11 +74,11 @@ extern "C" {
 #define CPSW_SL_RX_PRI_MAP   (0x24)
 #define CPSW_SL_TX_GAP   (0x28)
 
-    /**************************************************************************\
-     * Field Definition Macros
-    \**************************************************************************/
+/**************************************************************************\
+ * Field Definition Macros
+\**************************************************************************/
 
-    /* SL1_IDVER */
+/* SL1_IDVER */
 #define CPSW_SL_IDVER_IDENT   (0xFFFF0000u)
 #define CPSW_SL_IDVER_IDENT_SHIFT   (0x00000010u)
 
@@ -91,7 +91,7 @@ extern "C" {
 #define CPSW_SL_IDVER_Z   (0x0000F800u)
 #define CPSW_SL_IDVER_Z_SHIFT   (0x0000000Bu)
 
-    /* SL1_MACCONTROL */
+/* SL1_MACCONTROL */
 #define CPSW_SL_MACCONTROL_CMD_IDLE   (0x00000800u)
 #define CPSW_SL_MACCONTROL_CMD_IDLE_SHIFT   (0x0000000Bu)
 
@@ -146,7 +146,7 @@ extern "C" {
 #define CPSW_SL_MACCONTROL_TX_SHORT_GAP_LIM_EN   (0x00200000u)
 #define CPSW_SL_MACCONTROL_TX_SHORT_GAP_LIM_EN_SHIFT   (0x00000015u)
 
-    /* SL1_MACSTATUS */
+/* SL1_MACSTATUS */
 #define CPSW_SL_MACSTATUS_EXT_FULLDUPLEX   (0x00000008u)
 #define CPSW_SL_MACSTATUS_EXT_FULLDUPLEX_SHIFT   (0x00000003u)
 
@@ -162,15 +162,15 @@ extern "C" {
 #define CPSW_SL_MACSTATUS_TX_FLOW_ACT   (0x00000001u)
 #define CPSW_SL_MACSTATUS_TX_FLOW_ACT_SHIFT   (0x00000000u)
 
-    /* SL1_SOFT_RESET */
+/* SL1_SOFT_RESET */
 #define CPSW_SL_SOFT_RESET_SOFT_RESET   (0x00000001u)
 #define CPSW_SL_SOFT_RESET_SOFT_RESET_SHIFT   (0x00000000u)
 
-    /* SL1_RX_MAXLEN */
+/* SL1_RX_MAXLEN */
 #define CPSW_SL_RX_MAXLEN_RX_MAXLEN   (0x00003FFFu)
 #define CPSW_SL_RX_MAXLEN_RX_MAXLEN_SHIFT   (0x00000000u)
 
-    /* SL1_BOFFTEST */
+/* SL1_BOFFTEST */
 #define CPSW_SL_BOFFTEST_COLL_COUNT   (0x0000F000u)
 #define CPSW_SL_BOFFTEST_COLL_COUNT_SHIFT   (0x0000000Cu)
 
@@ -183,14 +183,14 @@ extern "C" {
 #define CPSW_SL_BOFFTEST_TX_BACKOFF   (0x000003FFu)
 #define CPSW_SL_BOFFTEST_TX_BACKOFF_SHIFT   (0x00000000u)
 
-    /* SL1_EMCONTROL */
+/* SL1_EMCONTROL */
 #define CPSW_SL_EMCONTROL_FREE   (0x00000001u)
 #define CPSW_SL_EMCONTROL_FREE_SHIFT   (0x00000000u)
 
 #define CPSW_SL_EMCONTROL_SOFT   (0x00000002u)
 #define CPSW_SL_EMCONTROL_SOFT_SHIFT   (0x00000001u)
 
-    /* SL1_RX_PRI_MAP */
+/* SL1_RX_PRI_MAP */
 #define CPSW_SL_RX_PRI_MAP_PRI0   (0x00000007u)
 #define CPSW_SL_RX_PRI_MAP_PRI0_SHIFT   (0x00000000u)
 

@@ -47,32 +47,28 @@ static const struct max77_config max77686_cfg = {
     .nldo        = 26
 };
 
-static inline const struct max77_config*
-pmic_get_priv(pmic_t* pmic) {
-    return (const struct max77_config*)pmic->priv;
+static inline const struct max77_config *pmic_get_priv(pmic_t *pmic)
+{
+    return (const struct max77_config *)pmic->priv;
 }
 
-static int
-pmic_reg_read(pmic_t* pmic, uint8_t reg, void* data, int count)
+static int pmic_reg_read(pmic_t *pmic, uint8_t reg, void *data, int count)
 {
     return !(i2c_kvslave_read(&pmic->kvslave, reg, data, count) == count);
 }
 
-static int
-pmic_reg_write(pmic_t* pmic, uint8_t reg, const void* data, int count)
+static int pmic_reg_write(pmic_t *pmic, uint8_t reg, const void *data, int count)
 {
     return !(i2c_kvslave_write(&pmic->kvslave, reg, data, count) == count);
 }
 
-static int
-ldo_valid(pmic_t* pmic, int ldo)
+static int ldo_valid(pmic_t *pmic, int ldo)
 {
     int nldo = pmic_nldo(pmic);
     return !(nldo < 0 || ldo <= 0 || ldo > nldo);
 }
 
-int
-pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
+int pmic_init(i2c_bus_t *i2c, int addr, pmic_t *pmic)
 {
     uint16_t chip_id;
     int ret;
@@ -98,11 +94,11 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
     /* Check the chip ID */
     switch (chip_id) {
     case MAX77686_CHIPID:
-        pmic->priv = (void*)&max77686_cfg;
+        pmic->priv = (void *)&max77686_cfg;
         break;
     case MAXXXXXX_CHIPID:
     case MAX77802_CHIPID:
-        pmic->priv = (void*)&max77802_cfg;
+        pmic->priv = (void *)&max77802_cfg;
         break;
     default:
         ZF_LOGE("Unidentified chip 0x%02x", chip_id);
@@ -113,21 +109,19 @@ pmic_init(i2c_bus_t* i2c, int addr, pmic_t* pmic)
     return 0;
 }
 
-int
-pmic_nldo(pmic_t* pmic)
+int pmic_nldo(pmic_t *pmic)
 {
-    const struct max77_config* cfg = pmic_get_priv(pmic);
+    const struct max77_config *cfg = pmic_get_priv(pmic);
     assert(cfg);
     return cfg->nldo;
 }
 
-int
-pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt)
+int pmic_ldo_cfg(pmic_t *pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt)
 {
     if (!ldo_valid(pmic, ldo)) {
         return -1;
     } else {
-        const struct max77_config* cfg;
+        const struct max77_config *cfg;
         uint8_t v;
         cfg = pmic_get_priv(pmic);
         assert(cfg);
@@ -159,13 +153,12 @@ pmic_ldo_cfg(pmic_t* pmic, int ldo, enum ldo_mode ldo_mode, int milli_volt)
     }
 }
 
-int
-pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode)
+int pmic_ldo_get_cfg(pmic_t *pmic, int ldo, enum ldo_mode *ldo_mode)
 {
     if (!ldo_valid(pmic, ldo)) {
         return -1;
     } else {
-        const struct max77_config* cfg;
+        const struct max77_config *cfg;
         uint8_t v;
         cfg = pmic_get_priv(pmic);
         assert(cfg);
@@ -197,8 +190,7 @@ pmic_ldo_get_cfg(pmic_t* pmic, int ldo, enum ldo_mode* ldo_mode)
     }
 }
 
-int
-pmic_get_reset_delay(pmic_t* pmic)
+int pmic_get_reset_delay(pmic_t *pmic)
 {
     uint8_t data;
     if (pmic_reg_read(pmic, REG_RESET_DELAY, &data, 1)) {
@@ -208,8 +200,7 @@ pmic_get_reset_delay(pmic_t* pmic)
     }
 }
 
-int
-pmic_set_reset_delay(pmic_t* pmic, int ms)
+int pmic_set_reset_delay(pmic_t *pmic, int ms)
 {
     uint8_t data;
     /* Clip ms value */
@@ -227,8 +218,7 @@ pmic_set_reset_delay(pmic_t* pmic, int ms)
     }
 }
 
-void
-pmic_print_status(pmic_t* pmic)
+void pmic_print_status(pmic_t *pmic)
 {
     uint8_t data;
     int nldo;

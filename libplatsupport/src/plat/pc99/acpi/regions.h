@@ -19,7 +19,7 @@
 
 typedef struct Region {
     region_type_t type;
-    void* start;
+    void *start;
     size_t size;
     int parent;
 } Region_t;
@@ -44,13 +44,13 @@ typedef struct RegionList {
  * Join contiguous regions
  */
 void
-consolidate_regions(const RegionList_t* regions_in, RegionList_t* consolidated);
+consolidate_regions(const RegionList_t *regions_in, RegionList_t *consolidated);
 
 /*
  * Sort regions by start address
  */
 void
-sort_regions(RegionList_t* regions);
+sort_regions(RegionList_t *regions);
 
 /*
  * Add a region to a region list
@@ -58,7 +58,7 @@ sort_regions(RegionList_t* regions);
  * Returns -1 if the list is full
  */
 int
-add_region(RegionList_t* region_list, const Region_t r);
+add_region(RegionList_t *region_list, const Region_t r);
 
 static inline
 Region_t new_region(region_type_t type, void *start, size_t size, int parent)
@@ -72,16 +72,14 @@ Region_t new_region(region_type_t type, void *start, size_t size, int parent)
     return r;
 }
 
-static inline int
-add_region_size(RegionList_t* region_list, region_type_t type,
-                void* start, size_t size, int parent)
+static inline int add_region_size(RegionList_t *region_list, region_type_t type,
+                                  void *start, size_t size, int parent)
 {
     return add_region(region_list, new_region(type, start, size, parent));
 }
 
-static inline int
-add_region_range(RegionList_t* region_list, region_type_t type,
-                 void* start, const void* end, int parent)
+static inline int add_region_range(RegionList_t *region_list, region_type_t type,
+                                   void *start, const void *end, int parent)
 {
     return add_region(region_list, new_region(type, start, end - start, parent));
 }
@@ -90,10 +88,9 @@ add_region_range(RegionList_t* region_list, region_type_t type,
  * returns 0 on success, !0 if the index was invalid
  */
 int
-remove_region(RegionList_t* region_list, int index);
+remove_region(RegionList_t *region_list, int index);
 
-static inline int
-remove_region_last(RegionList_t* region_list)
+static inline int remove_region_last(RegionList_t *region_list)
 {
     int index = region_list->region_count - 1;
     return remove_region(region_list, index);
@@ -106,7 +103,7 @@ remove_region_last(RegionList_t* region_list)
  *
  */
 int
-find_space(const RegionList_t* region_list, size_t size,
+find_space(const RegionList_t *region_list, size_t size,
            region_type_t type);
 
 /*
@@ -114,7 +111,7 @@ find_space(const RegionList_t* region_list, size_t size,
  * search starts at "start_index".
  */
 int
-find_region(const RegionList_t* rlist, int start_index,
+find_region(const RegionList_t *rlist, int start_index,
             region_type_t type);
 
 /*
@@ -123,5 +120,5 @@ find_region(const RegionList_t* rlist, int start_index,
  * Returns the index of the new region or -1 on error
  */
 int
-split_region(RegionList_t* region_list, int index, size_t size);
+split_region(RegionList_t *region_list, int index, size_t size);
 

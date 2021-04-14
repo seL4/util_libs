@@ -19,18 +19,16 @@
 
 static struct clock cpu_1x_clk = { CLK_OPS_DEFAULT(CPU_1X) };
 
-void clk_print_clock_tree(clock_sys_t* sys)
+void clk_print_clock_tree(clock_sys_t *sys)
 {
-   clk_t *clk = clk_get_clock(sys, CLK_CPU_1X);
-   clk_print_tree(clk, "");
+    clk_t *clk = clk_get_clock(sys, CLK_CPU_1X);
+    clk_print_tree(clk, "");
 }
 
-clk_t* ps_clocks[] =
-{
-   [CLK_CPU_1X]    = &cpu_1x_clk,
+clk_t *ps_clocks[] = {
+    [CLK_CPU_1X]    = &cpu_1x_clk,
 };
 
-freq_t ps_freq_default[] =
-{
-   [CLK_CPU_1X]    =  1100 * MHZ,
+freq_t ps_freq_default[] = {
+    [CLK_CPU_1X]    =  1100 * MHZ,
 };

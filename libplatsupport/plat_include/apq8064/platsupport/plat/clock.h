@@ -35,28 +35,28 @@ enum clk_id {
     PLL1  MMPLL0  PXO 1332MHz
     PLL2  MMPLL1  PXO 800MHz
     PLL3  QDSPLL  PXO 1200MHz
-    PLL4  LPAPLL  PXO 393.2160MHz (491.52 ver2)
+    PLL4  LPAPLL  PXO 393.2160MHz(491.52 ver2)
     PLL5  MPLL0   CXO 288MHz
     PLL8  SPPLL   PXO 384MHz
     PLL9  SCPLL0  PXO 2000MHz
     PLL10 SCPLL1  PXO 2000MHz
     PLL11 EBI1PLL PXO 1066MHz
     PLL12 SCL2PLL PXO 1700MHz
-    PLL13 WCNPLL  WCNXO (CXO used if WCNXO absent) 960MHz
-    PLL14 SP2PLL  PXO 480MHz
-    PLL15 MMPLL3  PXO 975MHz
-    PLL16 SCPLL2  PXO 2000MHz
-    PLL17 SCPLL3  PXO 2000MHz
+    PLL13 WCNPLL  WCNXO(CXO used if WCNXO absent) 960MHz
+        PLL14 SP2PLL  PXO 480MHz
+        PLL15 MMPLL3  PXO 975MHz
+        PLL16 SCPLL2  PXO 2000MHz
+        PLL17 SCPLL3  PXO 2000MHz
 
 #endif
-    NCLOCKS
-};
+        NCLOCKS
+    };
 
 enum clock_gate {
     NCLKGATES,
 };
 
-int apq_clock_sys_init(void* clk_ctl_base0, void* clk_ctl_base1,
-                       void* clk_ctl_base2, void* clk_ctl_base3,
-                       clock_sys_t* clk_sys);
+int apq_clock_sys_init(void *clk_ctl_base0, void *clk_ctl_base1,
+                       void *clk_ctl_base2, void *clk_ctl_base3,
+                       clock_sys_t *clk_sys);
 
