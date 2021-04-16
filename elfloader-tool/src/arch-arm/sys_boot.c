@@ -24,6 +24,11 @@
 /* Maximum alignment we need to preserve when relocating (64K) */
 #define MAX_ALIGN_BITS (14)
 
+#ifdef CONFIG_IMAGE_EFI
+ALIGN(BIT(PAGE_BITS)) VISIBLE
+char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
+#endif
+
 struct image_info kernel_info;
 struct image_info user_info;
 void *dtb;
