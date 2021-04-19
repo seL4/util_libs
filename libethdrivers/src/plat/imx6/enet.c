@@ -505,6 +505,18 @@ void enet_prom_disable(struct enet *enet)
     regs->rcr &= ~RCR_PROM;
 }
 
+void enet_crc_strip_enable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
+    regs->rcr |= RCR_CRCSTRIP;
+}
+
+void enet_crc_strip_disable(struct enet *enet)
+{
+    enet_regs_t *regs = enet_get_regs(enet);
+    regs->rcr &= ~RCR_CRCSTRIP;
+}
+
 struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
                        uintptr_t rx_phys, size_t rx_bufsize, uint64_t mac,
                        ps_io_ops_t *io_ops)

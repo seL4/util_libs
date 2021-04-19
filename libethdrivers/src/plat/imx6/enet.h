@@ -74,3 +74,5 @@ uint32_t enet_get_mdcclk(struct enet *imx_eth);
 
 void enet_prom_enable(struct enet  *enet);
 void enet_prom_disable(struct enet *enet);
+void enet_crc_strip_enable(struct enet *enet);
+void enet_crc_strip_disable(struct enet *enet);
