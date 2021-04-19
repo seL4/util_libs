@@ -12,6 +12,7 @@
 #include <ethdrivers/imx6.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
+#include <ethdrivers/plat/eth_plat.h>
 #include <string.h>
 #include <utils/util.h>
 #include "enet.h"
@@ -97,6 +98,15 @@ static imx6_eth_driver_t *imx6_eth_driver(struct eth_driver *driver)
     /* we have simply extended the structure */
     assert(driver == driver->eth_data);
     return (imx6_eth_driver_t *)driver;
+}
+
+struct enet *get_enet_from_driver(struct eth_driver *driver)
+{
+    assert(driver);
+
+    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    assert(dev);
+    return dev->enet;
 }
 
 static void get_mac(struct eth_driver *driver, uint8_t *mac)
@@ -383,7 +393,7 @@ static void complete_tx(imx6_eth_driver_t *dev)
             cnt = dev->tx_lengths[head];
             if ((0 == cnt) || (cnt > dev->tx.cnt)) {
                 /* We are not supposed to read 0 here. */
-                LOG_ERROR("complete_tx with cnt=%u at head %u", cnt, head);
+                ZF_LOGE("complete_tx with cnt=%u at head %u", cnt, head);
                 return;
             }
             cnt_org = cnt;
@@ -425,7 +435,7 @@ static void complete_tx(imx6_eth_driver_t *dev)
      * of tx descriptors holding data can't exceed the space in the ring.
      */
     if (0 != cnt) {
-        LOG_ERROR("head at %u reached tail, but cnt=%u", head, cnt);
+        ZF_LOGE("head at %u reached tail, but cnt=%u", head, cnt);
         assert(0);
     }
 }
@@ -505,7 +515,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
                   unsigned int *len, void *cookie)
 {
     if (0 == num) {
-        LOG_WARN("raw_tx() called with num=0");
+        ZF_LOGW("raw_tx() called with num=0");
         return ETHIF_TX_ENQUEUED;
     }
 
@@ -564,35 +574,48 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     return ETHIF_TX_ENQUEUED;
 }
 
-static uint64_t obtain_mac_from_ocotp(ps_io_mapper_t *io_mapper)
+static uint64_t obtain_mac(const nic_config_t *nic_config,
+                           ps_io_mapper_t *io_mapper)
 {
-    assert(io_mapper);
+    uint64_t cfg_mac = nic_config ? nic_config->mac : 0;
+    unsigned int doForceMac = nic_config && (nic_config->flags & NIC_CONFIG_FORCE_MAC);
+
+    if (doForceMac && (0 != cfg_mac)) {
+        ZF_LOGI("config: overwriting default MAC");
+        return cfg_mac;
+    }
 
     struct ocotp *ocotp = ocotp_init(io_mapper);
     if (!ocotp) {
         ZF_LOGE("Failed to initialize OCOTP to read MAC");
-        return 0;
+    } else {
+        uint64_t ocotp_mac = ocotp_get_mac(ocotp);
+        ocotp_free(ocotp, io_mapper);
+        if (0 != ocotp_mac) {
+            ZF_LOGI("taking MAC from OCOTP");
+            return ocotp_mac;
+        }
     }
 
-    uint64_t mac = ocotp_get_mac(ocotp);
-    ocotp_free(ocotp, io_mapper);
-    if (0 == mac) {
-        ZF_LOGE("Failed to get MAC from OCOTP");
-        return 0;
+    /* no MAC from OCOPT, try using MAC config */
+    if (0 != cfg_mac) {
+        ZF_LOGI("no MAC in OCOTP, taking MAC from config");
+        return cfg_mac;
     }
 
-    return mac;
+    ZF_LOGE("Failed to get MAC from OCOTP or config");
+    return 0;
 }
 
-static int init_device(imx6_eth_driver_t *dev)
+static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 {
     assert(dev);
 
     int ret;
 
-    uint64_t mac = obtain_mac_from_ocotp(&(dev->eth_drv.io_ops.io_mapper));
+    uint64_t mac = obtain_mac(nic_config, &(dev->eth_drv.io_ops.io_mapper));
     if (0 == mac) {
-        ZF_LOGE("Failed to get MAC from OCOTP");
+        ZF_LOGE("Failed to obtain a MAC");
         return -1;
     }
 
@@ -651,6 +674,19 @@ static int init_device(imx6_eth_driver_t *dev)
         goto error;
     }
 
+    /* Remove CRC (FCS) from ethernet frames when passing it to upper layers,
+     * because the NIC hardware would discard frames with an invalid checksum
+     * anyway by default. Usually, there not much practical gain in keeping it.
+     */
+    bool do_strip_crc = nic_config &&
+                        (nic_config->flags & NIC_CONFIG_DROP_FRAME_CRC);
+    ZF_LOGI("config: CRC stripping %s", do_strip_crc ? "ON" : "OFF");
+    if (do_strip_crc) {
+        enet_crc_strip_enable(dev->enet);
+    } else {
+        enet_crc_strip_disable(dev->enet);
+    }
+
     /* Non-Promiscuous mode means that only traffic relevant for us is made
      * visible by the hardware, everything else is discarded automatically. We
      * will only see packets addressed to our MAC and broadcast/multicast
@@ -658,7 +694,14 @@ static int init_device(imx6_eth_driver_t *dev)
      * implements functionality beyond a "normal" application scope, e.g.
      * switching or monitoring.
      */
-    enet_prom_enable(dev->enet);
+    bool do_promiscuous_mode = nic_config &&
+                               (nic_config->flags & NIC_CONFIG_PROMISCUOUS_MODE);
+    ZF_LOGI("config: promiscuous mode %s", do_strip_crc ? "ON" : "OFF");
+    if (do_promiscuous_mode) {
+        enet_prom_enable(dev->enet);
+    } else {
+        enet_prom_disable(dev->enet);
+    }
 
     /* Initialise the phy library */
     miiphy_init();
@@ -666,6 +709,10 @@ static int init_device(imx6_eth_driver_t *dev)
     phy_micrel_init();
     /* Connect the phy to the ethernet controller */
     unsigned int phy_mask = 0xffffffff;
+    if (nic_config && (0 != nic_config->phy_address)) {
+        ZF_LOGI("config: using PHY at address %d", nic_config->phy_address);
+        phy_mask = BIT(nic_config->phy_address);
+    }
     dev->phy = fec_init(phy_mask, dev->enet);
     if (!dev->phy) {
         ZF_LOGE("Failed to initialize fec");
@@ -760,6 +807,13 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
     int ret;
     imx6_eth_driver_t *driver = NULL;
 
+    /* get a configuration if function is implemented */
+    const nic_config_t *nic_config = NULL;
+    if (get_nic_configuration) {
+        ZF_LOGI("calling get_nic_configuration()");
+        nic_config = get_nic_configuration();
+    }
+
     ret = ps_calloc(
               &io_ops->malloc_ops,
               1,
@@ -827,7 +881,7 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
         goto error;
     }
 
-    ret = init_device(driver);
+    ret = init_device(driver, nic_config);
     if (ret) {
         ZF_LOGE("Failed to initialise the Ethernet driver, code %d", ret);
         ret = -ENODEV;
