@@ -22,8 +22,8 @@ enum chardev_id {
     PS_SERIAL3 = IMX_UART4,
     PS_SERIAL4 = IMX_UART5,
 
-#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_IMX8MM_EVK)
-
+#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_IMX8MM_EVK) \
+    || defined(CONFIG_PLAT_IMX8MP_EVK)
     PS_SERIAL_DEFAULT = IMX_UART2
 
 #elif defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_NITROGEN6SX) \
