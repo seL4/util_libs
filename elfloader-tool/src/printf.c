@@ -221,11 +221,15 @@ static void vxprintf(
  * Simple printf/puts implementation.
  */
 
+typedef struct {
+    unsigned int cnt;
+} arch_write_char_ctx_t;
+
 static void arch_write_char(
-    void *num_chars_printed_ptr,
+    void *payload,
     int c)
 {
-    int *num_chars_printed = (int *)num_chars_printed_ptr;
+    arch_write_char_ctx_t *ctx = payload;
 
     /* For now, console output goes into a UART on every platform eventually
      * and we write a '\r' (CR) before every '\n' (LF) unconditionally. If there
@@ -242,29 +246,29 @@ static void arch_write_char(
         plat_console_putchar('\r');
     }
 
-    (*num_chars_printed)++;
     plat_console_putchar(c);
+    ctx->cnt++;
 }
 
 int printf(
     const char *format,
     ...)
 {
-    int n = 0;
+    arch_write_char_ctx_t ctx = {0};
     va_list args;
     va_start(args, format);
-    vxprintf(arch_write_char, &n, format, args);
+    vxprintf(arch_write_char, &ctx, format, args);
     va_end(args);
-    return n;
+    return (int)ctx.cnt;
 }
 
 int puts(
     const char *str)
 {
-    int n = 0;
-    write_string(arch_write_char, &n, str);
-    arch_write_char(&n, '\n');
-    return n;
+    arch_write_char_ctx_t ctx = {0};
+    write_string(arch_write_char, &ctx, str);
+    arch_write_char(&ctx, '\n');
+    return (int)ctx.cnt;
 }
 
 /*
