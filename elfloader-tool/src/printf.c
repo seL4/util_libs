@@ -228,7 +228,7 @@ static void arch_write_char(
     int *num_chars_printed = (int *)num_chars_printed_ptr;
 
     /* For now, console output goes into a UART on every platform eventually
-     * and we write a '\r' (CR) before every '\n' (LF) unconditinally. If there
+     * and we write a '\r' (CR) before every '\n' (LF) unconditionally. If there
      * will even be a console that works differently, we can still add a
      * configuration flag that allows disabling this feature.
      */
