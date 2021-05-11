@@ -25,6 +25,8 @@ void arm_disable_dcaches(void);
 extern void *dtb;
 extern uint32_t dtb_size;
 
+void __attribute__((weak)) non_boot_init(void) {}
+
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
 {
@@ -37,6 +39,9 @@ void non_boot_main(void)
         cpu_idle();
 #endif
     }
+
+    /* Initialise any platform-specific per-core state */
+    non_boot_init();
 
 #ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
     if (is_hyp_mode()) {
