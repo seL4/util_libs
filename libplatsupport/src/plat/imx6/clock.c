@@ -76,7 +76,7 @@
 #define CLKO1_SRC_MASK      (0xFU << 0)
 #define CLKO1_ENABLE        (1U << 7)
 
-#define CLKO2_SRC_MMDC_CH0  (0U << 21)
+#define CLKO2_SRC_MMDC_CH0  (0U << 16) /* b00000 for mmdc_ch0_clk_root */
 #define CLKO2_SRC_MASK      (0x1FU << 16)
 #define CLKO2_ENABLE        (1U << 24)
 #define CLKO_SEL            (1U << 8)
