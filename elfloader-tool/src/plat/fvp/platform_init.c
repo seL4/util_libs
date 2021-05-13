@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
+#include <autoconf.h>
+#include <mode/arm_generic_timer.h>
+
 void platform_init(void)
 {
     /* On FVP, The MPIDR_EL1 changes to 0x80000000 after
@@ -17,4 +20,15 @@ void platform_init(void)
     asm volatile("mrs x0, mpidr_el1\n"
                  "msr tpidr_el0, x0\n"
                  ::: "x0");
+
+    /* Reset the virtual offset for the platform timer to 0 */
+    reset_cntvoff();
 }
+
+#if CONFIG_MAX_NUM_NODES > 1
+void non_boot_init(void)
+{
+    /* Reset the virtual offset for the platform timer to 0 */
+    reset_cntvoff();
+}
+#endif

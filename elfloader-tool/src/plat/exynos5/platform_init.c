@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
+#include <autoconf.h>
 #include <printf.h>
 #include <types.h>
 #include <cpuid.h>
+#include <mode/arm_generic_timer.h>
 
 #include <elfloader.h>
 
@@ -90,4 +92,15 @@ void platform_init(void)
         nsscode->cpu1_boot_reg = 0;
         smc(SMC_DISABLE_TRUSTZONE, 0, 0, 0);
     }
+
+    /* Reset the virtual offset for the platform timer to 0 */
+    reset_cntvoff();
 }
+
+#if CONFIG_MAX_NUM_NODES > 1
+void non_boot_init(void)
+{
+    /* Reset the virtual offset for the platform timer to 0 */
+    reset_cntvoff();
+}
+#endif
