@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -159,7 +160,7 @@ struct dma_buf_cookie {
     void *pbuf;
 };
 
-/* Structure for i.MX6, Zynq7000 and Tx2 Drivers
+/* Structure for Zynq7000 and Tx2 Drivers
  * TODO: Move to ARCH Specific Folder
  */
 struct arm_eth_plat_config {
