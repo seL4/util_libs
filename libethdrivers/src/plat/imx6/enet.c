@@ -16,14 +16,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef CONFIG_PLAT_IMX6
-#define IMX6_ENET_PADDR 0x02188000
-#define IMX6_ENET_SIZE  0x00004000
-#endif
 #ifdef CONFIG_PLAT_IMX8MQ_EVK
-#define IMX6_ENET_PADDR 0x30be0000
-#define IMX6_ENET_SIZE  0x10000
-
 #define CCM_PADDR 0x30380000
 #define CCM_SIZE 0x10000
 #endif
@@ -173,15 +166,15 @@ struct enet_regs {
     uint32_t tccr3;  /* 624 Timer Compare Capture Register */
 };
 
-struct enet {
-    void *dummy;
-};
-
 typedef volatile struct enet_regs enet_regs_t;
+
+struct enet {
+    enet_regs_t regs;
+};
 
 static inline enet_regs_t *enet_get_regs(struct enet *enet)
 {
-    return (enet_regs_t *)enet;
+    return &(enet->regs);
 }
 
 /* Ethernet control register */
@@ -517,18 +510,17 @@ void enet_prom_disable(struct enet *enet)
     regs->rcr &= ~RCR_PROM;
 }
 
-struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
+struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
+                       uintptr_t rx_phys, size_t rx_bufsize,
                        ps_io_ops_t *io_ops)
 {
+    assert(mapped_peripheral);
+
     struct clock *enet_clk_ptr = NULL;
 
-    /* Map in the device */
-    enet_regs_t *regs = RESOURCE(&io_ops->io_mapper, IMX6_ENET);
-    if (!regs) {
-        ZF_LOGE("ethernet controller could not be mapped");
-        return NULL;
-    }
-    struct enet *enet = (struct enet *)regs;
+    /* The enet device is simply the register mapping */
+    struct enet *enet = (struct enet *)mapped_peripheral;
+    enet_regs_t *regs = enet_get_regs(enet);
 
     /* Perform reset */
     regs->ecr = ECR_RESET;
@@ -621,9 +613,9 @@ struct enet *enet_init(uint32_t tx_phys, uint32_t rx_phys, uint32_t rx_bufsize,
     regs->racc = RACC_LINEDIS;
 
     /* DMA descriptors */
-    regs->tdsr = tx_phys;
-    regs->rdsr = rx_phys;
-    regs->mrbr = rx_bufsize;
+    regs->tdsr = (uint32_t)tx_phys;
+    regs->rdsr = (uint32_t)rx_phys;
+    regs->mrbr = (uint32_t)rx_bufsize;
 
     /* Receive control - Set frame length and RGMII mode */
     regs->rcr = RCR_MAX_FL(FRAME_LEN) | RCR_RGMII_EN | RCR_MII_MODE;

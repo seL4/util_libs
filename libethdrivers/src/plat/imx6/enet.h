@@ -30,9 +30,10 @@
 struct enet;
 
 struct enet *enet_init(
-    uint32_t tx_phys,
-    uint32_t rx_phys,
-    uint32_t rx_bufsize,
+    void *mapped_peripheral,
+    uintptr_t tx_phys,
+    uintptr_t rx_phys,
+    size_t rx_bufsize,
     ps_io_ops_t *io_ops);
 
 /* Debug */
