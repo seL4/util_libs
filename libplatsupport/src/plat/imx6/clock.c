@@ -41,9 +41,16 @@
 #define PLL_SYS_SS_EN           BIT(15)
 #define PLL_SYS_SS_STEP(x)      ((x) & 0x7fff)
 
-/* ENET PLL */
-#define PLL_ENET_DIV_MASK 0x3
-#define PLL_ENET_ENABLE   BIT(13)
+/* PLL_ENET (PLL6), disabled on reset, runs at a fixed multiplier 20+(5/6)
+ * which based on the 24 MHz oscillator as reference clock gives a 500 MHz clock
+ * (24 MHz * (20+(5/6)) = 500 MHz). This use used to generate the frequencies
+ * 125 MHz (for PCIe and gigabit ethernet), 100 MHz (for SATA) and 50 or 25 MHz
+ * for the external ethernet interface.
+ */
+#define PLL_ENET_ENABLE_100M    BIT(20)
+#define PLL_ENET_ENABLE_125M    BIT(19)
+#define PLL_ENET_DIV_MASK       0x3
+#define PLL_ENET_GET_DIV(x)     ((x) & PLL_ENET_DIV_MASK)
 
 /* PLL_USB. There is PLL3 (USB1_PLL or 480 PLL) that runs at a fixed multiplier
  * 20 and based on the 24 MHz oscillator creates a 480 MHz reference clock
@@ -322,60 +329,110 @@ static struct clock arm_clk = { CLK_OPS(ARM, arm, NULL) };
 
 static freq_t _enet_get_freq(clk_t *clk)
 {
-    uint32_t div;
-    uint32_t fin;
-
-    fin = clk_get_freq(clk->parent);
-    div = clk_regs.alg->pll_enet.val;
-    div &= PLL_ENET_DIV_MASK;
-    switch (div) {
-    case 3:
-        return 5 * fin;
-    case 2:
-        return 4 * fin;
-    case 1:
-        return 2 * fin;
-    case 0:
-        return 1 * fin;
-    default:
-        return 0 * fin;
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
     }
+
+    uint32_t v = clk_regs.alg->pll_enet.val;
+
+    /* clock output enabled? */
+    if (!(v & PLL_ENABLE)) {
+        return 0;
+    }
+
+    if (v & PLL_BYPASS) {
+        /* bypass on
+         * 0x0 source is 24MHz oscillator
+         * 0x1 source is CLK1_N/CLK1_P
+         * 0x2 source is CLK2_N/CLK2_P
+         * 0x3 source is CLK1_N/CLK1_P XOR CLK2_N/CLK2_P
+         */
+        unsigned int src = PLL_GET_BYPASS_SRC(v);
+        switch (src) {
+        case 0:
+            return 24 * MHZ;
+        default:
+            break;
+        }
+        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        return 0;
+    }
+
+    /* PLL enabled, but powered down? */
+    if (v & PLL_PWR_DOWN) {
+        return 0;
+    }
+
+    unsigned int div = v & PLL_ENET_DIV_MASK;
+    switch (div) {
+    case 0:
+        return  25 * MHZ;
+    case 1:
+        return  50 * MHZ;
+    case 2:
+        return 100 * MHZ;
+    case 3:
+        return 125 * MHZ;
+    default:
+        break;
+    }
+    ZF_LOGE("unsupported ENET PLL divider %u", v);
+    return 0;
 }
 
 static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
 {
-    uint32_t div, fin;
-    uint32_t v;
-    if (clk_regs.alg == NULL) {
-        return clk_get_freq(clk);
+    if (!clk_regs.alg) {
+        ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
+        return 0;
     }
 
 #if defined(CONFIG_PLAT_IMX6DQ)
 
-    fin = clk_get_freq(clk->parent);
-    if (hz >= 5 * fin) {
+    alg_sct_t *pll = &clk_regs.alg->pll_enet;
+
+    uint32_t div;
+    switch (hz) {
+    case 125 * MHZ:
         div = 3;
-    } else if (hz >= 4 * fin) {
+        break;
+    case 100 * MHZ:
         div = 2;
-    } else if (hz >= 2 * fin) {
+        break;
+    case  50 * MHZ:
         div = 1;
-    } else if (hz >= 1 * fin) {
+        break;
+    case  25 * MHZ:
         div = 0;
-    } else {
-        div = 0;
+        break;
+    default:
+        ZF_LOGE("unsupported ENET clock frequency %d", hz);
+        return 0;
     }
-    /* bypass on */
-    clk_regs.alg->pll_enet.set = PLL_BYPASS;
-    v = PLL_ENET_ENABLE | PLL_BYPASS;
-    clk_regs.alg->pll_enet.val = v;
-    /* Change the frequency */
-    v = clk_regs.alg->pll_enet.val & ~(PLL_ENET_DIV_MASK);
-    v |= div;
-    clk_regs.alg->pll_enet.val = v;
-    while (!(clk_regs.alg->pll_enet.val & PLL_LOCK));
-    /* bypass off */
-    clk_regs.alg->pll_enet.clr = PLL_BYPASS;
-    printf("Set ENET frequency to %ld Mhz... ", (long int)clk_get_freq(clk) / MHZ);
+
+    // ENET requires ahb_clk_root to be at least 125 MHz. In the clock tree
+    // PLL_SYS feeds CLK_MMDC_CH0 which feeds CLK_AHB. For CLK_AHB the default
+    // divider is 4, set via CBCDR.AHB_PODF, so setting PLL_SYS to the standard
+    // 528 MHz will result in an AHB clock of 132 MHz.
+    freq_t f = clk_get_freq(clk_get_clock(clk->clk_sys, CLK_AHB));
+    if (f < (125 * MHZ)) {
+        ZF_LOGI("setting system PLL from %llu to 528 MHz", f);
+        clk_set_freq(clk_get_clock(clk->clk_sys, CLK_PLL2), 528 * MHZ);
+        f = clk_get_freq(clk_get_clock(clk->clk_sys, CLK_AHB));
+        if (f < (125 * MHZ)) {
+            ZF_LOGE("clock tree setup broken, AHB clock is %llu", f);
+            return 0;
+        }
+    }
+
+    int ret = change_pll(pll, PLL_ENET_DIV_MASK, div);
+    if (0 != ret) {
+        ZF_LOGE("waiting for PLL_ENET lock aborted, code %d", ret);
+        return 0;
+    }
+
+    clk_gate_enable(clk_get_clock_sys(clk), enet_clock, CLKGATE_ON);
 
 #elif defined(CONFIG_PLAT_IMX6SX)
 
@@ -580,11 +637,16 @@ static struct clock mmdc_ch0_clk = { CLK_OPS(MMDC_CH0, mmdc_ch0, NULL) };
 
 static freq_t _ahb_get_freq(clk_t *clk)
 {
+    /* ToDo: read divider from CBCDR.AHB_PODF */
     return clk_get_freq(clk->parent) / 4;
 }
 
 static freq_t _ahb_set_freq(clk_t *clk, freq_t hz)
 {
+    /* ToDo: we assume the default value CBCDR.AHB_PODF = b011 has not been
+     * changed and thus the divider is 4 (132 MHZ * 4 = 528 MHz).
+     */
+    assert(hz == 132 * MHZ);
     return clk_set_freq(clk->parent, hz * 4);
 }
 
