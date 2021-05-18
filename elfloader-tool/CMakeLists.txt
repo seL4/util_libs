@@ -272,10 +272,11 @@ if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
 
     add_custom_command(
         OUTPUT "${PLATFORM_INFO_H}" "${IMAGE_START_ADDR_H}"
-        COMMAND echo "#pragma once\\n\/* no platform YAML file available */" >"${PLATFORM_INFO_H}"
         COMMAND
-            echo "#pragma once\\n#define IMAGE_START_ADDR ${IMAGE_START_ADDR}"
-            >"${IMAGE_START_ADDR_H}"
+            echo "#pragma once\\n\/* no platform YAML file available */" > "${PLATFORM_INFO_H}"
+        COMMAND
+            echo "#pragma once\\n#define IMAGE_START_ADDR ${IMAGE_START_ADDR}" >
+            "${IMAGE_START_ADDR_H}"
         VERBATIM
     )
 
