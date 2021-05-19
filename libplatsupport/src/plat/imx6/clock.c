@@ -365,7 +365,7 @@ static freq_t _enet_get_freq(clk_t *clk)
         return 0;
     }
 
-    unsigned int div = v & PLL_ENET_DIV_MASK;
+    unsigned int div = PLL_ENET_GET_DIV(v);
     switch (div) {
     case 0:
         return  25 * MHZ;
