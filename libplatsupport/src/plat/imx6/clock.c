@@ -186,8 +186,12 @@ static struct clock master_clk = { CLK_OPS_DEFAULT(MASTER) };
 
 static int change_pll(alg_sct_t *pll, uint32_t div_mask, uint32_t div)
 {
-    /* div can't exceed the mask */
-    assert(0 == (div & (~div_mask)));
+    /* div must be within the mask */
+    if (0 != (div & (~div_mask))) {
+        ZF_LOGE("invaid PLL setting, mask=0x%x, div=0x%x", div_mask, div);
+        assert(0);
+        return -1;
+    }
 
     /* bypass on during clock manipulation */
     pll->set = PLL_BYPASS;
@@ -263,7 +267,7 @@ static freq_t _arm_get_freq(clk_t *clk)
         default:
             break;
         }
-        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        ZF_LOGE("can't determine frequency for PLL_ARM bypass sources %u", src);
         return 0;
     }
 
@@ -284,8 +288,13 @@ static freq_t _arm_get_freq(clk_t *clk)
 
 static freq_t _arm_set_freq(clk_t *clk, freq_t hz)
 {
-    ZF_LOGI("clock '%s': switch from %u Mhz to %llu (%u Mhz)",
-            clk->name, (int)(clk_get_freq(clk) / MHZ), hz, (int)(hz / MHZ));
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change PLL_ARM ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
 
     if (!clk_regs.alg) {
         ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
@@ -303,15 +312,20 @@ static freq_t _arm_set_freq(clk_t *clk, freq_t hz)
 
     int ret = change_pll(pll, PLL_ARM_DIV_MASK, div);
     if (0 != ret) {
-        ZF_LOGE("waiting for PLL_ARM lock aborted, code %d", ret);
+        ZF_LOGE("PLL_ARM change failed, code %d", ret);
         return 0;
     }
 
-    return clk_get_freq(clk);
+    freq_t f_new = clk_get_freq(clk);
+    ZF_LOGD("PLL_ARM now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _arm_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("PLL_ARM recal is not supported");
     assert(0);
 }
 
@@ -363,7 +377,7 @@ static freq_t _enet_get_freq(clk_t *clk)
         default:
             break;
         }
-        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        ZF_LOGE("can't determine frequency for PLL_ENET bypass sources %u", src);
         return 0;
     }
 
@@ -385,12 +399,20 @@ static freq_t _enet_get_freq(clk_t *clk)
     default:
         break;
     }
-    ZF_LOGE("unsupported ENET PLL divider %u", v);
+    ZF_LOGE("unsupported PLL_ENET divider %u", v);
     return 0;
 }
 
 static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
 {
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change PLL_ENET ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
     if (!clk_regs.alg) {
         ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
         return 0;
@@ -415,7 +437,7 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
         div = 0;
         break;
     default:
-        ZF_LOGE("unsupported ENET clock frequency %d", hz);
+        ZF_LOGE("unsupported PLL_ENET clock frequency %"PRIu64, (uint64_t)hz);
         return 0;
     }
 
@@ -423,20 +445,25 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
     // PLL_SYS feeds CLK_MMDC_CH0 which feeds CLK_AHB. For CLK_AHB the default
     // divider is 4, set via CBCDR.AHB_PODF, so setting PLL_SYS to the standard
     // 528 MHz will result in an AHB clock of 132 MHz.
-    freq_t f = clk_get_freq(clk_get_clock(clk->clk_sys, CLK_AHB));
-    if (f < (125 * MHZ)) {
-        ZF_LOGI("setting system PLL from %llu to 528 MHz", f);
+    clk_t *clk_ahb = clk_get_clock(clk->clk_sys, CLK_AHB);
+    freq_t f_ahb = clk_get_freq(clk_ahb);
+    if (f_ahb < (125 * MHZ)) {
+        ZF_LOGI("AHB clock is %u.%06u MHz (< 125 MHz), setting system PLL to 528 MHz",
+                (unsigned int)(f_ahb / MHZ),
+                (unsigned int)(f_ahb % MHZ));
         clk_set_freq(clk_get_clock(clk->clk_sys, CLK_PLL2), 528 * MHZ);
-        f = clk_get_freq(clk_get_clock(clk->clk_sys, CLK_AHB));
-        if (f < (125 * MHZ)) {
-            ZF_LOGE("clock tree setup broken, AHB clock is %llu", f);
+        f_ahb = clk_get_freq(clk_ahb);
+        if (f_ahb < (125 * MHZ)) {
+            ZF_LOGE("AHB clock is %u.%06u Hz, still < 125 MHz)",
+                    (unsigned int)(f_ahb / MHZ),
+                    (unsigned int)(f_ahb % MHZ));
             return 0;
         }
     }
 
     int ret = change_pll(pll, PLL_ENET_DIV_MASK, div);
     if (0 != ret) {
-        ZF_LOGE("waiting for PLL_ENET lock aborted, code %d", ret);
+        ZF_LOGE("PLL_ENET change failed, code %d", ret);
         return 0;
     }
 
@@ -447,16 +474,22 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
     /* ENET requires enet_clk_root to be at least 133 MHz. However, we don't do
      * anything here and just trust u-boot to have set things up properly.
      */
+    ZF_LOGW("changing PLL_ENET not is currently not implemented");
 
 #else
 #error "unknown i.MX6 SOC"
 #endif
 
-    return clk_get_freq(clk);
+    freq_t f_new = clk_get_freq(clk);
+    ZF_LOGD("PLL_ENET now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _enet_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("PLL_ENET recal is not supported");
     assert(0);
 }
 
@@ -507,7 +540,7 @@ static freq_t _pll_sys_get_freq(clk_t *clk)
         default:
             break;
         }
-        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        ZF_LOGE("can't determine frequency for PLL_SYS bypass sources %u", src);
         return 0;
     }
 
@@ -532,8 +565,13 @@ static freq_t _pll_sys_get_freq(clk_t *clk)
 
 static freq_t _pll_sys_set_freq(clk_t *clk, freq_t hz)
 {
-    ZF_LOGI("clock '%s': switch from %u Mhz to %llu (%u Mhz)",
-            clk->name, (int)(clk_get_freq(clk) / MHZ), hz, (int)(hz / MHZ));
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change PLL_SYS ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
 
     if (!clk_regs.alg) {
         ZF_LOGE("clk_regs.alg is NULL, clocks not initialised properly");
@@ -558,7 +596,7 @@ static freq_t _pll_sys_set_freq(clk_t *clk, freq_t hz)
             div = 1;
             break; // 528 MHz = 22 * 24 MHz
         default:
-            ZF_LOGE("unsupported PLL_SYS clock frequency %llu", hz);
+            ZF_LOGE("unsupported PLL_SYS clock frequency %"PRIu64, (uint64_t)hz);
             return 0;
         }
 
@@ -569,7 +607,11 @@ static freq_t _pll_sys_set_freq(clk_t *clk, freq_t hz)
         }
     }
 
-    return clk_get_freq(clk);
+    freq_t f_new = clk_get_freq(clk);
+    ZF_LOGD("PLL_SYS now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _pll_sys_recal(clk_t *clk UNUSED)
@@ -610,17 +652,32 @@ static freq_t _mmdc_ch0_get_freq(clk_t *clk)
 
 static freq_t _mmdc_ch0_set_freq(clk_t *clk, freq_t hz)
 {
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change MMDC_CH0_CLK ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
     /* TODO: there are the two MUXers here:
      *         - CCM Bus Clock Multiplexer CBCMR.PRE_PERIPH_CLK_SEL
      *         - CCM Bus Clock Divider CBCDR.PERIPH_CLK_SEL
      *       by default they route the clock PLL_SYS (PLL2)
      */
     assert(hz == 528 * MHZ);
-    return clk_set_freq(clk->parent, hz);
+
+    freq_t f_new_parent = clk_set_freq(clk->parent, hz);
+    freq_t f_new = f_new_parent;
+    ZF_LOGD("MMDC_CH0_CLK now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _mmdc_ch0_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("MMDC_CH0_CLK recal is not supported");
     assert(0);
 }
 
@@ -651,15 +708,30 @@ static freq_t _ahb_get_freq(clk_t *clk)
 
 static freq_t _ahb_set_freq(clk_t *clk, freq_t hz)
 {
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change AHB_CLK_ROOT ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
     /* ToDo: we assume the default value CBCDR.AHB_PODF = b011 has not been
      * changed and thus the divider is 4 (132 MHZ * 4 = 528 MHz).
      */
     assert(hz == 132 * MHZ);
-    return clk_set_freq(clk->parent, hz * 4);
+
+    freq_t f_new_parent = clk_set_freq(clk->parent, hz * 4);
+    freq_t f_new = f_new_parent / 4;
+    ZF_LOGD("AHB_CLK_ROOT now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _ahb_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("AHB_CLK_ROOT recal is not supported");
     assert(0);
 }
 
@@ -689,11 +761,25 @@ static freq_t _ipg_get_freq(clk_t *clk)
 
 static freq_t _ipg_set_freq(clk_t *clk, freq_t hz)
 {
-    return clk_set_freq(clk->parent, hz * 2) / 2;
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change IPG_CLK_ROOT ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
+    freq_t f_new_parent = clk_set_freq(clk->parent, hz * 2);
+    freq_t f_new = f_new_parent / 2;
+    ZF_LOGD("IPG_CLK_ROOT now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 };
 
 static void _ipg_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("IPG_CLK_ROOT recal is not supported");
     assert(0);
 }
 
@@ -757,7 +843,7 @@ static freq_t _usb_get_freq(clk_t *clk)
         default:
             break;
         }
-        ZF_LOGE("can't determine frequency for bypass sources %u", src);
+        ZF_LOGE("can't determine frequency for PLL_USB bypass sources %u", src);
         return 0;
     }
 
@@ -776,18 +862,29 @@ static freq_t _usb_get_freq(clk_t *clk)
     default:
         break;
     }
-    ZF_LOGE("unsupported USB PLL divider %u", v);
+    ZF_LOGE("unsupported PLL_USB divider %u", v);
     return 0;
 }
 
 static freq_t _usb_set_freq(clk_t *clk, freq_t hz UNUSED)
 {
-    assert(!"Not implemented");
-    return clk_get_freq(clk);
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change PLL_USB ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
+    ZF_LOGE("PLL_USB changing is not supported");
+    assert(0);
+
+    return f_pre;
 }
 
 static void _usb_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("PLL_USB recal is not supported");
     assert(0);
 }
 
@@ -855,6 +952,14 @@ static freq_t _clko_get_freq(clk_t *clk)
 
 static freq_t _clko_set_freq(clk_t *clk, freq_t hz)
 {
+    freq_t f_pre = clk_get_freq(clk);
+    ZF_LOGD("change CLK_Ox ('%s') from %u.%06u MHz to %u.%06u MHz",
+            clk->name,
+            (unsigned int)(f_pre / MHZ),
+            (unsigned int)(f_pre % MHZ),
+            (unsigned int)(hz / MHZ),
+            (unsigned int)(hz % MHZ));
+
     uint32_t fin = clk_get_freq(clk->parent);
     uint32_t div = (fin / hz) + 1;
     uint32_t v = clk_regs.ccm->ccosr;
@@ -875,11 +980,17 @@ static freq_t _clko_set_freq(clk_t *clk, freq_t hz)
         return -1;
     }
     clk_regs.ccm->ccosr = v;
-    return clk_get_freq(clk);
+
+    freq_t f_new = clk_get_freq(clk);
+    ZF_LOGD("CLK_Ox now running at %u.%06u MHz",
+            (unsigned int)(f_new / MHZ),
+            (unsigned int)(f_new % MHZ));
+    return f_new;
 }
 
 static void _clko_recal(clk_t *clk UNUSED)
 {
+    ZF_LOGE("CLK_Ox recal is not supported");
     assert(0);
 }
 
@@ -910,7 +1021,8 @@ static clk_t *_clko_init(clk_t *clk)
             v |= CLKO2_ENABLE;
             break;
         default:
-            assert(!"Invalid clock for operation");
+            ZF_LOGE("Invalid CLK_Ox clock id 0x%x", clk->id);
+            assert(0);
             return NULL;
         }
         clk_regs.ccm->ccosr = v;
@@ -953,7 +1065,8 @@ static int imx6_gate_enable(
         break;
 
     default:
-        assert(!"Invalid clock gate mode");
+        ZF_LOGE("Invalid gate mode 0x%x for gate %d", mode, gate);
+        assert(0);
         return -1;
     }
 
