@@ -682,7 +682,7 @@ static freq_t _ipg_get_freq(clk_t *clk)
 
 static freq_t _ipg_set_freq(clk_t *clk, freq_t hz)
 {
-    return clk_set_freq(clk->parent, hz * 2);
+    return clk_set_freq(clk->parent, hz * 2) / 2;
 };
 
 static void _ipg_recal(clk_t *clk UNUSED)
