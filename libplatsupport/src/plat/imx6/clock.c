@@ -932,22 +932,31 @@ static struct clock usb2_clk = { CLK_OPS(USB2, usb, NULL) };
  *------------------------------------------------------------------------------
  */
 
+static int get_clko_bit_offset(unsigned int id)
+{
+    switch (id) {
+    case CLK_CLKO1:
+        return 4;
+    case CLK_CLKO2:
+        return 21;
+    }
+
+    ZF_LOGE("Invalid CLK_Ox id 0x%x", id);
+    return -1;
+}
+
 static freq_t _clko_get_freq(clk_t *clk)
 {
-    uint32_t fin = clk_get_freq(clk->parent);
-    uint32_t div;
-    switch (clk->id) {
-    case CLK_CLKO1:
-        div = (clk_regs.ccm->ccosr >> 4) & 0x7;
-        break;
-    case CLK_CLKO2:
-        div = (clk_regs.ccm->ccosr >> 21) & 0x7;
-        break;
-    default:
-        assert(!"Invalid clock");
-        return -1;
+    int shift = get_clko_bit_offset(clk->id);
+    if (shift < 0) {
+        ZF_LOGE("could not get CLK_Ox 0x%x clock bit offset", clk->id);
+        return 0;
     }
-    return fin / (div + 1);
+
+    uint32_t div = (clk_regs.ccm->ccosr >> shift) & 0x7;
+    freq_t f_parent = clk_get_freq(clk->parent);
+
+    return f_parent / (div + 1);
 }
 
 static freq_t _clko_set_freq(clk_t *clk, freq_t hz)
@@ -960,25 +969,22 @@ static freq_t _clko_set_freq(clk_t *clk, freq_t hz)
             (unsigned int)(hz / MHZ),
             (unsigned int)(hz % MHZ));
 
-    uint32_t fin = clk_get_freq(clk->parent);
-    uint32_t div = (fin / hz) + 1;
-    uint32_t v = clk_regs.ccm->ccosr;
+    int shift = get_clko_bit_offset(clk->id);
+    if (shift < 0) {
+        ZF_LOGE("could not get CLK_Ox 0x%x clock bit offset", clk->id);
+        return 0;
+    }
+
+    freq_t f_parent = clk_get_freq(clk->parent);
+    uint32_t div = (f_parent / hz) + 1;
     if (div > 0x7) {
+        ZF_LOGW("required CLK_Ox clock divisor %u not possible, using max possible value 7", div);
         div = 0x7;
     }
-    switch (clk->id) {
-    case CLK_CLKO1:
-        v &= ~(0x7U << 4);
-        v |= div << 4;
-        break;
-    case CLK_CLKO2:
-        v &= ~(0x7U << 21);
-        v |= div << 21;
-        break;
-    default:
-        assert(!"Invalid clock");
-        return -1;
-    }
+
+    uint32_t v = clk_regs.ccm->ccosr;
+    v &= ~(0x7U << shift);
+    v |= div << shift;
     clk_regs.ccm->ccosr = v;
 
     freq_t f_new = clk_get_freq(clk);
