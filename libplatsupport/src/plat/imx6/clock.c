@@ -199,14 +199,21 @@ static int change_pll(alg_sct_t *pll, uint32_t div_mask, uint32_t div)
     /* power up the PLL */
     pll->clr = PLL_PWR_DOWN;
 
-    /* wait for PLL to be stable, stop after a bit over 65 million loops */
-    unsigned int loop_cnt = 0x4000000;
-    for (;;) {
+    /* Wait for the PLL to stabilize. */
+    for (unsigned int loop_cnt = 0; /* nothing */ ; loop_cnt++) {
         if (pll->val & PLL_LOCK) {
+            ZF_LOGD("got PLL_LOCK after %u loops", loop_cnt);
             break;
         }
 
-        if (0 == loop_cnt--) {
+        /* The PLL usually stabilizes after a few thousand cycles. On the i.MX6
+         * Saber Light board it takes a bit over 1500 loop iterations. Abort
+         * waiting if the PLL does not stabilize. Leave the bypass as source,
+         * disable the PLL and also disable the output.
+         */
+        if (loop_cnt > 50000) {
+            pll->set = PLL_PWR_DOWN;
+            pll->clr = PLL_ENABLE;
             ZF_LOGE("waiting for PLL_LOCK aborted");
             return -1;
         }
