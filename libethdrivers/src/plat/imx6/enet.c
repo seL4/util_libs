@@ -459,18 +459,30 @@ void enet_disable(struct enet *enet)
 void enet_set_mac(struct enet *enet, uint64_t mac)
 {
     enet_regs_t *regs = enet_get_regs(enet);
-
-    /* MAC is big endian u64, 0x0000aabbccddeeff means aa:bb:cc:dd:ee:ff */
+    /* We get the MAC as uint64_t, the value 0x0000<aa><bb><cc><dd><ee><ff>
+     * corresponds to the MAC aa:bb:cc:dd:ee:ff. The registers are set up as
+     *   PALR = 0x<aa><bb><cc><dd>
+     *            MAC byte 0 in bits 31:24
+     *            MAC byte 1 in bits 23:16
+     *            MAC byte 2 in bits 15:8
+     *            MAC byte 3 in bits 7:0
+     *   PAUR = 0x<ee><ff><xxxx>
+     *            MAC byte 4 in bits 31:24
+     *            MAC byte 5 in bits 23:16
+     */
     regs->palr = (uint32_t)(mac >> 16);
-    regs->paur = (uint32_t)(mac & 0xffff) | PAUSE_FRAME_TYPE_FIELD;
+    regs->paur = (((uint32_t)mac & 0xffff) << 16) | PAUSE_FRAME_TYPE_FIELD;
 }
 
 uint64_t enet_get_mac(struct enet *enet)
 {
     enet_regs_t *regs = enet_get_regs(enet);
-
-    /* return MAC as big endian u64, 0x0000aabbccddeeff is aa:bb:cc:dd:ee:ff */
-    return (((uint64_t)regs->palr) << 16) | (regs->palr >> 16);
+    /* The MAC aa:bb:cc:dd:ee:ff is stored in
+     *   PALR = 0x<aa><bb><cc><dd>
+     *   PAUR = 0x<ee><ff><xxxx>
+     * We return it as uint64_t 0x0000<aa><bb><cc><dd><ee><ff>
+     */
+    return (((uint64_t)regs->palr) << 16) | (regs->paur >> 16);
 }
 
 void enet_enable_events(struct enet *enet, uint32_t mask)

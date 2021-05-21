@@ -183,10 +183,17 @@ uint64_t ocotp_get_mac(struct ocotp *ocotp)
     assert(ocotp);
     ocotp_regs_t *regs = ocotp_get_regs(ocotp);
 
-    uint32_t mac0 = regs->mac0; // 0xaabbccdd
-    uint32_t mac1 = regs->mac1; // 0x????gghh
-    // make big endian integer 0x0000gghhaabbccdd for the MAC
-    uint64_t mac = ((uint64_t)((uint16_t)mac1) << 32) | mac0;
+    /* According to the TRM, MAC1_ADDR[47:0] is at OCOTP "0x620 - 0x630[15:0]",
+     * which means if OCOTP was raw memory a MAC <aa>:<bb>:<cc>:<dd>:<ee>:<ff>
+     * is stored as
+     *     0x620:  <ff> <ee> <dd> <cc>  xx xx xx xx  xx xx xx xx  xx xx xx xx
+     *     0x630:  <bb> <aa>  xx   xx   xx xx xx xx  xx xx xx xx  xx xx xx xx
+     * Reading the OCOTP contents as little endian uint32_t gives
+     *     mac0 = 0x<cc><dd><ee><ff>
+     *     mac1 = 0x<xxxx><aa><bb>
+     * We return the MAC as uint64_t 0x0000<aa><bb><cc><dd><ee><ff>
+     */
+    uint64_t mac = ((uint64_t)((uint16_t)regs->mac1) << 32) | regs->mac0;
 
     ZF_LOGI("MAC: %02x:%02x:%02x:%02x:%02x:%02x",
             (uint8_t)(mac >> 40), (uint8_t)(mac >> 32), (uint8_t)(mac >> 24),
