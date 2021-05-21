@@ -1,10 +1,8 @@
 /*
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
-/*
  * Copyright (C) 2017 NXP
  * Copyright (C) 2020, HENSOLDT Cyber GmbH
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -24,7 +22,7 @@
 
 #pragma once
 
-#include "mx6_pins.h"
+#include "imx_pins.h"
 
 #ifndef CONFIG_PLAT_IMX8MQ_EVK
 #error "CONFIG_PLAT_IMX8MQ_EVK must be defined to use this file"

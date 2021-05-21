@@ -31,6 +31,7 @@
 
 #pragma once
 
+#include <ethdrivers/plat/eth_plat.h>
 #include "../enet.h"
 
 #define PKTSIZE         1518
@@ -40,7 +41,8 @@ struct eth_device {
     char name[16];
 };
 
-struct phy_device *fec_init(unsigned phy_mask, struct enet *enet);
+struct phy_device *fec_init(unsigned phy_mask, struct enet *enet,
+                            const nic_config_t *nic_config);
 
 #define FEC_RCNTRL_MAX_FL_SHIFT     16
 #define FEC_RCNTRL_LOOP             0x00000001
