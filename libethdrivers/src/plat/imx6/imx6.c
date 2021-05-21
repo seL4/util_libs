@@ -597,7 +597,7 @@ static uint64_t obtain_mac(const nic_config_t *nic_config,
         }
     }
 
-    /* no MAC from OCOPT, try using MAC config */
+    /* no MAC from OCOTP, try using MAC config */
     if (0 != cfg_mac) {
         ZF_LOGI("no MAC in OCOTP, taking MAC from config");
         return cfg_mac;

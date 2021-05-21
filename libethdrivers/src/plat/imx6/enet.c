@@ -607,7 +607,7 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
 
     /* TX inter-packet gap */
     regs->tipg = TIPG;
-    /* Tranmsmit FIFO Watermark register - store and forward */
+    /* Transmit FIFO Watermark register - store and forward */
     regs->tfwr = 0;
 #ifdef STRFWD_BYTES
     if (STRFWD_BYTES > 0) {
