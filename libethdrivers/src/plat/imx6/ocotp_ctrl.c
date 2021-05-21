@@ -142,7 +142,12 @@ struct ocotp_regs {
     uint32_t res35[3];
     uint32_t mac1;            /* 630 */
     uint32_t res36[3];
+#ifdef CONFIG_PLAT_IMX6SX
+    uint32_t mac2;            /* 640 */
+    uint32_t res37[7];
+#else
     uint32_t res37[8];
+#endif
     uint32_t gp0;             /* 660 */
     uint32_t res38[3];
     uint32_t gp1;             /* 670 */
@@ -178,26 +183,64 @@ void ocotp_free(struct ocotp *ocotp, ps_io_mapper_t *io_mapper)
     UNRESOURCE(io_mapper, IMX6_OCOTP, ocotp);
 }
 
-uint64_t ocotp_get_mac(struct ocotp *ocotp)
+uint64_t ocotp_get_mac(struct ocotp *ocotp, unsigned int id)
 {
     assert(ocotp);
     ocotp_regs_t *regs = ocotp_get_regs(ocotp);
 
-    /* According to the TRM, MAC1_ADDR[47:0] is at OCOTP "0x620 - 0x630[15:0]",
-     * which means if OCOTP was raw memory a MAC <aa>:<bb>:<cc>:<dd>:<ee>:<ff>
-     * is stored as
+    /* i.MX6 dual/quad has one ENET device, i.MX6 Solo X has two. OCOTP usage
+     * is defined in the TRM as:
+     *     0x620 - 0x630[15:0]:   MAC1_ADDR
+     *     0x630[31:16] - 0x640:  MAC2_ADDR
+     * Which means if OCOTP was raw memory the MACs
+     *   ENET1: <aa>:<bb>:<cc>:<dd>:<ee>:<ff>
+     *   ENET2: <gg>:<hh>:<ii>:<jj>:<kk>:<ll>
+     * are stored as
      *     0x620:  <ff> <ee> <dd> <cc>  xx xx xx xx  xx xx xx xx  xx xx xx xx
-     *     0x630:  <bb> <aa>  xx   xx   xx xx xx xx  xx xx xx xx  xx xx xx xx
+     *     0x630:  <bb> <aa> <ll> <kk>  xx xx xx xx  xx xx xx xx  xx xx xx xx
+     *     0x640:  <jj> <ii> <hh> <gg>  xx xx xx xx  xx xx xx xx  xx xx xx xx
      * Reading the OCOTP contents as little endian uint32_t gives
      *     mac0 = 0x<cc><dd><ee><ff>
-     *     mac1 = 0x<xxxx><aa><bb>
-     * We return the MAC as uint64_t 0x0000<aa><bb><cc><dd><ee><ff>
+     *     mac1 = 0x<kk><ll><aa><bb>
+     *     mac2 = 0x<gg><hh><ii><jj>
+     * We return the MAC as uint64_t
+     *     ENET1: 0x0000<aa><bb><cc><dd><ee><ff>
+     *     ENET2: 0x0000<gg><hh><ii><jj><kk><ll>
      */
-    uint64_t mac = ((uint64_t)((uint16_t)regs->mac1) << 32) | regs->mac0;
 
-    ZF_LOGI("MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            (uint8_t)(mac >> 40), (uint8_t)(mac >> 32), (uint8_t)(mac >> 24),
-            (uint8_t)(mac >> 16), (uint8_t)(mac >> 8), (uint8_t)mac);
+    uint64_t mac = 0;
+
+    switch (id) {
+    case 0:
+        /* 0x0000<aa><bb><cc><dd><ee><ff> */
+        mac = ((uint64_t)((uint16_t)regs->mac1) << 32) | regs->mac0;
+        break;
+
+#ifdef CONFIG_PLAT_IMX6SX
+
+    case 1:
+        /* 0x0000<gg><hh><ii><jj><kk><ll> */
+        mac = ((uint64_t)regs->mac2 << 16) | (regs->mac1 >> 16);
+        break;
+
+#endif
+
+    default:
+        ZF_LOGE("Unsupported MAC ID %u", id);
+        return 0;
+
+    } /* switch (id) */
+
+    /* at least one bit must be set in the MAC to consider it valid */
+    if (0 == mac) {
+        ZF_LOGE("no MAC in OCOTP for id %d", id);
+        return 0;
+    }
+
+    ZF_LOGI("OCOTP MAC #%u: %02x:%02x:%02x:%02x:%02x:%02x",
+            id, (uint8_t)(mac >> 40), (uint8_t)(mac >> 32),
+            (uint8_t)(mac >> 24), (uint8_t)(mac >> 16), (uint8_t)(mac >> 8),
+            (uint8_t)mac);
 
     return mac;
 }

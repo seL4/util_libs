@@ -473,6 +473,39 @@ static freq_t _enet_set_freq(clk_t *clk, freq_t hz)
 
     /* ENET requires enet_clk_root to be at least 133 MHz. However, we don't do
      * anything here and just trust u-boot to have set things up properly.
+     *
+     * clk_regs.ccm->chsccdr = 0x00021148
+     *    15:17 Selector for ENET root clock pre-multiplexer, derive clock from
+     *            b000 PLL2
+     *            b001 pll3_sw_clk
+     *            b010 PLL5
+     *            b011 PLL2 PFD0
+     *            b100 PLL2 PFD2
+     *            b101 PLL3 PFD2
+     *            b110-b111 Reserved
+     *    14:12 Divider for ENET clock divider, should be updated when output
+     *          clock is gated. Divider is 1 to 8 calculated as "bxxx +1"
+     *     9:11 ENET root clock multiplexer, derive clock from
+     *            b000 divided pre-muxed ENET clock
+     *            b001 ipp_di0_clk
+     *            b010 ipp_di1_clk
+     *            b011 ldb_di0_clk
+     *            b100 ldb_di1_clk
+     *            b101-b111 Reserved
+     *
+     * CCM_CCGR3 relevant for ENETs:
+     *    18    ENET2_TX_CLK_DIR = 0 (disable ENET2 TX_CLK output driver)
+     *    17    ENET1_TX_CLK_DIR = 1 (enable ENET2 TX_CLK output driver)
+     *    14    ENET2_CLK_SEL = 0 (ENET2 TX reference clock driven by ref_enetpll1)
+     *    13    ENET1_CLK_SEL = 0 (ENET1 TX reference clock driven by ref_enetpll0)
+     *
+     * CCM_ANALOG_PLL_ENETn = 0x8030200f, relevant bits for ENETs:
+     *     31  PLL LOCK = 1
+     *     21  ENET_25M_REF_EN = 1
+     *     20  ENET2_125M_EN = 1
+     *     13  ENET1_125M_EN = 1
+     *     4:5 ENET2_DIV_SELECT = b11 (125 MHZ)
+     *     0:1 ENET1_DIV_SELECT = b11 (125 MHZ)
      */
     ZF_LOGW("changing PLL_ENET not is currently not implemented");
 

@@ -577,6 +577,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
 static uint64_t obtain_mac(const nic_config_t *nic_config,
                            ps_io_mapper_t *io_mapper)
 {
+    unsigned int enet_id = nic_config ? nic_config->id : 0;
     uint64_t cfg_mac = nic_config ? nic_config->mac : 0;
     unsigned int doForceMac = nic_config && (nic_config->flags & NIC_CONFIG_FORCE_MAC);
 
@@ -589,12 +590,34 @@ static uint64_t obtain_mac(const nic_config_t *nic_config,
     if (!ocotp) {
         ZF_LOGE("Failed to initialize OCOTP to read MAC");
     } else {
-        uint64_t ocotp_mac = ocotp_get_mac(ocotp);
+        uint64_t ocotp_mac = ocotp_get_mac(ocotp, enet_id);
         ocotp_free(ocotp, io_mapper);
         if (0 != ocotp_mac) {
-            ZF_LOGI("taking MAC from OCOTP");
+            ZF_LOGI("taking MAC #%u from OCOTP", enet_id);
             return ocotp_mac;
         }
+
+#ifdef CONFIG_PLAT_IMX6SX
+
+        if (1 == enet_id) {
+            ZF_LOGI("IMX6SX: no MAC for enet2 in OCOTP, use enet1 MAC + 1");
+            ocotp_mac = ocotp_get_mac(ocotp, 0);
+            if (0 != ocotp_mac) {
+                /* The uint64_t is 0x0000<aa><bb><cc><dd><ee><ff> for the MAC
+                 * aa:bb:cc:dd:ee:ff, where aa:bb:cc is the OUI and dd:ee:ff is
+                 * and ID. Leave OUI as it is and increment the ID by one with
+                 * roll over handling.
+                 */
+                uint32_t oui = ocotp_mac >> 24;
+                uint32_t id = ocotp_mac & 0xffffff;
+                return ((uint64_t)oui << 24) | ((id + 1) & 0xffffff);
+            }
+
+            ZF_LOGI("IMX6SX: no MAC for enet1 in OCOTP");
+        }
+
+#endif /* CONFIG_PLAT_IMX6SX */
+
     }
 
     /* no MAC from OCOTP, try using MAC config */
@@ -652,11 +675,18 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     }
     /* ring got allocated, need to free it on error */
 
+    unsigned int enet_id = nic_config ? nic_config->id : 0;
+
     /* Initialise ethernet pins, also does a PHY reset */
-    ret = setup_iomux_enet(&(dev->eth_drv.io_ops));
-    if (ret) {
-        ZF_LOGE("Failed to setup IOMUX for ENET, code %d", ret);
-        goto error;
+    if (0 != enet_id) {
+        ZF_LOGI("skipping IOMUX setup for ENET id=%d", enet_id);
+    } else {
+        ret = setup_iomux_enet(&(dev->eth_drv.io_ops));
+        if (ret) {
+            ZF_LOGE("Failed to setup IOMUX for ENET id=%d, code %d",
+                    enet_id, ret);
+            goto error;
+        }
     }
 
     /* Initialise the RGMII interface, clears and masks all interrupts */
@@ -706,14 +736,25 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     /* Initialise the phy library */
     miiphy_init();
     /* Initialise the phy */
+#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ)
     phy_micrel_init();
+#elif defined(CONFIG_PLAT_NITROGEN6SX)
+    phy_atheros_init();
+#else
+#error "unsupported board"
+#endif
+
     /* Connect the phy to the ethernet controller */
     unsigned int phy_mask = 0xffffffff;
     if (nic_config && (0 != nic_config->phy_address)) {
         ZF_LOGI("config: using PHY at address %d", nic_config->phy_address);
         phy_mask = BIT(nic_config->phy_address);
     }
-    dev->phy = fec_init(phy_mask, dev->enet);
+    /* ENET1 has an MDIO interface, for ENET2 we use callbacks */
+    dev->phy = fec_init(
+                   phy_mask,
+                   (0 == enet_id) ? dev->enet : NULL,
+                   nic_config);
     if (!dev->phy) {
         ZF_LOGE("Failed to initialize fec");
         goto error;
@@ -811,7 +852,19 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
     const nic_config_t *nic_config = NULL;
     if (get_nic_configuration) {
         ZF_LOGI("calling get_nic_configuration()");
+        /* we can get NULL here, if somebody implements this function but does
+         * not give us a config. It's a bit odd, but valid.
+         */
         nic_config = get_nic_configuration();
+        if (nic_config && nic_config->funcs.sync) {
+            ZF_LOGI("Waiting for primary NIC to finish initialization");
+            ret = nic_config->funcs.sync();
+            if (ret) {
+                ZF_LOGE("pirmary NIC sync failed,  code %d", ret);
+                return -ENODEV;
+            }
+            ZF_LOGI("primary NIC init done, run secondary NIC init");
+        }
     }
 
     ret = ps_calloc(
@@ -914,9 +967,13 @@ error:
 
 static const char *compatible_strings[] = {
     /* Other i.MX platforms may also be compatible but the platforms that have
-     * been tested are the SABRE Lite (i.MX6Quad) and i.MX8MQ Evaluation Kit
+     * been tested are:
+     *   - SABRE Lite (i.MX6Quad)
+     *   - Nitrogen6_SoloX (i.MX6SoloX)
+     *   - i.MX8MQ Evaluation Kit
      */
     "fsl,imx6q-fec",
+    "fsl,imx6sx-fec",
     "fsl,imx8mq-fec",
     NULL
 };
