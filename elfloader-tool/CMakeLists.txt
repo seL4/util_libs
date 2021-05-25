@@ -269,7 +269,6 @@ set(PLATFORM_INFO_H "${PLATFORM_HEADER_DIR}/platform_info.h")
 set(IMAGE_START_ADDR_H "${PLATFORM_HEADER_DIR}/image_start_addr.h")
 
 if(NOT "${IMAGE_START_ADDR}" STREQUAL "")
-
     add_custom_command(
         OUTPUT "${PLATFORM_INFO_H}" "${IMAGE_START_ADDR_H}"
         COMMAND
@@ -286,31 +285,34 @@ elseif(NOT DEFINED platform_yaml)
 
 else()
 
-    # Take the platform's YAML description can create a C header file with
-    # information of interest to the ELF-loader, e.g. a physical memory map. We
-    # must put the ELF-loader's payload in memory at a place that will be out of
-    # the way of the kernel and user images that are extracted. In other words,
-    # we don't want the ELF-loader (with its payload) to clobber itself.
-    add_custom_command(
-        OUTPUT "${PLATFORM_INFO_H}"
-        COMMAND "${PLATFORM_SIFT}" --emit-c-syntax "${platform_yaml}" > "${PLATFORM_INFO_H}"
-        VERBATIM
-        DEPENDS "${platform_yaml}" "${PLATFORM_SIFT}"
-    )
-
-    # The `shoehorn` tool computes a reasonable image start address. It calls
-    # `elf_sift` to obtain details about where the extracted payloads will be
-    # and how big they are.
+    # The following does two things. These commands are put together as for some weird
+    # reason, CMake does not execute the first command if it's by itself. This could be
+    # due to the CMakeLists.txt file in the capDL repository also invoking a similar command
+    # causing CMake to think that the first command with PLATFORM_SIFT is unnecessary.
     set(CMAKE_TOOL_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake-tool/helpers")
     set(ELF_SIFT "${CMAKE_TOOL_HELPERS_DIR}/elf_sift.py")
     set(SHOEHORN "${CMAKE_TOOL_HELPERS_DIR}/shoehorn.py")
     set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
     add_custom_command(
-        OUTPUT "${IMAGE_START_ADDR_H}"
+        OUTPUT "${IMAGE_START_ADDR_H}" "${PLATFORM_INFO_H}"
         COMMAND
+            # Take the platform's YAML description can create a C header file with
+            # information of interest to the ELF-loader, e.g. a physical memory map. We
+            # must put the ELF-loader's payload in memory at a place that will be out of
+            # the way of the kernel and user images that are extracted. In other words,
+            # we don't want the ELF-loader (with its payload) to clobber itself.
+            "${PLATFORM_SIFT}"
+            --emit-c-syntax "${platform_yaml}" > "${PLATFORM_INFO_H}"
+        COMMAND
+            # The `shoehorn` tool computes a reasonable image start address. It calls
+            # `elf_sift` to obtain details about where the extracted payloads will be
+            # and how big they are.
             "${SHOEHORN}" "${platform_yaml}" "${ARCHIVE_O}" > "${IMAGE_START_ADDR_H}"
         VERBATIM
         DEPENDS
+            # First command's dependencies
+            "${platform_yaml}" "${PLATFORM_SIFT}"
+            # Second command's dependencies
             "${ARCHIVE_O}"
             "${platform_yaml}"
             "${ELF_SIFT}"
