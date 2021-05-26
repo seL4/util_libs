@@ -28,7 +28,6 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     else()
-        message(WARNING "Could not find KernelPlatform match, defaulting to elf image.")
         set(ElfloaderImage "elf" CACHE STRING "" FORCE)
     endif()
 
