@@ -290,6 +290,7 @@ else()
     # due to the CMakeLists.txt file in the capDL repository also invoking a similar command
     # causing CMake to think that the first command with PLATFORM_SIFT is unnecessary.
     set(CMAKE_TOOL_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake-tool/helpers")
+    set(PLATFORM_SIFT "${CMAKE_TOOL_HELPERS_DIR}/platform_sift.py")
     set(ELF_SIFT "${CMAKE_TOOL_HELPERS_DIR}/elf_sift.py")
     set(SHOEHORN "${CMAKE_TOOL_HELPERS_DIR}/shoehorn.py")
     set(ARCHIVE_O "${CMAKE_CURRENT_BINARY_DIR}/archive.o")
