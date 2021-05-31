@@ -245,7 +245,7 @@ static freq_t _arm_get_freq(clk_t *clk)
         return 0;
     }
 
-    uint32_t v = clk_regs.alg->pll_enet.val;
+    uint32_t v = clk_regs.alg->pll_arm.val;
 
     /* clock output enabled? */
     if (!(v & PLL_ENABLE)) {
