@@ -46,6 +46,16 @@ endfunction(MakefileDepsToList)
 # any files that the command touches internally. This function currently won't
 # work without a depfile.
 macro(execute_process_with_stale_check invoc_file deps_file outfile extra_dependencies)
+    # Check all input extra_dependencies are actual files with timestamps
+    # We need to assign the input list variable to another variable so that it works with
+    # foreach( IN LISTS ).  As the foreach LISTS variaint doesn't seem to work with marco arguments.
+    set(_extra_dependencies ${extra_dependencies})
+    foreach(dep IN LISTS _extra_dependencies)
+        if(NOT (EXISTS "${dep}"))
+            message(FATAL_ERROR "extra_dependencies: could not find file: ${dep}")
+        endif()
+    endforeach()
+
     # We need to determine if we actually need to regenerate. We start by assuming that we do
     set(regen TRUE)
     if((EXISTS "${invoc_file}") AND (EXISTS "${deps_file}") AND (EXISTS "${outfile}"))
@@ -54,7 +64,7 @@ macro(execute_process_with_stale_check invoc_file deps_file outfile extra_depend
             MakefileDepsToList("${deps_file}" deps)
             # At this point assume we do not need to regenerate, unless we found a newer file
             set(regen FALSE)
-            foreach(dep IN LISTS deps extra_dependencies)
+            foreach(dep IN LISTS deps _extra_dependencies)
                 if("${dep}" IS_NEWER_THAN "${outfile}")
                     set(regen TRUE)
                     break()
