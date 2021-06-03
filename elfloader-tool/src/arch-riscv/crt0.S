@@ -67,6 +67,7 @@ hsm_switch_hart:
   li a2, 0       // passed in a1 when new hart starts, this is the logical hart_id
   ecall
 
+  mv a0, t3 // Copy the ID of the HART again, since we've clobbered a0
   j secondary_harts
 
 _start1:
