@@ -33,6 +33,11 @@ _start:
 /* a0 should have hart id, store it in temp so as not to clobber from HSM calls */
   mv t3, a0
 
+#ifdef CONFIG_IMAGE_BINARY
+/* Clear the BSS before we get to do anything more specific */
+  jal clear_bss
+#endif
+
 /* Check Heart State Management extension exists so we can use that to switch harts
    if we are not hart 1, otherwise rely on the legacy extension. */
 
