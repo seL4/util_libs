@@ -83,7 +83,7 @@ static int ensure_phys_range_valid(
                         paddr_max - 1,
                         (uintptr_t)_text,
                         (uintptr_t)_end - 1)) {
-        printf("ERROR: image would overlap ELF-loader\n");
+        printf("ERROR: image load address overlaps with ELF-loader!\n");
         return -1;
     }
 
