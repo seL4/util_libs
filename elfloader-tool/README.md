@@ -62,8 +62,14 @@ and supports loading a DTB from the EFI implementation.
 
 ## RISC-V
 
-On RISC-V the elfloader is launched by the `bbl`, which is integrated in the seL4 build system.
-The `bbl` brings up secondary cores, and the elfloader uses SBI to provide a serial output on RISC-V.
+The elfloader on RISC-V basically follows the ARM platforms. However, due to the
+lack of available platforms, only two ways are currently supported actively:
+building it as ELF file or binary image. In bot cases the platform must provide
+a [SBI](https://github.com/riscv/riscv-sbi-doc) implementation, which will be
+used by the elfloader for the log output channel and the multicore boot. The
+seL4 build system allows building [`OpenSBI`](https://github.com/riscv/opensbi)
+with the elfloader as payload. The [`bbl`](https://github.com/riscv/riscv-pk)
+Support has been dropped, because it is superseded by `OpenSBI`.
 
 ## Driver framework
 
