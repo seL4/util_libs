@@ -1,6 +1,7 @@
 /*
  * Copyright 2020, DornerWorks
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -199,8 +200,6 @@ void main(UNUSED int hart_id, void *bootloader_dtb)
         abort();
     }
 
-    printf("Jumping to kernel-image entry point...\n\n");
-
 #if CONFIG_MAX_NUM_NODES > 1
     while (__atomic_exchange_n(&mutex, 1, __ATOMIC_ACQUIRE) != 0);
     printf("Main entry hart_id:%d\n", hart_id);
@@ -221,8 +220,10 @@ void main(UNUSED int hart_id, void *bootloader_dtb)
     set_and_wait_for_ready(hart_id, 0);
 #endif
 
+    printf("Enabling MMU and paging\n");
     enable_virtual_memory();
 
+    printf("Jumping to kernel-image entry point...\n\n");
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
                                                   user_info.phys_region_end, user_info.phys_virt_offset,
                                                   user_info.virt_entry,
