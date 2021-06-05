@@ -171,33 +171,29 @@ static inline void enable_virtual_memory(void)
     ifence();
 }
 
-void main(UNUSED int hart_id, void *bootloader_dtb)
+static int run_elfloader(UNUSED int hart_id, void *bootloader_dtb)
 {
-    /* printing uses SBI, so there is no need to initialize any UART */
-    printf("ELF-loader started on (HART %d) (NODES %d)\n",
-           hart_id, CONFIG_MAX_NUM_NODES);
-    printf("  paddr=[%p..%p]\n", _text, _end - 1);
+    int ret;
 
     /* Unpack ELF images into memory. */
     unsigned int num_apps = 0;
-    int ret = load_images(&kernel_info, &user_info, 1, &num_apps,
-                          bootloader_dtb, &dtb, &dtb_size);
-
+    ret = load_images(&kernel_info, &user_info, 1, &num_apps,
+                      bootloader_dtb, &dtb, &dtb_size);
     if (0 != ret) {
-        printf("ERROR: image loading failed\n");
-        abort();
+        printf("ERROR: image loading failed, code %d\n", ret);
+        return -1;
     }
 
     if (num_apps != 1) {
         printf("ERROR: expected to load just 1 app, actually loaded %u apps\n",
                num_apps);
-        abort();
+        return -1;
     }
 
     ret = map_kernel_window(&kernel_info);
     if (0 != ret) {
-        printf("ERROR: could not map kernel window\n");
-        abort();
+        printf("ERROR: could not map kernel window, code %d\n", ret);
+        return -1;
     }
 
 #if CONFIG_MAX_NUM_NODES > 1
@@ -225,9 +221,11 @@ void main(UNUSED int hart_id, void *bootloader_dtb)
 
     printf("Jumping to kernel-image entry point...\n\n");
     ((init_riscv_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                                  user_info.phys_region_end, user_info.phys_virt_offset,
+                                                  user_info.phys_region_end,
+                                                  user_info.phys_virt_offset,
                                                   user_info.virt_entry,
-                                                  (paddr_t) dtb, dtb_size
+                                                  (paddr_t)dtb,
+                                                  dtb_size
 #if CONFIG_MAX_NUM_NODES > 1
                                                   ,
                                                   hart_id,
@@ -237,7 +235,7 @@ void main(UNUSED int hart_id, void *bootloader_dtb)
 
     /* We should never get here. */
     printf("ERROR: Kernel returned back to the ELF Loader\n");
-    abort();
+    return -1;
 }
 
 #if CONFIG_MAX_NUM_NODES > 1
@@ -269,3 +267,26 @@ void secondary_entry(int hart_id, int core_id)
 }
 
 #endif
+
+void main(int hart_id, void *bootloader_dtb)
+{
+    /* Printing uses SBI, so there is no need to initialize any UART. */
+    printf("ELF-loader started on (HART %d) (NODES %d)\n",
+           hart_id, CONFIG_MAX_NUM_NODES);
+
+    printf("  paddr=[%p..%p]\n", _text, _end - 1);
+
+    /* Run the actual ELF loader, this is not expected to return unless there
+     * was an error.
+     */
+    int ret = run_elfloader(hart_id, bootloader_dtb);
+    if (0 != ret) {
+        printf("ERROR: ELF-loader failed, code %d\n", ret);
+        /* There is nothing we can do to recover. */
+        abort();
+    }
+
+    /* We should never get here. */
+    printf("ERROR: ELF-loader didn't hand over control\n");
+    abort();
+}
