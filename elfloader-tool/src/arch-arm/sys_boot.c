@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -31,7 +32,7 @@ char core_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(PAGE_BITS)];
 
 struct image_info kernel_info;
 struct image_info user_info;
-void *dtb;
+void const *dtb;
 size_t dtb_size;
 
 extern void finish_relocation(int offset, void *_dynamic, unsigned int total_offset);

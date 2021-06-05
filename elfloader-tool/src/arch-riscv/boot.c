@@ -60,7 +60,7 @@ unsigned long l2pt_elf[PTES_PER_PT] __attribute__((aligned(4096)));
 char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 
 /* first HART will initialise these */
-void *dtb = NULL;
+void const *dtb = NULL;
 size_t dtb_size = 0;
 
 static int map_kernel_window(struct image_info *kernel_info)

@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -57,7 +58,7 @@ struct image_info {
 
 extern struct image_info kernel_info;
 extern struct image_info user_info;
-extern void *dtb;
+extern void const *dtb;
 
 /* Symbols defined in linker scripts. */
 extern char _text[];
@@ -74,8 +75,8 @@ int load_images(
     struct image_info *user_info,
     unsigned int max_user_images,
     unsigned int *num_images,
-    void *bootloader_dtb,
-    void **chosen_dtb,
+    void const *bootloader_dtb,
+    void const **chosen_dtb,
     size_t *chosen_dtb_size);
 
 /* Platform functions */

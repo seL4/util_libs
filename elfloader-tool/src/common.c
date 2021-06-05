@@ -359,8 +359,8 @@ int load_images(
     struct image_info *user_info,
     unsigned int max_user_images,
     unsigned int *num_images,
-    void *bootloader_dtb,
-    void **chosen_dtb,
+    void const *bootloader_dtb,
+    void const **chosen_dtb,
     size_t *chosen_dtb_size)
 {
     int ret;
