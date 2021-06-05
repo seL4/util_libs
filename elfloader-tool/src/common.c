@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -30,6 +31,10 @@
 
 extern char _bss[];
 extern char _bss_end[];
+
+/*
+ * Clear the BSS segment
+ */
 void clear_bss(void)
 {
     char *start = _bss;
@@ -42,7 +47,9 @@ void clear_bss(void)
 
 #define KEEP_HEADERS_SIZE BIT(PAGE_BITS)
 
-/* Determine if two intervals overlap. */
+/*
+ * Determine if two intervals overlap.
+ */
 static int regions_overlap(
     uintptr_t startA,
     uintptr_t endA,
@@ -564,6 +571,9 @@ int load_images(
     return 0;
 }
 
+/*
+ * Platform specific ELF Loader initialization. Can be overwritten.
+ */
 void __attribute__((weak)) platform_init(void)
 {
     /* nothing by default */
