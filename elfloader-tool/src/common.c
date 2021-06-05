@@ -201,11 +201,11 @@ static int load_elf(
 #else
 
     /* Get the binary file that contains the Hash */
-    unsigned long file_hash_len;
+    unsigned long cpio_file_size = 0;
     void const *file_hash = cpio_get_file(cpio,
                                           cpio_len,
                                           elf_hash_filename,
-                                          &file_hash_len);
+                                          &cpio_file_size);
 
     /* If the file hash doesn't have a pointer, the file doesn't exist, so we
      * cannot confirm the file is what we expect.
@@ -214,6 +214,11 @@ static int load_elf(
         printf("ERROR: hash file '%s' doesn't exist\n", elf_hash_filename);
         return -1;
     }
+
+    /* Ensure we can safely cast the CPIO API type to our preferred type. */
+    _Static_assert(sizeof(cpio_file_size) <= sizeof(size_t),
+                   "integer model mismatch");
+    size_t file_hash_len = (size_t)cpio_file_size;
 
 #ifdef CONFIG_HASH_SHA
     uint8_t calculated_hash[32];
@@ -369,15 +374,20 @@ int load_images(
     size_t cpio_len = _archive_start_end - _archive_start;
 
     /* Load kernel. */
-    unsigned long kernel_elf_blob_size;
+    unsigned long cpio_file_size = 0;
     void const *kernel_elf_blob = cpio_get_file(cpio,
                                                 cpio_len,
                                                 "kernel.elf",
-                                                &kernel_elf_blob_size);
+                                                &cpio_file_size);
     if (kernel_elf_blob == NULL) {
         printf("ERROR: No kernel image present in archive\n");
         return -1;
     }
+
+    /* Ensure we can safely cast the CPIO API type to our preferred type. */
+    _Static_assert(sizeof(cpio_file_size) <= sizeof(size_t),
+                   "integer model mismatch");
+    size_t kernel_elf_blob_size = (size_t)cpio_file_size;
 
     ret = elf_checkFile(kernel_elf_blob);
     if (ret != 0) {
@@ -540,15 +550,20 @@ int load_images(
     *num_images = 0;
     for (unsigned int i = 0; i < max_user_images; i++) {
         /* Fetch info about the next ELF file in the archive. */
-        unsigned long elf_filesize = 0;
+        unsigned long cpio_file_size = 0;
         void const *user_elf = cpio_get_entry(cpio,
                                               cpio_len,
                                               i + user_elf_offset,
                                               &elf_filename,
-                                              &elf_filesize);
+                                              &cpio_file_size);
         if (user_elf == NULL) {
             break;
         }
+
+        /* Ensure we can safely cast the CPIO API type to our preferred type. */
+        _Static_assert(sizeof(cpio_file_size) <= sizeof(size_t),
+                       "integer model mismatch");
+        size_t elf_filesize = (size_t)cpio_file_size;
 
         /* Load the file into memory. */
         ret = load_elf(cpio,
