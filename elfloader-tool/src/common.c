@@ -193,7 +193,7 @@ static int load_elf(
 
 #else
 
-    /* Get the binary file that contains the SHA256 Hash */
+    /* Get the binary file that contains the Hash */
     unsigned long file_hash_len;
     void const *file_hash = cpio_get_file(cpio,
                                           cpio_len,
