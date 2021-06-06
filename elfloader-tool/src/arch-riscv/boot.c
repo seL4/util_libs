@@ -63,6 +63,25 @@ char elfloader_stack_alloc[BIT(CONFIG_KERNEL_STACK_BITS)];
 void const *dtb = NULL;
 size_t dtb_size = 0;
 
+/*
+ * overwrite the default implementation for abort()
+ */
+void NORETURN abort(void)
+{
+    printf("HALT due to call to abort()\n");
+
+    /* We could call the SBI shutdown now. However, it's likely there is an
+     * issue that needs to be debugged. Instead of doing a busy loop, spinning
+     * over a wfi is the better choice here, as it allows the core to enter an
+     * idle state until something happens.
+     */
+    for (;;) {
+        asm volatile("wfi" ::: "memory");
+    }
+
+    UNREACHABLE();
+}
+
 static int map_kernel_window(struct image_info *kernel_info)
 {
     uint32_t index;
