@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -8,11 +9,14 @@
  * plat-* if there is a more appropriate implementation for a given platform.
  */
 
+#include <elfloader_common.h>
 #include <printf.h>
 
-void __attribute__((weak)) abort(void)
+WEAK NORETURN void abort(void)
 {
     printf("abort() called.\n");
 
     while (1);
+
+    UNREACHABLE();
 }

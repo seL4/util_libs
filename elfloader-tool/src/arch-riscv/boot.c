@@ -284,9 +284,11 @@ void main(int hart_id, void *bootloader_dtb)
         printf("ERROR: ELF-loader failed, code %d\n", ret);
         /* There is nothing we can do to recover. */
         abort();
+        UNREACHABLE();
     }
 
     /* We should never get here. */
     printf("ERROR: ELF-loader didn't hand over control\n");
     abort();
+    UNREACHABLE();
 }

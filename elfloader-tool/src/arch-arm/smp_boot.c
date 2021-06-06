@@ -25,7 +25,7 @@ void arm_disable_dcaches(void);
 extern void *dtb;
 extern uint32_t dtb_size;
 
-void __attribute__((weak)) non_boot_init(void) {}
+WEAK void non_boot_init(void) {}
 
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
@@ -65,8 +65,8 @@ void non_boot_main(void)
     abort();
 }
 
-/* TODO: convert imx7 to driver model and remove __attribute__((weak)) */
-void __attribute__((weak)) init_cpus(void)
+/* TODO: convert imx7 to driver model and remove WEAK */
+WEAK void init_cpus(void)
 {
     /*
      * first, figure out which CPU we're booting on.

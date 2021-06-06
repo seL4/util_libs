@@ -26,6 +26,9 @@ typedef uintptr_t vaddr_t;
 #else
 #define VISIBLE
 #endif
+#define WEAK                __attribute__((weak))
+#define NORETURN            __attribute__((noreturn))
+#define UNREACHABLE()       __builtin_unreachable()
 #define UNUSED              __attribute__((unused))
 #define UNUSED_VARIABLE(x)  ((void)(x))
 #define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))

@@ -589,7 +589,7 @@ int load_images(
 /*
  * Platform specific ELF Loader initialization. Can be overwritten.
  */
-void __attribute__((weak)) platform_init(void)
+WEAK void platform_init(void)
 {
     /* nothing by default */
 }

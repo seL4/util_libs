@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -25,7 +26,7 @@ void smp_register_handler(struct elfloader_device *dev)
     smp_ops = dev;
 }
 
-int __attribute__((weak)) plat_cpu_on(struct elfloader_cpu *cpu, void *entry, void *stack)
+WEAK int plat_cpu_on(struct elfloader_cpu *cpu, void *entry, void *stack)
 {
     if (!smp_ops) {
         return -1;
