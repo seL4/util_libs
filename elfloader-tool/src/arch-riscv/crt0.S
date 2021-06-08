@@ -55,8 +55,8 @@ _start:
   amoadd.w t1, t2, (t1)
 
   mv a0, s0
-  li s0, CONFIG_FIRST_HART_ID
-  beq  a0, s0, _start1
+  li s1, CONFIG_FIRST_HART_ID
+  beq  a0, s1, _start1
 
 /* start hart 1*/
 hsm_switch_hart:
