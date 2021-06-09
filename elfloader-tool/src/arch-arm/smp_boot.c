@@ -22,7 +22,7 @@ static volatile int non_boot_lock = 0;
 
 void arm_disable_dcaches(void);
 
-extern void *dtb;
+extern void const *dtb;
 extern uint32_t dtb_size;
 
 WEAK void non_boot_init(void) {}
