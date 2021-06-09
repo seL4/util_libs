@@ -113,7 +113,8 @@ function(DeclareRootserver rootservername)
                     OUTPUT "${OPENSBI_FW_PAYLOAD_ELF}"
                     COMMAND mkdir -p "${OPENSBI_BINARY_DIR}"
                     COMMAND
-                        make -s -C "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}" clean
+                        make -s -C "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}"
+                        PLATFORM="${KernelOpenSBIPlatform}" clean
                     COMMAND
                         ${CMAKE_OBJCOPY} -O binary "${elf_target_file}" "${OPENSBI_PLAYLOAD}"
                     COMMAND
