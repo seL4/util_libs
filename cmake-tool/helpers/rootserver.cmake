@@ -105,6 +105,13 @@ function(DeclareRootserver rootservername)
                 file(GLOB_RECURSE deps)
                 set(OPENSBI_BINARY_DIR "${CMAKE_BINARY_DIR}/opensbi")
                 set(OPENSBI_PLAYLOAD "${OPENSBI_BINARY_DIR}/payload")
+                if(Kernel32)
+                    set(PLATFORM_RISCV_ISA "rv32imafdc")
+                    set(PLATFORM_RISCV_ABI "ilp32d")
+                else()
+                    set(PLATFORM_RISCV_ISA "rv64imafdc")
+                    set(PLATFORM_RISCV_ABI "lp64d")
+                endif()
                 set(
                     OPENSBI_FW_PAYLOAD_ELF
                     "${OPENSBI_BINARY_DIR}/platform/${KernelOpenSBIPlatform}/firmware/fw_payload.elf"
@@ -121,6 +128,8 @@ function(DeclareRootserver rootservername)
                         make -C "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}"
                         CROSS_COMPILE=${CROSS_COMPILER_PREFIX} PLATFORM="${KernelOpenSBIPlatform}"
                         PLATFORM_RISCV_XLEN=${KernelWordSize} FW_PAYLOAD_PATH="${OPENSBI_PLAYLOAD}"
+                        PLATFORM_RISCV_ISA=${PLATFORM_RISCV_ISA}
+                        PLATFORM_RISCV_ABI=${PLATFORM_RISCV_ABI}
                     DEPENDS "${elf_target_file}" elfloader ${USES_TERMINAL_DEBUG}
                 )
                 # overwrite elf_target_file, it's no longer the ElfLoader but
