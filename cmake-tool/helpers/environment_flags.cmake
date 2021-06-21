@@ -73,21 +73,18 @@ macro(add_default_compilation_options)
 endmacro()
 
 macro(gcc_print_file_name var file)
-    if(NOT (DEFINED "${var}"))
-        separate_arguments(c_arguments UNIX_COMMAND "${CMAKE_C_FLAGS}")
-        # Append the target flag to the arguments if we are using clang so the
-        # correct crt files are found
-        if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-            list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
-        endif()
-        execute_process(
-            COMMAND ${CMAKE_C_COMPILER} ${c_arguments} -print-file-name=${file}
-            OUTPUT_VARIABLE ${var}
-            ERROR_VARIABLE IgnoreErrorOutput
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-        set("${var}" "${${var}}" CACHE INTERNAL "")
+    separate_arguments(c_arguments UNIX_COMMAND "${CMAKE_C_FLAGS}")
+    # Append the target flag to the arguments if we are using clang so the
+    # correct crt files are found
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        list(APPEND c_arguments "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
     endif()
+    execute_process(
+        COMMAND ${CMAKE_C_COMPILER} ${c_arguments} -print-file-name=${file}
+        OUTPUT_VARIABLE ${var}
+        ERROR_VARIABLE IgnoreErrorOutput
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 endmacro()
 
 macro(find_libgcc_files)
@@ -106,9 +103,19 @@ endmacro()
 # that cause the generated executable to not be run
 # on cross_compilation targets.
 macro(check_c_source_runs_cross_compile program var)
+    # Clear the variable from the cache to force testing it
+    # each time CMake is run.
+    unset(${var} CACHE)
+    # Set internal variables to avoid running the executable.
     set(${var}_EXITCODE 0 CACHE INTERNAL "")
     set(${var}_EXITCODE__TRYRUN_OUTPUT "" CACHE INTERNAL "")
+    # Save the current CMAKE_REQUIRED_QUIET setting in order
+    # to set it to ON to suppress any output before restoring
+    # it to its old value.
+    set(${var}_save ${CMAKE_REQUIRED_QUIET})
+    set(CMAKE_REQUIRED_QUIET ON)
     check_c_source_runs(${program} ${var})
+    set(CMAKE_REQUIRED_QUIET ${${var}_save})
 endmacro()
 
 macro(add_fpu_compilation_options)
