@@ -39,9 +39,10 @@ ELF file into memory.
 /*
  * constants for Elf32_Phdr.p_flags
  */
-#define PF_X        1   /* readable segment */
+
+#define PF_R        4   /* readable segment */
 #define PF_W        2   /* writeable segment */
-#define PF_R        4   /* executable segment */
+#define PF_X        1   /* executable segment */
 
 /*
  * constants for indexing into Elf64_Header_t.e_ident
