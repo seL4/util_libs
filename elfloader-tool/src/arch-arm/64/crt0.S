@@ -29,7 +29,7 @@ BEGIN_FUNC(_start)
     bl      fixup_image_base
     mov     x2, x0
     /* restore original arguments for next step */
-    ldp     x0, x1, [sp, #-16]!
+    ldp     x0, x1, [sp], #16
     /* fixup_image_base returns 1 if no need to move */
     cmp     x2, #1
     beq     1f
