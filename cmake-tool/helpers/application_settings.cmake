@@ -12,7 +12,7 @@ include_guard(GLOBAL)
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     set(
         binary_list
-        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;imx8mp-evk;hifive;tqma8xqp1gb;imx93;bcm2711;rocketchip;star64;cheshire"
+        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;imx8mp-evk;hifive;bcm2837;tqma8xqp1gb;imx93;bcm2711;rocketchip;star64;cheshire"
     )
     set(efi_list "tk1;rockpro64;quartz64")
     set(uimage_list "tx2;am335x")
@@ -23,9 +23,6 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         set(ElfloaderImage "efi" CACHE STRING "" FORCE)
     elseif(${kernel_platform} IN_LIST uimage_list)
         set(ElfloaderImage "uimage" CACHE STRING "" FORCE)
-        #rpi3
-    elseif(${kernel_platform} STREQUAL "bcm2837" AND ${kernel_sel4_arch} STREQUAL "aarch64")
-        set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     else()
