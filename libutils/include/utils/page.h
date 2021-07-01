@@ -20,9 +20,13 @@
 #define PAGE_BITS_2M 21
 #define PAGE_BITS_4K 12
 #define PAGE_SIZE_4K (SIZE_BITS_TO_BYTES(PAGE_BITS_4K))
+#define PAGE_SIZE_2M (SIZE_BITS_TO_BYTES(PAGE_BITS_2M))
 #define PAGE_MASK_4K (PAGE_SIZE_4K - 1)
+#define PAGE_MASK_2M (PAGE_SIZE_2M - 1)
 #define PAGE_ALIGN_4K(addr) ((addr) & ~PAGE_MASK_4K)
+#define PAGE_ALIGN_2M(addr) ((addr) & ~PAGE_MASK_2M)
 #define IS_ALIGNED_4K(addr) IS_ALIGNED(addr, PAGE_BITS_4K)
+#define IS_ALIGNED_2M(addr) IS_ALIGNED(addr, PAGE_BITS_2M)
 
 #define MiB_TO_BYTES(x) (1024 * 1024 * ((size_t)x))
 
