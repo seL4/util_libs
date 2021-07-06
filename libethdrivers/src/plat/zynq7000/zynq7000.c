@@ -229,7 +229,11 @@ static void fill_rx_bufs(struct eth_driver *driver)
         dev->rx_ring[dev->rdt].addr &= ~(ZYNQ_GEM_RXBUF_NEW_MASK | ZYNQ_GEM_RXBUF_ADD_MASK);
         dev->rx_ring[dev->rdt].addr |= (phys & ZYNQ_GEM_RXBUF_ADD_MASK);
 #ifdef CONFIG_PLAT_ZYNQMP
+#ifdef CONFIG_ARCH_AARCH64
         dev->rx_ring[dev->rdt].addr_hi = (phys >> 32);
+#else
+        dev->rx_ring[dev->rdt].addr_hi = 0;
+#endif
 #endif
 
         __sync_synchronize();
@@ -390,7 +394,11 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
         dev->tx_ring[ring].addr = (phys[i] & 0xFFFFFFFF);
 #ifdef CONFIG_PLAT_ZYNQMP
+#ifdef CONFIG_ARCH_AARCH64
         dev->tx_ring[ring].addr_hi = (phys[i] >> 32);
+#else
+        dev->tx_ring[ring].addr_hi = 0;
+#endif
 #endif
         dev->tx_ring[ring].status &= ~(ZYNQ_GEM_TXBUF_USED_MASK | ZYNQ_GEM_TXBUF_FRMLEN_MASK | ZYNQ_GEM_TXBUF_LAST_MASK);
         dev->tx_ring[ring].status |= (len[i] & ZYNQ_GEM_TXBUF_FRMLEN_MASK);
@@ -494,8 +502,13 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     writel((uint32_t)eth_data->rx_ring, &regs->rxqbase);
 
 #ifdef CONFIG_PLAT_ZYNQMP
+#ifdef CONFIG_ARCH_AARCH64
     writel((uint32_t)((uintptr_t) eth_data->tx_ring >> 32), &regs->upper_txqbase);
     writel((uint32_t)((uintptr_t) eth_data->rx_ring >> 32), &regs->upper_rxqbase);
+#else
+    writel(0, &regs->upper_txqbase);
+    writel(0, &regs->upper_rxqbase);
+#endif
     writel((uint32_t)(eth_data->dummy_tx_bd), &regs->transmit_q1_ptr);
     writel((uint32_t)(eth_data->dummy_rx_bd), &regs->receive_q1_ptr);
 #endif
