@@ -1,0 +1,1 @@
+../../../odroidc2/platsupport/plat/i2c.h
