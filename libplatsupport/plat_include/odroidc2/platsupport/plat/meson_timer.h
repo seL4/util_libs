@@ -7,11 +7,7 @@
 #pragma once
 
 #include <platsupport/timer.h>
-
-#define TIMER_BASE      0xc1100000
-#define TIMER_MAP_BASE  0xc1109000
-
-#define TIMER_REG_START   0x2650    // TIMER_MUX
+#include <platsupport/plat/odroid_timer.h>
 
 #define TIMER_E_INPUT_CLK 8
 #define TIMER_D_INPUT_CLK 6

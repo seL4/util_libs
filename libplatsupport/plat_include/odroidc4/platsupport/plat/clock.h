@@ -1,0 +1,1 @@
+../../../odroidc2/platsupport/plat/clock.h
