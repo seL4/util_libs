@@ -63,7 +63,7 @@ mark_as_advanced(
 )
 add_config_library(ethdrivers "${configure_string}")
 
-if("${KernelPlatform}" MATCHES "imx8mq-evk")
+if("${KernelPlatform}" MATCHES "imx8m*-evk")
     # Re-use the imx6 sources
     set(PlatPrefix "imx6")
 else()

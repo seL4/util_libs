@@ -90,12 +90,13 @@ if(
     KernelPlatImx6
     OR KernelPlatformImx7Sabre
     OR KernelPlatformImx8mq-evk
+    OR KernelPlatformImx8mp-evk
     OR KernelPlatformImx8mm-evk
 )
     list(APPEND deps src/mach/${KernelArmMach}/serial/serial.c)
 endif()
 
-if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mp-evk OR KernelPlatformImx8mm-evk)
     list(APPEND deps src/plat/imx8m/chardev.c)
     # There's no clock driver at the moment, but this is to allow the
     # libethdrivers to build for imx8mq
@@ -108,7 +109,7 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 
-if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
+if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mp-evk OR KernelPlatformImx8mm-evk)
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
 
