@@ -639,6 +639,17 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 
     int ret;
 
+#ifdef CONFIG_PLAT_IMX8MQ_EVK
+    /* Don't attempt to obtain the MAC address for iMX8.
+     *
+     * The code to obtain the MAC address assumes an iMX6 compatible
+     * OCOTP which the iMX8 does not have.
+     *
+     * Instead, we assume that the bootloader has already configured the
+     * hardware MAC address. */
+    uint64_t mac = 0;
+    ZF_LOGI("using MAC configured by bootloader");
+#else
     uint64_t mac = obtain_mac(nic_config, &(dev->eth_drv.io_ops.io_mapper));
     if (0 == mac) {
         ZF_LOGE("Failed to obtain a MAC");
@@ -652,6 +663,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
             (uint8_t)(mac >> 16),
             (uint8_t)(mac >> 8),
             (uint8_t)(mac));
+#endif
 
     ret = setup_desc_ring(dev, &(dev->rx));
     if (ret) {
@@ -739,7 +751,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     /* Initialise the phy library */
     miiphy_init();
     /* Initialise the phy */
-#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ)
+#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_IMX8MQ_EVK)
     phy_micrel_init();
 #elif defined(CONFIG_PLAT_NITROGEN6SX)
     phy_atheros_init();

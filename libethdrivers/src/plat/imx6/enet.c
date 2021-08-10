@@ -606,8 +606,12 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     regs->gaur = 0;
     regs->galr = 0;
 
+#ifndef CONFIG_PLAT_IMX8MQ_EVK
+	/* For iMX.8 we assume that the bootloader has already correctly
+	 * configured the MAC address */
     /* Set MAC and pause frame type field */
     enet_set_mac(enet, mac);
+#endif
 
     /* Configure pause frames (continues into MAC registers...) */
     regs->opd = PAUSE_OPCODE_FIELD << 16;
