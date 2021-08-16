@@ -41,12 +41,20 @@ enum {
     DEVICE_ID_CCP2TX
 };
 
-// Property Tags: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+////////////////////////////////////////////////////////////////////////////////
+//--------------------------------Property Tags-------------------------------//
+////////////////////////////////////////////////////////////////////////////////
+
+// See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
 #define TAG_SET_POWER_STATE     0x00028001
 #define TAG_GET_CLOCK_RATE      0x00030002
 #define TAG_GET_MAC_ADDRESS     0x00010003
 
 // TODO: Add more property tags if needed
+
+////////////////////////////////////////////////////////////////////////////////
+//-----------------------------Request/Reponse Tags---------------------------//
+////////////////////////////////////////////////////////////////////////////////
 
 // See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface#set-power-state
 #define SET_POWER_STATE_OFF             (0u << 0)
@@ -95,6 +103,10 @@ typedef struct {
 PropertyTag_GetMACAddress_Response_t;
 
 // TODO: Add more request/reponse tags if needed
+
+////////////////////////////////////////////////////////////////////////////////
+//-----------------------------Mailbox Functions------------------------------//
+////////////////////////////////////////////////////////////////////////////////
 
 bool bcm2711_set_power_state_on(mailbox_t *mbox, uint32_t device_id);
 
