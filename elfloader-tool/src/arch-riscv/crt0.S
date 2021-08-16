@@ -39,7 +39,7 @@ _start:
 #endif
 
 /* Check Heart State Management extension exists so we can use that to switch harts
-   if we are not hart 1, otherwise rely on the legacy extension. */
+   if we are not hart CONFIG_FIRST_HART_ID, otherwise rely on the legacy extension. */
 
 /* sbi_probe_extension: Returns 0 if the given SBI extension ID (EID) is not available,
    or an extension-specific non-zero value if it is available.*/
@@ -58,11 +58,11 @@ _start:
   li s1, CONFIG_FIRST_HART_ID
   beq  a0, s1, _start1
 
-/* start hart 1*/
+/* start hart CONFIG_FIRST_HART_ID */
 hsm_switch_hart:
   li a7, SBI_HSM_BASE
   li a6, SBI_HSM_BASE_HART_START
-  li a0, 1       // hart id to start
+  li a0, CONFIG_FIRST_HART_ID       // hart id to start
   la a1, _start1 // where to start new hart
   li a2, 0       // passed in a1 when new hart starts, this is the logical hart_id
   ecall
