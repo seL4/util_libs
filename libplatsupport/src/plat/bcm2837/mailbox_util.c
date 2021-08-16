@@ -12,6 +12,7 @@
  */
 
 #include <platsupport/plat/mailbox_util.h>
+#include <string.h>
 
 static int mbox_req_resp(mailbox_t   *mbox,
                          uint32_t    tag_id,
@@ -35,6 +36,13 @@ static int mbox_req_resp(mailbox_t   *mbox,
     }
 }
 
+/**
+ * Set power state on of device.
+ *
+ * @param mbox      Initialized mailbox driver instance
+ * @param device_id Device ID of device that should be activated.
+ * @return          true on success, false on failure
+ */
 bool bcm2837_set_power_state_on(mailbox_t *mbox, uint32_t device_id)
 {
     PropertyTag_SetPowerState_Request_t TagRequest = {
@@ -90,4 +98,35 @@ int bcm2837_get_clock_rate(mailbox_t *mbox, uint32_t clock_id)
     }
 
     return TagResponse.rate;
+}
+
+/**
+ * Get board MAC address.
+ *
+ * @param mbox      Initialized mailbox driver instance
+ * @param buffer    Buffer address to which each digit of the MAC address should
+ *                  be copied to.
+ * @return          true on success, false on failure
+ */
+bool bcm2837_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE])
+{
+    PropertyTag_GetMACAddress_Request_t TagRequest;
+    PropertyTag_GetMACAddress_Response_t TagResponse;
+
+    int status = mbox_req_resp(mbox,
+                               TAG_GET_MAC_ADDRESS,
+                               &TagRequest,
+                               sizeof(TagRequest),
+                               &TagResponse,
+                               sizeof(TagResponse));
+
+    if (MAILBOX_OK != status) {
+        ZF_LOGE("Failed to get mac address of board - error code: %d!", status);
+        memset(buffer, 0, MAC_ADDRESS_SIZE);
+        return false;
+    }
+
+    memcpy(buffer, TagResponse.mac_address, MAC_ADDRESS_SIZE);
+
+    return true;
 }
