@@ -278,7 +278,7 @@ void secondary_entry(int hart_id, int core_id)
                                                   user_info.phys_region_end,
                                                   user_info.phys_virt_offset,
                                                   user_info.virt_entry,
-                                                  (paddr_t) dtb,
+                                                  (paddr_t)dtb,
                                                   dtb_size,
                                                   hart_id,
                                                   core_id
