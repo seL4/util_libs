@@ -215,8 +215,11 @@ void continue_boot(int was_relocated)
     }
 
     ((init_arm_kernel_t)kernel_info.virt_entry)(user_info.phys_region_start,
-                                                user_info.phys_region_end, user_info.phys_virt_offset,
-                                                user_info.virt_entry, (paddr_t)dtb, dtb_size);
+                                                user_info.phys_region_end,
+                                                user_info.phys_virt_offset,
+                                                user_info.virt_entry,
+                                                (word_t)dtb,
+                                                dtb_size);
 
     /* We should never get here. */
     printf("ERROR: Kernel returned back to the ELF Loader\n");

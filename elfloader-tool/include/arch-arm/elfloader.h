@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -7,11 +8,16 @@
 
 #include <elfloader_common.h>
 
-typedef void (*init_arm_kernel_t)(paddr_t ui_p_reg_start,
-                                  paddr_t ui_p_reg_end,
-                                  uintptr_t pv_offset,
-                                  vaddr_t v_entry,
-                                  paddr_t dtb, uint32_t dtb_size);
+/* This is a low level binary interface, thus we do not preserve the type
+ * information here. All parameters are just register values (or stack values
+ * that are register-sized).
+ */
+typedef void (*init_arm_kernel_t)(word_t ui_p_reg_start,
+                                  word_t ui_p_reg_end,
+                                  word_t pv_offset,
+                                  word_t v_entry,
+                                  word_t dtb,
+                                  word_t dtb_size);
 
 
 /* Enable the mmu. */

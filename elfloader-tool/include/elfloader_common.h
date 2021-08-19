@@ -49,14 +49,29 @@ struct image_info {
     /* Virtual address of the user image's entry point. */
     vaddr_t  virt_entry;
 
-    /*
-     * Offset between the physical/virtual addresses of the image.
-     *
-     * In particular:
-     *
-     *  virtual_address + phys_virt_offset = physical_address
+    /* The seL4 kernel boot interface does not have the parameter virt_entry,
+     * but expect a parameter with the offset between the physical and virtual
+     * addresses of the image, where this must hold:
+     *     virt_address + phys_virt_offset = phys_address
+     * Practically, the offset is usually a positive value, because the virtual
+     * address is a low value and the actually physical address is much greater.
+     * But in general, there is no restrictions on the physical and virtual
+     * image location. Defining phys_virt_offset as a signed value might seem
+     * the intuitive choice how to handle this, but there is are two catches
+     * here that break the C rules. We can't cover the full integer range then
+     * and overflows/underflows are well defined for unsigned values only. They
+     * are undefined for signed values, even if such operations practically work
+     * in many cases due to how the compiler/machine implements negative
+     * integers using the two's-complement.
+     * Assume 32-bit system with virt_address=0xc0000000 and phys_address=0,
+     * then phys_virt_offset would have to be -0xc0000000. This value is not
+     * in the 32-bit signed integer range. With unsigned integers, calculating
+     * 0 - 0xc0000000 results in 0x40000000 after an underflow, the reverse
+     * calculation 0xc0000000 + 0x40000000 results in 0 again after overflow. If
+     * 0x40000000 is a signed integer, result is likely the same, but the whole
+     * operation is completely undefined by C rules.
      */
-    uintptr_t phys_virt_offset;
+    word_t phys_virt_offset;
 };
 
 extern struct image_info kernel_info;

@@ -9,11 +9,16 @@
 #include <autoconf.h>
 #include <elfloader_common.h>
 
-typedef void (*init_riscv_kernel_t)(paddr_t ui_p_reg_start,
-                                    paddr_t ui_p_reg_end, int32_t pv_offset,
-                                    vaddr_t v_entry,
-                                    paddr_t dtb_addr_p,
-                                    uint32_t dtb_size
+/* This is a low level binary interface, thus we do not preserve the type
+ * information here. All parameters are just register values (or stack values
+ * that are register-sized).
+ */
+typedef void (*init_riscv_kernel_t)(word_t ui_p_reg_start,
+                                    word_t ui_p_reg_end,
+                                    word_t pv_offset,
+                                    word_t v_entry,
+                                    word_t dtb_addr_p,
+                                    word_t dtb_size
 #if CONFIG_MAX_NUM_NODES > 1
                                     ,
                                     word_t hart_id,

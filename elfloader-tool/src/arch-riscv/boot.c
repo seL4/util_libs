@@ -243,7 +243,7 @@ static int run_elfloader(UNUSED int hart_id, void *bootloader_dtb)
                                                   user_info.phys_region_end,
                                                   user_info.phys_virt_offset,
                                                   user_info.virt_entry,
-                                                  (paddr_t)dtb,
+                                                  (word_t)dtb,
                                                   dtb_size
 #if CONFIG_MAX_NUM_NODES > 1
                                                   ,
@@ -278,7 +278,7 @@ void secondary_entry(int hart_id, int core_id)
                                                   user_info.phys_region_end,
                                                   user_info.phys_virt_offset,
                                                   user_info.virt_entry,
-                                                  (paddr_t)dtb,
+                                                  (word_t)dtb,
                                                   dtb_size,
                                                   hart_id,
                                                   core_id
