@@ -98,44 +98,69 @@ static int unpack_elf_to_paddr(
     paddr_t dest_paddr)
 {
     int ret;
-    uint64_t min_vaddr, max_vaddr;
-    size_t image_size;
-
-    uintptr_t phys_virt_offset;
 
     /* Get the memory bounds. Unlike most other functions, this returns 1 on
      * success and anything else is an error.
      */
-    ret = elf_getMemoryBounds(elf, 0, &min_vaddr, &max_vaddr);
+    uint64_t u64_min_vaddr, u64_max_vaddr;
+    ret = elf_getMemoryBounds(elf, 0, &u64_min_vaddr, &u64_max_vaddr);
     if (ret != 1) {
         printf("ERROR: Could not get image size\n");
         return -1;
     }
 
-    image_size = (size_t)(max_vaddr - min_vaddr);
-    phys_virt_offset = dest_paddr - (paddr_t)min_vaddr;
+    /* Check that image virtual address range is sane */
+    if ((u64_min_vaddr > UINTPTR_MAX) || (u64_max_vaddr > UINTPTR_MAX)) {
+        printf("ERROR: image virtual address [%"PRIu64"..%"PRIu64"] exceeds "
+               "UINTPTR_MAX (%u)\n",
+               u64_min_vaddr, u64_max_vaddr, UINTPTR_MAX);
+        return -1;
+    }
+
+    vaddr_t max_vaddr = (vaddr_t)u64_max_vaddr;
+    vaddr_t min_vaddr = (vaddr_t)u64_min_vaddr;
+    size_t image_size = max_vaddr - min_vaddr;
+
+    if (dest_paddr + image_size < dest_paddr) {
+        printf("ERROR: image destination address integer overflow\n");
+        return -1;
+    }
 
     /* Zero out all memory in the region, as the ELF file may be sparse. */
-    memset((char *)dest_paddr, 0, image_size);
+    memset((void *)dest_paddr, 0, image_size);
 
     /* Load each segment in the ELF file. */
     for (unsigned int i = 0; i < elf_getNumProgramHeaders(elf); i++) {
-        vaddr_t dest_vaddr;
-        size_t data_size, data_offset;
-
         /* Skip segments that are not marked as being loadable. */
         if (elf_getProgramHeaderType(elf, i) != PT_LOAD) {
             continue;
         }
 
         /* Parse size/length headers. */
-        dest_vaddr = elf_getProgramHeaderVaddr(elf, i);
-        data_size = elf_getProgramHeaderFileSize(elf, i);
-        data_offset = elf_getProgramHeaderOffset(elf, i);
+        vaddr_t seg_vaddr = elf_getProgramHeaderVaddr(elf, i);
+        size_t seg_size = elf_getProgramHeaderFileSize(elf, i);
+        size_t seg_elf_offset = elf_getProgramHeaderOffset(elf, i);
+
+        size_t seg_virt_offset = seg_vaddr - min_vaddr;
+        paddr_t seg_dest_paddr = dest_paddr + seg_virt_offset;
+        void const *seg_src_addr = (void const *)((uintptr_t)elf +
+                                                  seg_elf_offset);
+
+        /* Check segment sanity and integer overflows. */
+        if ((seg_vaddr < min_vaddr) ||
+            (seg_size > image_size) ||
+            (seg_src_addr < elf) ||
+            ((uintptr_t)seg_src_addr + seg_size < (uintptr_t)elf) ||
+            (seg_virt_offset > image_size) ||
+            (seg_virt_offset + seg_size > image_size) ||
+            (seg_dest_paddr < dest_paddr) ||
+            (seg_dest_paddr + seg_size < dest_paddr)) {
+            printf("ERROR: segement %d invalid\n", i);
+            return -1;
+        }
 
         /* Load data into memory. */
-        memcpy((char *)dest_vaddr + phys_virt_offset,
-               (char *)elf + data_offset, data_size);
+        memcpy((void *)seg_dest_paddr, seg_src_addr, seg_size);
     }
 
     return 0;
