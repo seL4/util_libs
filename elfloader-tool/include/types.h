@@ -1,5 +1,6 @@
 /*
  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2021, HENSOLDT Cyber
  *
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -114,14 +115,12 @@ typedef uintptr_t   size_t;
  * word_t is practically an alias for size_t/uintptr_t on the platforms we
  * support so far.
  */
-#if defined(__KERNEL_32__)
-typedef uint32_t    word_t;
-#define PRI_word    "u"
-#elif defined(__KERNEL_64__)
-typedef uint64_t    word_t;
-#define PRI_word    PRIu64
-#else
-#error expecting either __KERNEL_32__ or __KERNEL_64__ to be defined
-#endif
+typedef uintptr_t    word_t;
+
+/* printf() format specifiers for word_t */
+#define PRId_word   PRIdPTR
+#define PRIi_word   PRIiPTR
+#define PRIu_word   PRIuPTR
+#define PRIx_word   PRIxPTR
 
 #define BYTE_PER_WORD   sizeof(word_t)
