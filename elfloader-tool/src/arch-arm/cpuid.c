@@ -92,11 +92,105 @@ void print_cpuid(void)
     if (CPUID_ARCH(cpuid) != CPUID_ARCH_CPUID) {
         printf("%s ", cpuid_get_arch_str(cpuid));
     }
-    if ((CPUID_PART(cpuid) & 0xf00) == 0xC00) {
-        printf("Cortex-A%d ", CPUID_PART(cpuid) & 0xff);
-    } else if ((CPUID_PART(cpuid) & 0xf00) == 0xD00) {
-        printf("Cortex-A5%d ", CPUID_PART(cpuid) & 0xff);
-    } else {
+    /* References: https://en.wikipedia.org/wiki/Comparison_of_ARMv8-A_cores */
+    switch (CPUID_PART(cpuid)) {
+    case 0xC05:
+        printf("Cortex-A5 ");
+        break;
+    case 0xC07:
+        printf("Cortex-A7 ");
+        break;
+    case 0xC08:
+        printf("Cortex-A8 ");
+        break;
+    case 0xC09:
+        printf("Cortex-A9 ");
+        break;
+    case 0xC0D:
+        printf("Cortex-A12 ");
+        break;
+    case 0xC0F:
+        printf("Cortex-A15 ");
+        break;
+    case 0xC0E:
+        printf("Cortex-A17 ");
+        break;
+    case 0xD01:
+        printf("Cortex-A32 ");
+        break;
+    case 0xD02:
+        printf("Cortex-A34 ");
+        break;
+    case 0xD03:
+        printf("Cortex-A53 ");
+        break;
+    case 0xD04:
+        printf("Cortex-A35 ");
+        break;
+    case 0xD05:
+        printf("Cortex-A55 ");
+        break;
+    case 0xD06:
+        printf("Cortex-A65 ");
+        break;
+    case 0xD07:
+        printf("Cortex-A57 ");
+        break;
+    case 0xD08:
+        printf("Cortex-A72 ");
+        break;
+    case 0xD09:
+        printf("Cortex-A73 ");
+        break;
+    case 0xD0A:
+        printf("Cortex-A75 ");
+        break;
+    case 0xD0B:
+        printf("Cortex-A76 ");
+        break;
+    case 0xD0C:
+        printf("Neoverse N1 ");
+        break;
+    case 0xD0D:
+        printf("Cortex-A77 ");
+        break;
+    case 0xD0E:
+        printf("Cortex-A76AE ");
+        break;
+    case 0xD40:
+        printf("Neoverse V1 ");
+        break;
+    case 0xD41:
+        printf("Cortex-A78 ");
+        break;
+    case 0xD42:
+        printf("Cortex-A78AE ");
+        break;
+    case 0xD43:
+        printf("Cortex-A65AE ");
+        break;
+    case 0xD44:
+        printf("Cortex-X1 ");
+        break;
+    case 0xD46:
+        printf("Cortex-A510 ");
+        break;
+    case 0xD47:
+        printf("Cortex-A710 ");
+        break;
+    case 0xD48:
+        printf("Cortex-X2 ");
+        break;
+    case 0xD49:
+        printf("Neoverse N2 ");
+        break;
+    case 0xD4A:
+        printf("Neoverse E1 ");
+        break;
+    case 0xD4B:
+        printf("Cortex-78C ");
+        break;
+    default:
         printf("Part: 0x%03x ", CPUID_PART(cpuid));
     }
 
