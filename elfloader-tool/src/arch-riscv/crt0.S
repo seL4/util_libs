@@ -30,8 +30,10 @@ _start:
   addi  gp, gp, %pcrel_lo(1b)
 .option pop
 
-/* a0 should have hart id, store it in s0 so as not to clobber from HSM calls */
+/* a0 should have hart id, store it in s0 so as not to clobber from HSM calls
+   a1 should have the dtb, store it in s2 so as not to clobber it as well */
   mv s0, a0
+  mv s2, a1
 
 #ifdef CONFIG_IMAGE_BINARY
 /* Clear the BSS before we get to do anything more specific */
@@ -83,6 +85,7 @@ _start1:
 
   la sp, (elfloader_stack_alloc + BIT(12))
 
+  mv a1, s2 // restore dtb to main's second argument
   la s0, main
   jr s0
 
