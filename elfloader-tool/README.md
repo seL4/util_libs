@@ -64,7 +64,7 @@ and supports loading a DTB from the EFI implementation.
 
 The elfloader on RISC-V basically follows the ARM platforms. However, due to the
 lack of available platforms, only two ways are currently supported actively:
-building it as ELF file or binary image. In bot cases the platform must provide
+building it as ELF file or binary image. In both cases the platform must provide
 a [SBI](https://github.com/riscv/riscv-sbi-doc) implementation, which will be
 used by the elfloader for the log output channel and the multicore boot. The
 seL4 build system allows building [`OpenSBI`](https://github.com/riscv/opensbi)
