@@ -8,6 +8,8 @@
 #include <printf.h>
 #include <abort.h>
 
+#define BYTE_PER_WORD   sizeof(word_t)
+
 /* Both memset and memcpy need a custom type that allows us to use a word
  * that has the aliasing properties of a char.
  */

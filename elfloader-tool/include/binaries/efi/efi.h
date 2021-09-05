@@ -75,9 +75,12 @@ typedef struct {
 extern void *__application_handle;
 extern efi_system_table_t *__efi_system_table;
 
+/* Errors have the highest bit set. */
+#define EFI_ERROR_FLAG                  (~(WORD_MAX >> 1))
+
 #define EFI_SUCCESS                     0
-#define EFI_LOAD_ERROR                  (1 | (1UL << ((BYTE_PER_WORD * 8) - 1)))
-#define EFI_BUFFER_TOO_SMALL            (5 | (1UL << ((BYTE_PER_WORD * 8) - 1)))
+#define EFI_LOAD_ERROR                  (1 | EFI_ERROR_FLAG)
+#define EFI_BUFFER_TOO_SMALL            (5 | EFI_ERROR_FLAG)
 
 /* EFI Memory types: */
 #define EFI_RESERVED_TYPE                0
@@ -98,17 +101,17 @@ extern efi_system_table_t *__efi_system_table;
 #define EFI_MAX_MEMORY_TYPE             15
 
 /* Attribute values: */
-#define EFI_MEMORY_UC                   ((uint64_t)0x1ULL)                  /* uncached */
-#define EFI_MEMORY_WC                   ((uint64_t)0x2ULL)                  /* write-coalescing */
-#define EFI_MEMORY_WT                   ((uint64_t)0x4ULL)                  /* write-through */
-#define EFI_MEMORY_WB                   ((uint64_t)0x8ULL)                  /* write-back */
-#define EFI_MEMORY_UCE                  ((uint64_t)0x10ULL)                 /* uncached, exported */
-#define EFI_MEMORY_WP                   ((uint64_t)0x1000ULL)               /* write-protect */
-#define EFI_MEMORY_RP                   ((uint64_t)0x2000ULL)               /* read-protect */
-#define EFI_MEMORY_XP                   ((uint64_t)0x4000ULL)               /* execute-protect */
-#define EFI_MEMORY_MORE_RELIABLE        ((uint64_t)0x10000ULL)              /* higher reliability */
-#define EFI_MEMORY_RO                   ((uint64_t)0x20000ULL)              /* read-only */
-#define EFI_MEMORY_RUNTIME              ((uint64_t)0x8000000000000000ULL)   /* range requires runtime mapping */
+#define EFI_MEMORY_UC                   (UINT64_C(1) << 0)    /* uncached */
+#define EFI_MEMORY_WC                   (UINT64_C(1) << 1)    /* write-coalescing */
+#define EFI_MEMORY_WT                   (UINT64_C(1) << 2)    /* write-through */
+#define EFI_MEMORY_WB                   (UINT64_C(1) << 3)    /* write-back */
+#define EFI_MEMORY_UCE                  (UINT64_C(1) << 4)    /* uncached, exported */
+#define EFI_MEMORY_WP                   (UINT64_C(1) << 12)   /* write-protect */
+#define EFI_MEMORY_RP                   (UINT64_C(1) << 13)   /* read-protect */
+#define EFI_MEMORY_XP                   (UINT64_C(1) << 14)   /* execute-protect */
+#define EFI_MEMORY_MORE_RELIABLE        (UINT64_C(1) << 16)   /* higher reliability */
+#define EFI_MEMORY_RO                   (UINT64_C(1) << 17)   /* read-only */
+#define EFI_MEMORY_RUNTIME              (UINT64_C(1) << 31)   /* range requires runtime mapping */
 #define EFI_MEMORY_DESCRIPTOR_VERSION   1
 
 #define EFI_PAGE_BITS                   12

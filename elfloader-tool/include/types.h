@@ -118,11 +118,10 @@ typedef uintptr_t   size_t;
  * support so far.
  */
 typedef uintptr_t    word_t;
+#define WORD_MAX     UINTPTR_MAX
 
 /* printf() format specifiers for word_t */
 #define PRId_word   PRIdPTR
 #define PRIi_word   PRIiPTR
 #define PRIu_word   PRIuPTR
 #define PRIx_word   PRIxPTR
-
-#define BYTE_PER_WORD   sizeof(word_t)
