@@ -93,7 +93,10 @@ function(DeclareRootserver rootservername)
         set(elf_target_file $<TARGET_FILE:elfloader>)
         if(KernelArchRiscV)
             if(UseRiscVOpenSBI)
-                # Package up our final elf image into OpenSBI.
+                # When using OpenSBI, the whole system image (usually consisting
+                # of the ELF-Loader, a device tree, the kernel, and a userland)
+                # is packaged as an OpenSBI payload.
+
                 if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
                     message(FATAL_ERROR "CROSS_COMPILER_PREFIX not set.")
                 endif()
@@ -102,22 +105,35 @@ function(DeclareRootserver rootservername)
                     message(FATAL_ERROR "KernelOpenSBIPlatform not set.")
                 endif()
 
+                if(NOT OPENSBI_PLAT_XLEN)
+                    set(OPENSBI_PLAT_XLEN "${KernelWordSize}")
+                endif()
+
+                if(NOT OPENSBI_PLAT_ISA)
+                    set(OPENSBI_PLAT_ISA "rv${OPENSBI_PLAT_XLEN}imafdc")
+                endif()
+
+                if(NOT OPENSBI_PLAT_ABI)
+                    if(Kernel32)
+                        set(OPENSBI_PLAT_ABI "ilp32d")
+                    else()
+                        set(OPENSBI_PLAT_ABI "lp64d")
+                    endif()
+                endif()
+
                 file(GLOB_RECURSE deps)
                 set(OPENSBI_BINARY_DIR "${CMAKE_BINARY_DIR}/opensbi")
+                # OPENSBI_PLAYLOAD is a binary dump of the system image ELF
                 set(OPENSBI_PLAYLOAD "${OPENSBI_BINARY_DIR}/payload")
-                if(Kernel32)
-                    set(PLATFORM_RISCV_ISA "rv32imafdc")
-                    set(PLATFORM_RISCV_ABI "ilp32d")
-                else()
-                    set(PLATFORM_RISCV_ISA "rv64imafdc")
-                    set(PLATFORM_RISCV_ABI "lp64d")
-                endif()
+                # OPENSBI_SYSTEM_IMAGE_ELF is the OpenSBI EFL file that contains
+                # our system image as firmware payload
                 set(
-                    OPENSBI_FW_PAYLOAD_ELF
+                    OPENSBI_SYSTEM_IMAGE_ELF
                     "${OPENSBI_BINARY_DIR}/platform/${KernelOpenSBIPlatform}/firmware/fw_payload.elf"
                 )
+
                 add_custom_command(
-                    OUTPUT "${OPENSBI_FW_PAYLOAD_ELF}"
+                    OUTPUT "${OPENSBI_SYSTEM_IMAGE_ELF}"
                     COMMAND mkdir -p "${OPENSBI_BINARY_DIR}"
                     COMMAND
                         make -s -C "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}"
@@ -127,14 +143,14 @@ function(DeclareRootserver rootservername)
                     COMMAND
                         make -C "${OPENSBI_PATH}" O="${OPENSBI_BINARY_DIR}"
                         CROSS_COMPILE=${CROSS_COMPILER_PREFIX} PLATFORM="${KernelOpenSBIPlatform}"
-                        PLATFORM_RISCV_XLEN=${KernelWordSize} FW_PAYLOAD_PATH="${OPENSBI_PLAYLOAD}"
-                        PLATFORM_RISCV_ISA=${PLATFORM_RISCV_ISA}
-                        PLATFORM_RISCV_ABI=${PLATFORM_RISCV_ABI}
+                        PLATFORM_RISCV_XLEN=${OPENSBI_PLAT_XLEN}
+                        PLATFORM_RISCV_ISA=${OPENSBI_PLAT_ISA}
+                        PLATFORM_RISCV_ABI=${OPENSBI_PLAT_ABI} FW_PAYLOAD_PATH="${OPENSBI_PLAYLOAD}"
                     DEPENDS "${elf_target_file}" elfloader ${USES_TERMINAL_DEBUG}
                 )
                 # overwrite elf_target_file, it's no longer the ElfLoader but
                 # the OpenSBI ELF (which contains the ElfLoader as payload)
-                set(elf_target_file "${OPENSBI_FW_PAYLOAD_ELF}")
+                set(elf_target_file "${OPENSBI_SYSTEM_IMAGE_ELF}")
             endif()
         endif()
         set(binary_efi_list "binary;efi")
