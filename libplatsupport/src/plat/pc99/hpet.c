@@ -123,7 +123,10 @@ int hpet_start(const hpet_t *hpet)
 
     hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     /* enable the global timer */
-    *hpet_get_general_config(hpet->base_addr) |= BIT(ENABLE_CNF);
+    /* volatile is used here to try and prevent the compiler from satisfying this
+       bitwise operation via byte only reads and writes. */
+    volatile uint64_t *general_config = hpet_get_general_config(hpet->base_addr);
+    *general_config |= BIT(ENABLE_CNF);
 
     /* make sure the comparator is 0 before we turn time0 on*/
     timer->comparator = 0llu;
