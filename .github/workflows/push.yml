@@ -31,3 +31,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: seL4/ci-actions/style@master
+      with:
+        diff_only: true
