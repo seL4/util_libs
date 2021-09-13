@@ -726,7 +726,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
      */
     bool do_promiscuous_mode = nic_config &&
                                (nic_config->flags & NIC_CONFIG_PROMISCUOUS_MODE);
-    ZF_LOGI("config: promiscuous mode %s", do_strip_crc ? "ON" : "OFF");
+    ZF_LOGI("config: promiscuous mode %s", do_promiscuous_mode ? "ON" : "OFF");
     if (do_promiscuous_mode) {
         enet_prom_enable(dev->enet);
     } else {
