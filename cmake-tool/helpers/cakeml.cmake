@@ -72,8 +72,6 @@ function(DeclareCakeMLLib library_name)
     # Work out what --target we need to pass to cake
     if(KernelSel4ArchX86_64)
         set(CAKE_TARGET "x64")
-    elseif(KernelArchArmV6)
-        message(FATAL_ERROR "ArmV6 not supported for CakeML builds.")
     elseif(KernelArchArmV7a OR KernelArchArmV7ve)
         set(CAKE_TARGET "arm7")
     elseif(KernelArchArmV8a)
