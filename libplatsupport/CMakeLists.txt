@@ -53,7 +53,6 @@ if(${KernelArch} STREQUAL "arm")
     list(APPEND deps src/arch/arm/irqchip/gic.c)
     list(APPEND deps src/arch/arm/irqchip/tegra.c)
     list(APPEND deps src/arch/arm/irqchip/gicv3.c)
-    list(APPEND deps src/arch/arm/irqchip/avic.c)
     list(APPEND deps src/arch/arm/irqchip/omap3.c)
     # Link the IRQ chip parser modules
     list(
@@ -82,7 +81,7 @@ elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos
     list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
 endif()
 
-if(KernelPlatImx6 OR KernelPlatformImx7Sabre OR KernelPlatformKZM)
+if(KernelPlatImx6 OR KernelPlatformImx7Sabre)
     list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
 endif()
 
