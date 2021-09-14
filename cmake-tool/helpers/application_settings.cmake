@@ -157,7 +157,6 @@ function(correct_platform_strings)
         #
         "-KernelARMPlatform"
         "imx6:sabre,wandq,nitrogen6sx"
-        "imx31:kzm"
         "bcm2837:rpi3"
         "bcm2711:rpi4"
         "exynos5:exynos5250,exynos5410,exynos5422"
