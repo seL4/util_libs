@@ -8,6 +8,17 @@
 #pragma once
 
 /*------------------------------------------------------------------------------
+ * _Static_assert() is a c11 feature, emulate it for older versions.
+ */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define compile_assert(name, expr)   _Static_assert(expr, #name);
+#else
+#define compile_assert(name, expr) \
+    typedef int __assert_failed_##name[(expr) ? 1 : -1] __attribute__((unused));
+#endif
+
+
+/*------------------------------------------------------------------------------
  * helper macro that ensure the passed macro gets evaluated first before the
  * concatenation happens. The concat macros even work when a parameter is
  * defined to be empty,
@@ -48,6 +59,8 @@ typedef unsigned int    uint32_t;
 #else
 #error expecting either __KERNEL_32__ or __KERNEL_64__ to be defined
 #endif
+
+compile_assert(valid_int64_type, 8 == sizeof(_int64_type));
 
 typedef signed _int64_type      int64_t;
 typedef unsigned _int64_type    uint64_t;
