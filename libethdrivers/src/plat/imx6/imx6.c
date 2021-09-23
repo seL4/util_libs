@@ -188,6 +188,7 @@ static void fill_rx_bufs(imx6_eth_driver_t *dev)
                  * small because CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
                  * is less than CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT.
                  */
+                ZF_LOGF("There are no buffers left.");
                 break;
             }
             uint16_t stat = RXD_EMPTY;
@@ -415,7 +416,8 @@ static void complete_tx(imx6_eth_driver_t *dev)
             if (!enet_tx_enabled(dev->enet)) {
                 enet_tx_enable(dev->enet);
             }
-            return;
+            //ZF_LOGF("The buffer was not sent and we can't release any buffers.");
+            //enet_print_state(dev->enet);;
         }
 
         /* Go to next buffer, handle roll-over. */
@@ -423,14 +425,13 @@ static void complete_tx(imx6_eth_driver_t *dev)
             head = 0;
         }
 
-        if (0 == --cnt) {
+        if (0 == --cnt && !(d->stat & TXD_READY)) {
             ring->head = head;
             /* race condition if add/remove is not synchronized. */
             ring->remain += cnt_org;
             /* give the buffer back */
             cb_complete(cb_cookie, cookie);
         }
-
     }
 
     /* The only reason to arrive here is when head equals tails. If cnt is not

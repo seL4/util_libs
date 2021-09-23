@@ -413,6 +413,8 @@ static err_t ethif_init(struct netif *netif)
         return ERR_ARG;
     }
 
+    printf("Does this file, lwip.c, get used\n");
+
     lwip_iface_t *iface = (lwip_iface_t *)netif->state;
     int mtu;
     iface->driver.i_fn.low_level_init(&iface->driver, netif->hwaddr, &mtu);
