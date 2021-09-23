@@ -639,8 +639,8 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 
     int ret;
 
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
-    /* Don't attempt to obtain the MAC address for iMX8.
+#if defined(CONFIG_PLAT_IMX8MQ_EVK)
+    /* Don't attempt to obtain the MAC address for iMX8MQ.
      *
      * The code to obtain the MAC address assumes an iMX6 compatible
      * OCOTP which the iMX8 does not have.
@@ -650,6 +650,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     uint64_t mac = 0;
     ZF_LOGI("using MAC configured by bootloader");
 #else
+    /* this works for imx8mm however */
     uint64_t mac = obtain_mac(nic_config, &(dev->eth_drv.io_ops.io_mapper));
     if (0 == mac) {
         ZF_LOGE("Failed to obtain a MAC");
@@ -753,7 +754,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     /* Initialise the phy */
 #if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_IMX8MQ_EVK)
     phy_micrel_init();
-#elif defined(CONFIG_PLAT_NITROGEN6SX)
+#elif defined(CONFIG_PLAT_NITROGEN6SX) || defined(CONFIG_PLAT_IMX8MM_EVK)
     phy_atheros_init();
 #else
 #error "unsupported board"
@@ -839,11 +840,12 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num,
     assert(token);
     imx6_eth_driver_t *dev = (imx6_eth_driver_t *)token;
 
-    unsigned target_num = config_set(CONFIG_PLAT_IMX8MQ_EVK) ? 2 : 0;
+    /*unsigned target_num = config_set(CONFIG_PLAT_IMX8MQ_EVK) ? 2 : 0;
+    ZF_LOGW("target_num = %d", target_num);
     if (curr_num != target_num) {
         ZF_LOGW("Ignoring interrupt #%d with value %d", curr_num, irq);
         return 0;
-    }
+    }*/
 
     dev->irq_id = ps_irq_register(
                       &(dev->eth_drv.io_ops.irq_ops),
@@ -990,6 +992,7 @@ static const char *compatible_strings[] = {
     "fsl,imx6q-fec",
     "fsl,imx6sx-fec",
     "fsl,imx8mq-fec",
+    "fsl,imx8mm-fec",
     NULL
 };
 

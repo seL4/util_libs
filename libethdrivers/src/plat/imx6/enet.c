@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
-#define CCM_PADDR 0x30380000
+#if (defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK))
+#define CCM_PADDR 0x30380000 // from: root/arch/arm/include/asm/arch-imx8m/imx-regs-imx8mm.h
 #define CCM_SIZE 0x10000
 #endif
 
@@ -314,7 +314,7 @@ static struct clock mdc_clk = {
 };
 
 
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
+#if (defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK))
 
 static freq_t _enet_clk_get_freq(clk_t *clk)
 {
@@ -558,7 +558,7 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
     clk_set_freq(enet_clk_ptr, ENET_FREQ);
 
-#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
 
     enet_clk_ptr = &enet_clk;
     // TODO Implement an actual clock driver for the imx8mq
@@ -606,7 +606,7 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     regs->gaur = 0;
     regs->galr = 0;
 
-#ifndef CONFIG_PLAT_IMX8MQ_EVK
+#if defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
 	/* For iMX.8 we assume that the bootloader has already correctly
 	 * configured the MAC address */
     /* Set MAC and pause frame type field */

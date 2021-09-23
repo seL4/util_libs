@@ -59,6 +59,12 @@
 #define IOMUXC_PADDR    0x30330000
 #define IOMUXC_SIZE     0x10000
 
+#elif defined(CONFIG_PLAT_IMX8MM_EVK)
+#include "imx8mm_pins.h"
+
+#define IOMUXC_PADDR    0x30330000 // from: root/arch/arm/include/asm/arch-imx8m/imx-regs-imx8mm.h
+#define IOMUXC_SIZE     0x10000
+
 #else
 #error "unknown i.MX SOC"
 #endif
@@ -129,7 +135,6 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     }
 
 #if defined(CONFIG_PLAT_IMX8MQ_EVK)
-
     /* see the IMX8 reference manual for what the options mean,
      * Section 8.2.4 i.e. IOMUXC_SW_PAD_CTL_PAD_* registers */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
@@ -154,6 +159,32 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
     udelay(500);
     gpio_direction_output(IMX_GPIO_NR(1, 9), 1, io_ops);
 
+    uint32_t *gpr1 = base + 0x4;
+    /* Change ENET_TX to use internal clocks and not the external clocks */
+    *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
+
+#elif defined(CONFIG_PLAT_IMX8MM_EVK)
+
+    /* Does PHY need to go into reset before this? */ 
+    /* Pad configuration below from device tree on u-boot */ 
+    IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
+        base,
+        IMX8MM_PAD_ENET_MDC_ENET1_MDC | MUX_PAD_CTRL(0x3),
+        IMX8MM_PAD_ENET_MDIO_ENET1_MDIO | MUX_PAD_CTRL(0x3),
+        IMX8MM_PAD_ENET_TD3_ENET1_RGMII_TD3 | MUX_PAD_CTRL(0x1f),
+        IMX8MM_PAD_ENET_TD2_ENET1_RGMII_TD2 | MUX_PAD_CTRL(0x1f),
+        IMX8MM_PAD_ENET_TD1_ENET1_RGMII_TD1 | MUX_PAD_CTRL(0x1f),
+        IMX8MM_PAD_ENET_TD0_ENET1_RGMII_TD0 | MUX_PAD_CTRL(0x1f),
+        IMX8MM_PAD_ENET_RD3_ENET1_RGMII_RD3 | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_RD2_ENET1_RGMII_RD2 | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_RD1_ENET1_RGMII_RD1 | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_RD0_ENET1_RGMII_RD0 | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_TXC_ENET1_RGMII_TXC | MUX_PAD_CTRL(0x1f),
+        IMX8MM_PAD_ENET_RXC_ENET1_RGMII_RXC | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_RX_CTL_ENET1_RGMII_RX_CTL | MUX_PAD_CTRL(0x91),
+        IMX8MM_PAD_ENET_TX_CTL_ENET1_RGMII_TX_CTL  | MUX_PAD_CTRL(0x1f)
+    );
+ 
     uint32_t *gpr1 = base + 0x4;
     /* Change ENET_TX to use internal clocks and not the external clocks */
     *gpr1 = *gpr1 & ~(BIT(17) | BIT(13));
