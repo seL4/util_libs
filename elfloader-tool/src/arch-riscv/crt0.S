@@ -69,9 +69,10 @@ _start:
   li a6, SBI_EXT_BASE_PROBE_EXT
   li a0, SBI_HSM_BASE
   ecall /* call SBI to probe for HSM extension */
-  mv a0, s0
-  li s1, 1
-  blt x1, s1, _start1
+  mv a2, a0 /* move SBI call generic return code to s2 as we need a0 */
+  mv a0, s0 /* restore a0 to hold hart ID passed by the boot loader */
+  bnez a2, _start1 /* goto _start1 if SBI did not return SBI_SUCCESS (0) */
+  beqz a1, _start1 /* goto _start1 if HSM extension is missing */
 
   /* Update global bool variable to tell boot code the HSM extension exists. */
   la t1, hsm_exists
@@ -79,7 +80,6 @@ _start:
   amoadd.w t1, t2, (t1)
 
   /*  Check if we are on CONFIG_FIRST_HART_ID */
-  mv a0, s0 /* a0 = s0 (which holds the hart ID passed by the boot loader */
   li s1, CONFIG_FIRST_HART_ID
   beq  a0, s1, _start1 /* goto _start1 if we are on CONFIG_FIRST_HART_ID */
 
