@@ -13,6 +13,8 @@
 .extern hsm_exists
 
 #define BIT(n) (1 << (n))
+
+/* SBI commands */
 #define SBI_HSM_BASE 0x48534DULL
 #define SBI_HSM_BASE_HART_START 0
 #define SBI_EXT_BASE 0x10
@@ -20,7 +22,25 @@
 
 .section ".text.start"
 
-/* OpenSBI starts all HARTs and sends them to this entry point. */
+/* OpenSBI starts us these parameters:
+ *   a0: hart id
+ *   a1: dtb
+ *
+ * On RISC-V, only M-Mode can access the CSR mhartid to get the actual hart ID,
+ * the SBI running there is responsible for passing this ID up. In S-Mode there
+ * is no way to ever query it again, so we have to preserve what we get passed
+ * here. This is a RISC-V design decision, more background can be found at
+ * https://github.com/riscv/riscv-sbi-doc/issues/25.
+ * It seems that OpenSBI starts us at a random hart and keeps all other harts
+ * suspended or spinning. However, even on non-SMP configurations there might
+ * be an expectation that we are running on CONFIG_FIRST_HART_ID. If the current
+ * hart turns out to be a different one, we have to switch harts somehow. The
+ * SBI Heart State Management (HSM) extension exists for this, but it might not
+ * be implemented. In this case, there is nothing we can do here in the assembly
+ * startup code, but C boot code might still have platform specific proprietary
+ * ways to switch harts.
+ */
+
 .global _start
 _start:
 
@@ -30,49 +50,53 @@ _start:
   addi  gp, gp, %pcrel_lo(1b)
 .option pop
 
-/* a0 should have hart id, store it in s0 so as not to clobber from HSM calls
-   a1 should have the dtb, store it in s2 so as not to clobber it as well */
-  mv s0, a0
-  mv s2, a1
+  /* save the parameters passed */
+  mv s0, a0 /* preserve a0 (hart id) in s0 */
+  mv s2, a1 /* preserve a1 (dtb) in s2 */
 
 #ifdef CONFIG_IMAGE_BINARY
 /* Clear the BSS before we get to do anything more specific */
   jal clear_bss
 #endif
 
-/* Check Heart State Management extension exists so we can use that to switch harts
-   if we are not hart CONFIG_FIRST_HART_ID, otherwise rely on the legacy extension. */
-
-/* sbi_probe_extension: Returns 0 if the given SBI extension ID (EID) is not available,
-   or an extension-specific non-zero value if it is available.*/
-
+  /* Check if the Heart State Management (HSM) extension exists, so it can be
+   * used to switch harts if we are not running on hart CONFIG_FIRST_HART_ID.
+   * The SBI returns SBI_SUCCESS (0) in a0 if the call could be processed or an
+   * error code if not. On SBI_SUCCESS the value in a1 is 0 if the extension is
+   * not available or an extension-specific non-zero value if it is available.
+   */
   jal spi_probe_extension
   mv a0, s0
   li s1, 1
   blt x1, s1, _start1
 
-/* Update bool to tell boot code HSM exists */
+  /* Update global bool variable to tell boot code the HSM extension exists. */
   la t1, hsm_exists
   li t2, 1
   amoadd.w t1, t2, (t1)
 
-  mv a0, s0
+  /*  Check if we are on CONFIG_FIRST_HART_ID */
+  mv a0, s0 /* a0 = s0 (which holds the hart ID passed by the boot loader */
   li s1, CONFIG_FIRST_HART_ID
-  beq  a0, s1, _start1
+  beq  a0, s1, _start1 /* goto _start1 if we are on CONFIG_FIRST_HART_ID */
 
-/* start hart CONFIG_FIRST_HART_ID */
+  /* Use HSM extension to start hart CONFIG_FIRST_HART_ID. */
 hsm_switch_hart:
   li a7, SBI_HSM_BASE
   li a6, SBI_HSM_BASE_HART_START
-  li a0, CONFIG_FIRST_HART_ID       // hart id to start
-  la a1, _start1 // where to start new hart
-  li a2, 0       // passed in a1 when new hart starts, this is the logical hart_id
-  ecall
+  li a0, CONFIG_FIRST_HART_ID /* hart id to start */
+  la a1, _start1 /* where to start the hart */
+  li a2, 0 /* logical hart_id to be passed in a1 when new hart starts */
+  ecall /* call SBI to start hart FIRST_HART_ID */
 
-  mv a0, s0 // Copy the ID of the HART again, since we've clobbered a0
+  /* Since we are not the designated primary hart, continue the boot process as
+   * secondary hart
+   */
+  mv a0, s0 /* restore a0 to hold hart ID passed by OpenSBI */
   j secondary_harts
 
-_start1:
+
+_start1: /* a0 must hold current hard ID passed by bootloader */
 
 .option push
 .option norelax
@@ -84,8 +108,11 @@ _start1:
   bne  a0, s0, secondary_harts
 
   la sp, (elfloader_stack_alloc + BIT(12))
-
-  mv a1, s2 // restore dtb to main's second argument
+  /* The C code expects the registers to be set up as:
+   *   a0 = hart id
+   *   a1 = dtb
+   */
+  mv a1, s2 /* restore dtb passed on entry */
   la s0, main
   jr s0
 
