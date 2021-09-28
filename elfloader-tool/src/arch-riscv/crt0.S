@@ -65,7 +65,10 @@ _start:
    * error code if not. On SBI_SUCCESS the value in a1 is 0 if the extension is
    * not available or an extension-specific non-zero value if it is available.
    */
-  jal spi_probe_extension
+  li a7, SBI_EXT_BASE
+  li a6, SBI_EXT_BASE_PROBE_EXT
+  li a0, SBI_HSM_BASE
+  ecall /* call SBI to probe for HSM extension */
   mv a0, s0
   li s1, 1
   blt x1, s1, _start1
@@ -153,10 +156,3 @@ secondary_harts:
 spin_hart:
   wfi
   j spin_hart
-
-spi_probe_extension:
-  li a7, SBI_EXT_BASE
-  li a6, SBI_EXT_BASE_PROBE_EXT
-  li a0, SBI_HSM_BASE
-  ecall
-  ret
