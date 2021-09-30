@@ -21,11 +21,6 @@
 #define DMA_PAGE_SIZE       4096
 #define DMA_ALIGNEMENT      4096
 
-// The actual mailbox base address is 0x3F00B880 but mappings have to be page
-// aligned (actually DMA_PAGE_SIZE aligned).
-#define MAILBOX_PADDR       0x3f00b000
-#define MAILBOX_SIZE        0x1000
-
 // See: https://github.com/raspberrypi/firmware/wiki/Accessing-mailboxes#addresses-as-data
 #define VC_BASE_CACHED      0x40000000
 #define VC_BASE_UNCACHED    0xC0000000
@@ -166,7 +161,7 @@ static int mailbox_command(
     return 0;
 }
 
-static int bcm2837_mailbox_message(
+static int mailbox_message(
     mailbox_t  *mbox,
     uint32_t    tag_id,
     void       *request_tag,
@@ -211,24 +206,29 @@ static int bcm2837_mailbox_message(
     if (status != 0) {
         ZF_LOGE("Mailbox command error - code: %d!", status);
         return status;
-    } else if (rsp != buffer_address) {
+    }
+
+    if (rsp != buffer_address) {
         ZF_LOGE("Mailbox response should be buffer address!");
         return MAILBOX_ERR_INTERNAL;
-    } else if (buffer->buffer_size != sizeof(MailboxInterface_PropertyBuffer_t)
-               + tag_size
-               + sizeof(uint32_t)) {
-        ZF_LOGE("Wrong buffer size returned!");
-        return MAILBOX_ERR_BUFFER;
-    } else if (buffer->code != CODE_BUFFER_RESPONSE_SUCCESS) {
+    }
+
+    if (buffer->code != CODE_BUFFER_RESPONSE_SUCCESS) {
         ZF_LOGE("Mailbox response is not successful!");
         return MAILBOX_ERR_BUFFER;
-    } else if (tags->tag_id != tag_id) {
+    }
+
+    if (tags->tag_id != tag_id) {
         ZF_LOGE("Wrong tag id returned!");
         return MAILBOX_ERR_TAG;
-    } else if (!(tags->value_length & VALUE_LENGTH_RESPONSE)) {
+    }
+
+    if (!(tags->value_length & VALUE_LENGTH_RESPONSE)) {
         ZF_LOGE("Received tag is not a response!");
         return MAILBOX_ERR_TAG;
-    } else if ((tags->value_length &= ~VALUE_LENGTH_RESPONSE) == 0) {
+    }
+
+    if ((tags->value_length &= ~VALUE_LENGTH_RESPONSE) == 0) {
         ZF_LOGE("Value buffer has length 0 bytes!");
         return MAILBOX_ERR_TAG;
     }
@@ -244,7 +244,7 @@ int mailbox_init(ps_io_ops_t *io_ops, mailbox_t *mailbox)
     MAP_IF_NULL(io_ops, MAILBOX, reg);
     mailbox->priv = reg;
     mailbox->dma_man = &io_ops->dma_manager;
-    mailbox->message = &bcm2837_mailbox_message;
+    mailbox->message = &mailbox_message;
     mailbox->buffer  = mailbox->dma_man->dma_alloc_fn(
                            mailbox->dma_man->cookie,
                            DMA_PAGE_SIZE,

@@ -34,20 +34,26 @@ config_choice(
     "ega;LibPlatSupportX86ConsoleDeviceEGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA;KernelPlatPC99"
 )
 
-if(NOT ${KernelArmMach} STREQUAL "")
+set(LibPlatSupportMach "")
+if(KernelPlatformRpi3 OR KernelPlatformRpi4)
+    set(LibPlatSupportMach "bcm283x")
+elseif(NOT ${KernelArmMach} STREQUAL "")
+    # falling back to kernel settings is done to keep legacy compatibility
     set(LibPlatSupportMach "${KernelArmMach}")
-else()
-    set(LibPlatSupportMach "")
 endif()
 
 file(
     GLOB
         deps
-        src/mach/${LibPlatSupportMach}/*.c
         src/plat/${KernelPlatform}/*.c
         src/*.c
         src/plat/${KernelPlatform}/acpi/*.c
 )
+
+if(NOT ${LibPlatSupportMach} STREQUAL "")
+    file(GLOB lib_deps "src/mach/${LibPlatSupportMach}/*.c")
+    list(APPEND deps ${lib_deps})
+endif()
 
 if(${KernelArch} STREQUAL "arm")
     list(APPEND deps src/arch/arm/clock.c)

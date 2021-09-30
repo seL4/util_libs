@@ -11,7 +11,7 @@
  * - https://github.com/raspberrypi/documentation/blob/JamesH65-mailbox_docs/configuration/mailboxes/propertiesARM-VC.md
  */
 
-#include <platsupport/plat/mailbox_util.h>
+#include <platsupport/mach/mailbox_util.h>
 #include <string.h>
 
 static int mbox_req_resp(mailbox_t   *mbox,
@@ -43,7 +43,7 @@ static int mbox_req_resp(mailbox_t   *mbox,
  * @param device_id Device ID of device that should be activated.
  * @return          true on success, false on failure
  */
-bool bcm2711_set_power_state_on(mailbox_t *mbox, uint32_t device_id)
+bool mailbox_set_power_state_on(mailbox_t *mbox, uint32_t device_id)
 {
     PropertyTag_SetPowerState_Request_t TagRequest = {
         .device_id = device_id,
@@ -77,7 +77,7 @@ bool bcm2711_set_power_state_on(mailbox_t *mbox, uint32_t device_id)
  * @return          requested clock rate on success, 0 on failure (e.g. clock id
  *                  is not valid -> clock does not exist)
  */
-int bcm2711_get_clock_rate(mailbox_t *mbox, uint32_t clock_id)
+int mailbox_get_clock_rate(mailbox_t *mbox, uint32_t clock_id)
 {
     PropertyTag_GetClockRate_Request_t TagRequest = {
         .clock_id = clock_id
@@ -108,7 +108,7 @@ int bcm2711_get_clock_rate(mailbox_t *mbox, uint32_t clock_id)
  *                  be copied to.
  * @return          true on success, false on failure
  */
-bool bcm2711_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE])
+bool mailbox_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE])
 {
     PropertyTag_GetMACAddress_Request_t TagRequest;
     PropertyTag_GetMACAddress_Response_t TagResponse;
