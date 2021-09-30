@@ -108,10 +108,10 @@ PropertyTag_GetMACAddress_Response_t;
 //-----------------------------Mailbox Functions------------------------------//
 ////////////////////////////////////////////////////////////////////////////////
 
-bool bcm2711_set_power_state_on(mailbox_t *mbox, uint32_t device_id);
+bool mailbox_set_power_state_on(mailbox_t *mbox, uint32_t device_id);
 
-int bcm2711_get_clock_rate(mailbox_t *mbox, uint32_t clock_id);
+int mailbox_get_clock_rate(mailbox_t *mbox, uint32_t clock_id);
 
-bool bcm2711_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE]);
+bool mailbox_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE]);
 
 // TODO: Add more mailbox functions if needed
