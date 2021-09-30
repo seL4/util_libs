@@ -34,10 +34,16 @@ config_choice(
     "ega;LibPlatSupportX86ConsoleDeviceEGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA;KernelPlatPC99"
 )
 
+if(NOT ${KernelArmMach} STREQUAL "")
+    set(LibPlatSupportMach "${KernelArmMach}")
+else()
+    set(LibPlatSupportMach "")
+endif()
+
 file(
     GLOB
         deps
-        src/mach/${KernelArmMach}/*.c
+        src/mach/${LibPlatSupportMach}/*.c
         src/plat/${KernelPlatform}/*.c
         src/*.c
         src/plat/${KernelPlatform}/acpi/*.c
@@ -76,13 +82,13 @@ if(KernelPlatformQEMUArmVirt)
 endif()
 
 if(KernelPlatformExynos5422)
-    list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_5422_clock.c)
+    list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_5422_clock.c)
 elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos5250)
-    list(APPEND deps src/mach/${KernelArmMach}/clock/exynos_common_clock.c)
+    list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_common_clock.c)
 endif()
 
 if(KernelPlatImx6 OR KernelPlatformImx7Sabre)
-    list(APPEND deps src/mach/${KernelArmMach}/epit/epit.c)
+    list(APPEND deps src/mach/${LibPlatSupportMach}/epit/epit.c)
 endif()
 
 if(
@@ -91,7 +97,7 @@ if(
     OR KernelPlatformImx8mq-evk
     OR KernelPlatformImx8mm-evk
 )
-    list(APPEND deps src/mach/${KernelArmMach}/serial/serial.c)
+    list(APPEND deps src/mach/${LibPlatSupportMach}/serial/serial.c)
 endif()
 
 if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
@@ -118,8 +124,8 @@ if(KernelPlatformZynqmpZcu102 OR KernelPlatformZynqmpUltra96)
     target_include_directories(platsupport PUBLIC plat_include/zynqmp)
 endif()
 
-if(NOT "${KernelArmMach}" STREQUAL "")
-    target_include_directories(platsupport PUBLIC mach_include/${KernelArmMach})
+if(NOT "${LibPlatSupportMach}" STREQUAL "")
+    target_include_directories(platsupport PUBLIC mach_include/${LibPlatSupportMach})
 endif()
 
 # special handling for "arm_hyp", it's an add-on-hack over "aarch32"
