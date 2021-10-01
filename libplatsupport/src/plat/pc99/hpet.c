@@ -100,22 +100,22 @@ enum {
 
 static inline uint64_t *hpet_get_general_config(void *vaddr)
 {
-    return (uint64_t*)((uintptr_t)vaddr + GENERAL_CONFIG_REG);
+    return (uint64_t *)((uintptr_t)vaddr + GENERAL_CONFIG_REG);
 }
 
 static inline uint64_t *hpet_get_main_counter(void *vaddr)
 {
-    return (uint64_t*)((uintptr_t)vaddr + MAIN_COUNTER_REG);
+    return (uint64_t *)((uintptr_t)vaddr + MAIN_COUNTER_REG);
 }
 
 static inline uint64_t *hpet_get_cap_id(void *vaddr)
 {
-    return (uint64_t*)((uintptr_t)vaddr + CAP_ID_REG);
+    return (uint64_t *)((uintptr_t)vaddr + CAP_ID_REG);
 }
 
 static inline hpet_timer_t *hpet_get_hpet_timer(void *vaddr, unsigned int timer)
 {
-    return ((hpet_timer_t*)((uintptr_t)vaddr + TIMERS_OFFSET)) + timer;
+    return ((hpet_timer_t *)((uintptr_t)vaddr + TIMERS_OFFSET)) + timer;
 }
 
 int hpet_start(const hpet_t *hpet)
@@ -123,7 +123,10 @@ int hpet_start(const hpet_t *hpet)
 
     hpet_timer_t *timer = hpet_get_hpet_timer(hpet->base_addr, 0);
     /* enable the global timer */
-    *hpet_get_general_config(hpet->base_addr) |= BIT(ENABLE_CNF);
+    /* volatile is used here to try and prevent the compiler from satisfying this
+       bitwise operation via byte only reads and writes. */
+    volatile uint64_t *general_config = hpet_get_general_config(hpet->base_addr);
+    *general_config |= BIT(ENABLE_CNF);
 
     /* make sure the comparator is 0 before we turn time0 on*/
     timer->comparator = 0llu;
@@ -160,7 +163,8 @@ uint64_t hpet_get_time(const hpet_t *hpet)
         time = *hpet_get_main_counter(hpet->base_addr);
         COMPILER_MEMORY_ACQUIRE();
         /* race condition on 32-bit systems: check the bottom 32 bits didn't overflow */
-    } while (CONFIG_WORD_SIZE == 32 && ((uint32_t) (time >> 32llu)) != ((uint32_t *)hpet_get_main_counter(hpet->base_addr))[1]);
+    } while (CONFIG_WORD_SIZE == 32
+             && ((uint32_t)(time >> 32llu)) != ((uint32_t *)hpet_get_main_counter(hpet->base_addr))[1]);
 
     return time * hpet->period_ns;
 }
@@ -256,7 +260,7 @@ int hpet_init(hpet_t *hpet, hpet_config_t config)
     COMPILER_MEMORY_RELEASE();
 
     /* read the period of the timer (its in femptoseconds) and calculate no of ticks per ns */
-    uint32_t tick_period_fs = (uint32_t) (*hpet_get_cap_id(hpet->base_addr) >> 32llu);
+    uint32_t tick_period_fs = (uint32_t)(*hpet_get_cap_id(hpet->base_addr) >> 32llu);
     hpet->period_ns = tick_period_fs / 1000000;
 
     return 0;

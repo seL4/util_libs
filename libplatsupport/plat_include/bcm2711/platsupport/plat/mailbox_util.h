@@ -41,17 +41,26 @@ enum {
     DEVICE_ID_CCP2TX
 };
 
-// Property Tags: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+////////////////////////////////////////////////////////////////////////////////
+//--------------------------------Property Tags-------------------------------//
+////////////////////////////////////////////////////////////////////////////////
+
+// See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
 #define TAG_SET_POWER_STATE     0x00028001
 #define TAG_GET_CLOCK_RATE      0x00030002
+#define TAG_GET_MAC_ADDRESS     0x00010003
 
 // TODO: Add more property tags if needed
+
+////////////////////////////////////////////////////////////////////////////////
+//-----------------------------Request/Reponse Tags---------------------------//
+////////////////////////////////////////////////////////////////////////////////
 
 // See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface#set-power-state
 #define SET_POWER_STATE_OFF             (0u << 0)
 #define SET_POWER_STATE_ON              (1u << 0)
 #define SET_POWER_STATE_WAIT            (1u << 1)
-typedef struct PropertyTag_SetPowerState_Request {
+typedef struct {
     MailboxInterface_PropertyTag_t tag;
     uint32_t device_id;
     uint32_t state;
@@ -59,7 +68,7 @@ typedef struct PropertyTag_SetPowerState_Request {
 PropertyTag_SetPowerState_Request_t;
 
 #define SET_POWER_STATE_NO_DEVICE       (1u << 1)
-typedef struct PropertyTag_SetPowerState_Response {
+typedef struct {
     MailboxInterface_PropertyTag_t tag;
     uint32_t device_id;
     uint32_t state;
@@ -67,21 +76,42 @@ typedef struct PropertyTag_SetPowerState_Response {
 PropertyTag_SetPowerState_Response_t;
 
 // See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface#get-clock-rate
-typedef struct PropertyTag_GetClockRate_Request {
+typedef struct {
     MailboxInterface_PropertyTag_t tag;
     uint32_t clock_id;
 }
 PropertyTag_GetClockRate_Request_t;
 
-typedef struct PropertyTag_GetClockRate_Response {
+typedef struct {
     MailboxInterface_PropertyTag_t tag;
     uint32_t clock_id;
     uint32_t rate;
 }
 PropertyTag_GetClockRate_Response_t;
 
+// See: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface#get-board-mac-address
+#define MAC_ADDRESS_SIZE 6
+typedef struct {
+    MailboxInterface_PropertyTag_t tag;
+}
+PropertyTag_GetMACAddress_Request_t;
+
+typedef struct {
+    MailboxInterface_PropertyTag_t tag;
+    uint8_t mac_address[MAC_ADDRESS_SIZE];
+}
+PropertyTag_GetMACAddress_Response_t;
+
+// TODO: Add more request/reponse tags if needed
+
+////////////////////////////////////////////////////////////////////////////////
+//-----------------------------Mailbox Functions------------------------------//
+////////////////////////////////////////////////////////////////////////////////
+
 bool bcm2711_set_power_state_on(mailbox_t *mbox, uint32_t device_id);
 
 int bcm2711_get_clock_rate(mailbox_t *mbox, uint32_t clock_id);
+
+bool bcm2711_get_mac_address(mailbox_t *mbox, uint8_t buffer[MAC_ADDRESS_SIZE]);
 
 // TODO: Add more mailbox functions if needed
