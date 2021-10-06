@@ -29,8 +29,8 @@ mark_as_advanced(TLS_ROOTSERVER)
 
 find_file(UIMAGE_TOOL make-uimage PATHS "${CMAKE_CURRENT_LIST_DIR}" CMAKE_FIND_ROOT_PATH_BOTH)
 mark_as_advanced(UIMAGE_TOOL)
-
-config_option(UseRiscVOpenSBI RISCV_OPENSBI "Use OpenSBI." DEFAULT ON DEPENDS "KernelArchRiscV")
+include(CMakeDependentOption)
+cmake_dependent_option(UseRiscVOpenSBI "Use OpenSBI." ON DEPENDS "KernelArchRiscV" OFF)
 
 if(UseRiscVOpenSBI)
     set(OPENSBI_PATH "${CMAKE_SOURCE_DIR}/tools/opensbi" CACHE STRING "OpenSBI Folder location")
