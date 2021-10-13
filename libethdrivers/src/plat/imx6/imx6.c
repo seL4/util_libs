@@ -30,6 +30,9 @@
 #define BUF_SIZE    MAX_PKT_SIZE
 #define DMA_ALIGN   32
 
+uint32_t transmit_irq = 0;
+uint32_t receive_irq = 0;
+
 struct descriptor {
     /* NOTE: little endian packing: len before stat */
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -417,7 +420,7 @@ static void complete_tx(imx6_eth_driver_t *dev)
                 enet_tx_enable(dev->enet);
             }
             //ZF_LOGF("The buffer was not sent and we can't release any buffers.");
-            //enet_print_state(dev->enet);;
+            //enet_print_state(dev->enet);
         }
 
         /* Go to next buffer, handle roll-over. */
@@ -464,19 +467,25 @@ static void handle_irq(struct eth_driver *driver, int irq)
     struct enet *enet = dev->enet;
     assert(enet);
 
+
     uint32_t e = enet_clr_events(enet, IRQ_MASK);
-    if (e & NETIRQ_TXF) {
-        complete_tx(dev);
-    }
-    if (e & NETIRQ_RXF) {
-        complete_rx(dev);
-        fill_rx_bufs(dev);
-    }
-    if (e & NETIRQ_EBERR) {
-        ZF_LOGE("Error: System bus/uDMA");
-        // ethif_print_state(netif_get_eth_driver(netif));
-        assert(0);
-        while (1);
+    while (e & IRQ_MASK) {
+        if (e & NETIRQ_TXF) {
+            //transmit_irq++;
+            complete_tx(dev);
+        }
+        if (e & NETIRQ_RXF) {
+            //receive_irq++;
+            complete_rx(dev);
+            fill_rx_bufs(dev);
+        }
+        if (e & NETIRQ_EBERR) {
+            ZF_LOGE("Error: System bus/uDMA");
+            // ethif_print_state(netif_get_eth_driver(netif));
+            assert(0);
+            while (1);
+        }
+        e = enet_clr_events(enet, IRQ_MASK);
     }
 }
 
@@ -981,6 +990,16 @@ error:
 
     return ret;
 
+}
+
+void reset_irqs() {
+    transmit_irq = 0;
+    receive_irq = 0;
+}
+
+void get_irqs() {
+    printf("Transmit IRQs = %d\n", transmit_irq);
+    printf("Receive IRQs = %d\n", receive_irq);
 }
 
 static const char *compatible_strings[] = {
