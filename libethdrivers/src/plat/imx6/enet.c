@@ -456,6 +456,12 @@ void enet_disable(struct enet *enet)
     regs->ecr &= ~ECR_ETHEREN;
 }
 
+int enet_get_mask(struct enet *enet)
+{
+    assert(enet);
+    return enet_get_regs(enet)->eimr;
+}
+
 void enet_set_mac(struct enet *enet, uint64_t mac)
 {
     enet_regs_t *regs = enet_get_regs(enet);
@@ -692,9 +698,9 @@ void enet_print_mib(struct enet *enet)
     volatile struct mib_regs *mib = &regs->mib;
     regs->mibc |= MIBC_DIS;
 
-    printf("Ethernet Counter regs\n");
+    /*printf("Ethernet Counter regs\n");
     dump_regs((uint32_t *)mib, sizeof(*mib));
-    printf("\n");
+    printf("\n");*/
 
     printf("-----------------------------\n");
     printf("RX  Frames RX OK: %d/%d\n", mib->ieee_r_frame_ok,

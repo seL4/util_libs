@@ -30,9 +30,6 @@
 #define BUF_SIZE    MAX_PKT_SIZE
 #define DMA_ALIGN   32
 
-uint32_t transmit_irq = 0;
-uint32_t receive_irq = 0;
-
 struct descriptor {
     /* NOTE: little endian packing: len before stat */
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -395,7 +392,6 @@ static void complete_tx(imx6_eth_driver_t *dev)
     unsigned int cnt = 0;
 
     while (head != ring->tail) {
-
         if (0 == cnt) {
             cnt = dev->tx_lengths[head];
             if ((0 == cnt) || (cnt > dev->tx.cnt)) {
@@ -412,15 +408,15 @@ static void complete_tx(imx6_eth_driver_t *dev)
          * every access happens as stated in the code.
          */
         volatile struct descriptor *d = &(ring->descr[head]);
-
+        
         /* If this buffer was not sent, we can't release any buffer. */
         if (d->stat & TXD_READY) {
             assert(dev->enet);
+            /* give it another chance */
             if (!enet_tx_enabled(dev->enet)) {
                 enet_tx_enable(dev->enet);
             }
-            //ZF_LOGF("The buffer was not sent and we can't release any buffers.");
-            //enet_print_state(dev->enet);
+            if (d->stat & TXD_READY) return;
         }
 
         /* Go to next buffer, handle roll-over. */
@@ -428,7 +424,7 @@ static void complete_tx(imx6_eth_driver_t *dev)
             head = 0;
         }
 
-        if (0 == --cnt && !(d->stat & TXD_READY)) {
+        if (0 == --cnt) {
             ring->head = head;
             /* race condition if add/remove is not synchronized. */
             ring->remain += cnt_org;
@@ -467,21 +463,18 @@ static void handle_irq(struct eth_driver *driver, int irq)
     struct enet *enet = dev->enet;
     assert(enet);
 
-
     uint32_t e = enet_clr_events(enet, IRQ_MASK);
     while (e & IRQ_MASK) {
         if (e & NETIRQ_TXF) {
-            //transmit_irq++;
             complete_tx(dev);
         }
-        if (e & NETIRQ_RXF) {
-            //receive_irq++;
+        if (e & NETIRQ_RXF && rx_irq_enabled(driver)) {
             complete_rx(dev);
             fill_rx_bufs(dev);
         }
         if (e & NETIRQ_EBERR) {
             ZF_LOGE("Error: System bus/uDMA");
-            // ethif_print_state(netif_get_eth_driver(netif));
+            //ethif_print_state(netif_get_eth_driver(netif));
             assert(0);
             while (1);
         }
@@ -522,6 +515,14 @@ static void raw_poll(struct eth_driver *driver)
     complete_rx(dev);
     complete_tx(dev);
     fill_rx_bufs(dev);
+}
+
+static void checksum(unsigned char *buffer, unsigned int len) {
+    unsigned int csum;
+    unsigned char *p;
+    unsigned int i;
+    for (p = buffer, i=len, csum=0; i > 0; csum += *p++, --i);
+    printf("check sum = %zu\n", csum);
 }
 
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
@@ -567,6 +568,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
             tail_new = 0;
             stat |= TXD_WRAP;
         }
+        ZF_LOGW("Inserting buffer %p of length %d into ring", *phys, *len);
         update_ring_slot(ring, idx, *phys++, *len++, stat);
     }
 
@@ -849,14 +851,7 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num,
 {
     assert(token);
     imx6_eth_driver_t *dev = (imx6_eth_driver_t *)token;
-
-    /*unsigned target_num = config_set(CONFIG_PLAT_IMX8MQ_EVK) ? 2 : 0;
-    ZF_LOGW("target_num = %d", target_num);
-    if (curr_num != target_num) {
-        ZF_LOGW("Ignoring interrupt #%d with value %d", curr_num, irq);
-        return 0;
-    }*/
-
+    
     dev->irq_id = ps_irq_register(
                       &(dev->eth_drv.io_ops.irq_ops),
                       irq,
@@ -978,7 +973,6 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
         ret = -ENODEV;
         goto error;
     }
-
     return 0;
 
 error:
@@ -990,16 +984,6 @@ error:
 
     return ret;
 
-}
-
-void reset_irqs() {
-    transmit_irq = 0;
-    receive_irq = 0;
-}
-
-void get_irqs() {
-    printf("Transmit IRQs = %d\n", transmit_irq);
-    printf("Receive IRQs = %d\n", receive_irq);
 }
 
 static const char *compatible_strings[] = {

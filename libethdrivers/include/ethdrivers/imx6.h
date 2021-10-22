@@ -7,7 +7,6 @@
 
 #pragma once
 
-void reset_irqs();
-void get_irqs();
+struct eth_driver;
 
 /* nothing here */
