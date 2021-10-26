@@ -23,7 +23,17 @@
 #define UART4_IRQ    61
 #define UART5_IRQ    62
 
+#ifdef CONFIG_PLAT_NITROGEN6SX
+// seL4 starts on the Nitrogen6_SoloX platform with the UART input
+// clock frequency set to 24MHz. This constant is used in baud rate
+// calculations where the input frequency has already been divided by 2.
+#define UART_REF_CLK 12000000
+#else
+// This constant assumes that the UART input clock frequency is 80179200Hz
+// and gets divided by 2 before performing baud calculations where this
+// constant is used.
 #define UART_REF_CLK 40089600
+#endif
 
 
 #if defined(CONFIG_PLAT_SABRE)
