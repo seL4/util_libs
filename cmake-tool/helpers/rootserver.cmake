@@ -177,7 +177,8 @@ function(DeclareRootserver rootservername)
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
-                    ${UIMAGE_TOOL} ${CMAKE_OBJCOPY} ${CMAKE_READELF} ${elf_target_file} ${UIMAGE_ARCH} ${IMAGE_NAME}
+                    ${UIMAGE_TOOL} ${CMAKE_OBJCOPY} ${CMAKE_READELF} ${elf_target_file}
+                    ${UIMAGE_ARCH} ${IMAGE_NAME}
                 DEPENDS ${elf_target_file} elfloader
             )
         else()
