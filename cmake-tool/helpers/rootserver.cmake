@@ -174,6 +174,18 @@ function(DeclareRootserver rootservername)
                 )
             endif()
 
+            # Older versions of CMake don't look for readelf when initializing other binutils tools.
+            if(NOT CMAKE_READELF)
+                find_program(CMAKE_READELF NAMES ${CROSS_COMPILER_PREFIX}readelf)
+                if(NOT CMAKE_READELF)
+                    message(
+                        FATAL_ERROR
+                            "Could not find a valid readelf program: ${CROSS_COMPILER_PREFIX}readelf.
+                        ElfloaderImage type 'uimage' cannot be built."
+                    )
+                endif()
+            endif()
+
             add_custom_command(
                 OUTPUT "${IMAGE_NAME}"
                 COMMAND
