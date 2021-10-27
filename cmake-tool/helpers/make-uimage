@@ -69,26 +69,27 @@ cleanup () {
 get_start_symbol() {
     ELF_FILE=$1
 
-    if ! readelf -h "$ELF_FILE" > /dev/null
+    if ! $READELF -h "$ELF_FILE" > /dev/null
     then
         die "\"$ELF_FILE\" does not appear to be an ELF file"
     fi
 
-    set -- $(readelf -s $ELF_FILE | grep -w _start)
+    set -- $($READELF -s $ELF_FILE | grep -w _start)
     echo $2
 }
 
-if [ $# -ne 4 ]
+if [ $# -ne 5 ]
 then
-    fail "expected 4 arguments, got $#: \"$*\""
+    fail "expected 5 arguments, got $#: \"$*\""
     show_usage >&2
     exit 2
 fi
 
 OBJCOPY=$1
-ELF_FILE=$2
-ARCHITECTURE=$3
-OUTPUT=$4
+READELF=$2
+ELF_FILE=$3
+ARCHITECTURE=$4
+OUTPUT=$5
 
 # Validate arguments.  $ELF_FILE is validated by get_start_symbol().  We'll let
 # mkimage fail if $OUTPUT is not writable.
