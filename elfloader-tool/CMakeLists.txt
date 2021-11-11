@@ -337,6 +337,7 @@ if(DEFINED KernelDTBPath)
             --hardware-config "${config_file}"
             --hardware-schema "${schema_file}"
             --dtb "${KernelDTBPath}"
+            --sel4arch "${KernelSel4Arch}"
         VERBATIM
         DEPENDS ${KernelDTBPath} ${config_file} ${schema_file}
     )
