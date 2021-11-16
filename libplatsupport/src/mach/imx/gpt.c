@@ -217,9 +217,30 @@ static void gpt_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, v
 
 uint64_t gpt_get_time(gpt_t *gpt)
 {
+    // Rollover of 32-bit counter can happen while we are reading it,
+    // We need to read in the following order (volatile modifier on gpt_map should ensure this):
+    // - GPT_SR[ROV]
+    // - GPT_CNT
+    // - GPT_SR[ROV]
+    // If GPT_SR[ROV] bit is unchanged, then the GPT_CNT read is valid and can be used.
+    // If GPT_SR[ROV] bit has changed, then the rollover happened sometime between the first
+    // read and the third read.  In this case GPT_CNT would have had a value of 0 at some point
+    // during our reads and so use 0.
+    uint32_t rollover_st = gpt->gpt_map->gptsr & BIT(ROV);
     uint32_t low_bits = gpt->gpt_map->gptcnt;
+    uint32_t rollover_st2 = gpt->gpt_map->gptsr & BIT(ROV);
+    if (rollover_st != rollover_st2) {
+        low_bits = 0;
+    }
+
+    // gpt->high_bits is the number of times the timer has overflowed and is managed by this driver.
+    // If GPT_SR[ROV] is set then gpt_handle_irq hasn't had a chance to run yet and gpt->high_bits
+    // is still recording the old number of overflows. We increment our own local copy and leave
+    // the driver copy to be updated by gpt_handle_irq.
+    // This driver requires that the IRQ handler function won't be called while other driver functions
+    // are executing.
     uint32_t high_bits = gpt->high_bits;
-    if (gpt->gpt_map->gptsr) {
+    if (rollover_st2) {
         /* irq has come in */
         high_bits++;
     }
