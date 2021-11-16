@@ -46,6 +46,9 @@ static int set_timeout(void *data, uint64_t ns, timeout_type_t type)
 
     if (type == TIMEOUT_ABSOLUTE) {
         uint64_t current_time = imx_get_time(&imx_ltimer->timers);
+        if (ns < current_time) {
+            return ETIME;
+        }
         ns -= current_time;
     }
 
