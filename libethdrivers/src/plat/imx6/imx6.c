@@ -705,6 +705,7 @@ static int init_device(struct eth_driver *driver, const nic_config_t *nic_config
 
     /* Initialise the RGMII interface, clears and masks all interrupts */
     dev->enet = enet_init(
+                    nic_config,
                     mapped_peripheral,
                     dev->tx.phys,
                     dev->rx.phys,
