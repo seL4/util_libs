@@ -113,6 +113,15 @@ if(KernelPlatformImx8mq-evk OR KernelPlatformImx8mm-evk)
     list(APPEND deps src/plat/imx8m/clock.c)
 endif()
 
+if(KernelPlatPC99)
+    set_source_files_properties(
+        src/plat/pc99/keyboard_vkey.c
+        PROPERTIES
+        COMPILE_FLAGS
+        -Wno-initializer-overrides
+    )
+endif()
+
 list(SORT deps)
 
 add_config_library(platsupport "${configure_string}")
