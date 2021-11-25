@@ -158,7 +158,7 @@ static int new_reference(base64_t *streamer, cbor64_domain_t *domain, size_t ind
      * encoding, don't actually track the string in the references.
      */
     size_t length = strlen(domain->strings[index]);
-    size_t next_ref = domain->emitted;
+    uint64_t next_ref = domain->emitted;
 
     bool is_referenced = true;
     if (next_ref < 24) {

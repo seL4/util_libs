@@ -417,9 +417,9 @@ static inline int cbor64_map_length(base64_t *streamer, uint64_t length)
 /* Tracks the strings which have already been emitted and their index. */
 typedef struct {
     char **strings;
-    size_t emitted;
     /* Use shared values rather than string references */
     bool shared_values;
+    uint64_t emitted;
 } cbor64_domain_t;
 
 /* Start a new domain with no inner string references */
