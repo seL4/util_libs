@@ -20,7 +20,7 @@
 static inline int current_year()
 {
 #ifdef __DATE__
-    return atoi(__DATE__ + 7);
+    return atoi(&__DATE__[7]);
 #else
     return 2014;
 #endif
@@ -138,6 +138,6 @@ unsigned int rtc_get_century_register(acpi_t *acpi)
         ZF_LOGE("ACPI has no FADT header. Your BIOS is broken");
         return 0;
     }
-    acpi_fadt_t *fadt = (acpi_fadt_t*)header;
+    acpi_fadt_t *fadt = (acpi_fadt_t *)header;
     return fadt->century;
 }
