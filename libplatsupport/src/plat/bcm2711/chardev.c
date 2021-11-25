@@ -16,18 +16,36 @@
 
 #include "serial.h"
 
-static const int uart_irqs_0[] = {-1};
+static const int uart0_irqs[] = {UART0_IRQ, -1};
+static const int uart1_irqs[] = {UART1_IRQ, -1};
+static const int uart2_irqs[] = {UART2_IRQ, -1};
+static const int uart3_irqs[] = {UART3_IRQ, -1};
+static const int uart4_irqs[] = {UART4_IRQ, -1};
+static const int uart5_irqs[] = {UART5_IRQ, -1};
 
-#define UART_DEFN(devid) {          \
+#define PL011_UART_DEFN(devid) {    \
     .id      = BCM2711_UART##devid, \
-    .paddr   = UART_PADDR_##devid,  \
+    .paddr   = PL011_UART_BASE,     \
     .size    = BIT(12),             \
-    .irqs    = uart_irqs_##devid,   \
+    .irqs    = uart##devid##_irqs,  \
+    .init_fn = &uart_init           \
+}
+
+#define MINI_UART_DEFN(devid) {     \
+    .id      = BCM2711_UART##devid, \
+    .paddr   = MINI_UART_BASE,      \
+    .size    = BIT(12),             \
+    .irqs    = uart##devid##_irqs,  \
     .init_fn = &uart_init           \
 }
 
 static const struct dev_defn dev_defn[] = {
-    UART_DEFN(0),
+    PL011_UART_DEFN(0),
+    MINI_UART_DEFN(1),
+    PL011_UART_DEFN(2),
+    PL011_UART_DEFN(3),
+    PL011_UART_DEFN(4),
+    PL011_UART_DEFN(5)
 };
 
 struct ps_chardevice *
