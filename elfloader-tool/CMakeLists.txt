@@ -303,13 +303,13 @@ else()
             # must put the ELF-loader's payload in memory at a place that will be out of
             # the way of the kernel and user images that are extracted. In other words,
             # we don't want the ELF-loader (with its payload) to clobber itself.
-            "${PLATFORM_SIFT}"
+            "${PYTHON3}" "${PLATFORM_SIFT}"
             --emit-c-syntax "${platform_yaml}" > "${PLATFORM_INFO_H}"
         COMMAND
             # The `shoehorn` tool computes a reasonable image start address. It calls
             # `elf_sift` to obtain details about where the extracted payloads will be
             # and how big they are.
-            "${SHOEHORN}" "${platform_yaml}" "${ARCHIVE_O}" > "${IMAGE_START_ADDR_H}"
+            "${PYTHON3}" "${SHOEHORN}" "${platform_yaml}" "${ARCHIVE_O}" > "${IMAGE_START_ADDR_H}"
         VERBATIM
         DEPENDS
             # First command's dependencies
