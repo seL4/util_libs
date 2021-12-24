@@ -82,7 +82,7 @@ elseif(${KernelArch} STREQUAL "riscv")
     list(APPEND irqchip_modules "-Wl,--undefined=riscv_plic_ptr")
 endif()
 
-if(KernelPlatformQEMUArmVirt)
+if(KernelPlatformQEMUArmVirt OR KernelPlatformQuartz64)
     if(KernelArmExportPCNTUser AND KernelArmExportPTMRUser)
         list(APPEND deps src/arch/arm/generic_ltimer.c)
     endif()
