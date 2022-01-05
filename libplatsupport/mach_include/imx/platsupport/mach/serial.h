@@ -28,7 +28,8 @@ enum chardev_id {
     PS_SERIAL_DEFAULT = IMX_UART2
 
 #elif defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_NITROGEN6SX) \
-      || defined(CONFIG_PLAT_IMX7_SABRE) || defined(CONFIG_PLAT_IMX8MQ_EVK)
+      || defined(CONFIG_PLAT_IMX7_SABRE) || defined(CONFIG_PLAT_IMX8MQ_EVK) \
+      || defined(CONFIG_PLAT_MAAXBOARD)
 
     PS_SERIAL_DEFAULT = IMX_UART1
 
