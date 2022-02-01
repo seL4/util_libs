@@ -19,7 +19,11 @@
 #define PT_LEVEL_2 2
 
 #define PT_LEVEL_1_BITS 30
+#if __riscv_xlen == 32
+#define PT_LEVEL_2_BITS 22
+#else
 #define PT_LEVEL_2_BITS 21
+#endif
 
 #define PTE_TYPE_TABLE 0x00
 #define PTE_TYPE_SRWX 0xCE
@@ -45,8 +49,6 @@
 #define PTE_CREATE_LEAF(PT_BASE) (unsigned long)(PTE_CREATE_PPN(PT_BASE) | PTE_TYPE_SRWX | PTE_V)
 
 #define GET_PT_INDEX(addr, n) (((addr) >> (((PT_INDEX_BITS) * ((CONFIG_PT_LEVELS) - (n))) + RISCV_PGSHIFT)) % PTES_PER_PT)
-
-#define VIRT_PHYS_ALIGNED(virt, phys, level_bits) (IS_ALIGNED((virt), (level_bits)) && IS_ALIGNED((phys), (level_bits)))
 
 struct image_info kernel_info;
 struct image_info user_info;
@@ -89,11 +91,6 @@ static int map_kernel_window(struct image_info *kernel_info)
 
     /* Map the elfloader into the new address space */
 
-    if (!IS_ALIGNED((uintptr_t)_text, PT_LEVEL_2_BITS)) {
-        printf("ERROR: ELF Loader not properly aligned\n");
-        return -1;
-    }
-
     index = GET_PT_INDEX((uintptr_t)_text, PT_LEVEL_1);
 
 #if __riscv_xlen == 32
@@ -105,17 +102,11 @@ static int map_kernel_window(struct image_info *kernel_info)
 #endif
 
     for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
-        lpt[index] = PTE_CREATE_LEAF((uintptr_t)_text +
+        lpt[index] = PTE_CREATE_LEAF(ROUND_DOWN((uintptr_t)_text, PT_LEVEL_2_BITS) +
                                      (page << PT_LEVEL_2_BITS));
     }
 
     /* Map the kernel into the new address space */
-
-    if (!VIRT_PHYS_ALIGNED(kernel_info->virt_region_start,
-                           kernel_info->phys_region_start, PT_LEVEL_2_BITS)) {
-        printf("ERROR: Kernel not properly aligned\n");
-        return -1;
-    }
 
     index = GET_PT_INDEX(kernel_info->virt_region_start, PT_LEVEL_1);
 
@@ -126,7 +117,7 @@ static int map_kernel_window(struct image_info *kernel_info)
 #endif
 
     for (unsigned int page = 0; index < PTES_PER_PT; index++, page++) {
-        lpt[index] = PTE_CREATE_LEAF(kernel_info->phys_region_start +
+        lpt[index] = PTE_CREATE_LEAF(ROUND_DOWN(kernel_info->phys_region_start, PT_LEVEL_2_BITS) +
                                      (page << PT_LEVEL_2_BITS));
     }
 
