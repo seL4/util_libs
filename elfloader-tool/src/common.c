@@ -29,6 +29,8 @@
 #include <platform_info.h> // this provides memory_region
 #endif
 
+#include <abort.h>
+
 extern char _bss[];
 extern char _bss_end[];
 
@@ -617,4 +619,49 @@ int load_images(
 WEAK void platform_init(void)
 {
     /* nothing by default */
+}
+
+#ifdef CONFIG_ARCH_ARM
+extern void flush_dcache(void);
+extern void invalidate_icache(void);
+#endif
+
+/*
+ * Moves the elfloader to its expected start address in memory.
+ * This is for when the elfloader needs to be in a specific location
+ * to ensure that it doesn't occupy memory that it needs to load the
+ * kernel and user applications into.
+ *
+ * When this function is called, the .bss section is not initialized,
+ * so we're not allowed to access any mutable global variables.
+ */
+void *fixup_image_base(void *target_base, void *load_base, void *load_end)
+{
+
+    if (load_base == target_base) {
+        /* already in the right place, just keep booting */
+        return (void *)0;
+    }
+
+    /* Check that the current image location doesn't overlap with the
+     * destination location. */
+    size_t image_size = load_end - load_base;
+    void *target_end = target_base + image_size;
+    if ((load_base >= target_base && load_base < target_end) ||
+        (load_end >= target_base && load_end < target_end)) {
+        // We can't continue, we can't abort because print isn't initialized yet.
+        // TODO: Throw some sort of exception or try and return an error to whatever
+        // previous stage loader started us.
+        while (1);
+        UNREACHABLE();
+    }
+
+    /* Perform the move and clean/invalidate caches if necessary */
+    void *ret = memmove(target_base, load_base, image_size);
+#ifdef CONFIG_ARCH_ARM
+    flush_dcache();
+    invalidate_icache();
+#endif
+    return ret;
+
 }
