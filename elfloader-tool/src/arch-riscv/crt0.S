@@ -6,10 +6,10 @@
 
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
+#include <image_start_addr.h>
 
 .extern main
 .extern __global_pointer$
-.extern elfloader_stack_alloc
 .extern hsm_exists
 
 #define BIT(n) (1 << (n))
@@ -56,9 +56,27 @@ _start:
   mv s2, a1 /* preserve a1 (dtb) in s2 */
 
   /* Attach the stack to sp before calling any C functions */
-  la sp, (elfloader_stack_alloc + BIT(12))
+  la sp, (core_stack_alloc + BIT(12))
+
+  /*
+   * Binary images may not be loaded in the correct location.
+   * Try and move ourselves so we're in the right place.
+   */
+  li a0, IMAGE_START_ADDR
+  la a1, _start
+  la a2, _end
+  jal fixup_image_base
+  /* fixup_image_base returns 0 if no need to move */
+  beqz     a0, 1f
+
+  /* otherwise, restore args and jump to the start of the new elfloader */
+  mv a2, a0
+  mv a0, s0
+  mv a1, s2
+  jr a2
 
 /* Clear the BSS before we get to do anything more specific */
+1:
   jal clear_bss
 
   /* Check if the Heart State Management (HSM) extension exists, so it can be
@@ -115,7 +133,7 @@ _start1: /* a0 must hold current hard ID passed by bootloader */
   /* This HART may be a different HART to the one that started at _start
    * If we've switched HARTs then the other HART will get a different stack
    * region in secondary_harts. */
-  la sp, (elfloader_stack_alloc + BIT(12))
+  la sp, (core_stack_alloc + BIT(12))
   /* The C code expects the registers to be set up as:
    *   a0 = hart id
    *   a1 = dtb
@@ -125,10 +143,6 @@ _start1: /* a0 must hold current hard ID passed by bootloader */
 
 #if CONFIG_MAX_NUM_NODES > 1
 .extern next_logical_core_id
-.data
-bootstack_secondary_cores:
-.align 12
-.space 4096 * (CONFIG_MAX_NUM_NODES - 1)
 #endif
 
 .text
@@ -151,8 +165,9 @@ secondary_harts:
   bge t0, t2, hsm_suspend_hart
 
   mv a1, t0
+  addi t0, t0, 1
   slli t0, t0, 12
-  la sp, bootstack_secondary_cores
+  la sp, core_stack_alloc
   add sp, sp, t0
   la s0, secondary_entry
   jr s0
