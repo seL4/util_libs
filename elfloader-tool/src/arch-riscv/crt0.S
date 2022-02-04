@@ -58,10 +58,8 @@ _start:
   /* Attach the stack to sp before calling any C functions */
   la sp, (elfloader_stack_alloc + BIT(12))
 
-#ifdef CONFIG_IMAGE_BINARY
 /* Clear the BSS before we get to do anything more specific */
   jal clear_bss
-#endif
 
   /* Check if the Heart State Management (HSM) extension exists, so it can be
    * used to switch harts if we are not running on hart CONFIG_FIRST_HART_ID.
