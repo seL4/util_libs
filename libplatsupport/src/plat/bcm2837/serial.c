@@ -38,6 +38,10 @@
 #define MU_LCR_BREAK     BIT(6)
 #define MU_LCR_DATASIZE  BIT(0)
 
+#define MU_IIR_INTID 0x6
+#define MU_IIR_HOLD_EMPTY 0x2
+#define MU_IER_ENABLE_READ_INTERRUPT BIT(0)
+
 static void
 uart_handle_irq(ps_chardevice_t* d UNUSED)
 {
@@ -53,6 +57,10 @@ int uart_putchar(ps_chardevice_t* d, int c)
 
 int uart_getchar(ps_chardevice_t* d UNUSED)
 {
+    if ((*REG_PTR(d->vaddr, MU_IIR) & MU_IIR_INTID) == MU_IIR_HOLD_EMPTY) {
+        return -1;
+    }
+    
     while ( !(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_DATAREADY) );
     return *REG_PTR(d->vaddr, MU_IO);
 }
@@ -77,6 +85,8 @@ int uart_init(const struct dev_defn* defn,
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
+    
+    *REG_PTR(dev->vaddr, MU_IER) |= MU_IER_ENABLE_READ_INTERRUPT;
 
     return 0;
 }
