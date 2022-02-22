@@ -31,6 +31,7 @@ BEGIN_FUNC(_start)
     add     x1, x1, #:lo12:_start
     adrp    x2, _end
     add     x2, x2, #:lo12:_end
+    mov     x3, #0 /* Arg 4 of fixup_image_base is dtb=NULL */
     bl      fixup_image_base
     mov     x2, x0
     /* fixup_image_base returns 0 if no need to move */

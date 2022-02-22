@@ -635,7 +635,7 @@ extern void invalidate_icache(void);
  * When this function is called, the .bss section is not initialized,
  * so we're not allowed to access any mutable global variables.
  */
-void *fixup_image_base(void *target_base, void *load_base, void *load_end)
+void *fixup_image_base(void *target_base, void *load_base, void *load_end, const void *fdt)
 {
 
     if (load_base == target_base) {
@@ -654,6 +654,31 @@ void *fixup_image_base(void *target_base, void *load_base, void *load_end)
         // previous stage loader started us.
         while (1);
         UNREACHABLE();
+    }
+
+    /* If a fdt was passed in from the previous boot stage, also
+     * check that it isn't overwritten.
+     */
+    if (fdt) {
+        size_t dtb_size = fdt_size(fdt);
+        const void *fdt_end = fdt + dtb_size;
+        if (image_size < dtb_size) {
+            /* Assume the dtb is smaller than the images size to
+             * simplify region check */
+            // We can't continue, we can't abort because print isn't initialized yet.
+            // TODO: Throw some sort of exception or try and return an error to whatever
+            // previous stage loader started us.
+            while (1);
+            UNREACHABLE();
+        }
+        if ((fdt >= target_base && fdt < target_end) ||
+            (fdt_end >= target_base && fdt_end < target_end)) {
+            // We can't continue, we can't abort because print isn't initialized yet.
+            // TODO: Throw some sort of exception or try and return an error to whatever
+            // previous stage loader started us.
+            while (1);
+            UNREACHABLE();
+        }
     }
 
     /* Perform the move and clean/invalidate caches if necessary */

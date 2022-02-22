@@ -65,6 +65,7 @@ _start:
   li a0, IMAGE_START_ADDR
   la a1, _start
   la a2, _end
+  mv a3, s2 /* Pass dtb as 4th argument */
   jal fixup_image_base
   /* fixup_image_base returns 0 if no need to move */
   beqz     a0, 1f
