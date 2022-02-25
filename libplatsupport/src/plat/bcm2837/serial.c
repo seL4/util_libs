@@ -17,8 +17,8 @@
 #define MU_IO       0x40
 /* When DLAB=1, MU_IIR is a baud rate register.
  * Otherwise IRQ enable */
-#define MU_IIR      0x44
-#define MU_IER      0x48
+#define MU_IER      0x44
+#define MU_IIR      0x48
 #define MU_LCR      0x4C
 #define MU_MCR      0x50
 #define MU_LSR      0x54
