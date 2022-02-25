@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
- #pragma once
+#pragma once
 
 #define BUS_ADDR_OFFSET             0x7E000000
 #define PADDDR_OFFSET               0x3F000000

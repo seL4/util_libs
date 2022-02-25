@@ -38,31 +38,30 @@
 #define MU_LCR_BREAK     BIT(6)
 #define MU_LCR_DATASIZE  BIT(0)
 
-static void
-uart_handle_irq(ps_chardevice_t* d UNUSED)
+static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
 }
 
-int uart_putchar(ps_chardevice_t* d, int c)
+int uart_putchar(ps_chardevice_t *d, int c)
 {
-    while ( !(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_TXIDLE) );
+    while (!(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_TXIDLE));
     *REG_PTR(d->vaddr, MU_IO) = (c & 0xff);
 
     return 0;
 }
 
-int uart_getchar(ps_chardevice_t* d UNUSED)
+int uart_getchar(ps_chardevice_t *d UNUSED)
 {
-    while ( !(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_DATAREADY) );
+    while (!(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_DATAREADY));
     return *REG_PTR(d->vaddr, MU_IO);
 }
 
-int uart_init(const struct dev_defn* defn,
-              const ps_io_ops_t* ops,
-              ps_chardevice_t* dev)
+int uart_init(const struct dev_defn *defn,
+              const ps_io_ops_t *ops,
+              ps_chardevice_t *dev)
 {
     /* Attempt to map the virtual address, assure this works */
-    void* vaddr = chardev_map(defn, ops);
+    void *vaddr = chardev_map(defn, ops);
     memset(dev, 0, sizeof(*dev));
     if (vaddr == NULL) {
         return -1;
@@ -70,7 +69,7 @@ int uart_init(const struct dev_defn* defn,
 
     /* Set up all the  device properties. */
     dev->id         = defn->id;
-    dev->vaddr      = (void*)vaddr;
+    dev->vaddr      = (void *)vaddr;
     dev->read       = &uart_read;
     dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
