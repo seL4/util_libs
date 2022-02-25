@@ -38,6 +38,8 @@
 #define MU_LCR_BREAK     BIT(6)
 #define MU_LCR_DATASIZE  BIT(0)
 
+#define MU_IER_ENABLE_READ_INTERRUPT BIT(0)
+
 static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
 }
@@ -76,6 +78,8 @@ int uart_init(const struct dev_defn *defn,
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
     dev->flags      = SERIAL_AUTO_CR;
+
+    *REG_PTR(dev->vaddr, MU_IER) |= MU_IER_ENABLE_READ_INTERRUPT;
 
     return 0;
 }
