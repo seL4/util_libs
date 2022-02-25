@@ -15,7 +15,7 @@
 
 #include "serial.h"
 
-static const int uart_irqs_0[] = {-1};
+static const int uart_irqs_0[] = {UART_IRQ_0, -1};
 
 #define UART_DEFN(devid) {          \
     .id      = BCM2837_UART##devid,       \
