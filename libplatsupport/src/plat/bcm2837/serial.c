@@ -40,6 +40,9 @@
 
 #define MU_IER_ENABLE_READ_INTERRUPT BIT(0)
 
+#define MU_IIR_INTID_MASK (BIT(2) | BIT(1))
+#define MU_IIR_INTID_HOLD_EMPTY BIT(1)
+
 static void uart_handle_irq(ps_chardevice_t *d UNUSED)
 {
 }
@@ -54,7 +57,14 @@ int uart_putchar(ps_chardevice_t *d, int c)
 
 int uart_getchar(ps_chardevice_t *d UNUSED)
 {
-    while (!(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_DATAREADY));
+    if ((*REG_PTR(d->vaddr, MU_IIR) & MU_IIR_INTID_MASK) == MU_IIR_INTID_HOLD_EMPTY) {
+        return -1;
+    }
+    if (!(*REG_PTR(d->vaddr, MU_LSR) & MU_LSR_DATAREADY)) {
+        /* this is not supposed to happen if MU_IIR_INTID says there is data. */
+        return -1;
+    }
+
     return *REG_PTR(d->vaddr, MU_IO);
 }
 
