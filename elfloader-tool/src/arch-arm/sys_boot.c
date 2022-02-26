@@ -133,7 +133,7 @@ void main(UNUSED void *arg)
 #endif
 
     if (bootloader_dtb) {
-        printf("  dtb=%p\n", dtb);
+        printf("  dtb=%p\n", bootloader_dtb);
     } else {
         printf("No DTB passed in from boot loader.\n");
     }
