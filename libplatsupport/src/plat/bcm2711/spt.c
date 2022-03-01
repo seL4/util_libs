@@ -127,7 +127,7 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
     uint32_t prescale_bits = 0;
     spt->counter_start = ns;
     if (ticks == 0) {
-        ZF_LOGE("ns too low: %lu\n", ns);
+        ZF_LOGE("ns too low: %"PRIu64, ns);
         return EINVAL;
     }
 
@@ -137,7 +137,7 @@ int spt_set_timeout(spt_t *spt, uint64_t ns)
         if (ticks >= (1ULL << 32)) {
             ticks /= 16;
             if (ticks >= (1ULL << 32)) {
-                ZF_LOGE("ns too high: %lu\n", ns);
+                ZF_LOGE("ns too high: %"PRIu64, ns);
                 return EINVAL;
             } else {
                 prescale_bits = 2;
