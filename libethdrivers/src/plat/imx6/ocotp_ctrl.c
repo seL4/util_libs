@@ -23,7 +23,6 @@
 #define IMX6_OCOTP_SIZE    0x00004000
 
 #elif defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
-// from: root/arch/arm/include/asm/arch-imx8m/imx-regs-imx8mm.h
 #define IMX6_OCOTP_PADDR   0x30350000
 #define IMX6_OCOTP_SIZE    0x00010000
 

@@ -58,9 +58,7 @@ error:
 }
 
 static uintptr_t lwip_allocate_rx_buf(void *iface, size_t buf_size, void **cookie)
-{   
-    ZF_LOGW("lwip.c in libethdrivers/src/plat called lwip_allocate_rx_buf()\n");
-    
+{
     lwip_iface_t *lwip_iface = (lwip_iface_t *)iface;
     if (buf_size > CONFIG_LIB_ETHDRIVER_PREALLOCATED_BUF_SIZE) {
         LOG_ERROR("Requested RX buffer of size %zu which can never be fullfilled by preallocated buffers of size %d", buf_size,
@@ -141,9 +139,6 @@ static void lwip_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
             pbuf_done = 0;
         }
     }
-
-//    PKT_DEBUG(printf("Receiving packet\n"));
-//    PKT_DEBUG(print_packet(COL_RX, p->payload, len));
 
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
@@ -412,8 +407,6 @@ static err_t ethif_init(struct netif *netif)
     if (netif -> state == NULL) {
         return ERR_ARG;
     }
-
-    printf("Does this file, lwip.c, get used\n");
 
     lwip_iface_t *iface = (lwip_iface_t *)netif->state;
     int mtu;

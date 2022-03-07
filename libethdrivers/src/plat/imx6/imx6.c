@@ -468,7 +468,7 @@ static void handle_irq(struct eth_driver *driver, int irq)
         if (e & NETIRQ_TXF) {
             complete_tx(dev);
         }
-        if (e & NETIRQ_RXF && rx_irq_enabled(driver)) {
+        if (e & NETIRQ_RXF) {
             complete_rx(dev);
             fill_rx_bufs(dev);
         }
@@ -515,14 +515,6 @@ static void raw_poll(struct eth_driver *driver)
     complete_rx(dev);
     complete_tx(dev);
     fill_rx_bufs(dev);
-}
-
-static void checksum(unsigned char *buffer, unsigned int len) {
-    unsigned int csum;
-    unsigned char *p;
-    unsigned int i;
-    for (p = buffer, i=len, csum=0; i > 0; csum += *p++, --i);
-    printf("check sum = %zu\n", csum);
 }
 
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,

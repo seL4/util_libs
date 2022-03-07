@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2018-2019 NXP
- * Taken from u-boot/arch/arm/include/asm/arch-imx8m/imx8mm_pins.h
+ * Content derived from u-boot/arch/arm/include/asm/arch-imx8m/imx8mm_pins.h
  */
 
 #pragma once

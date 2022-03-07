@@ -62,7 +62,7 @@
 #elif defined(CONFIG_PLAT_IMX8MM_EVK)
 #include "imx8mm_pins.h"
 
-#define IOMUXC_PADDR    0x30330000 // from: root/arch/arm/include/asm/arch-imx8m/imx-regs-imx8mm.h
+#define IOMUXC_PADDR    0x30330000
 #define IOMUXC_SIZE     0x10000
 
 #else
