@@ -33,6 +33,10 @@
 #define ROMCP_ARB_BASE_ADDR             0x00000000
 #define ROMCP_ARB_END_ADDR              0x000FFFFF
 
+// HACK use imx6 register layout for imx8
+#if defined (CONFIG_PLAT_IMX8MQ_EVK)
+    #define CONFIG_PLAT_IMX6DQ
+#endif
 
 #if defined(CONFIG_PLAT_IMX6DQ)
 

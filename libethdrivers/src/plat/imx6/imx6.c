@@ -736,7 +736,8 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     /* Initialise the phy library */
     miiphy_init();
     /* Initialise the phy */
-#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ)
+#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ) || \
+defined (CONFIG_PLAT_IMX8MQ_EVK)
     phy_micrel_init();
 #elif defined(CONFIG_PLAT_NITROGEN6SX)
     phy_atheros_init();
