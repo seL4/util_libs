@@ -165,11 +165,11 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
 
 #elif defined(CONFIG_PLAT_IMX8MM_EVK)
 
-    /* Does PHY need to go into reset before this? */ 
-    /* Pad configuration below from device tree on u-boot */ 
+    /* Does PHY need to go into reset before this? */
+    /* Pad configuration below from device tree on u-boot */
     IMX_IOMUX_V3_SETUP_MULTIPLE_PADS(
         base,
-        IMX8MM_PAD_SPDIF_TX_GPIO5_IO3 | MUX_PAD_CTRL(0x19), 
+        IMX8MM_PAD_SPDIF_TX_GPIO5_IO3 | MUX_PAD_CTRL(0x19),
         IMX8MM_PAD_SAI3_MCLK_GPIO5_IO2 | MUX_PAD_CTRL(0x19),
         IMX8MM_PAD_ENET_MDC_ENET1_MDC | MUX_PAD_CTRL(0x3),
         IMX8MM_PAD_ENET_MDIO_ENET1_MDIO | MUX_PAD_CTRL(0x3),
@@ -185,7 +185,7 @@ int setup_iomux_enet(ps_io_ops_t *io_ops)
         IMX8MM_PAD_ENET_RXC_ENET1_RGMII_RXC | MUX_PAD_CTRL(0x91),
         IMX8MM_PAD_ENET_RX_CTL_ENET1_RGMII_RX_CTL | MUX_PAD_CTRL(0x91),
         IMX8MM_PAD_ENET_TX_CTL_ENET1_RGMII_TX_CTL  | MUX_PAD_CTRL(0x1f),
-        IMX8MM_PAD_GPIO1_IO09_GPIO1_IO9 | MUX_PAD_CTRL(0x19) // ENET1_1588_EVENT0_OUT 
+        IMX8MM_PAD_GPIO1_IO09_GPIO1_IO9 | MUX_PAD_CTRL(0x19) // ENET1_1588_EVENT0_OUT
     );
     gpio_direction_output(IMX_GPIO_NR(1, 9), 0, io_ops);
     udelay(500);

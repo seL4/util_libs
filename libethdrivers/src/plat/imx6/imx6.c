@@ -408,7 +408,7 @@ static void complete_tx(imx6_eth_driver_t *dev)
          * every access happens as stated in the code.
          */
         volatile struct descriptor *d = &(ring->descr[head]);
-        
+
         /* If this buffer was not sent, we can't release any buffer. */
         if (d->stat & TXD_READY) {
             assert(dev->enet);
@@ -843,7 +843,7 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num,
 {
     assert(token);
     imx6_eth_driver_t *dev = (imx6_eth_driver_t *)token;
-    
+
     dev->irq_id = ps_irq_register(
                       &(dev->eth_drv.io_ops.irq_ops),
                       irq,
