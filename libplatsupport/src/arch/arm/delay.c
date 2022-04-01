@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2022, Capgemini Engineering
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -27,8 +28,7 @@ static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 
 void ps_udelay(unsigned long us);
 
-static void
-ps_do_cycle_delay(int32_t cycles)
+static void ps_do_cycle_delay(int32_t cycles)
 {
     /* Loop while the number of required instructions is +ve
      * We unfold the loop to avoid branch predictor optimisation.
@@ -53,11 +53,10 @@ ps_do_cycle_delay(int32_t cycles)
         "    subs %0, %0, #1;"  /* 14 */
         "    subs %0, %0, #1;"  /* 15 */
         "    subs %0, %0, #1;"  /* 16 */
-        "    bpl 1b" : "+r"(cycles) );
+        "    bpl 1b" : "+r"(cycles));
 }
 
-void
-ps_udelay(unsigned long us)
+void ps_udelay(unsigned long us)
 {
     if (cpufreq_hint == 0) {
         printf("%s:%d - Unable to determine CPU frequency for delay loop\n", __FILE__, __LINE__);
@@ -68,8 +67,7 @@ ps_udelay(unsigned long us)
     }
 }
 
-void
-ps_cpufreq_hint(unsigned long hz)
+void ps_cpufreq_hint(unsigned long hz)
 {
     cpufreq_hint = hz;
 }
