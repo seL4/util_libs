@@ -64,6 +64,7 @@
 #define MT_DEVICE_GRE     2
 #define MT_NORMAL_NC      3
 #define MT_NORMAL         4
+#define MT_NORMAL_WT      5
 #define MAIR(_attr, _mt)  ((_attr) << ((_mt) * 8))
 
 .macro enable_mmu sctlr tmp
