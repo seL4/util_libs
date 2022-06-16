@@ -153,6 +153,11 @@ function(DeclareRootserver rootservername)
                 set(elf_target_file "${OPENSBI_SYSTEM_IMAGE_ELF}")
             endif()
         endif()
+
+        if(NOT ElfloaderImage)
+            # Seems the Elfloader CMake project was not included?
+            message(FATAL_ERROR "ElfloaderImage is not set.")
+        endif()
         set(binary_efi_list "binary;efi")
         if(${ElfloaderImage} IN_LIST binary_efi_list)
             # If not an elf we construct an intermediate rule to do an objcopy to binary
