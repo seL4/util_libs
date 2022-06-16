@@ -13,6 +13,10 @@ if(KernelArchX86)
     return()
 endif()
 
+if(NOT KERNEL_FLAGS_PATH)
+    # Seems the seL4 kernel CMake project was not included?
+    message(FATAL_ERROR "KERNEL_FLAGS_PATH is not set.")
+endif()
 include(${KERNEL_FLAGS_PATH})
 include(cpio)
 
