@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <autoconf.h>
+#include <platsupport/gen_config.h>
+
 #define SERIAL_CONSOLE_COM1_PORT  0x3f8
 #define SERIAL_CONSOLE_COM2_PORT  0x2f8
 #define SERIAL_CONSOLE_COM3_PORT  0x3e8
