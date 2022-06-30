@@ -45,7 +45,6 @@ function(MakeCPIO output_name input_files)
     endif()
     # Check that the reproducible flag is available. Don't use it if it isn't.
     CheckCPIOArgument(cpio_reproducible_flag "--reproducible")
-    set(append "")
     set(
         commands
         "bash;-c;cpio ${cpio_reproducible_flag} --quiet --create -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio;&&"
