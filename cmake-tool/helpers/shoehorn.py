@@ -142,6 +142,7 @@ sufficiently-large memory region.
     rootservers = []
     is_dtb_present = False
     is_good_fit = False
+    kernel_elf = None
 
     with libarchive.memory_reader(get_cpio(image)) as archive:
         for entry in archive:
@@ -159,6 +160,9 @@ sufficiently-large memory region.
                 notice('skipping checkum entry "{}"'.format(name))
             else:
                 rootservers.append(get_bytes(entry))
+
+    if not kernel_elf:
+        die('missing kernel.elf')
 
     # Enumerate the regions as we encounter them for diagnostic purposes.
     region_counter = -1
