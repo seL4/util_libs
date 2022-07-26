@@ -101,9 +101,9 @@ enum {
 };
 
 /**
- * Initialise the bcm2711 GPIO system
- * @param[in] bankX      A virtual mapping for gpio bank X.
- * @param[out] gpio_sys  A handle to a gpio subsystem to populate.
+ * Initialize the BCM2711 GPIO system
+ * @param[in]  bankX     A virtual mapping for gpio bank X.
+ * @param[out] gpio_sys  A handle to a GPIO subsystem to populate.
  * @return               0 on success
  */
 int bcm2711_gpio_sys_init(void *bank1, gpio_sys_t *gpio_sys);
