@@ -129,16 +129,6 @@ static int libpci_add_fun(uint8_t bus, uint8_t dev, uint8_t fun)
 
 static void lib_pci_scan_bus(int bus);
 
-static void lib_pci_scan_fun(int bus, int dev, int fun)
-{
-    libpci_add_fun(bus, dev, fun);
-    if (libpci_read_reg16(bus, dev, fun, PCI_CLASS_DEVICE) == 0x0604) {
-        int new_bus = libpci_read_reg8(bus, dev, fun, PCI_SECONDARY_BUS);
-        ZF_LOGD("%s found additional bus %d from %d %d %d\n", __FUNCTION__, new_bus, bus, dev, fun);
-        lib_pci_scan_bus(new_bus);
-    }
-}
-
 static void lib_pci_scan_dev(int bus, int dev)
 {
     uint16_t vendor_id = libpci_read_reg16(bus, dev, 0, PCI_VENDOR_ID);
@@ -146,12 +136,12 @@ static void lib_pci_scan_dev(int bus, int dev)
         return;
     }
     ZF_LOGD("%s found pci device %d %d\n", __FUNCTION__, bus, dev);
-    lib_pci_scan_fun(bus, dev, 0);
+    libpci_add_fun(bus, dev, 0);
     if ((libpci_read_reg8(bus, dev, 0, PCI_HEADER_TYPE) & 0x80) != 0) {
         ZF_LOGD("%s found multi function device %d %d\n", __FUNCTION__, bus, dev);
         for (int function = 1; function < 8; function++) {
             if (libpci_read_reg16(bus, dev, function, PCI_VENDOR_ID) != PCI_VENDOR_ID_INVALID) {
-                lib_pci_scan_fun(bus, dev, function);
+                libpci_add_fun(bus, dev, function);
             }
         }
     }
@@ -167,17 +157,13 @@ static void lib_pci_scan_bus(int bus)
 void libpci_scan(ps_io_port_ops_t port_ops)
 {
     global_port_ops = port_ops;
+
+    /* To handle cases where PCI or PCIe buses are not accessible via a bridge from bus 0, We
+     * use "brute force" scan instead of recursive scan here. Details of these methods can be
+     * found on https://wiki.osdev.org/PCI#.22Brute_Force.22_Scan. */
     ZF_LOGD("PCI :: Scanning...\n");
-    if ((libpci_read_reg8(0, 0, 0, PCI_HEADER_TYPE) & 0x80) == 0) {
-        ZF_LOGD("Single bus detected\n");
-        lib_pci_scan_bus(0);
-    } else {
-        for (int function = 0; function < 8; function++) {
-            if (libpci_read_reg16(0, 0, function, PCI_VENDOR_ID) != PCI_VENDOR_ID_INVALID) {
-                ZF_LOGD("%s detected bus %d\n", __FUNCTION__, function);
-                lib_pci_scan_bus(function);
-            }
-        }
+    for (int bus = 0; bus < 256; bus++) {
+        lib_pci_scan_bus(bus);
     }
 }
 
