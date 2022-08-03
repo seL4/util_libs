@@ -58,9 +58,11 @@
 #define VIRTIO_NET_S_LINK_UP	1	/* Link is up */
 #define VIRTIO_NET_S_ANNOUNCE	2	/* Announcement is needed */
 
+#define VIRTIO_NET_CONFIG_MAC_SZ 6
+
 struct virtio_net_config {
 	/* The config defining mac address (if VIRTIO_NET_F_MAC) */
-	uint8_t mac[6];
+	uint8_t mac[VIRTIO_NET_CONFIG_MAC_SZ];
 	/* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
 	uint16_t status;
 	/* Maximum number of each of transmit and receive queues;
