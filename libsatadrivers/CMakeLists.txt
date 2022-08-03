@@ -18,4 +18,4 @@ file(
 
 add_library(satadrivers STATIC EXCLUDE_FROM_ALL ${sources})
 target_include_directories(satadrivers PUBLIC include)
-target_link_libraries(satadrivers muslc platsupport utils sel4)
+target_link_libraries(satadrivers virtio muslc platsupport utils sel4)
