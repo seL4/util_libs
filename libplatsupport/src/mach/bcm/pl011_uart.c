@@ -67,56 +67,56 @@ pl011_regs_t;
 #define ICR_TXIC        BIT(5)
 
 
-static inline pl011_regs_t * pl011_uart_get_priv(ps_chardevice_t *dev)
+static inline pl011_regs_t *pl011_uart_get_priv(ps_chardevice_t *dev)
 {
     return (pl011_regs_t *)(dev->vaddr);
 }
 
 static inline void pl011_uart_enable(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->cr |= CR_UARTEN;
 }
 
 static inline void pl011_uart_disable(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->cr &= ~CR_UARTEN;
 }
 
 static inline void pl011_uart_enable_fifo(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->lcrh |= LCRH_FEN;
 }
 
 static inline void pl011_uart_disable_fifo(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->lcrh &= ~LCRH_FEN;
 }
 
 static inline void pl011_uart_enable_rx_irq(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->imsc |= IMSC_RXIM;
 }
 
 static inline void pl011_uart_disable_rx_irq(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     r->imsc &= ~IMSC_RXIM;
 }
 
 static inline void pl011_uart_wait_busy(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
-    while(r->fr & FR_BUSY);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
+    while (r->fr & FR_BUSY);
 }
 
 static void pl011_uart_handle_irq(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
 
     // Clear (all) interrupts
     r->icr = 0x7ff;
@@ -124,7 +124,7 @@ static void pl011_uart_handle_irq(ps_chardevice_t *dev)
 
 static int pl011_uart_cr_configure(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     uint32_t val = r->cr;
 
     val |= CR_TXE; // Transmit enable
@@ -137,7 +137,7 @@ static int pl011_uart_cr_configure(ps_chardevice_t *dev)
 
 static int pl011_uart_lcrh_configure(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
     uint32_t val = r->lcrh;
 
     val |= LCRH_WLEN_8BIT; // Character size is 8bit
@@ -162,7 +162,7 @@ static int pl011_uart_baudrate_div_configure(ps_chardevice_t *dev)
 
     double baud_div = (double) freq_uart_clk / (double)(16.0 * baud_rate);
     double frac_div = baud_div - (uint32_t) baud_div;
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
 
     // Set IBRD register
     uint32_t val = r->ibrd;
@@ -187,7 +187,7 @@ static int pl011_uart_baudrate_div_configure(ps_chardevice_t *dev)
  */
 static int pl011_uart_configure(ps_chardevice_t *dev)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(dev);
+    pl011_regs_t *r = pl011_uart_get_priv(dev);
 
     // Disable UART
     pl011_uart_disable(dev);
@@ -211,20 +211,20 @@ static int pl011_uart_configure(ps_chardevice_t *dev)
     // Set baudrate divider
     pl011_uart_baudrate_div_configure(dev);
 
-    /* NOTE: enabling FIFOs will cause an unintended 
+    /* NOTE: enabling FIFOs will cause an unintended
      * side effect for SerialServer. If enabled, a
      * receive interrupt is only triggered when
      * receive FIFO reaches the threshold level
      * set in IFLS register (default 1/8 full).
-     * 
-     * This causes the SerialServer to receive 
+     *
+     * This causes the SerialServer to receive
      * characters only after level is reached,
      * and that makes it unusable.
-     * 
+     *
      * Leaving FIFOs disabled will make them 1-byte
      * FIFOs, effectively mimicking the behavior
      * of mini-UART.
-     * 
+     *
      */
     // Enable FIFO
     //pl011_uart_enable_fifo(dev);
@@ -292,12 +292,11 @@ int pl011_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_char
 
 int pl011_uart_getchar(ps_chardevice_t *d)
 {
-    pl011_regs_t * r = pl011_uart_get_priv(d);
+    pl011_regs_t *r = pl011_uart_get_priv(d);
     int ch = EOF;
 
     // Only if receive FIFO is not empty
-    if (!(r->fr & FR_RXFE)) 
-    {
+    if (!(r->fr & FR_RXFE)) {
         ch = (int)(r->dr & MASK(8));
     }
 
@@ -306,12 +305,11 @@ int pl011_uart_getchar(ps_chardevice_t *d)
 
 int pl011_uart_putchar(ps_chardevice_t *d, int c)
 {
-    if ((d->flags & SERIAL_AUTO_CR) && ((char)c == '\n')) 
-    {
+    if ((d->flags & SERIAL_AUTO_CR) && ((char)c == '\n')) {
         pl011_uart_putchar(d, '\r');
     }
 
-    pl011_regs_t * r = pl011_uart_get_priv(d);
+    pl011_regs_t *r = pl011_uart_get_priv(d);
 
     // Only if transmit FIFO is not full
     while (r->fr & FR_TXFF);

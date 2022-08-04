@@ -30,7 +30,7 @@ mini_uart_regs_t;
 
 /* Modem Status Interrupt (MSI) bit 3,
  * Line Status Interrupt (LSI) bit 2,
- * and receive data (RXD) bit 0 need 
+ * and receive data (RXD) bit 0 need
  * to be enabled in order to receive
  * interrupts.
  */
@@ -53,7 +53,7 @@ mini_uart_regs_t;
 #define MU_LCR_DATASIZE  BIT(0)
 
 
-static inline mini_uart_regs_t * bcm_uart_get_priv(ps_chardevice_t *dev)
+static inline mini_uart_regs_t *bcm_uart_get_priv(ps_chardevice_t *dev)
 {
     return (mini_uart_regs_t *)(dev->vaddr);
 }
@@ -149,8 +149,7 @@ int bcm_uart_getchar(ps_chardevice_t *d)
     mini_uart_regs_t *r = bcm_uart_get_priv(d);
     int ch = EOF;
 
-    if (r->mu_lsr & MU_LSR_DATAREADY)
-    {
+    if (r->mu_lsr & MU_LSR_DATAREADY) {
         ch = (int)(r->mu_io & MASK(8));
     }
 
@@ -163,8 +162,7 @@ int bcm_uart_getchar(ps_chardevice_t *d)
 
 int bcm_uart_putchar(ps_chardevice_t *d, int c)
 {
-    if ((d->flags & SERIAL_AUTO_CR) && ((char)c == '\n')) 
-    {
+    if ((d->flags & SERIAL_AUTO_CR) && ((char)c == '\n')) {
         bcm_uart_putchar(d, '\r');
     }
 

@@ -83,8 +83,8 @@ int uart_putchar(ps_chardevice_t *d, int c)
  * Configure UART GPIO pins.
  *
  * There is a possibility to configure these pins via the
- * config.txt file statically. Since these pins might be 
- * used for other functionality than UART, it might be 
+ * config.txt file statically. Since these pins might be
+ * used for other functionality than UART, it might be
  * best to configure these pins here dynamically.
  */
 int uart_gpio_configure(enum chardev_id id, const ps_io_ops_t *o)
@@ -96,10 +96,8 @@ int uart_gpio_configure(enum chardev_id id, const ps_io_ops_t *o)
     // control (CTS/RTS pins) for now.
     uart_gpio_defn_t pindef = { -1, -1, -1, -1 };
 
-    for (int i = 0; i < NUM_CHARDEV; i++)
-    {
-        if (id == gpio_defs[i].uart_id)
-        {
+    for (int i = 0; i < NUM_CHARDEV; i++) {
+        if (id == gpio_defs[i].uart_id) {
             pindef = gpio_defs[i];
             break;
         }
