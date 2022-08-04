@@ -18,11 +18,11 @@
  * peripherals being listed with their respective VideoCore base address.
  * Since user code is running on the ARM cores, we are more interested in
  * the ARM peripheral addresses.
- * 
+ *
  * BCM2837 UARTs live under "/soc/" bus.
  * mini-UART is under AUX peripheral block.
  * Access needs to be page aligned.
- * 
+ *
  * UART0 -> /soc/serial@7e201000
  * UART1 -> /soc/aux@7e215000
  *          -> /soc/serial@7e215040
@@ -38,19 +38,19 @@
 #define UART1_PADDR      (MINI_UART_BASE)    // 0x3f215040
 
 
-/* BCM2835/2837 TRM 
+/* BCM2835/2837 TRM
  * Section 7.5
  * The mini-UART from the AUX peripheral triggers IRQ 29 ("Aux int")
- * on the VideoCore, which then signals pending GPU interrupts 
+ * on the VideoCore, which then signals pending GPU interrupts
  * to the ARM core.
- * 
+ *
  * The PL011 triggers IRQ 57 ("uart_int").
- * 
+ *
  * The seL4 kernel's interrupt
  * controller driver creates a linear mapping of all interrupts in the system
  * (see include/drivers/bcm2836-armctrl-ic.h) with 32 ARM PPIs, 32 basic
- * interrupts and 64 GPU interrupts. 
- * 
+ * interrupts and 64 GPU interrupts.
+ *
  * Thus, the actual interrupts to be used in userland are: 93 (=32+32+29).
  * ->
  *   mini-UART 32+32+29 = 93

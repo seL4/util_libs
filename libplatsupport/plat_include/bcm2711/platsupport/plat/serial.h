@@ -18,11 +18,11 @@
  * peripherals being listed with their respective VideoCore base address.
  * Since user code is running on the ARM cores, we are more interested in
  * the ARM peripheral addresses.
- * 
+ *
  * BCM2711 UARTs live under "/soc/" bus.
  * mini-UART is under AUX peripheral block.
  * Access needs to be page aligned.
- * 
+ *
  * UART0 -> /soc/serial@7e201000
  * UART1 -> /soc/aux@7e215000
  *          -> /soc/serial@7e215040
@@ -53,13 +53,13 @@
  * BCM2711 TRM
  * section 6.2.4. VideoCore interrupts
  * section 6.3.   GIC-400 - VC peripheral IRQs
- * 
+ *
  * The mini UART (UART1) is part of AUX
  * -> 29
- * 
+ *
  * PL011 UARTs have common IRQ
  * -> 57
- * 
+ *
  * GIC-400 VC IRQS start from 96
  * ->
  *   mini-UART IRQ:  96 + 29 = 125
