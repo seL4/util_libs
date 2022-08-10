@@ -217,12 +217,12 @@ int gpio_sys_init(ps_io_ops_t *io_ops, gpio_sys_t *gpio_sys)
     }
 
     MAP_IF_NULL(io_ops, BCM2711_GPIO, gpio_ctx.bank[0]);
-    if(NULL == gpio_ctx.bank[0]) {
+    if (NULL == gpio_ctx.bank[0]) {
         ZF_LOGF("Failed to map GPIO bank frame.");
         return -ENOMEM;
     }
 
-    ZF_LOGD("Mapped GPIO MMIO bank frame: 0x%lx", (uintptr_t) (gpio_ctx.bank[0]));
+    ZF_LOGD("Mapped GPIO MMIO bank frame: 0x%lx", (uintptr_t)(gpio_ctx.bank[0]));
 
     return bcm2711_gpio_init_common(gpio_sys);
 }
