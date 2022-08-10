@@ -8,7 +8,7 @@
 
 #include "../../chardev.h"
 
-int uart_init(const struct dev_defn* defn, const ps_io_ops_t* ops, struct ps_chardevice* dev);
+int uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, struct ps_chardevice *dev);
 
 int bcm_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_chardevice_t *dev);
 
