@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#include <ethdrivers/virtio_pci.h>
 #include <assert.h>
 #include <ethdrivers/helpers.h>
-#include <ethdrivers/virtio/virtio_config.h>
-#include <ethdrivers/virtio/virtio_pci.h>
-#include <ethdrivers/virtio/virtio_ring.h>
-#include <ethdrivers/virtio/virtio_net.h>
+#include <ethdrivers/virtio_pci.h>
+#include <virtio/virtio_config.h>
+#include <virtio/virtio_pci.h>
+#include <virtio/virtio_ring.h>
+#include <virtio/virtio_net.h>
 #include <string.h>
 
 /* Mask of features we will use */

@@ -117,4 +117,4 @@ string(
     "--undefined=odroidc2_ethernet_ptr"
 )
 
-target_link_libraries(ethdrivers "${DriverModules}")
+target_link_libraries(ethdrivers virtio "${DriverModules}")
