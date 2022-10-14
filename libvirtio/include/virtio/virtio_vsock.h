@@ -38,6 +38,8 @@
 
 #define EVENT_QUEUE 2
 
+#define VIRTIO_VSOCK_CAMKES_MTU PAGE_SIZE_4K
+
 /* The feature bitmap for virtio vsock */
 #define VIRTIO_VSOCK_F_SEQPACKET       1       /* SOCK_SEQPACKET supported */
 
