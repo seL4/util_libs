@@ -162,6 +162,7 @@ function(correct_platform_strings)
         "bcm2711:rpi4"
         "exynos5:exynos5250,exynos5410,exynos5422"
         "am335x:am335x-boneblack,am335x-boneblue,am335x-bone"
+        "zynqmp:zcu102,ultra96,ultra96v2"
         "-KernelSel4Arch"
         "pc99:x86_64,ia32"
     )
