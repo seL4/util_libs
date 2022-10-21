@@ -9,7 +9,7 @@
 #include <platsupport/io.h>
 #include <ethdrivers/raw.h>
 
-#define ZYNQ7000_INTERRUPT_ETH0 54
+#define ZYNQMP_INTERRUPT_GEM3 95
 
 /**
  * This function initialises the hardware and conforms to the ethif_driver_init
@@ -19,4 +19,4 @@
  *                          functions.
  * @param[in] config        Platform Specific configuration data
  */
-int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);
+int ethif_zynqmp_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config);

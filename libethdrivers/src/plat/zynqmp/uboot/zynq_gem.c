@@ -37,10 +37,8 @@
 void (*push_packet)(void *, int len) = 0;
 #endif
 
-#define ZYNQ_GEM0_PADDR 0xE000B000
-#define ZYNQ_GEM0_SIZE  0x00001000
-
-#define ZYNQ_DEFAULT_MAC "\x00\x0a\x35\x02\xff\x1e"
+// TODO: Get MAC address from CAmkES config
+#define ZYNQ_DEFAULT_MAC "\x00\x0a\x35\x03\x61\x46"
 
 ps_io_ops_t *zynq_io_ops;
 
@@ -61,6 +59,7 @@ struct zynq_gem_priv {
     struct phy_device *phydev;
     struct mii_dev *bus;
     ps_io_ops_t *io_ops;
+    bool dma_64bit;
 };
 
 static inline int mdio_wait(struct eth_device *dev)
@@ -244,6 +243,25 @@ int zynq_gem_init(struct eth_device *dev)
 
     printf("zynq_gem_init: Start\n");
 
+    if (readl(&regs->dcfg6) & ZYNQ_GEM_DCFG_DBG6_DMA_64B) {
+        priv->dma_64bit = true;
+    } else {
+        priv->dma_64bit = false;
+    }
+
+#if defined(CONFIG_PHYS_64BIT)
+    if (!priv->dma_64bit) {
+        printf("ERR: %s: Using 64-bit DMA but HW doesn't support it\n",
+               __func__);
+        return -EINVAL;
+    }
+#else
+    if (priv->dma_64bit) {
+        debug("WARN: %s: Not using 64-bit dma even though HW supports it\n",
+              __func__);
+    }
+#endif
+
     if (!priv->init) {
         /* Disable all interrupts */
         writel(0xFFFFFFFF, &regs->idr);
@@ -253,6 +271,8 @@ int zynq_gem_init(struct eth_device *dev)
         writel(0xFFFFFFFF, &regs->txsr);
         writel(0xFFFFFFFF, &regs->rxsr);
         writel(0, &regs->phymntnc);
+        writel(0, &regs->transmit_q1_ptr);
+        writel(0, &regs->receive_q1_ptr);
 
         /* Clear the Hash registers for the mac address
          * pointed by AddressPtr
@@ -318,13 +338,11 @@ int zynq_gem_init(struct eth_device *dev)
         break;
     }
 
-    /* Change the rclk and clk only not using EMIO interface */
-    if (!priv->emio) {
-        /* Set the ethernet clock frequency */
-        gem_clk = clk_get_clock(&zynq_io_ops->clock_sys, CLK_GEM0);
-        gem_clk->init(gem_clk);
-        clk_set_freq(gem_clk, clk_rate);
-    }
+    /* Note:
+     * This is the place to configure the the GEM clock if not using the EMIO interface
+     * (!priv->emio). Clock configuration on the ZynqMP is different from the Zynq7000, making
+     * porting non-trivial. For now, assume that the bootloader has set appropriate clock settings.
+     */
 
     /* Enable IRQs */
     writel((ZYNQ_GEM_IXR_FRAMERX | ZYNQ_GEM_IXR_TXCOMPLETE), &regs->ier);
@@ -333,7 +351,7 @@ int zynq_gem_init(struct eth_device *dev)
     return 0;
 }
 
-int zynq_gem_start_send(struct eth_device *dev)
+int zynq_gem_start_send(struct eth_device *dev, uintptr_t txbase)
 {
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)dev->iobase;
 
@@ -342,6 +360,11 @@ int zynq_gem_start_send(struct eth_device *dev)
     while (status & ZYNQ_GEM_TXSR_TXGO) {
         status = readl(&regs->txsr);
     }
+
+    writel(lower_32_bits(txbase), &regs->txqbase);
+#if defined(CONFIG_PHYS_64BIT)
+    writel(upper_32_bits(txbase), &regs->upper_txqbase);
+#endif
 
     /* Start transmit */
     setbits_le32(&regs->nwctrl, ZYNQ_GEM_NWCTRL_STARTTX_MASK);
@@ -374,12 +397,12 @@ void zynq_gem_halt(struct eth_device *dev)
                     ZYNQ_GEM_NWCTRL_TXEN_MASK, 0);
 }
 
-static struct eth_device *gem0_dev;
+static struct eth_device *gem3_dev;
 
 static int zynq_gem_miiphyread(const char *devname, uchar addr,
                                uchar reg, ushort *val)
 {
-    struct eth_device *dev = gem0_dev;
+    struct eth_device *dev = gem3_dev;
     int ret;
 
     ret = phyread(dev, addr, reg, val);
@@ -390,7 +413,7 @@ static int zynq_gem_miiphyread(const char *devname, uchar addr,
 static int zynq_gem_miiphy_write(const char *devname, uchar addr,
                                  uchar reg, ushort val)
 {
-    struct eth_device *dev = gem0_dev;
+    struct eth_device *dev = gem3_dev;
 
     debug("%s 0x%x, 0x%x, 0x%x\n", __func__, addr, reg, val);
     return phywrite(dev, addr, reg, val);
@@ -453,7 +476,7 @@ struct eth_device *zynq_gem_initialize(phys_addr_t base_addr,
     priv->bus = miiphy_get_dev_by_name(dev->name);
 
     /* TBD: This is a bad way to handle this */
-    gem0_dev = dev;
+    gem3_dev = dev;
 
     return dev;
 }

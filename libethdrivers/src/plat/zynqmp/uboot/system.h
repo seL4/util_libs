@@ -8,6 +8,7 @@
 #include <autoconf.h>
 #include <ethdrivers/gen_config.h>
 
+#define CONFIG_ARM64
 #ifdef CONFIG_ARM64
 
 /*
@@ -32,10 +33,12 @@ enum dcache_option {
     DCACHE_OFF = 0x3,
 };
 
+#ifndef isb
 #define isb()                                   \
     ({asm volatile(                             \
             "isb" : : : "memory");              \
     })
+#endif
 
 #define wfi()                                   \
     ({asm volatile(                             \

@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#include <ethdrivers/zynq7000.h>
+#include <ethdrivers/zynqmp.h>
