@@ -3,4 +3,4 @@
  * Copyright Dornerworks
  */
 
-#include "zynq_zc70x.h"
+#include "zynq_zcu102.h"

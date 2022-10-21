@@ -15,6 +15,12 @@
 
 #include <platsupport/io.h>
 
+#define CONFIG_ARM64
+#define CONFIG_PHYS_64BIT
+
+#define lower_32_bits(n) ((u32)(n))
+#define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
+
 /* Bit/mask specification */
 #define ZYNQ_GEM_PHYMNTNC_OP_MASK   0x40020000 /* operation mask bits */
 #define ZYNQ_GEM_PHYMNTNC_OP_R_MASK 0x20000000 /* read operation */
@@ -44,7 +50,11 @@
 #define ZYNQ_GEM_NWCFG_SPEED1000    0x000000400 /* 1Gbps operation */
 #define ZYNQ_GEM_NWCFG_FDEN     0x000000002 /* Full Duplex mode */
 #define ZYNQ_GEM_NWCFG_FSREM        0x000020000 /* FCS removal */
-#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x0000c0000 /* Div pclk by 48, max 120MHz */
+#ifdef CONFIG_ARM64
+#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x00100000 /* Div pclk by 64, max 160MHz */
+#else
+#define ZYNQ_GEM_NWCFG_MDCCLKDIV    0x000c0000 /* Div pclk by 48, max 120MHz */
+#endif
 #define ZYNQ_GEM_NWCFG_COPY_ALL     0x000000010 /* Promiscuous Mode */
 
 #ifdef CONFIG_ARM64
@@ -68,12 +78,21 @@
 /* Set with binary 00011000 to use 1536 byte(1*max length frame/buffer) */
 #define ZYNQ_GEM_DMACR_RXBUF        0x00180000
 
+#if defined(CONFIG_PHYS_64BIT)
+#define ZYNQ_GEM_DMACR_BUS_WIDTH BIT(30) /* 64 bit bus */
+#else
+#define ZYNQ_GEM_DMACR_BUS_WIDTH (0 << 30) /* 32 bit bus */
+#endif
+
 #define ZYNQ_GEM_DMACR_INIT     (ZYNQ_GEM_DMACR_BLENGTH | \
                     ZYNQ_GEM_DMACR_RXSIZE | \
                     ZYNQ_GEM_DMACR_TXSIZE | \
-                    ZYNQ_GEM_DMACR_RXBUF)
+                    ZYNQ_GEM_DMACR_RXBUF | \
+                    ZYNQ_GEM_DMACR_BUS_WIDTH)
 
 #define ZYNQ_GEM_TSR_DONE       0x00000020 /* Tx done mask */
+
+#define ZYNQ_GEM_DCFG_DBG6_DMA_64B BIT(23)
 
 /* Use MII register 1 (MII status register) to detect PHY */
 #define PHY_DETECT_REG  1
@@ -127,16 +146,28 @@ struct zynq_gem_regs {
     u32 reserved6[18];
 #define STAT_SIZE   44
     u32 stat[STAT_SIZE]; /* 0x100 - Octects transmitted Low reg */
-    u32 reserved7[164];
+    u32 reserved9[20];
+    u32 pcscntrl;
+    u32 rserved12[36];
+    u32 dcfg6; /* 0x294 Design config reg6 */
+    u32 reserved7[106];
     u32 transmit_q1_ptr; /* 0x440 - Transmit priority queue 1 */
     u32 reserved8[15];
     u32 receive_q1_ptr; /* 0x480 - Receive priority queue 1 */
+    u32 reserved10[17];
+    u32 upper_txqbase; /* 0x4C8 - Upper tx_q base addr */
+    u32 reserved11[2];
+    u32 upper_rxqbase; /* 0x4D4 - Upper rx_q base addr */
 };
 
 /* BD descriptors */
 struct emac_bd {
     u32 addr; /* Next descriptor pointer */
     u32 status;
+#if defined(CONFIG_PHYS_64BIT)
+    u32 addr_hi;
+    u32 reserved;
+#endif
 };
 
 #define RX_BUF 32
@@ -154,7 +185,7 @@ struct eth_device *zynq_gem_initialize(phys_addr_t base_addr,
                                        int phy_addr, u32 emio);
 int zynq_gem_init(struct eth_device *dev);
 int zynq_gem_setup_mac(struct eth_device *dev);
-int zynq_gem_start_send(struct eth_device *dev);
+int zynq_gem_start_send(struct eth_device *dev, uintptr_t txbase);
 int zynq_gem_recv_enabled(struct eth_device *dev);
 void zynq_gem_recv_enable(struct eth_device *dev);
 void zynq_gem_halt(struct eth_device *dev);

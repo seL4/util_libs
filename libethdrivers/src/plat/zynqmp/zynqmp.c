@@ -10,9 +10,10 @@
 #include <platsupport/driver_module.h>
 #include <platsupport/fdt.h>
 #include <ethdrivers/gen_config.h>
-#include <ethdrivers/zynq7000.h>
+#include <ethdrivers/zynqmp.h>
 #include <ethdrivers/raw.h>
 #include <ethdrivers/helpers.h>
+#include <ethdrivers/gen_config.h>
 #include <string.h>
 #include <utils/util.h>
 #include "zynq_gem.h"
@@ -23,7 +24,7 @@
 
 #define BUF_SIZE MAX_PKT_SIZE
 
-struct zynq7000_eth_data {
+struct zynqmp_eth_data {
     struct eth_device *eth_dev;
     uintptr_t tx_ring_phys;
     uintptr_t rx_ring_phys;
@@ -41,7 +42,7 @@ struct zynq7000_eth_data {
     unsigned int rdt, rdh, tdt, tdh;
 };
 
-static void free_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma_man)
+static void free_desc_ring(struct zynqmp_eth_data *dev, ps_dma_man_t *dma_man)
 {
 
     if (dev->rx_ring != NULL) {
@@ -70,7 +71,7 @@ static void free_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma_man)
     }
 }
 
-static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma_man)
+static int initialize_desc_ring(struct zynqmp_eth_data *dev, ps_dma_man_t *dma_man)
 {
     dma_addr_t rx_ring = dma_alloc_pin(dma_man, sizeof(struct emac_bd) * dev->rx_size, 0, ARCH_DMA_MINALIGN);
     if (!rx_ring.phys) {
@@ -149,8 +150,7 @@ static int initialize_desc_ring(struct zynq7000_eth_data *dev, ps_dma_man_t *dma
 
 static void fill_rx_bufs(struct eth_driver *driver)
 {
-
-    struct zynq7000_eth_data *dev = (struct zynq7000_eth_data *)driver->eth_data;
+    struct zynqmp_eth_data *dev = (struct zynqmp_eth_data *)driver->eth_data;
     __sync_synchronize();
 
     while (dev->rx_remain > 0) {
@@ -189,8 +189,7 @@ static void fill_rx_bufs(struct eth_driver *driver)
 
 static void complete_rx(struct eth_driver *eth_driver)
 {
-
-    struct zynq7000_eth_data *dev = (struct zynq7000_eth_data *)eth_driver->eth_data;
+    struct zynqmp_eth_data *dev = (struct zynqmp_eth_data *)eth_driver->eth_data;
     unsigned int rdt = dev->rdt;
 
     while (dev->rdh != rdt) {
@@ -217,14 +216,13 @@ static void complete_rx(struct eth_driver *eth_driver)
     }
 
     if (dev->rdt != dev->rdh && !zynq_gem_recv_enabled(dev->eth_dev)) {
-        zynq_gem_recv_enabled(dev->eth_dev);
+        zynq_gem_recv_enable(dev->eth_dev);
     }
 }
 
 static void complete_tx(struct eth_driver *driver)
 {
-
-    struct zynq7000_eth_data *dev = (struct zynq7000_eth_data *)driver->eth_data;
+    struct zynqmp_eth_data *dev = (struct zynqmp_eth_data *)driver->eth_data;
 
     while (dev->tdh != dev->tdt) {
         unsigned int i;
@@ -254,13 +252,14 @@ static void complete_tx(struct eth_driver *driver)
     }
 
     if (dev->tdh != dev->tdt) {
-        zynq_gem_start_send(dev->eth_dev);
+        uintptr_t txbase = dev->tx_ring_phys + (uintptr_t)(dev->tdh * sizeof(struct emac_bd));
+        zynq_gem_start_send(dev->eth_dev, txbase);
     }
 }
 
 static void handle_irq(struct eth_driver *driver, int irq)
 {
-    struct zynq7000_eth_data *eth_data = (struct zynq7000_eth_data *)driver->eth_data;
+    struct zynqmp_eth_data *eth_data = (struct zynqmp_eth_data *)driver->eth_data;
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)eth_data->eth_dev->iobase;
 
     // Clear Interrupts
@@ -302,18 +301,26 @@ static void eth_irq_handle(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, v
 
 static void print_state(struct eth_driver *eth_driver)
 {
-    printf("Zynq7000: print_state not implemented\n");
+    printf("Zynqmp: print_state not implemented\n");
+}
+
+static void enet_get_mac(unsigned char enetaddr[6], uint8_t *mac)
+{
+    for (int i = 0; i < 6; i++) {
+        mac[i] = enetaddr[i];
+    }
 }
 
 static void low_level_init(struct eth_driver *driver, uint8_t *mac, int *mtu)
 {
-    printf("Zynq7000: low_level_init not implemented\n");
+    struct zynqmp_eth_data *dev = (struct zynqmp_eth_data *)driver->eth_data;
+    enet_get_mac(dev->eth_dev->enetaddr, mac);
+    *mtu = MAX_PKT_SIZE;
 }
 
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, unsigned int *len, void *cookie)
 {
-
-    struct zynq7000_eth_data *dev = (struct zynq7000_eth_data *)driver->eth_data;
+    struct zynqmp_eth_data *dev = (struct zynqmp_eth_data *)driver->eth_data;
 
     /* Ensure we have room */
     if (dev->tx_remain < num) {
@@ -327,6 +334,8 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 
     unsigned int i;
     __sync_synchronize();
+
+    uintptr_t txbase = dev->tx_ring_phys + (uintptr_t)(dev->tdt * sizeof(struct emac_bd));
 
     for (i = 0; i < num; i++) {
         unsigned int ring = (dev->tdt + i) % dev->tx_size;
@@ -345,7 +354,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys, 
 
     __sync_synchronize();
 
-    zynq_gem_start_send(dev->eth_dev);
+    zynq_gem_start_send(dev->eth_dev, txbase);
 
     return ETHIF_TX_ENQUEUED;
 }
@@ -359,7 +368,7 @@ static void raw_poll(struct eth_driver *driver)
 
 static void get_mac(struct eth_driver *driver, uint8_t *mac)
 {
-    struct eth_device *eth_dev = ((struct zynq7000_eth_data *)driver->eth_data)->eth_dev;
+    struct eth_device *eth_dev = ((struct zynqmp_eth_data *)driver->eth_data)->eth_dev;
     memcpy(mac, eth_dev->enetaddr, 6);
 }
 
@@ -373,16 +382,16 @@ static struct raw_iface_funcs iface_fns = {
     .get_mac = get_mac
 };
 
-int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
+int ethif_zynqmp_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config)
 {
     int err;
     struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
-    struct zynq7000_eth_data *eth_data = NULL;
+    struct zynqmp_eth_data *eth_data = NULL;
     struct eth_device *eth_dev;
 
-    printf("ethif_zynq7000_init: Start\n");
+    printf("ethif_zynqmp_init: Start\n");
 
-    eth_data = (struct zynq7000_eth_data *)malloc(sizeof(struct zynq7000_eth_data));
+    eth_data = (struct zynqmp_eth_data *)malloc(sizeof(struct zynqmp_eth_data));
     if (eth_data == NULL) {
         LOG_ERROR("Failed to allocate eth data struct");
         goto error;
@@ -392,7 +401,7 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
         LOG_ERROR("Cannot get platform info; Passed in Config Pointer NULL");
         goto error;
     }
-    uint32_t base_addr = (uint32_t)plat_config->buffer_addr;
+    phys_addr_t base_addr = (phys_addr_t)plat_config->buffer_addr;
 
     eth_data->tx_size = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
     eth_data->rx_size = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
@@ -418,8 +427,8 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     zynq_set_gem_ioops(&io_ops);
 
     eth_dev = (struct eth_device *)zynq_gem_initialize(base_addr,
-                                                       CONFIG_ZYNQ_GEM_PHY_ADDR0,
-                                                       CONFIG_ZYNQ_GEM_EMIO0);
+                                                       CONFIG_ZYNQ_GEM_PHY_ADDR3,
+                                                       CONFIG_ZYNQ_GEM_EMIO3);
     if (NULL == eth_dev) {
         LOG_ERROR("Failed to initialize Zynq Ethernet Device");
         goto error;
@@ -429,8 +438,14 @@ int ethif_zynq7000_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void 
     struct zynq_gem_regs *regs = (struct zynq_gem_regs *)eth_dev->iobase;
 
     /* Initialize the buffer descriptor registers */
-    writel((uint32_t)eth_data->tx_ring_phys, &regs->txqbase);
-    writel((uint32_t)eth_data->rx_ring_phys, &regs->rxqbase);
+    writel(lower_32_bits(eth_data->tx_ring_phys), &regs->txqbase);
+#if defined(CONFIG_PHYS_64BIT)
+    writel(upper_32_bits(eth_data->tx_ring_phys), &regs->upper_txqbase);
+#endif
+    writel(lower_32_bits(eth_data->rx_ring_phys), &regs->rxqbase);
+#if defined(CONFIG_PHYS_64BIT)
+    writel(upper_32_bits(eth_data->rx_ring_phys), &regs->upper_rxqbase);
+#endif
 
     zynq_gem_init(eth_dev);
 
@@ -497,7 +512,7 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irq
     return 0;
 }
 
-int ethif_zynq7000_init_module(ps_io_ops_t *io_ops, const char *dev_path)
+int ethif_zynqmp_init_module(ps_io_ops_t *io_ops, const char *dev_path)
 {
     struct arm_eth_plat_config plat_config;
     struct eth_driver *eth_driver;
@@ -539,7 +554,7 @@ int ethif_zynq7000_init_module(ps_io_ops_t *io_ops, const char *dev_path)
     plat_config.buffer_addr = args.addr;
     plat_config.prom_mode = 1;
 
-    error = ethif_zynq7000_init(eth_driver, *io_ops, &plat_config);
+    error = ethif_zynqmp_init(eth_driver, *io_ops, &plat_config);
     if (error) {
         ZF_LOGE("Failed to initialise the Ethernet driver");
         return -ENODEV;
@@ -553,4 +568,4 @@ static const char *compatible_strings[] = {
     "cdns,gem",
     NULL
 };
-PS_DRIVER_MODULE_DEFINE(zynq7000_gem, compatible_strings, ethif_zynq7000_init_module);
+PS_DRIVER_MODULE_DEFINE(zynqmp_gem, compatible_strings, ethif_zynqmp_init_module);
