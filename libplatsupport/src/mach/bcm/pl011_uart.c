@@ -253,6 +253,8 @@ int pl011_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_char
      */
     uint32_t addr_offset = 0;
 
+#if defined(CONFIG_PLAT_BCM2711)
+
     switch (defn->id) {
     case 0:
         addr_offset = UART0_OFFSET;
@@ -274,6 +276,21 @@ int pl011_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_char
         ZF_LOGE("PL011 UART with ID %d does not exist!", defn->id);
         return -1;
     }
+
+#elif defined(CONFIG_PLAT_BCM2837)
+
+    switch (defn->id) {
+    case 0:
+        addr_offset = UART0_OFFSET;
+        break;
+    default:
+        ZF_LOGE("PL011 UART with ID %d does not exist!", defn->id);
+        return -1;
+    }
+
+#else
+#error "Unknown BCM2xxx platform!"
+#endif
 
     /* Set up all the  device properties. */
     dev->id         = defn->id;
