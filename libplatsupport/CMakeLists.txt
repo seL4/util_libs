@@ -134,7 +134,7 @@ if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk)
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
 
-if(KernelPlatformZynqmpZcu102 OR KernelPlatformZynqmpUltra96)
+if(KernelPlatformZynqmpZcu102 OR KernelPlatformZynqmpUltra96 OR KernelPlatformZynqmpUltra96v2)
     # This still needs to be cleaned up, so there is a mach folder "zynymq" and
     # the board specific folders "zcu102" and "ultra96". Then we don't need to
     # include this folder here explicitly
