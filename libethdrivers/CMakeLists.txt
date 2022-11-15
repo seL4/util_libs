@@ -111,7 +111,7 @@ string(
     ","
     DriverModules
     "-Wl"
-    "--undefined=tx_ether_qos_ptr"
+    "--undefined=tx2_ether_qos_ptr"
     "--undefined=zynq7000_gem_ptr"
     "--undefined=imx_fec_ptr"
     "--undefined=odroidc2_ethernet_ptr"
