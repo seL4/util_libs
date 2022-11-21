@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <utils/attribute.h>
 #include <utils/builtin.h>
-#include <stdint.h>
 #include <utils/verification.h>
 #include <utils/stringify.h>
 
