@@ -34,12 +34,14 @@ int uart_getchar(ps_chardevice_t *d)
 
 int uart_putchar(ps_chardevice_t *d, int c)
 {
-    while ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0);
-
-    *REG_PTR(d->vaddr, UARTDR) = c;
     if (c == '\n' && (d->flags & SERIAL_AUTO_CR)) {
         uart_putchar(d, '\r');
     }
+
+    while ((*REG_PTR(d->vaddr, UARTFR) & PL011_UARTFR_TXFF) != 0)
+        /* busy loop */
+    }
+    *REG_PTR(d->vaddr, UARTDR) = c;
 
     return c;
 }
