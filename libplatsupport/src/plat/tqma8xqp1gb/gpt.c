@@ -214,7 +214,8 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num, size_t num_irq
     return 0;
 }
 
-int gpt_init(gpt_t *gpt, char *fdt_path, ps_io_ops_t ops, ltimer_callback_fn_t user_callback, void *user_callback_token)
+int gpt_init(gpt_t *gpt, const char *fdt_path, ps_io_ops_t ops, ltimer_callback_fn_t user_callback,
+             void *user_callback_token)
 {
     assert(gpt != NULL);
 

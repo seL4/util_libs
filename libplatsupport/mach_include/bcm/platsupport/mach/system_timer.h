@@ -48,7 +48,7 @@ typedef struct {
 typedef struct {
     uint32_t channel;
     uint32_t frequency;
-    char *fdt_path;
+    const char *fdt_path;
     uint32_t fdt_reg_choice;
     uint32_t fdt_irq_choice;
 } bcm_system_timer_config_t;

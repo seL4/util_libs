@@ -305,7 +305,7 @@ void pwm_destroy(pwm_t *pwm)
     }
 }
 
-int pwm_init(pwm_t *pwm, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token)
+int pwm_init(pwm_t *pwm, ps_io_ops_t ops, const char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token)
 {
     int error;
     ps_fdt_cookie_t *fdt_cookie;
