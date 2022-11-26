@@ -14,6 +14,14 @@ ignore-fixup-commits=false
 # By default gitlint will ignore squash commits. Set to 'false' to disable.
 ignore-squash-commits=false
 
+# So far, gitlint uses Python's `re.match()` (match from start) by default, but
+# it will change to use the more generic `re.search()` (match anywhere) in the
+# future. With 'regex-style-search' the behaviour can be controlled. Since we
+# prefer `re.search()` anyway, the new behavior is enabled. For more details
+# see also https://jorisroovers.com/gitlint/configuration/#regex-style-search.
+regex-style-search=true
+
+
 [title-max-length]
 line-length=50
 
