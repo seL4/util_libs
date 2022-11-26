@@ -77,7 +77,7 @@ static UNUSED timer_properties_t rel_gpt_properties = {
  *
  * @returns 0 if successful. Error code if not.
  */
-int gpt_create(gpt_t *gpt, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token);
+int gpt_create(gpt_t *gpt, ps_io_ops_t ops, const char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token);
 
 /**
  * Functions to get a GPT timer which is programmed to overflow

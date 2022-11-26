@@ -66,6 +66,6 @@ static UNUSED timer_properties_t pwm_properties = {
 
 uint64_t pwm_get_time(pwm_t *pwm);
 int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic);
-int pwm_init(pwm_t *pwm, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token);
+int pwm_init(pwm_t *pwm, ps_io_ops_t ops, const char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token);
 void pwm_destroy(pwm_t *pwm);
 int pwm_reset(pwm_t *pwm);

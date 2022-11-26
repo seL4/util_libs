@@ -42,7 +42,7 @@ static inline void handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknow
 }
 
 static int helper_fdt_alloc_simple(
-    ps_io_ops_t *ops, char *fdt_path,
+    ps_io_ops_t *ops, const char *fdt_path,
     unsigned reg_choice, unsigned irq_choice,
     void **vmap, pmem_region_t *pmem, irq_id_t *irq_id,
     irq_callback_fn_t handler, void *handler_token

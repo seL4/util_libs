@@ -51,7 +51,7 @@ typedef struct {
 } dmt_t;
 
 typedef struct {
-    char *fdt_path;
+    const char *fdt_path;
     ltimer_callback_fn_t user_cb_fn;
     void *user_cb_token;
     ltimer_event_t user_cb_event;

@@ -386,7 +386,7 @@ void gpt_destroy(gpt_t *gpt)
     }
 }
 
-int gpt_create(gpt_t *gpt, ps_io_ops_t ops, char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token)
+int gpt_create(gpt_t *gpt, ps_io_ops_t ops, const char *fdt_path, ltimer_callback_fn_t user_cb_fn, void *user_cb_token)
 {
     int error;
 

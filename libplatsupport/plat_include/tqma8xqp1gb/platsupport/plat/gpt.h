@@ -36,7 +36,7 @@ typedef struct gpt {
     enum gpt_timeout_type timeout_type;
 } gpt_t;
 
-int gpt_init(gpt_t *gpt, char *fdt_path, ps_io_ops_t ops, ltimer_callback_fn_t user_callback,
+int gpt_init(gpt_t *gpt, const char *fdt_path, ps_io_ops_t ops, ltimer_callback_fn_t user_callback,
              void *user_callback_token);
 int gpt_get_time(gpt_t *gpt, uint64_t *time);
 int gpt_set_timeout(gpt_t *gpt, uint64_t ns, timeout_type_t type);
