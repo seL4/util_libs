@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <platsupport/io.h>
-#include <satadrivers/virtio/virtio_blk.h>
+#include <virtio/virtio_blk.h>
 
 struct disk_driver;
 

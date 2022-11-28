@@ -117,4 +117,7 @@ string(
     "--undefined=odroidc2_ethernet_ptr"
 )
 
-target_link_libraries(ethdrivers "${DriverModules}")
+target_include_directories(
+    ethdrivers
+    PRIVATE $<TARGET_PROPERTY:virtio,INTERFACE_INCLUDE_DIRECTORIES>
+)
