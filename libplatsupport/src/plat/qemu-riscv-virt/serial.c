@@ -63,7 +63,7 @@ int uart_putchar(ps_chardevice_t *dev, int c)
 
     /* There is no way to check for "TX ready", the only thing we have is a
      * check for "TX FIFO empty". This is not optimal, as we might wait here
-     * even if there is space in the FIFO. Seems the 16650 was built based on
+     * even if there is space in the FIFO. Seems the 16550 was built based on
      * the idea that software keeps track of the FIFO usage. A driver would
      * know how much space is left in the FIFO, so it can write new data
      * either immediately or buffer it. If the FIFO empty interrupt arrives,

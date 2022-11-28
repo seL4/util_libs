@@ -24,7 +24,7 @@
 #define TCLR_INTENABLE  BIT(5)
 #define TCLR_AUTORELOAD BIT(6)
 #define TCLR_STARTTIMER BIT(7)
-/* It looks like the FVP does not emulate time accruately. Thus, pick
+/* It looks like the FVP does not emulate time accurately. Thus, pick
  *  a small Hz that triggers interrupts in a reasonable time */
 #define TICKS_PER_SECOND 35000
 #define TICKS_PER_MS    (TICKS_PER_SECOND / MS_IN_S)
