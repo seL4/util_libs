@@ -63,7 +63,7 @@ mark_as_advanced(
 )
 add_config_library(ethdrivers "${configure_string}")
 
-if("${KernelPlatform}" MATCHES "imx8mq-evk")
+if(KernelPlatformImx8mq-evk)
     # Re-use the imx6 sources
     set(PlatPrefix "imx6")
 else()
@@ -101,7 +101,7 @@ if(LibPicotcp)
     target_link_libraries(ethdrivers picotcp)
 endif()
 
-if("${KernelPlatform}" STREQUAL "tx2")
+if(KernelPlatformTx2)
     target_link_libraries(ethdrivers platsupportports)
 endif()
 
