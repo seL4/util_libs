@@ -555,7 +555,7 @@ int load_images(
          * success and anything else is an error.
          */
         uint64_t min_vaddr, max_vaddr;
-        int ret = elf_getMemoryBounds(user_elf, 0, &min_vaddr, &max_vaddr);
+        ret = elf_getMemoryBounds(user_elf, 0, &min_vaddr, &max_vaddr);
         if (ret != 1) {
             printf("ERROR: Could not get image bounds\n");
             return -1;
