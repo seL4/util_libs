@@ -33,16 +33,26 @@ def get_memory_usage(elf_file: BinaryIO, align: bool) -> int:
     the ELF object file `elf_file`.
     """
 
-    total: int = 0
     elf = elftools.elf.elffile.ELFFile(elf_file)
 
     # We only care about loadable segments (p_type is "PT_LOAD"), and we
     # want the size in memory of those segments (p_memsz), which can be
     # greater than the size in the file (p_filesz).  This is especially
     # important for the BSS section.  See elf(5).
-    total = sum([seg['p_memsz'] for seg in elf.iter_segments()
-                 if seg['p_type'] == 'PT_LOAD'])
 
+    # There may be gaps between segments; use the min+max vaddr of
+    # the loaded segments to calculate total usage.
+    min_vaddr = None
+    max_vaddr: int = 0
+    for seg in elf.iter_segments():
+        if seg['p_type'] == 'PT_LOAD':
+            if min_vaddr is None:
+                min_vaddr = seg['p_vaddr']
+            else:
+                min_vaddr = min(seg['p_vaddr'], min_vaddr)
+            max_vaddr = max(seg['p_vaddr'] + seg['p_memsz'], max_vaddr)
+
+    total: int = max_vaddr - min_vaddr
     return get_aligned_size(total) if align else total
 
 
