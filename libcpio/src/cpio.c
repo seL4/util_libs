@@ -208,7 +208,7 @@ const void *cpio_get_file(const void *archive, unsigned long len, const char *na
         if (error) {
             return NULL;
         }
-        if (cpio_strncmp(header_info.filename, name, -1) == 0) {
+        if (cpio_strncmp(header_info.filename, name, (unsigned long)(-1)) == 0) {
             break;
         }
         len = cpio_len_next(len, header, header_info.next);
