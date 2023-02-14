@@ -240,7 +240,7 @@ int cpio_info(const void *archive, unsigned long len, struct cpio_info *info)
             return error;
         } else if (error == 1) {
             /* EOF */
-            return 0;
+            break;
         }
         info->file_count++;
         len = cpio_len_next(len, header, header_info.next);
