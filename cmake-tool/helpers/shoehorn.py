@@ -206,9 +206,11 @@ sufficiently-large memory region.
                 marker += elf_sift.get_memory_usage(elf, align=True)
                 debug_marker_set(marker, 'end of rootserver')
 
-            # Note: sel4test_driver eats (almost) 4 more MiB than it claims to.
-            # Fixing this is JIRA SELFOUR-2335.
-            fudge_factor = 4 * 1024 * 1024
+            # Note: To handle the case where the elfloader is initially loaded to
+            # the start of the available memory region, we add an aditional overhead
+            # factor to account for the size of the elfloader program itself so that
+            # it won't need to move over the top of itself.
+            fudge_factor = 128 * 1024
             marker += elf_sift.get_aligned_size(fudge_factor)
             debug_marker_set(marker, 'end of (aligned) fudge factor')
 
