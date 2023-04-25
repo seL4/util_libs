@@ -12,7 +12,7 @@ include_guard(GLOBAL)
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     set(
         binary_list
-        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;hifive;tqma8xqp1gb;bcm2711;rocketchip"
+        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;hifive;tqma8xqp1gb;bcm2711;rocketchip;star64"
     )
     set(efi_list "tk1;rockpro64;quartz64")
     set(uimage_list "tx2;am335x")
@@ -58,6 +58,9 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
             set(ElfloaderArmV8LeaveAarch64 ON CACHE BOOL "" FORCE)
         endif()
         set(IMAGE_START_ADDR 0x10000000 CACHE INTERNAL "" FORCE)
+    endif()
+    if(KernelPlatformStar64)
+        set(IMAGE_START_ADDR 0x60000000 CACHE INTERNAL "" FORCE)
     endif()
 endfunction()
 
