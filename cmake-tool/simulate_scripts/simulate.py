@@ -35,6 +35,8 @@ def parse_args():
                         help="Kernel file to pass onto QEMU", default="@QEMU_SIM_KERNEL_FILE@")
     parser.add_argument('-i', '--initrd', dest='qemu_sim_initrd_file', type=str,
                         help="Initrd file to pass onto QEMU", default="@QEMU_SIM_INITRD_FILE@")
+    parser.add_argument("-n", '--dry-run', dest='dry_run', action='store_true',
+                        help="Output command for QEMU (and GDB), but do not execute it")
     parser.add_argument('--extra-qemu-args', dest='qemu_sim_extra_args', type=str,
                         help="Additional arguments to pass onto QEMU", default="@QEMU_SIM_EXTRA_ARGS@")
     parser.add_argument('--extra-cpu-opts', dest='qemu_sim_extra_cpu_opts', type=str,
@@ -80,7 +82,10 @@ if __name__ == "__main__":
                                   qemu_gdbserver_command]
     qemu_simulate_command = " ".join(qemu_simulate_command_opts)
 
-    notice(qemu_simulate_command)
+    notice('QEMU command: ' + qemu_simulate_command)
+
+    if args.dry_run:
+        exit()
 
     if qemu_gdbserver_command != "":
         notice('waiting for GDB on port 1234...')
