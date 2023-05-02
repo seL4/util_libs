@@ -30,8 +30,6 @@
 static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 #define CYCLES_PER_US (cpufreq_hint / 1000000)
 
-void ps_udelay(unsigned long us);
-
 static void ps_do_cycle_delay(int32_t cycles)
 {
     /* Loop while the number of required instructions is +ve
