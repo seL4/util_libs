@@ -30,7 +30,7 @@
 static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 #define CYCLES_PER_US (cpufreq_hint / 1000000)
 
-static void ps_do_cycle_delay(int32_t cycles)
+static void ps_do_cycle_delay(size_t cycles)
 {
     /* Loop while the number of required instructions is +ve
      * We unfold the loop to avoid branch predictor optimisation.
