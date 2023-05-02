@@ -26,6 +26,15 @@
  * used. A perfect example is error handling code. This gives the compiler a
  * light hint to deprioritise optimisation of this path.
  */
+
+#ifdef __clang__
+
+/* Avoid warning: 'cold' attribute only applies to functions */
+#define COLD_PATH() do { } while(0)
+#define HOT_PATH() do { } while(0)
+
+#else /* not __clang__ */
+
 #define COLD_PATH() \
     do { \
         JOIN(cold_path_, __COUNTER__): COLD UNUSED; \
@@ -38,3 +47,5 @@
     do { \
         JOIN(hot_path_, __COUNTER__): HOT UNUSED; \
     } while (0)
+
+#endif /* [not] __clang__ */
