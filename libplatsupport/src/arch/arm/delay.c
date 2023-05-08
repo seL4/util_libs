@@ -32,7 +32,7 @@ static unsigned long cpufreq_hint = DEFAULT_CPUFREQ;
 
 void ps_udelay(unsigned long us);
 
-static void ps_do_cycle_delay(int32_t cycles)
+static void ps_do_cycle_delay(intptr_t cycles)
 {
     /* Loop while the number of required instructions is +ve
      * We unfold the loop to avoid branch predictor optimisation.
