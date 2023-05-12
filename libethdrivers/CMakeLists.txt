@@ -105,7 +105,10 @@ if("${KernelPlatform}" STREQUAL "tx2")
     target_link_libraries(ethdrivers platsupportports)
 endif()
 
-# Get the list of driver modules
+# Provide the driver modules by forcing the linker to put these symbols in the
+# library, instead of discarding them as unused. Using target_link_libraries()
+# is a bit of a hack, target_link_options() would be the better way, but this
+# requires CMake v3.13.
 string(
     JOIN
     ","
@@ -116,6 +119,7 @@ string(
     "--undefined=imx_fec_ptr"
     "--undefined=odroidc2_ethernet_ptr"
 )
+target_link_libraries(ethdrivers "${DriverModules}")
 
 target_include_directories(
     ethdrivers
