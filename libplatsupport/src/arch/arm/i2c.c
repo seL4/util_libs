@@ -63,7 +63,7 @@ static int _do_kvread(i2c_kvslave_t *kvs, uint64_t reg, void *data, int count)
         count = BUFFER_SIZE / dbytes;
     }
     /* Send the register address */
-    ZF_LOGD("Seek register 0x%02llx", reg);
+    ZF_LOGD("Seek register 0x%02"PRIx64, reg);
     _fill_reg(d, reg, kvs->address_fmt);
     bytes = i2c_slave_write(kvs->slave, d, abytes, true, NULL, NULL);
     if (bytes != abytes) {
@@ -101,7 +101,7 @@ static int _do_kvwrite(i2c_kvslave_t *kvs, uint64_t reg, const void *data, int c
         count = (BUFFER_SIZE - abytes) / dbytes;
     }
     /* Set up the register address */
-    ZF_LOGD("Seek register 0x%02llx", reg);
+    ZF_LOGD("Seek register 0x%02"PRIx64, reg);
     _fill_reg(d, reg, kvs->address_fmt);
     /* Load up the data */
     _fill_data(d + abytes, data, kvs->data_fmt, count);
