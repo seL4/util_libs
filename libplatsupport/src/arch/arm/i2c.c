@@ -22,8 +22,7 @@
 #define BUFFER_SIZE 128
 
 /* Copy from data into buf while fixing endianess */
-static void
-_fill_data(char* buf, const char* data, enum kvfmt fmt, int count)
+static void _fill_data(char *buf, const char *data, enum kvfmt fmt, int count)
 {
     int bytes = ABS(fmt);
     int i, j;
@@ -38,8 +37,7 @@ _fill_data(char* buf, const char* data, enum kvfmt fmt, int count)
 }
 
 /* Copy reg into buf with required endianess */
-static int
-_fill_reg(char* buf, uint64_t reg, enum kvfmt fmt)
+static int _fill_reg(char *buf, uint64_t reg, enum kvfmt fmt)
 {
     int i;
     int bytes = ABS(fmt);
@@ -51,8 +49,7 @@ _fill_reg(char* buf, uint64_t reg, enum kvfmt fmt)
 }
 
 /* Read no more than count registers into data with correct endianess */
-static int
-_do_kvread(i2c_kvslave_t* kvs, uint64_t reg, void* data, int count)
+static int _do_kvread(i2c_kvslave_t *kvs, uint64_t reg, void *data, int count)
 {
     int abytes, dbytes, bytes;
     char d[BUFFER_SIZE];
@@ -90,8 +87,7 @@ _do_kvread(i2c_kvslave_t* kvs, uint64_t reg, void* data, int count)
 }
 
 /* Write no more than count registers from data */
-static int
-_do_kvwrite(i2c_kvslave_t* kvs, uint64_t reg, const void* data, int count)
+static int _do_kvwrite(i2c_kvslave_t *kvs, uint64_t reg, const void *data, int count)
 {
     int abytes, dbytes, bytes;
     char d[BUFFER_SIZE];
@@ -119,12 +115,11 @@ _do_kvwrite(i2c_kvslave_t* kvs, uint64_t reg, const void* data, int count)
     return count;
 }
 
-int
-i2c_slave_init(i2c_bus_t* i2c_bus, int address,
-               enum i2c_slave_address_size address_size,
-               enum i2c_slave_speed max_speed,
-               uint32_t i2c_opts,
-               i2c_slave_t* i2c_slave)
+int i2c_slave_init(i2c_bus_t *i2c_bus, int address,
+                   enum i2c_slave_address_size address_size,
+                   enum i2c_slave_speed max_speed,
+                   uint32_t i2c_opts,
+                   i2c_slave_t *i2c_slave)
 {
     ZF_LOGF_IF((!i2c_bus), "Handle to I2C controller not supplied!");
     ZF_LOGF_IF((!i2c_bus->slave_init), "Unimplemented!");
@@ -152,10 +147,9 @@ i2c_slave_init(i2c_bus_t* i2c_bus, int address,
                                address_size, max_speed, i2c_opts, i2c_slave);
 }
 
-int
-i2c_kvslave_init(i2c_slave_t* is,
-                 enum kvfmt afmt, enum kvfmt dfmt,
-                 i2c_kvslave_t* kvs)
+int i2c_kvslave_init(i2c_slave_t *is,
+                     enum kvfmt afmt, enum kvfmt dfmt,
+                     i2c_kvslave_t *kvs)
 {
     ZF_LOGF_IF(!kvs, "Slave output handle not supplied!");
     ZF_LOGF_IF(!is, "Controller handle not supplied!");
@@ -201,13 +195,12 @@ i2c_kvslave_init(i2c_slave_t* is,
 
 
 /* Loop until count registers have been read or an error occurs */
-int
-i2c_kvslave_read(i2c_kvslave_t* kvs, uint64_t reg, void* vdata, int count)
+int i2c_kvslave_read(i2c_kvslave_t *kvs, uint64_t reg, void *vdata, int count)
 {
     assert(kvs != NULL);
 
     int dbytes = ABS(kvs->data_fmt);
-    char* data = (char*)vdata;
+    char *data = (char *)vdata;
     int this = -1;
     int remain = count;
 
@@ -231,13 +224,12 @@ i2c_kvslave_read(i2c_kvslave_t* kvs, uint64_t reg, void* vdata, int count)
 
 
 /* Loop until count registers have been written or an error occurs */
-int
-i2c_kvslave_write(i2c_kvslave_t* kvs, uint64_t reg, const void* vdata, int count)
+int i2c_kvslave_write(i2c_kvslave_t *kvs, uint64_t reg, const void *vdata, int count)
 {
     assert(kvs != NULL);
 
     int dbytes = ABS(kvs->data_fmt);
-    char* data = (char*)vdata;
+    char *data = (char *)vdata;
     int this = 0;
     int remain = count;
 
@@ -259,8 +251,7 @@ i2c_kvslave_write(i2c_kvslave_t* kvs, uint64_t reg, const void* vdata, int count
     return count - remain;
 }
 
-int
-i2c_scan(i2c_bus_t* i2c_bus, int start, int* addr, int naddr)
+int i2c_scan(i2c_bus_t *i2c_bus, int start, int *addr, int naddr)
 {
     i2c_slave_t sl;
 
