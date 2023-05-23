@@ -7,4 +7,6 @@
 
 #pragma once
 
+struct eth_driver;
+
 /* nothing here */

@@ -140,9 +140,6 @@ static void lwip_rx_complete(void *iface, unsigned int num_bufs, void **cookies,
         }
     }
 
-//    PKT_DEBUG(printf("Receiving packet\n"));
-//    PKT_DEBUG(print_packet(COL_RX, p->payload, len));
-
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif

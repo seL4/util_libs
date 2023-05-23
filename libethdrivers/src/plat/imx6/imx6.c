@@ -23,6 +23,9 @@
 #include "uboot/micrel.h"
 #include "unimplemented.h"
 
+// Temporary fix: set to imx8mq mac
+#define DEFAULT_MAC "\x00\x04\x9f\x05\x93\xdf"
+
 #define IRQ_MASK    (NETIRQ_RXF | NETIRQ_TXF | NETIRQ_EBERR)
 #define BUF_SIZE    MAX_PKT_SIZE
 #define DMA_ALIGN   32
@@ -185,6 +188,7 @@ static void fill_rx_bufs(imx6_eth_driver_t *dev)
                  * small because CONFIG_LIB_ETHDRIVER_NUM_PREALLOCATED_BUFFERS
                  * is less than CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT.
                  */
+                ZF_LOGF("There are no buffers left.");
                 break;
             }
             uint16_t stat = RXD_EMPTY;
@@ -388,7 +392,6 @@ static void complete_tx(imx6_eth_driver_t *dev)
     unsigned int cnt = 0;
 
     while (head != ring->tail) {
-
         if (0 == cnt) {
             cnt = dev->tx_lengths[head];
             if ((0 == cnt) || (cnt > dev->tx.cnt)) {
@@ -409,10 +412,11 @@ static void complete_tx(imx6_eth_driver_t *dev)
         /* If this buffer was not sent, we can't release any buffer. */
         if (d->stat & TXD_READY) {
             assert(dev->enet);
+            /* give it another chance */
             if (!enet_tx_enabled(dev->enet)) {
                 enet_tx_enable(dev->enet);
             }
-            return;
+            if (d->stat & TXD_READY) return;
         }
 
         /* Go to next buffer, handle roll-over. */
@@ -427,7 +431,6 @@ static void complete_tx(imx6_eth_driver_t *dev)
             /* give the buffer back */
             cb_complete(cb_cookie, cookie);
         }
-
     }
 
     /* The only reason to arrive here is when head equals tails. If cnt is not
@@ -461,18 +464,21 @@ static void handle_irq(struct eth_driver *driver, int irq)
     assert(enet);
 
     uint32_t e = enet_clr_events(enet, IRQ_MASK);
-    if (e & NETIRQ_TXF) {
-        complete_tx(dev);
-    }
-    if (e & NETIRQ_RXF) {
-        complete_rx(dev);
-        fill_rx_bufs(dev);
-    }
-    if (e & NETIRQ_EBERR) {
-        ZF_LOGE("Error: System bus/uDMA");
-        // ethif_print_state(netif_get_eth_driver(netif));
-        assert(0);
-        while (1);
+    while (e & IRQ_MASK) {
+        if (e & NETIRQ_TXF) {
+            complete_tx(dev);
+        }
+        if (e & NETIRQ_RXF) {
+            complete_rx(dev);
+            fill_rx_bufs(dev);
+        }
+        if (e & NETIRQ_EBERR) {
+            ZF_LOGE("Error: System bus/uDMA");
+            //ethif_print_state(netif_get_eth_driver(netif));
+            assert(0);
+            while (1);
+        }
+        e = enet_clr_events(enet, IRQ_MASK);
     }
 }
 
@@ -554,6 +560,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
             tail_new = 0;
             stat |= TXD_WRAP;
         }
+        ZF_LOGW("Inserting buffer %p of length %d into ring", *phys, *len);
         update_ring_slot(ring, idx, *phys++, *len++, stat);
     }
 
@@ -636,6 +643,18 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 
     int ret;
 
+#if defined(CONFIG_PLAT_IMX8MQ_EVK)
+    /* Don't attempt to obtain the MAC address for iMX8MQ.
+     *
+     * The code to obtain the MAC address assumes an iMX6 compatible
+     * OCOTP which the iMX8 does not have.
+     *
+     * Instead, we assume that the bootloader has already configured the
+     * hardware MAC address. */
+    uint64_t mac = 0;
+    ZF_LOGI("using MAC configured by bootloader");
+#else
+    /* this works for imx8mm however */
     uint64_t mac = obtain_mac(nic_config, &(dev->eth_drv.io_ops.io_mapper));
     if (0 == mac) {
         ZF_LOGE("Failed to obtain a MAC");
@@ -649,6 +668,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
             (uint8_t)(mac >> 16),
             (uint8_t)(mac >> 8),
             (uint8_t)(mac));
+#endif
 
     ret = setup_desc_ring(dev, &(dev->rx));
     if (ret) {
@@ -736,9 +756,9 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     /* Initialise the phy library */
     miiphy_init();
     /* Initialise the phy */
-#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ)
+#if defined(CONFIG_PLAT_SABRE) || defined(CONFIG_PLAT_WANDQ) || defined(CONFIG_PLAT_IMX8MQ_EVK)
     phy_micrel_init();
-#elif defined(CONFIG_PLAT_NITROGEN6SX)
+#elif defined(CONFIG_PLAT_NITROGEN6SX) || defined(CONFIG_PLAT_IMX8MM_EVK)
     phy_atheros_init();
 #else
 #error "unsupported board"
@@ -823,12 +843,6 @@ static int allocate_irq_callback(ps_irq_t irq, unsigned curr_num,
 {
     assert(token);
     imx6_eth_driver_t *dev = (imx6_eth_driver_t *)token;
-
-    unsigned target_num = config_set(CONFIG_PLAT_IMX8MQ_EVK) ? 2 : 0;
-    if (curr_num != target_num) {
-        ZF_LOGW("Ignoring interrupt #%d with value %d", curr_num, irq);
-        return 0;
-    }
 
     dev->irq_id = ps_irq_register(
                       &(dev->eth_drv.io_ops.irq_ops),
@@ -951,7 +965,6 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
         ret = -ENODEV;
         goto error;
     }
-
     return 0;
 
 error:
@@ -975,6 +988,7 @@ static const char *compatible_strings[] = {
     "fsl,imx6q-fec",
     "fsl,imx6sx-fec",
     "fsl,imx8mq-fec",
+    "fsl,imx8mm-fec",
     NULL
 };
 

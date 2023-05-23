@@ -176,9 +176,11 @@ struct phy_device *fec_init(unsigned int phy_mask, struct enet *enet,
         ZF_LOGW("SABRE: unexpected PHY with ID 0x%x", phydev->phy_id);
     }
 
-#elif defined(CONFIG_PLAT_NITROGEN6SX)
-
-    if (0x004dd072 == phydev->phy_id) {
+#elif defined(CONFIG_PLAT_NITROGEN6SX) || defined(CONFIG_PLAT_IMX8MM_EVK)
+    /* imx6sx and imx8mm seem to use a very similar phy device. 
+    The AR8031 (used in imx8mm) also has the SmartEEE feature but not sure if
+    this is necessary. */
+    if (0x004dd072 == phydev->phy_id || 0x004dd074 == phydev->phy_id) {
         /* Disable Ar803x PHY SmartEEE feature, it causes link status glitches
          * that result in the ethernet link going down and up.
          */

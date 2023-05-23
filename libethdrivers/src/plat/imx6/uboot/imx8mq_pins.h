@@ -24,7 +24,7 @@
 
 #include "imx_pins.h"
 
-#ifndef CONFIG_PLAT_IMX8MQ_EVK
+#if !(defined(CONFIG_PLAT_IMX8MQ_EVK))
 #error "CONFIG_PLAT_IMX8MQ_EVK must be defined to use this file"
 #endif
 

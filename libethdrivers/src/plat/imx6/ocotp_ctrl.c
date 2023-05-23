@@ -22,8 +22,7 @@
 #define IMX6_OCOTP_PADDR   0x021BC000
 #define IMX6_OCOTP_SIZE    0x00004000
 
-#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
-
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
 #define IMX6_OCOTP_PADDR   0x30350000
 #define IMX6_OCOTP_SIZE    0x00010000
 
@@ -211,10 +210,16 @@ uint64_t ocotp_get_mac(struct ocotp *ocotp, unsigned int id)
     uint64_t mac = 0;
 
     switch (id) {
+#if defined(CONFIG_PLAT_IMX8MM_EVK) || defined(CONFIG_IMX8MQ_EVK)
+    case 0:
+        mac = ((uint64_t)((uint16_t)regs->res37[4]) << 32) | regs->res37[0];
+        break;
+#else
     case 0:
         /* 0x0000<aa><bb><cc><dd><ee><ff> */
         mac = ((uint64_t)((uint16_t)regs->mac1) << 32) | regs->mac0;
         break;
+#endif
 
 #ifdef CONFIG_PLAT_IMX6SX
 
@@ -237,7 +242,7 @@ uint64_t ocotp_get_mac(struct ocotp *ocotp, unsigned int id)
         return 0;
     }
 
-    ZF_LOGI("OCOTP MAC #%u: %02x:%02x:%02x:%02x:%02x:%02x",
+    ZF_LOGW("OCOTP MAC #%u: %02x:%02x:%02x:%02x:%02x:%02x",
             id, (uint8_t)(mac >> 40), (uint8_t)(mac >> 32),
             (uint8_t)(mac >> 24), (uint8_t)(mac >> 16), (uint8_t)(mac >> 8),
             (uint8_t)mac);

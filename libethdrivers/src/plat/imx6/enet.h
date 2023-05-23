@@ -69,6 +69,8 @@ int enet_tx_enabled(struct enet *enet);
 void enet_rx_enable(struct enet *enet);
 int enet_rx_enabled(struct enet *enet);
 
+int enet_get_mask(struct enet *enet);
+
 void enet_set_mdcclk(struct enet *enet, uint32_t fout);
 uint32_t enet_get_mdcclk(struct enet *imx_eth);
 

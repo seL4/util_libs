@@ -511,6 +511,7 @@ static struct phy_device *phy_device_create(struct mii_dev *bus, int addr,
 
     /* We allocate the device, and initialize the
      * default values */
+     
     dev = malloc(sizeof(*dev));
     if (!dev) {
         ZF_LOGE("Failed to allocate PHY device for '%s':%d", bus->name, addr);

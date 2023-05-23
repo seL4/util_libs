@@ -61,7 +61,7 @@ static unsigned long gpio_paddr[] = {
     [6] = GPIO7_BASE_ADDR,
 };
 
-#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
 
 static unsigned long gpio_ports[] = {
     [0] = 0,

@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
-#define CCM_PADDR 0x30380000
+#if (defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK))
+#define CCM_PADDR 0x30380000 // from: root/arch/arm/include/asm/arch-imx8m/imx-regs-imx8mm.h
 #define CCM_SIZE 0x10000
 #endif
 
@@ -314,7 +314,7 @@ static struct clock mdc_clk = {
 };
 
 
-#ifdef CONFIG_PLAT_IMX8MQ_EVK
+#if (defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK))
 
 static freq_t _enet_clk_get_freq(clk_t *clk)
 {
@@ -456,6 +456,12 @@ void enet_disable(struct enet *enet)
     regs->ecr &= ~ECR_ETHEREN;
 }
 
+int enet_get_mask(struct enet *enet)
+{
+    assert(enet);
+    return enet_get_regs(enet)->eimr;
+}
+
 void enet_set_mac(struct enet *enet, uint64_t mac)
 {
     enet_regs_t *regs = enet_get_regs(enet);
@@ -558,7 +564,7 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
     clk_set_freq(enet_clk_ptr, ENET_FREQ);
 
-#elif defined(CONFIG_PLAT_IMX8MQ_EVK)
+#elif defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
 
     enet_clk_ptr = &enet_clk;
     // TODO Implement an actual clock driver for the imx8mq
@@ -606,8 +612,12 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
     regs->gaur = 0;
     regs->galr = 0;
 
+#if defined(CONFIG_PLAT_IMX8MQ_EVK) || defined(CONFIG_PLAT_IMX8MM_EVK)
+	/* For iMX.8 we assume that the bootloader has already correctly
+	 * configured the MAC address */
     /* Set MAC and pause frame type field */
     enet_set_mac(enet, mac);
+#endif
 
     /* Configure pause frames (continues into MAC registers...) */
     regs->opd = PAUSE_OPCODE_FIELD << 16;
@@ -688,9 +698,9 @@ void enet_print_mib(struct enet *enet)
     volatile struct mib_regs *mib = &regs->mib;
     regs->mibc |= MIBC_DIS;
 
-    printf("Ethernet Counter regs\n");
+    /*printf("Ethernet Counter regs\n");
     dump_regs((uint32_t *)mib, sizeof(*mib));
-    printf("\n");
+    printf("\n");*/
 
     printf("-----------------------------\n");
     printf("RX  Frames RX OK: %d/%d\n", mib->ieee_r_frame_ok,
