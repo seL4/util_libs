@@ -564,7 +564,7 @@ int ethif_zynqmp_init_module(ps_io_ops_t *io_ops, const char *dev_path)
 }
 
 static const char *compatible_strings[] = {
-    "cdns,zynq-gem",
+    "cdns,zynqmp-gem",
     "cdns,gem",
     NULL
 };
