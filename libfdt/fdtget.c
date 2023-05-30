@@ -39,7 +39,7 @@
 
 #define FALIGN(x, a)    (((x) + ((a) - 1)) & ~((a) - 1))
 #define PALIGN(p, a)    ((void *)(FALIGN((unsigned long)(p), (a))))
-#define GET_CELL(p)     (p += 4, *((const uint32_t *)(p-4))) 
+#define GET_CELL(p)     (p += 4, *((const uint32_t *)(p-4)))
 
 
 static void report_error(const char *where, int err)
