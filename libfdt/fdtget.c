@@ -38,6 +38,19 @@
 #define PALIGN(p, a)    ((void *)(FALIGN((unsigned long)(p), (a))))
 #define GET_CELL(p)     (p += 4, *((const uint32_t *)(p-4)))
 
+enum display_mode {
+	MODE_SHOW_VALUE,	/* show values for node properties */
+	MODE_LIST_PROPS,	/* list the properties for a node */
+	MODE_LIST_SUBNODES,	/* list the subnodes of a node */
+};
+
+/* Holds information which controls our output and options */
+struct display_info {
+	int type;					/* data type (s/i/u/x or 0 for default) */
+	int size;					/* data size (1/2/4) */
+	enum display_mode mode;		/* display mode that we are using */
+	const char *default_val;	/* default value if node/property not found */
+};
 
 static void report_error(const char *where, int err)
 {
