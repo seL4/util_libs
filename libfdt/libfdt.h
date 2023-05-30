@@ -1799,6 +1799,32 @@ static inline int fdt_appendprop_u64(void *fdt, int nodeoffset,
 }
 
 /**
+ * fdt_appendprop_uint - append a 32-bit or a 64-bit integer value to a property
+ * @fdt: pointer to the device tree blob
+ * @offset: offset of the node whose property to change
+ * @name: name of the property to change
+ * @val: integer value to append to the property (native endian)
+ * @num_cells: typically fdt_address_cells() or fdt_size_cells() of parent node
+ * @return -1 on error, 0 otherwise
+ *
+ * fdt_appendprop_uint() is a wrapper calling either fdt_appendprop_u32() or
+ * fdt_appendprop_u64(), whether num_cells is 1 or 2, respectively. Hence
+ * consult the documentation of those functions for return values. In case
+ * num_cells is invalid, -FDT_ERR_BADNCELLS is returned.
+ */
+static inline int fdt_appendprop_uint(void *fdt, int nodeoffset,
+				      const char *name, uint64_t val,
+				      int num_cells)
+{
+	if (num_cells == 2) {
+		return fdt_appendprop_u64(fdt, nodeoffset, name, val);
+	} else if (num_cells == 1) {
+		return fdt_appendprop_u32(fdt, nodeoffset, name, val);
+	}
+	return -FDT_ERR_BADNCELLS;
+}
+
+/**
  * fdt_appendprop_cell - append a single cell value to a property
  *
  * This is an alternative name for fdt_appendprop_u32()
