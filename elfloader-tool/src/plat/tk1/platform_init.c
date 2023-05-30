@@ -5,7 +5,6 @@
  */
 
 #include <autoconf.h>
-#include <mode/arm_generic_timer.h>
 #include <elfloader/gen_config.h>
 #include <elfloader.h>
 #include <printf.h>
@@ -309,14 +308,4 @@ void platform_init(void)
     switch_to_mon_mode();
 #endif
 
-    /* Reset the virtual offset for the platform timer to 0 */
-    reset_cntvoff();
 }
-
-#if CONFIG_MAX_NUM_NODES > 1
-void non_boot_init(void)
-{
-    /* Reset the virtual offset for the platform timer to 0 */
-    reset_cntvoff();
-}
-#endif
