@@ -44,6 +44,9 @@ void non_boot_main(void)
     /* Initialise any platform-specific per-core state */
     non_boot_init();
 
+    /* Do any driver specific non_boot core init */
+    initialise_devices_non_boot();
+
 #ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
     if (is_hyp_mode()) {
         extern void leave_hyp(void);

@@ -171,6 +171,7 @@ file(
         src/drivers/*.c
         src/drivers/smp/*.c
         src/drivers/uart/*.c
+        src/drivers/timer/*.c
         src/utils/*.c
         src/arch-${KernelArch}/*.c
         src/arch-${KernelArch}/*.S
