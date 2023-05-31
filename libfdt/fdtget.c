@@ -33,8 +33,6 @@
 
 #include <libfdt.h>
 
-#include <ctype.h>
-
 
 #define FALIGN(x, a)    (((x) + ((a) - 1)) & ~((a) - 1))
 #define PALIGN(p, a)    ((void *)(FALIGN((unsigned long)(p), (a))))
