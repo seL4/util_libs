@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.8.2)
 include_guard(GLOBAL)
 
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
-    set(binary_list "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;hifive;tqma8xqp1gb")
+    set(binary_list "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;hifive;tqma8xqp1gb;bcm2711")
     set(efi_list "tk1;rockpro64;quartz64")
     set(uimage_list "tx2;am335x")
     if(
@@ -23,9 +23,6 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         #rpi3
     elseif(${kernel_platform} STREQUAL "bcm2837" AND ${kernel_sel4_arch} STREQUAL "aarch64")
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
-        #rpi4
-    elseif(${kernel_platform} STREQUAL "bcm2711" AND ${kernel_sel4_arch} STREQUAL "aarch64")
-        set(ElfloaderImage "efi" CACHE STRING "" FORCE)
     elseif(${kernel_platform} IN_LIST binary_list)
         set(ElfloaderImage "binary" CACHE STRING "" FORCE)
     else()
@@ -52,6 +49,9 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     endif()
     if(KernelPlatformSpike AND KernelSel4ArchRiscV32)
         set(IMAGE_START_ADDR 0x80400000 CACHE INTERNAL "" FORCE)
+    endif()
+    if(KernelPlatformRpi4)
+        set(IMAGE_START_ADDR 0x10000000 CACHE INTERNAL "" FORCE)
     endif()
 endfunction()
 
