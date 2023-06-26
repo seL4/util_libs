@@ -118,6 +118,7 @@ string(
     "-Wl"
     "--undefined=tx2_ether_qos_ptr"
     "--undefined=zynq7000_gem_ptr"
+    "--undefined=zynqmp_gem_ptr"
     "--undefined=imx_fec_ptr"
     "--undefined=odroidc2_ethernet_ptr"
 )
