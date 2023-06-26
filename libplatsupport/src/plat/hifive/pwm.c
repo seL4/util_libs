@@ -93,7 +93,7 @@ int pwm_set_timeout(pwm_t *pwm, uint64_t ns, bool periodic)
 
 void pwm_handle_irq(pwm_t *pwm, uint32_t irq)
 {
-    if(pwm->mode == UPCOUNTER) {
+    if (pwm->mode == UPCOUNTER && (pwm->pwm_map->pwmcfg & PWMCMP0IP)) {
         pwm->time_h++;
     }
 
