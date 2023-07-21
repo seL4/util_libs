@@ -12,7 +12,7 @@ SECTIONS
         *(.tdata .tdata.* .gnu.linkonce.td.*)
         _tdata_end = . ;
     }
-    .tbss :
+    .tbss (NOLOAD):
     {
         _tbss_start = . ;
         *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon)
