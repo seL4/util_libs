@@ -28,7 +28,7 @@ INSERT BEFORE .text;
 
 SECTIONS
 {
-    .bss : {
+    .bss (NOLOAD) : {
         . = ALIGN(0x1000);
         core_stack_alloc = .;
         . = . + CONFIG_MAX_NUM_NODES * 1 << 12;
