@@ -95,6 +95,14 @@ config_option(
     DEPENDS KernelArchArmV8a
 )
 
+config_option(
+    ElfloaderPrecompile ELFLOADER_PRECOMPILE
+    "Precompile the elfloader but only partially link. Produces elfloader.o and a linker script.
+     Final linking can be done later with the CPIO archive."
+    DEFAULT OFF
+    DEPENDS "NOT ElfloaderImageEFI"
+)
+
 add_config_library(elfloader "${configure_string}")
 
 add_compile_options(-D_XOPEN_SOURCE=700 -ffreestanding -Wall -Werror -W -Wextra)
@@ -370,7 +378,19 @@ add_custom_command(
 )
 add_custom_target(elfloader_linker DEPENDS linker.lds_pp)
 
-add_executable(elfloader EXCLUDE_FROM_ALL ${files} archive.o)
+if(ElfloaderPrecompile)
+    # Create an object library instead of an executable
+    # Then this below a custom target is added that prelinks the
+    # objects from this library and the cpio library into a single
+    # object file that's only missing the cpio archive symbol.
+    # Later the cpio archive symbol can be linked with elfloader.o
+    # to create an elfloader image without needing to import all of
+    # the build tools required to build the rest of the elfloader.
+    add_library(elfloader OBJECT EXCLUDE_FROM_ALL ${files})
+else()
+    add_executable(elfloader EXCLUDE_FROM_ALL ${files} archive.o)
+endif()
+
 if(ElfloaderImageEFI)
     set_property(TARGET elfloader APPEND_STRING PROPERTY LINK_FLAGS " -pie ")
     set_target_properties(elfloader PROPERTIES LINK_DEPENDS ${linkerScript})
@@ -383,6 +403,20 @@ if(ElfloaderImageEFI)
             # EFI_SUBSYSTEM=0xa indicates that we're building an EFI application.
             " -Wl,-T ${linkerScript} -nostdlib -shared -Wl,-Bsymbolic,--defsym=EFI_SUBSYSTEM=0xa -Wl,--build-id=none"
     )
+elseif(ElfloaderPrecompile)
+    add_custom_command(
+        OUTPUT elfloader.o
+        COMMAND
+            ${CMAKE_LINKER} -r $<TARGET_OBJECTS:elfloader> $<TARGET_OBJECTS:cpio> -o elfloader.o
+        DEPENDS $<TARGET_OBJECTS:elfloader> $<TARGET_OBJECTS:cpio> COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_target(
+        elfloader_precompile
+        DEPENDS elfloader.o ${CMAKE_CURRENT_BINARY_DIR}/linker.lds_pp
+    )
+    add_dependencies(elfloader_precompile elfloader_linker)
+
 else()
     set_target_properties(
         elfloader
