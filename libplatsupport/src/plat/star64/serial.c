@@ -11,6 +11,8 @@
 #include "../../chardev.h"
 
 #define UART_THR 0x00 /* UART Transmit Holding Register */
+#define UART_IER 0x04 /* UART Interrupt Enable Register */
+#define UART_IER_ERDAI BIT(0) /* Enable Received Data Available Interrupt */
 #define UART_LSR 0x14 /* UART Line Status Register */
 #define UART_LSR_THRE 0x20 /* Transmit Holding Register Empty */
 
@@ -38,7 +40,11 @@ int uart_putchar(ps_chardevice_t *d, int c)
 
 static void uart_handle_irq(ps_chardevice_t *dev)
 {
-    /* This UART driver is not interrupt driven, there is nothing to do here. */
+    /*
+     * This is currently only called when received data is available on the device.
+     * The interrupt will be acked to the device on the next read to the device.
+     * There's nothing else we need to do here.
+     */
 }
 
 int uart_init(const struct dev_defn *defn,
@@ -63,6 +69,7 @@ int uart_init(const struct dev_defn *defn,
     dev->flags      = SERIAL_AUTO_CR;
 
     *REG_PTR(dev->vaddr, 0x8) = 1;
+    *REG_PTR(dev->vaddr, UART_IER) = UART_IER_ERDAI;
 
     return 0;
 }
