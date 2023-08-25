@@ -159,6 +159,8 @@ function(correct_platform_strings)
         # and leave all further setup to the architecture/platform specific
         # configuration to <sel4 kernel>/src/plat/*/config.cmake
         #
+        "-KernelRiscVPlatform"
+        "rocketchip:rocketchip-base,rocketchip-zcu102"
         "-KernelARMPlatform"
         "imx6:sabre,wandq,nitrogen6sx"
         "bcm2837:rpi3"
