@@ -61,6 +61,8 @@ pl011_regs_t;
 /* IMSC register */
 #define IMSC_RXIM       BIT(4)
 #define IMSC_TXIM       BIT(5)
+#define IMSC_RTIM       BIT(6)
+#define IMSC_OEIM       BIT(10)
 
 /* ICR register */
 #define ICR_RXIC        BIT(4)
@@ -96,16 +98,18 @@ static inline void pl011_uart_disable_fifo(ps_chardevice_t *dev)
     r->lcrh &= ~LCRH_FEN;
 }
 
-static inline void pl011_uart_enable_rx_irq(ps_chardevice_t *dev)
+static inline void pl011_uart_enable_irqs(ps_chardevice_t *dev)
 {
     pl011_regs_t *r = pl011_uart_get_priv(dev);
-    r->imsc |= IMSC_RXIM;
+    r->imsc |= IMSC_RXIM; // Receive interrupt mask
+    r->imsc |= IMSC_RTIM; // Receive timeout interrupt mask
+    r->imsc |= IMSC_OEIM; // Overrun error interrupt mask
 }
 
-static inline void pl011_uart_disable_rx_irq(ps_chardevice_t *dev)
+static inline void pl011_uart_disable_irqs(ps_chardevice_t *dev)
 {
     pl011_regs_t *r = pl011_uart_get_priv(dev);
-    r->imsc &= ~IMSC_RXIM;
+    r->imsc = 0;
 }
 
 static inline void pl011_uart_wait_busy(ps_chardevice_t *dev)
@@ -193,8 +197,7 @@ static int pl011_uart_configure(ps_chardevice_t *dev)
     pl011_uart_disable(dev);
 
     // Disable RX/all interrupts
-    //pl011_uart_disable_rx_irq(dev);
-    r->imsc = 0x7f1;
+    pl011_uart_disable_irqs(dev);
 
     // Wait till UART is not busy anymore
     pl011_uart_wait_busy(dev);
@@ -227,13 +230,13 @@ static int pl011_uart_configure(ps_chardevice_t *dev)
      *
      */
     // Enable FIFO
-    //pl011_uart_enable_fifo(dev);
+    pl011_uart_enable_fifo(dev);
+
+    // Enable interrupts
+    pl011_uart_enable_irqs(dev);
 
     // Enable UART
     pl011_uart_enable(dev);
-
-    // Enable RX interrupt
-    pl011_uart_enable_rx_irq(dev);
 
     return 0;
 }
