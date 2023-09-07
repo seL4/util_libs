@@ -23,10 +23,17 @@
 #define IRQS_PER_TTC 3
 
 #ifdef CONFIG_PLAT_ZYNQMP
+#ifdef CONFIG_ZYNQMP_PETALINUX_AXI
+#define TTC0_PATH "/axi/timer@ff110000"
+#define TTC1_PATH "/axi/timer@ff120000"
+#define TTC2_PATH "/axi/timer@ff130000"
+#define TTC3_PATH "/axi/timer@ff140000"
+#else
 #define TTC0_PATH "/amba/timer@ff110000"
 #define TTC1_PATH "/amba/timer@ff120000"
 #define TTC2_PATH "/amba/timer@ff130000"
 #define TTC3_PATH "/amba/timer@ff140000"
+#endif  /* CONFIG_ZYNQMP_PETALINUX_AXI */
 #else
 /* zynq7000 */
 #define TTC0_PATH "/amba/timer@f8001000"
