@@ -132,7 +132,7 @@ static int pl011_uart_cr_configure(ps_chardevice_t *dev)
     uint32_t val = r->cr;
 
     val |= CR_TXE; // Transmit enable
-    val |= CR_RXE; // Teceive enable
+    val |= CR_RXE; // Receive enable
 
     r->cr = val;
 
