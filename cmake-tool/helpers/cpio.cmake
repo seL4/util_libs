@@ -57,7 +57,7 @@ function(MakeCPIO output_name input_files)
         list(
             APPEND
                 commands
-                "bash;-c; mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d @0 `basename ${file}` && echo `basename ${file}` | cpio --append ${cpio_reproducible_flag} --owner=+0:+0 --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
+                "bash;-c; mkdir -p temp_${output_name} && cd temp_${output_name} && cp -a ${file} . && touch -d 1970-01-01T00:00:00Z `basename ${file}` && echo `basename ${file}` | cpio --append ${cpio_reproducible_flag} --owner=+0:+0 --quiet -o -H newc --file=${CMAKE_CURRENT_BINARY_DIR}/archive.${output_name}.cpio && rm `basename ${file}` && cd ../ && rmdir temp_${output_name};&&"
         )
     endforeach()
     list(APPEND commands "true")
