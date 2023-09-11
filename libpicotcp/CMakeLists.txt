@@ -45,14 +45,14 @@ if(LibPicotcp)
         " -I$<JOIN:$<TARGET_PROPERTY:muslc,INTERFACE_INCLUDE_DIRECTORIES>, -I>"
     )
 
-    if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
         list(APPEND compile_options "${CMAKE_C_COMPILE_OPTIONS_TARGET}${CMAKE_C_COMPILER_TARGET}")
         set(C_COMPILER clang)
     else()
         set(C_COMPILER ${CROSS_COMPILER_PREFIX}gcc)
     endif()
 
-    if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         set(perf_flags "\"PERF=1\" \"DEBUG=0\"")
     endif()
     # generate a build.sh script to avoid nasty escape issues, we then invoke this in ExternalProject_Add
@@ -72,6 +72,13 @@ if(LibPicotcp)
     add_custom_target(get_muslc)
     add_dependencies(get_muslc muslc)
 
+    # GNU sed does not require an explicit suffix for the -i argument but BSD does.
+    # BSD also expects a space between the -i and the suffix while GNU expects nothing
+    set(sed_inplace_suffix "")
+    if(CMAKE_HOST_APPLE)
+        set(sed_inplace_suffix "''")
+    endif()
+
     # build picotcp using its very own build system
     include(ExternalProject)
     ExternalProject_Add(
@@ -89,6 +96,7 @@ if(LibPicotcp)
         PATCH_COMMAND
         sed
         -i
+        ${sed_inplace_suffix}
         "s/(CROSS_COMPILE)gcc/(C_COMPILER)/g"
         picotcp/Makefile
         CONFIGURE_COMMAND
