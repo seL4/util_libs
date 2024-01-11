@@ -56,7 +56,7 @@ int uart_init(const struct dev_defn *defn,
         return -1;
     }
 
-    /* Set up all the  device properties. */
+    /* Set up all the device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void *)vaddr;
     dev->read       = &uart_read;
