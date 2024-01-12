@@ -35,6 +35,7 @@ jobs:
       matrix:
         # There is no "rv32imac" hardware yet.
         march: [armv7a, armv8a, nehalem, rv64imac]
+        compiler: [gcc, clang]
     steps:
     - name: Build
       uses: seL4/ci-actions/sel4test-hw@master
