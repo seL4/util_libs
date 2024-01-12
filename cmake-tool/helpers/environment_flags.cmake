@@ -92,6 +92,15 @@ macro(find_libgcc_files)
     # find the compilers crtbegin and crtend files
     gcc_print_file_name(CRTBeginFile crtbegin.o)
     gcc_print_file_name(CRTEndFile crtend.o)
+
+    # Empty crt files variables if not found in the current toolchain.
+    # This should allow building/linking without cxx crt files (e.g., just C projects).
+    if("${CRTBeginFile}" STREQUAL "crtbegin.o" OR "${CRTEndFile}" STREQUAL "crtend.o")
+        message(WARNING "cxx: no crt object files found.")
+        set(CRTBeginFile "")
+        set(CRTEndFile "")
+    endif()
+
     gcc_print_file_name(libgcc_eh libgcc_eh.a)
     set(libgcc "-lgcc")
     if(NOT "${libgcc_eh}" STREQUAL "libgcc_eh.a")
