@@ -46,7 +46,7 @@ SECTIONS
         *(.data.*)
     }
     . = ALIGN(16);
-    .bss :
+    .bss (NOLOAD) :
     {
         . = ALIGN(0x1000);
         core_stack_alloc = .;
