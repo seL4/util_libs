@@ -14,6 +14,8 @@
 #define CLZ(x) __builtin_clz(x)
 #define CTZL(x) __builtin_ctzl(x)
 #define CLZL(x) __builtin_clzl(x)
+#define CTZLL(x) __builtin_ctzll(x)
+#define CLZLL(x) __builtin_clzll(x)
 #define FFS(x) __builtin_ffs(x)
 #define FFSL(x) __builtin_ffsl(x)
 #define OFFSETOF(type, member) __builtin_offsetof(type, member)
@@ -25,8 +27,22 @@
 
 #if CONFIG_WORD_SIZE == 32
 #define BSWAP_WORD(x) __builtin_bswap32(x)
+compile_time_assert(long_is_32bits, sizeof(long) == 4)
+#define CTZ_WORD(x) CTZL(x)
+#define CLZ_WORD(x) CLZL(x)
+
 #elif CONFIG_WORD_SIZE == 64
 #define BSWAP_WORD(x) __builtin_bswap64(x)
+compile_time_assert(long_long_is_64bits, sizeof(long long) == 8)
+#define CTZ_WORD(x) CTZLL(x)
+#define CLZ_WORD(x) CLZLL(x)
+
+#else
+    /*
+     *  This library aims to be agnostic of the "word" concept, so don't raise an
+     *  error if CONFIG_WORD_SIZE is unsupported or not set. We just don't provide
+     *  the macros at all in this case.
+     */
 #endif
 
 /* The UNREACHABLE macro is used in some code that is imported to Isabelle via
