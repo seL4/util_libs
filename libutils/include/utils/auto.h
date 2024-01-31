@@ -15,7 +15,7 @@
  * adjacent macro. Sample usage:
  *
  *     void foo(void) {
- *       autofree int *x = malloc(sizeof(int));
+ *       AUTOFREE int *x = malloc(sizeof(int));
  *       // no need to call free(x)
  *     }
  */
