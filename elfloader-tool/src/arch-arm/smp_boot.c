@@ -26,8 +26,6 @@ void arm_disable_dcaches(void);
 extern void const *dtb;
 extern uint32_t dtb_size;
 
-WEAK void non_boot_init(void) {}
-
 /* Entry point for all CPUs other than the initial. */
 void non_boot_main(void)
 {
@@ -40,9 +38,6 @@ void non_boot_main(void)
         cpu_idle();
 #endif
     }
-
-    /* Initialise any platform-specific per-core state */
-    non_boot_init();
 
     /* Do any driver specific non_boot core init */
     initialise_devices_non_boot();
