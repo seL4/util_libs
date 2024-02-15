@@ -164,14 +164,22 @@ elseif(KernelSel4ArchAarch32)
     add_compile_options(-mno-unaligned-access)
 endif()
 
-file(
-    GLOB
-        files
-        src/*.c
+if(KernelArchARM)
+    # Only the Arm arch uses extension drivers.
+    set(
+        driver_file_globs
         src/drivers/*.c
         src/drivers/smp/*.c
         src/drivers/uart/*.c
         src/drivers/timer/*.c
+    )
+endif()
+
+file(
+    GLOB
+        files
+        src/*.c
+        ${driver_file_globs}
         src/utils/*.c
         src/arch-${KernelArch}/*.c
         src/arch-${KernelArch}/*.S
