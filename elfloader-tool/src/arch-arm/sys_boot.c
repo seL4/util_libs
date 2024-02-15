@@ -104,7 +104,11 @@ void main(UNUSED void *arg)
     void *bootloader_dtb = NULL;
 
     /* initialize platform to a state where we can print to a UART */
-    initialise_devices();
+    if (initialise_devices()) {
+        printf("ERROR: Did not successfully return from initialise_devices()\n");
+        abort();
+    }
+
     platform_init();
 
     /* Print welcome message. */
@@ -175,7 +179,10 @@ void continue_boot(int was_relocated)
      * driver model so all its pointers are set up properly.
      */
     if (was_relocated) {
-        initialise_devices();
+        if (initialise_devices()) {
+            printf("ERROR: Did not successfully return from initialise_devices()\n");
+            abort();
+        }
     }
 
 #if (defined(CONFIG_ARCH_ARM_V7A) || defined(CONFIG_ARCH_ARM_V8A)) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)

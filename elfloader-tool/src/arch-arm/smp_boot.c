@@ -40,7 +40,10 @@ void non_boot_main(void)
     }
 
     /* Do any driver specific non_boot core init */
-    initialise_devices_non_boot();
+    if (initialise_devices_non_boot()) {
+        printf("ERROR: Did not successfully return from initialise_devices_non_boot()\n");
+        abort();
+    }
 
 #ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
     if (is_hyp_mode()) {

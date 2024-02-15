@@ -33,7 +33,10 @@ static int init_device(struct elfloader_device *dev)
         int ret = table_has_match(dev->compat, drv->match_table);
         if (ret >= 0) {
             dev->drv = drv;
-            drv->init(dev, drv->match_table[ret].match_data);
+            ret = drv->init(dev, drv->match_table[ret].match_data);
+            if (ret) {
+                return ret;
+            }
         }
         drvp++;
     }
@@ -64,7 +67,10 @@ static int init_device_non_boot(struct elfloader_device *dev)
             int ret = table_has_match(dev->compat, drv->match_table);
             if (ret >= 0) {
                 dev->drv = drv;
-                drv->init_on_secondary_cores(dev, drv->match_table[ret].match_data);
+                ret = drv->init_on_secondary_cores(dev, drv->match_table[ret].match_data);
+                if (ret) {
+                    return ret;
+                }
             }
         }
         drvp++;
