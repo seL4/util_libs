@@ -7,3 +7,4 @@
 #pragma once
 
 int initialise_devices(void);
+int initialise_devices_non_boot(void);

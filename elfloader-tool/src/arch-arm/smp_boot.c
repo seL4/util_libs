@@ -7,6 +7,7 @@
 #include <autoconf.h>
 #include <elfloader/gen_config.h>
 #include <devices_gen.h>
+#include <drivers.h>
 #include <drivers/smp.h>
 
 #include <printf.h>
