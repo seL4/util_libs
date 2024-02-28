@@ -101,7 +101,7 @@ static int ltimer_handle_irq(void *data, ps_irq_t *irq)
         pwm_handle_irq(&timers->pwm_ltimers[TIMEOUT_TIMER].pwm, irq->irq.number);
         event = LTIMER_TIMEOUT_EVENT;
     } else {
-        ZF_LOGE("Invalid IRQ number: %d received.\n", irq_number);
+        ZF_LOGE("Invalid IRQ number: %ld received.\n", irq_number);
     }
 
     if (timers->user_callback) {
