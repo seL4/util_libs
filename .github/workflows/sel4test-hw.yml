@@ -6,7 +6,7 @@
 #
 # See sel4test-hw/builds.yml in the repo seL4/ci-actions for configs.
 
-name: seL4Test HW
+name: seL4Test-HW
 
 on:
   # needs PR target for secrets access; guard by requiring label
@@ -16,6 +16,11 @@ on:
 # downgrade permissions to read-only as you would have in a standard PR action
 permissions:
   contents: read
+
+# Cancel older runs to reduce the load, especially on the machine queue.
+concurrency:
+  group: ${{ github.workflow }}-pr-${{ github.event.number }}
+  cancel-in-progress: true
 
 jobs:
   hw-build:
