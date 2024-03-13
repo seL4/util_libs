@@ -18,10 +18,6 @@ typedef void (*init_riscv_kernel_t)(word_t ui_p_reg_start,
                                     word_t pv_offset,
                                     word_t v_entry,
                                     word_t dtb_addr_p,
-                                    word_t dtb_size
-#if CONFIG_MAX_NUM_NODES > 1
-                                    ,
+                                    word_t dtb_size,
                                     word_t hart_id,
-                                    word_t core_id
-#endif
-                                   );
+                                    word_t core_id);

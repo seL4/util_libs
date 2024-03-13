@@ -233,13 +233,9 @@ static int run_elfloader(UNUSED int hart_id, void *bootloader_dtb)
                                                   user_info.phys_virt_offset,
                                                   user_info.virt_entry,
                                                   (word_t)dtb,
-                                                  dtb_size
-#if CONFIG_MAX_NUM_NODES > 1
-                                                  ,
+                                                  dtb_size,
                                                   hart_id,
-                                                  0
-#endif
-                                                 );
+                                                  0);
 
     /* We should never get here. */
     printf("ERROR: Kernel returned back to the ELF Loader\n");
