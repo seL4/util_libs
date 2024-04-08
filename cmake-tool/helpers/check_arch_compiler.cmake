@@ -11,7 +11,7 @@ function(check_arch_clang)
                 MATCH
                 "^x86_64"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     elseif("${KernelSel4Arch}" STREQUAL "x86_64")
         string(
@@ -19,7 +19,7 @@ function(check_arch_clang)
                 MATCH
                 "^x86_64"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     elseif("${KernelSel4Arch}" STREQUAL "aarch32" OR "${KernelSel4Arch}" STREQUAL "arm_hyp")
         string(
@@ -27,7 +27,7 @@ function(check_arch_clang)
                 MATCH
                 "^arm"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     elseif("${KernelSel4Arch}" STREQUAL "aarch64")
         string(
@@ -35,7 +35,7 @@ function(check_arch_clang)
                 MATCH
                 "^aarch64"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     elseif("${KernelSel4Arch}" STREQUAL "riscv32")
         string(
@@ -43,7 +43,7 @@ function(check_arch_clang)
                 MATCH
                 "^riscv(32|64)"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     elseif("${KernelSel4Arch}" STREQUAL "riscv64")
         string(
@@ -51,14 +51,14 @@ function(check_arch_clang)
                 MATCH
                 "^riscv64"
                 correct_triple
-                ${TRIPLE}
+                "${TRIPLE}"
         )
     else()
         message(SEND_ERROR "KernelSel4Arch is not set to a valid arch")
     endif()
 
     if(NOT correct_triple)
-        message(SEND_ERROR "Clang Triple: ${TRIPLE} isn't for seL4_arch: ${KernelSel4Arch}")
+        message(SEND_ERROR "Clang Triple: '${TRIPLE}' isn't for seL4_arch: ${KernelSel4Arch}")
     endif()
 
 endfunction()
