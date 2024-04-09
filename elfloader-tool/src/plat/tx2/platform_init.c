@@ -61,7 +61,7 @@ static __attribute__((noinline)) int send_smc(uint8_t func, struct mce_regs *reg
 
 static void tegra_mce_write_uncore_mca(mca_cmd_t cmd, uint64_t data, uint32_t *err)
 {
-    struct mce_regs regs;
+    struct mce_regs regs = {0};
     regs.args[0] = cmd.data;
     regs.args[1] = data;
     send_smc(13, &regs);
