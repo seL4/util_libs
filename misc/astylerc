@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-max-instatement-indent=120
 style=otbs
 pad-header
 indent=spaces=4
