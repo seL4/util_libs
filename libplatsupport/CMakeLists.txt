@@ -105,12 +105,13 @@ if(
     OR KernelPlatformImx7Sabre
     OR KernelPlatformImx8mq-evk
     OR KernelPlatformImx8mm-evk
+    OR KernelPlatformImx8mp-evk
     OR KernelPlatformMaaxboard
 )
     list(APPEND deps src/mach/${LibPlatSupportMach}/serial/serial.c)
 endif()
 
-if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk)
+if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk OR KernelPlatformImx8mp-evk)
     list(APPEND deps src/plat/imx8m/chardev.c)
     # There's no clock driver at the moment, but this is to allow the
     # libethdrivers to build for imx8mq
@@ -132,7 +133,13 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 
-if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk)
+if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk OR KernelPlatformImx8mp-evk)
+    if(KernelPlatformImx8mp-evk)
+        # For the imx8mp, the DTS is in a different format compared to those of
+        # the imx8mm and imx8mq, there are some constants in the headers that
+        # point to the proper path
+        target_compile_definitions(platsupport PRIVATE USE_IMX8MP_GPT_PATH)
+    endif()
     target_include_directories(platsupport PUBLIC plat_include/imx8m)
 endif()
 
