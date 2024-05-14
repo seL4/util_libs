@@ -12,7 +12,7 @@ include_guard(GLOBAL)
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     set(
         binary_list
-        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;hifive;tqma8xqp1gb;bcm2711;rocketchip;star64"
+        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;imx8mp-evk;hifive;tqma8xqp1gb;bcm2711;rocketchip;star64"
     )
     set(efi_list "tk1;rockpro64;quartz64")
     set(uimage_list "tx2;am335x")
@@ -36,9 +36,12 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         set(ElfloaderMode "hypervisor" CACHE STRING "" FORCE)
         set(ElfloaderMonitorHook ON CACHE BOOL "" FORCE)
     endif()
-    if((KernelPlatformImx8mm-evk OR KernelPlatImx8mq) AND KernelSel4ArchAarch32)
+    if(
+        (KernelPlatformImx8mm-evk OR KernelPlatImx8mq OR KernelPlatformImx8mp-evk)
+        AND KernelSel4ArchAarch32
+    )
         set(ElfloaderArmV8LeaveAarch64 ON CACHE BOOL "" FORCE)
-        # This applies to imx8mm, imx8mq (EVK and MaaXBoard) when in aarch32 configuration
+        # This applies to imx8mm, imx8mq (EVK and MaaXBoard), imx8mp when in aarch32 configuration
         # It should be possible to use a uimage format but when tried nothing
         # runs after uboot.
         set(IMAGE_START_ADDR 0x41000000 CACHE INTERNAL "" FORCE)
