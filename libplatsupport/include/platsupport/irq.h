@@ -128,7 +128,8 @@ typedef struct {
     ps_irq_unregister_fn_t irq_unregister_fn;
 } ps_irq_ops_t;
 
-static inline int ps_irq_register(ps_irq_ops_t *irq_ops, ps_irq_t irq, irq_callback_fn_t callback, void *callback_data)
+static inline irq_id_t ps_irq_register(ps_irq_ops_t *irq_ops, ps_irq_t irq, irq_callback_fn_t callback,
+                                       void *callback_data)
 {
     __PS_IRQ_VALID_ARGS(irq_register_fn);
     return irq_ops->irq_register_fn(irq_ops->cookie, irq, callback, callback_data);
