@@ -266,7 +266,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     irq_id = ps_irq_register(&ops.irq_ops,
                              irqs[TIMEOUT_TIMER],
-                             handle_irq_wrapper,
+                             ltimer_handle_irq_wrapper,
                              &timers->callback_data[TIMEOUT_TIMER]);
     if (irq_id < 0) {
         ZF_LOGE("Failed to register irq %i for MSTimer", irqs[TIMEOUT_TIMER].irq.number);
@@ -279,7 +279,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     irq_id = ps_irq_register(&ops.irq_ops,
                              irqs[TIMESTAMP_TIMER],
-                             handle_irq_wrapper,
+                             ltimer_handle_irq_wrapper,
                              &timers->callback_data[TIMESTAMP_TIMER]);
     if (irq_id < 0) {
         ZF_LOGE("Failed to register irq %i for MSTimer", irqs[TIMESTAMP_TIMER].irq.number);
