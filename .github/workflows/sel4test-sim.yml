@@ -14,7 +14,7 @@ on:
   pull_request:
 
 # Cancel older runs to reduce the load. The workflow also runs on pushes to
-# the master brnach, but skipping or cancellation will not happen there
+# the master branch, but skipping or cancellation will not happen there
 # practically due to the unique run ID.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || format('run-{0}', github.run_id) }}
