@@ -27,12 +27,12 @@ config_choice(
         com2 -> 0x2f8 \
         com3 -> 0x3e8 \
         com4 -> 0x2e8 \
-        ega -> 80x25 text mode ega screen"
+        vga -> 80x25 text mode vga screen"
     "com1;LibPlatSupportX86ConsoleDeviceCom1;LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM1;KernelPlatPC99"
     "com2;LibPlatSupportX86ConsoleDeviceCom2;LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM2;KernelPlatPC99"
     "com3;LibPlatSupportX86ConsoleDeviceCom3;LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM3;KernelPlatPC99"
     "com4;LibPlatSupportX86ConsoleDeviceCom4;LIB_PLAT_SUPPORT_SERIAL_PORT_X86_COM4;KernelPlatPC99"
-    "ega;LibPlatSupportX86ConsoleDeviceEGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA;KernelPlatPC99"
+    "vga;LibPlatSupportX86ConsoleDeviceVGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_VGA;KernelPlatPC99"
 )
 
 set(LibPlatSupportMach "")
