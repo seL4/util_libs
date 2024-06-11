@@ -51,7 +51,7 @@ void starfive_timer_handle_irq(starfive_timer_t *timer)
 
     while (timer->regs->intclr & STARFIVE_TIMER_INTCLR_BUSY) {
         /*
-         * Hardware will not currently accept writes to this register.
+         * Hardware does not accept writes to this register while BUSY is set.
          * Wait for this bit to be unset by hardware.
          */
     }
