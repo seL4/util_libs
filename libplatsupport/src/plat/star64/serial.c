@@ -1,21 +1,19 @@
 /*
+ * Copyright 2023, UNSW
  * Copyright 2022, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: BSD-2-Clause
  *
  *
- * QEMU riscv-virt emulates a 16550 compatible UART, where the register width
- * sticks to the classic size of 8 bits. This is fine, because it's just a
- * simulation, but contradicts many actual hardware implementations. There the
- * peripheral registers are usually 32-bit wide, because this fits much better
- * to the natural bus transfer sizes and alignments.
+ * The JH7110 SoC use on the Star64 emulates a 16550 compatible UART, where the
+ * register width is 32-bit.
  */
 
 #include <string.h>
 #include <stdlib.h>
 #include <platsupport/serial.h>
 
-#define NS16550_WITH_REG8
+#define NS16550_WITH_REG32
 #include <platsupport/driver/uart_ns16550.h>
 
 #include "../../chardev.h"
@@ -56,7 +54,7 @@ int uart_putchar(ps_chardevice_t *dev, int c)
     if ((byte == '\n') && (dev->flags & SERIAL_AUTO_CR)) {
         ns16550_tx_byte(regs, '\r');
         /* Since we have blocked until the FIFO is empty, we don't have to wait
-         * here. And QEMU does not emulate a FIFOs anyway.
+         * here.
          */
     }
 
@@ -81,13 +79,11 @@ static void ns16550_init(ns16550_regs_t *regs)
     /* disable interrupts */
     regs->dlm_ier = 0;
 
-    /* Baudrates and serial line parameters are not emulated by QEMU, so the
-     * divisor is just a dummy.
-     */
-    uint16_t clk_divisor = 1; /* dummy, would be for 115200 baud */
+
     regs->lcr = NS16550_LCR_DLAB; /* baud rate divisor setup */
-    regs->dlm_ier = (clk_divisor >> 8) & 0xFF;
-    regs->rbr_dll_thr = clk_divisor & 0xFF;
+    // uint16_t clk_divisor = ???
+    // regs->dlm_ier = (clk_divisor >> 8) & 0xFF;
+    // regs->rbr_dll_thr = clk_divisor & 0xFF;
     regs->lcr = 0x03; /* set 8N1, clear DLAB to end baud rate divisor setup */
 
     /* enable and reset FIFOs, interrupt for each byte */
@@ -115,8 +111,8 @@ int uart_init(const struct dev_defn *defn,
     /* Set up all the device properties. */
     dev->id         = defn->id;
     dev->vaddr      = (void *)vaddr;
-    dev->read       = &uart_read; /* calls uart_putchar() */
-    dev->write      = &uart_write; /* calls uart_getchar() */
+    dev->read       = &uart_read;
+    dev->write      = &uart_write;
     dev->handle_irq = &uart_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
