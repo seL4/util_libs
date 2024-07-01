@@ -12,7 +12,7 @@
 #include "../../chardev.h"
 #include "../../common.h"
 
-#include "ega.h"
+#include "vga.h"
 #include "keyboard_chardev.h"
 #include <utils/arith.h>
 
@@ -21,7 +21,7 @@ static const int com2_irqs[] = {SERIAL_CONSOLE_COM2_IRQ, -1};
 static const int com3_irqs[] = {SERIAL_CONSOLE_COM3_IRQ, -1};
 static const int com4_irqs[] = {SERIAL_CONSOLE_COM4_IRQ, -1};
 
-static const int ega_irqs[] = { -1};
+static const int vga_irqs[] = { -1};
 
 #define PC99_SERIAL_DEFN(devid) {          \
     .id      = PC99_SERIAL_COM##devid,    \
@@ -31,12 +31,12 @@ static const int ega_irqs[] = { -1};
     .init_fn = &uart_init           \
 }
 
-#define PC99_TEXT_EGA_DEFN() {      \
-        .id = PC99_TEXT_EGA,        \
-        .paddr = EGA_TEXT_FB_BASE,  \
+#define PC99_TEXT_VGA_DEFN() {      \
+        .id = PC99_TEXT_VGA,        \
+        .paddr = VGA_TEXT_FB_BASE,  \
         .size = BIT(12),            \
-        .irqs = ega_irqs,           \
-        .init_fn = text_ega_init    \
+        .irqs = vga_irqs,           \
+        .init_fn = text_vga_init    \
     }
 
 static const int keyboard_irqs[] = {KEYBOARD_PS2_IRQ, -1};
@@ -54,7 +54,7 @@ static const struct dev_defn dev_defn[] = {
     PC99_SERIAL_DEFN(2),
     PC99_SERIAL_DEFN(3),
     PC99_SERIAL_DEFN(4),
-    PC99_TEXT_EGA_DEFN(),
+    PC99_TEXT_VGA_DEFN(),
     PC99_KEYBOARD_DEFN()
 };
 
