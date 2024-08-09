@@ -48,7 +48,7 @@ def parse_args():
 
 def notice(message):
     # Don't call this without initialising `progname`.
-    assert(progname)
+    assert (progname)
     sys.stderr.write("{}: {}".format(progname, message))
     sys.stderr.flush()
 
