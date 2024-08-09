@@ -44,7 +44,7 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         # This applies to imx8mm, imx8mq (EVK and MaaXBoard), imx8mp when in aarch32 configuration
         # It should be possible to use a uimage format but when tried nothing
         # runs after uboot.
-        set(IMAGE_START_ADDR 0x41000000 CACHE INTERNAL "" FORCE)
+        set(IMAGE_START_ADDR 0x42000000 CACHE INTERNAL "" FORCE)
     endif()
     if(KernelPlatformHikey AND KernelSel4ArchAarch32)
         # This is preserving what the Hikey's bootloader requires.
