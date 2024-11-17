@@ -86,7 +86,7 @@ else()
     message(FATAL_ERROR "Unsupported KernelArch '${KernelArch}'")
 endif()
 
-if(KernelPlatformQEMUArmVirt OR KernelPlatformQuartz64)
+if(KernelPlatformQEMUArmVirt OR KernelPlatformQuartz64 OR KernelPlatformIMX93)
     if(KernelArmExportPCNTUser AND KernelArmExportPTMRUser)
         list(APPEND deps src/arch/arm/generic_ltimer.c)
     endif()
