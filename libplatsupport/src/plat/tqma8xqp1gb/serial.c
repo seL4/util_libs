@@ -18,6 +18,8 @@
  *   i.MX 8DualX/8DualXPlus/8QuadXPlus Applications Processor Reference Manual
  *   Revision 0 (IMX8DQXPRM.pdf)
  *   Chapter 16.13 (page 7908)
+ *
+ * Same LPUART is used by i.MX93.
  */
 #include <string.h>
 #include <stdlib.h>
