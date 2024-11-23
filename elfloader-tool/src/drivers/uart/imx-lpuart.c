@@ -47,6 +47,7 @@ static int imx_lpuart_init(struct elfloader_device *dev, UNUSED void *match_data
 }
 
 static const struct dtb_match_table imx_lpuart_matches[] = {
+    { .compatible = "fsl,imx7ulp-lpuart" },
     { .compatible = "fsl,imx8qxp-lpuart" },
     { .compatible = NULL /* sentinel */ },
 };
