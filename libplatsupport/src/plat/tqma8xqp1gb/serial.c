@@ -48,6 +48,7 @@ int uart_putchar(ps_chardevice_t *d, int c)
     /* Wait to be able to transmit. */
     while (!(*UART_REG(d, STAT) & STAT_TDRE)) { }
     *UART_REG(d, TRANSMIT_RECEIVE) = c;
+    return 0;
 }
 
 
