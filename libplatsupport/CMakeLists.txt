@@ -35,6 +35,18 @@ config_choice(
     "ega;LibPlatSupportX86ConsoleDeviceEGA;LIB_PLAT_SUPPORT_SERIAL_TEXT_EGA;KernelPlatPC99"
 )
 
+config_choice(
+    LibPlatSupportLPTMRclock
+    LIB_PLAT_SUPPORT_LPTMR_CLOCK
+    "Which input clock to use for the Low Power Timer\
+    32.768 kHz -> High accuracy, but low precision.\
+    24 MHz -> Higher precision, but lower accuracy. Synchronous with the scheduling clock."
+    "32kHz;LibPlatSupportLPTMRclock24MHz;LIB_PLAT_SUPPORT_LPTMR_CLOCK_32kHZ;KernelPlatformIMX93"
+    "24MHz;LibPlatSupportLPTMRclock32kHz;LIB_PLAT_SUPPORT_LPTMR_CLOCK_24MHz;KernelPlatformIMX93"
+)
+
+mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
+
 set(LibPlatSupportMach "")
 if(KernelPlatformRpi3 OR KernelPlatformRpi4)
     set(LibPlatSupportMach "bcm")
