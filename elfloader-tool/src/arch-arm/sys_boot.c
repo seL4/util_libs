@@ -116,7 +116,7 @@ void main(UNUSED void *arg)
     print_cpuid();
     printf("  paddr=[%p..%p]\n", _text, (uintptr_t)_end - 1);
 
-#if defined(CONFIG_IMAGE_UIMAGE) || defined(CONFIG_IMAGE_BINARY)
+#if defined(CONFIG_IMAGE_UIMAGE)
 
     /* U-Boot passes a DTB. Ancient bootloaders may pass atags. When booting via
      * bootelf argc is NULL.
