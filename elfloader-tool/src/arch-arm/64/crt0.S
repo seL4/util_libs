@@ -20,8 +20,8 @@ BEGIN_FUNC(_start)
     add     x19, x19, #0xff0
     mov     sp, x19
 #ifdef CONFIG_IMAGE_BINARY
+    /* Store our original arguments before calling subroutines */
     stp     x0, x1, [sp, #-16]!
-    bl      clear_bss
     /*
      * Binary images may not be loaded in the correct location.
      * Try and move ourselves so we're in the right place.
@@ -33,15 +33,19 @@ BEGIN_FUNC(_start)
     add     x2, x2, #:lo12:_end
     bl      fixup_image_base
     mov     x2, x0
-    /* restore original arguments for next step */
-    ldp     x0, x1, [sp], #16
     /* fixup_image_base returns 0 if no need to move */
     cmp     x2, #0
     beq     1f
     /* otherwise, jump to the start of the new elfloader */
+    /* restore original arguments for restarting at new addr */
+    ldp     x0, x1, [sp], #16
 
     br      x2
 1:
+    /* Clear .bss section before calling main */
+    bl      clear_bss
+    /* restore original arguments for next step */
+    ldp     x0, x1, [sp], #16
 #endif
     b       main
 END_FUNC(_start)
