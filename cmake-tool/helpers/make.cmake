@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.16.0)
 include_guard(GLOBAL)
 
 # This takes a camkes produced dependency file (this means we can assume one dependency

@@ -40,6 +40,7 @@ target_link_libraries(nanopb muslc)
 # Copy the generator directory to the build directory before
 # compiling python and proto files.
 add_custom_command(
+    PRE_BUILD
     TARGET nanopb
     COMMAND
         ${CMAKE_COMMAND} -E copy_directory
