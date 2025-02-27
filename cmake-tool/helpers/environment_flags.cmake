@@ -49,7 +49,12 @@ macro(add_default_compilation_options)
     endif()
 
     if(KernelSel4ArchAarch32)
-        add_compile_options(-mtp=soft)
+        # The arm-gnu-eabi* uses TPIDRURO as the default tls register.
+        # If this isn't what the kernel is configured to, generate function calls for
+        # thread pointer access.
+        if (NOT KernelArmTLSRegTPIDRURO)
+            add_compile_options(-mtp=soft)
+        endif()
     endif()
 
     # Don't allow unaligned data store/load instructions as this will cause an alignment
