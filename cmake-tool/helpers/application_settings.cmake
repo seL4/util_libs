@@ -57,6 +57,13 @@ function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
         endif()
         set(IMAGE_START_ADDR 0x10000000 CACHE INTERNAL "" FORCE)
     endif()
+    if(KernelPlatformSpike OR KernelPlatformQEMURiscVVirt)
+        # Spike/qemu loads elfloader to either 0x80200000 or 0x80400000
+        # But the RISC-V kernel is currently loaded to a different
+        # address than what's modelled by the shoehorn.py tool.
+        # So force the start address to one that works.
+        set(IMAGE_START_ADDR 0x81000000 CACHE INTERNAL "" FORCE)
+    endif()
     if(KernelPlatformStar64)
         set(IMAGE_START_ADDR 0x60000000 CACHE INTERNAL "" FORCE)
     endif()
