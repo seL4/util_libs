@@ -67,8 +67,10 @@ macro(add_default_compilation_options)
         endif()
         # special handling for GCC 10 and above
         if(
-            (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-            AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0.0")
+            ((CMAKE_C_COMPILER_ID STREQUAL "GNU")
+            AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0.0"))
+            OR ((CMAKE_C_COMPILER_ID STREQUAL "Clang")
+            AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0.0"))
         )
             add_compile_options(-mno-outline-atomics)
         endif()
