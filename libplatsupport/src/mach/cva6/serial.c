@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <stdlib.h>
 #include <platsupport/serial.h>
 #include <platsupport/plat/serial.h>
-#include <string.h>
+
+#include "../../chardev.h"
 
 int uart_init(const struct dev_defn *defn,
               const ps_io_ops_t *ops,

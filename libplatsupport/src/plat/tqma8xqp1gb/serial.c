@@ -18,6 +18,8 @@
  *   i.MX 8DualX/8DualXPlus/8QuadXPlus Applications Processor Reference Manual
  *   Revision 0 (IMX8DQXPRM.pdf)
  *   Chapter 16.13 (page 7908)
+ *
+ * Same LPUART is used by i.MX93.
  */
 #include <string.h>
 #include <stdlib.h>
@@ -48,6 +50,7 @@ int uart_putchar(ps_chardevice_t *d, int c)
     /* Wait to be able to transmit. */
     while (!(*UART_REG(d, STAT) & STAT_TDRE)) { }
     *UART_REG(d, TRANSMIT_RECEIVE) = c;
+    return 0;
 }
 
 
