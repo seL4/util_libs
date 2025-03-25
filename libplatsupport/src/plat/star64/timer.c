@@ -68,7 +68,7 @@ uint64_t starfive_timer_get_time(starfive_timer_t *timer)
     uint64_t value_l = (uint64_t)(STARFIVE_TIMER_MAX_TICKS - timer->regs->value);
     uint64_t value_h = (uint64_t)timer->value_h;
 
-    /* Include unhandled interrupt in value_h */
+    /* Include potentially unhandled interrupt in value_h */
     if (timer->regs->intclr == 1) {
         value_h += 1;
     }
