@@ -11,6 +11,10 @@
 /*
  * The JH7110 SoC contains a timer with four 32-bit counters. Each one of these
  * counters is referred to as a "channel".
+ * At the time of writing the SoC documentation is quite minimal for the timer device
+ * and so most of this driver is based on the Linux patches [1]
+ *
+ * [1]: https://patchwork.kernel.org/project/linux-riscv/patch/20230627055313.252519-3-xingyu.wu@starfivetech.com/.
  */
 
 /* Channel information */
