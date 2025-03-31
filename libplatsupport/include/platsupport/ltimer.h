@@ -9,6 +9,8 @@
 #include <platsupport/io.h>
 #include <platsupport/pmem.h>
 #include <platsupport/irq.h>
+#include <platsupport/gen_config.h>
+
 /**
  * This file provides the interface for an OS independant consisent timer interface.
  *
@@ -309,6 +311,7 @@ static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds) {
     ltimer_ns_delay(timer, microseconds * NS_IN_US);
 }
 
+#ifndef CONFIG_LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER
 /*
  * default init function -> platforms may provide multiple ltimers, but each
  * must have a default
@@ -323,3 +326,4 @@ int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops, ltimer_callback_fn_t c
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/
 int ltimer_default_describe(ltimer_t *timer, ps_io_ops_t ops);
+#endif /* CONFIG_LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER*/

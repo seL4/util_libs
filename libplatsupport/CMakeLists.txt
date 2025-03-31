@@ -47,6 +47,13 @@ config_choice(
 
 mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
 
+# Some platforms don't have a platform timer.
+if(KernelPlatformCheshire)
+    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER ON)
+else()
+    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER OFF)
+endif()
+
 set(LibPlatSupportMach "")
 if(KernelPlatformRpi3 OR KernelPlatformRpi4)
     set(LibPlatSupportMach "bcm")
