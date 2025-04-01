@@ -29,7 +29,7 @@ config_choice(
     "elf;ElfloaderImageELF;IMAGE_ELF;KernelArchARM OR KernelArchRiscV"
     "binary;ElfloaderImageBinary;IMAGE_BINARY;KernelArchARM OR KernelArchRiscV"
     "efi;ElfloaderImageEFI;IMAGE_EFI;KernelArchARM"
-    "uimage;ElfloaderImageUimage;IMAGE_UIMAGE;KernelArchARM"
+    "uimage;ElfloaderImageUimage;IMAGE_UIMAGE;KernelArchARM OR KernelArchRiscV"
 )
 
 config_choice(

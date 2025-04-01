@@ -41,7 +41,7 @@ die () {
 # Display a usage message.
 show_usage () {
     cat <<EOF
-$PROGNAME: generate U-Boot payload for ARM platform
+$PROGNAME: generate U-Boot payload for ARM or RISC-V platforms
 
 Usage:
     $PROGNAME OBJCOPY-TOOL ELF-FILE ARCHITECTURE OUTPUT-FILE
@@ -53,7 +53,7 @@ by the U-Boot boot loader.
 
 OBJCOPY-TOOL should be the path to a version of GNU objcopy appropriate
 for the (cross-)built ELF-FILE.  ELF-FILE should be an ELF executable
-object.  ARCHITECTURE must be either "arm" or "arm64".  The image is
+object.  ARCHITECTURE must be either "arm", "arm64" or "riscv".  The image is
 written to OUTPUT-FILE.
 EOF
 }
@@ -100,11 +100,11 @@ then
 fi
 
 case "$ARCHITECTURE" in
-    (arm|arm64)
+    (arm|arm64|riscv)
         ;;
     (*)
         EXIT_STATUS=2
-        die "unrecognized (ARM) architecture \"$ARCHITECTURE\""
+        die "unrecognized architecture \"$ARCHITECTURE\""
         ;;
 esac
 

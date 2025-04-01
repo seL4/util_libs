@@ -186,6 +186,8 @@ function(DeclareRootserver rootservername)
                 set(UIMAGE_ARCH "arm")
             elseif(KernelSel4ArchAarch64)
                 set(UIMAGE_ARCH "arm64")
+            elseif(KernelArchRiscV)
+                set(UIMAGE_ARCH "riscv")
             else()
                 message(
                     FATAL_ERROR "uimage: Unsupported architecture: ${KernelArch}/${KernelSel4Arch}"
