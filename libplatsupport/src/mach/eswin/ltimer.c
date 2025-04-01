@@ -6,7 +6,7 @@
 
 #include <platsupport/io.h>
 #include <platsupport/ltimer.h>
-#include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 #include <platsupport/pmem.h>
 #include <platsupport/timer.h>
 #include <utils/io.h>

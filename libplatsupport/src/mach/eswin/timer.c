@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 #include <stdint.h>
 #include <utils/util.h>
 
