@@ -259,15 +259,14 @@ add_custom_command(
 )
 list(APPEND cpio_files "${CMAKE_CURRENT_BINARY_DIR}/kernel.elf")
 
-
-
 if(ElfloaderIncludeDtb)
     list(APPEND cpio_files "${KernelDTBPath}")
 endif()
 add_custom_command(
     OUTPUT "rootserver"
     COMMAND
-        ${CMAKE_STRIP} $<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE> -o ${CMAKE_CURRENT_BINARY_DIR}/rootserver
+        ${CMAKE_STRIP} $<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE> -o
+        ${CMAKE_CURRENT_BINARY_DIR}/rootserver
     VERBATIM
     DEPENDS "$<TARGET_PROPERTY:rootserver_image,ROOTSERVER_IMAGE>"
 )
