@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 /*
- * Implementation of an 80x25 EGA text mode. All the functions are named with 'serial' since
+ * Implementation of an 80x25 vga text mode. All the functions are named with 'serial' since
  * that is what platsupport expects. This was a quick hack for a project and includes lots of
  * logic that is rather inspecific to the underlying frame buffer. If someone adds another text
  * mode frambuffer (or a linear frame buffer with a font renderer) then this should be abstracted.
@@ -22,7 +22,7 @@
 #include <string.h>
 
 /* Assumptions on the graphics mode and frame buffer location */
-#define EGA_TEXT_FB_BASE 0xB8000
+#define VGA_TEXT_FB_BASE 0xB8000
 #define MODE_WIDTH 80
 #define MODE_HEIGHT 25
 
@@ -52,20 +52,20 @@ scroll(void)
 }
 
 static int
-text_ega_getchar(ps_chardevice_t* d UNUSED)
+text_vga_getchar(ps_chardevice_t* d UNUSED)
 {
-    assert(!"EGA framebuffer does not implement getchar");
+    assert(!"vga framebuffer does not implement getchar");
     return 0;
 }
 
 static int
-text_ega_putchar(ps_chardevice_t* d, int c)
+text_vga_putchar(ps_chardevice_t* d, int c)
 {
     /* emulate various control characters */
     if (c == '\t') {
-        text_ega_putchar(d, ' ');
+        text_vga_putchar(d, ' ');
         while (cursor_x % 4 != 0) {
-            text_ega_putchar(d, ' ');
+            text_vga_putchar(d, ' ');
         }
     } else if (c == '\n') {
         cursor_y ++;
@@ -89,12 +89,12 @@ text_ega_putchar(ps_chardevice_t* d, int c)
 }
 
 static ssize_t
-text_ega_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+text_vga_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
 {
     const char* data = (const char*)vdata;
     int i;
     for (i = 0; i < count; i++) {
-        if (text_ega_putchar(d, *data++) < 0) {
+        if (text_vga_putchar(d, *data++) < 0) {
             return i;
         }
     }
@@ -102,14 +102,14 @@ text_ega_write(ps_chardevice_t* d, const void* vdata, size_t count, chardev_call
 }
 
 static ssize_t
-text_ega_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
+text_vga_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t rcb UNUSED, void* token UNUSED)
 {
     char* data;
     int ret;
     int i;
     data = (char*)vdata;
     for (i = 0; i < count; i++) {
-        ret = text_ega_getchar(d);
+        ret = text_vga_getchar(d);
         if (ret != EOF) {
             *data++ = ret;
         } else {
@@ -120,13 +120,13 @@ text_ega_read(ps_chardevice_t* d, void* vdata, size_t count, chardev_callback_t 
 }
 
 static void
-text_ega_handle_irq(ps_chardevice_t* d)
+text_vga_handle_irq(ps_chardevice_t* d)
 {
     /* TODO */
 }
 
 int
-text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
+text_vga_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev)
 {
     /* handle an insane case where the serial might get repeatedly initialized. and
      * avoid clearing the entire screen if this is the case. This comes about due
@@ -144,9 +144,9 @@ text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice
 
     dev->id         = defn->id;
     dev->vaddr      = (void*)base_ptr;
-    dev->read       = &text_ega_read;
-    dev->write      = &text_ega_write;
-    dev->handle_irq = &text_ega_handle_irq;
+    dev->read       = &text_vga_read;
+    dev->write      = &text_vga_write;
+    dev->handle_irq = &text_vga_handle_irq;
     dev->irqs       = defn->irqs;
     dev->ioops      = *ops;
 
