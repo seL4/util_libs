@@ -38,6 +38,9 @@ BEGIN_FUNC(_start)
     /* Set a zero VMID */
     msr     vttbr_el2, xzr
 
+    /* Reset CNTVOFF */
+    msr cntvoff_el2, xzr
+
     /* Set lower level execution state to aarch32 */
     msr     hcr_el2, xzr
     mov     x17, #0
