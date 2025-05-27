@@ -36,7 +36,7 @@
  * suspended or spinning. However, even on non-SMP configurations there might
  * be an expectation that we are running on CONFIG_FIRST_HART_ID. If the current
  * hart turns out to be a different one, we have to switch harts somehow. The
- * SBI Heart State Management (HSM) extension exists for this, but it might not
+ * SBI Hart State Management (HSM) extension exists for this, but it might not
  * be implemented. In this case, there is nothing we can do here in the assembly
  * startup code, but C boot code might still have platform specific proprietary
  * ways to switch harts.
