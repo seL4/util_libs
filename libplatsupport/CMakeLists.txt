@@ -55,8 +55,11 @@ else()
 endif()
 
 config_option(
-    LibPlatSupportHaveTimer LIB_PLAT_SUPPORT_HAVE_TIMER
+    LibPlatSupportHaveTimer
+    LIB_PLAT_SUPPORT_HAVE_TIMER
     "Indicates that this platform has support for platform ltimers"
+    DEFAULT
+    ON
 )
 
 mark_as_advanced(LibPlatSupportHaveTimer)
