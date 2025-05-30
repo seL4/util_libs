@@ -49,10 +49,17 @@ mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
 
 # Some platforms don't have a platform timer.
 if(KernelPlatformCheshire)
-    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER ON)
+    set(LibPlatSupportHaveTimer OFF)
 else()
-    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER OFF)
+    set(LibPlatSupportHaveTimer ON)
 endif()
+
+config_option(
+    LibPlatSupportHaveTimer LIB_PLAT_SUPPORT_HAVE_TIMER
+    "Indicates that this platform has support for platform ltimers"
+)
+
+mark_as_advanced(LibPlatSupportHaveTimer)
 
 set(LibPlatSupportMach "")
 if(KernelPlatformRpi3 OR KernelPlatformRpi4)
