@@ -325,7 +325,7 @@ static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds)
  * with calling the ltimer functions inside the callback, the ltimer interface
  * functions are not reentrant.
  */
-#ifndef CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER
+#if !defined(CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER) && __has_attribute(error)
 __attribute__((error("no ltimer support for this platform")))
 #endif
 int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token);
@@ -333,7 +333,7 @@ int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops, ltimer_callback_fn_t c
 /* initialise the subset of functions required to get
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/
-#ifndef CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER
+#if !defined(CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER) && __has_attribute(error)
 __attribute__((error("no ltimer support for this platform")))
 #endif
 int ltimer_default_describe(ltimer_t *timer, ps_io_ops_t ops);
