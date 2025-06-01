@@ -75,6 +75,8 @@ if(KernelPlatformRpi3 OR KernelPlatformRpi4)
     set(LibPlatSupportMach "bcm")
 elseif(KernelPlatformCheshire OR KernelPlatformAriane)
     set(LibPlatSupportMach "cva6")
+elseif(KernelPlatformHifiveP550)
+    set(LibPlatSupportMach "eswin")
 elseif(NOT ${KernelArmMach} STREQUAL "")
     # falling back to kernel settings is done to keep legacy compatibility
     set(LibPlatSupportMach "${KernelArmMach}")
