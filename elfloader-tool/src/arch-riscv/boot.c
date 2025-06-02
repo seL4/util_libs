@@ -282,7 +282,7 @@ void main(int hart_id, void *bootloader_dtb)
     printf("ELF-loader started on (HART %d) (NODES %d)\n",
            hart_id, CONFIG_MAX_NUM_NODES);
 
-    printf("  paddr=[%p..%p]\n", _text, _end - 1);
+    printf("  paddr=[%p..%p]\n", _text, (uintptr_t)_end - 1);
 
     /* Run the actual ELF loader, this is not expected to return unless there
      * was an error.
