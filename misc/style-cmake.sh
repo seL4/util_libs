@@ -14,7 +14,6 @@ PROGNAME=${0##*/}
 # to provide definitions for custom function formatting.
 CMAKE_FMT="--line-width 100 \
            --tab-size 4 \
-           --max-subargs-per-line 3 \
            --separate-ctrl-name-with-space False \
            --separate-fn-name-with-space False \
            --dangle-parens True \
@@ -24,7 +23,7 @@ CMAKE_FMT="--line-width 100 \
 
 # cmake-format sends its version info to standard error.  :-/
 CF_VERSION=$(cmake-format --version 2>&1)
-DESIRED_VERSION=0.4.5
+DESIRED_VERSION=0.6.13
 
 case "$CF_VERSION" in
     ("")
