@@ -48,9 +48,14 @@ config_choice(
 mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
 
 # Some platforms don't have a platform timer.
-if(
-    (KernelPlatformQEMUArmVirt AND NOT (KernelArmExportPCNTUser AND KernelArmExportPTMRUser))
-    OR KernelPlatformRocketchip
+if(KernelPlatformQEMUArmVirt)
+    if(KernelArmExportPCNTUser AND KernelArmExportPTMRUser)
+        set(LibPlatSupportHaveTimer ON)
+    else()
+        set(LibPlatSupportHaveTimer OFF)
+    endif()
+elseif(
+    KernelPlatformRocketchip
     OR KernelPlatformRocketchipZCU102
     OR KernelPlatformCheshire
     OR (SIMULATION AND (KernelArchRiscV OR KernelArchARM))
