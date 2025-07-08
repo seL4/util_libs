@@ -53,16 +53,13 @@ typedef struct {
 
 
 /* we basically extend 'struct eth_driver' here */
-typedef struct {
-    struct eth_driver eth_drv;
-    void *mapped_peripheral;
-    irq_id_t irq_id;
+struct imx6_eth_data {
     struct enet *enet;
     struct phy_device *phy;
     ring_ctx_t tx;
     ring_ctx_t rx;
     unsigned int *tx_lengths;
-} imx6_eth_driver_t;
+};
 
 /* Receive descriptor status */
 #define RXD_EMPTY     BIT(15) /* Buffer has no data. Waiting for reception. */
@@ -91,20 +88,19 @@ typedef struct {
 #define TXD_ADDCRC    BIT(10) /* Append a CRC to the end of the frame */
 #define TXD_ADDBADCRC BIT( 9) /* Append a bad CRC to the end of the frame */
 
-static imx6_eth_driver_t *imx6_eth_driver(struct eth_driver *driver)
+static struct imx6_eth_data *imx6_eth_driver(struct eth_driver *driver)
 {
     assert(driver);
 
     /* we have simply extended the structure */
-    assert(driver == driver->eth_data);
-    return (imx6_eth_driver_t *)driver;
+    return (struct imx6_eth_data *)driver->eth_data;
 }
 
 struct enet *get_enet_from_driver(struct eth_driver *driver)
 {
     assert(driver);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
     return dev->enet;
 }
@@ -114,7 +110,7 @@ static void get_mac(struct eth_driver *driver, uint8_t *mac)
     assert(driver);
     assert(mac);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
     struct enet *enet = dev->enet;
     assert(enet);
@@ -159,14 +155,15 @@ static void update_ring_slot(
     d->stat = stat;
 }
 
-static void fill_rx_bufs(imx6_eth_driver_t *dev)
+static void fill_rx_bufs(struct eth_driver *driver)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
     ring_ctx_t *ring = &(dev->rx);
 
-    void *cb_cookie = dev->eth_drv.cb_cookie;
-    ethif_raw_allocate_rx_buf cb_alloc = dev->eth_drv.i_cb.allocate_rx_buf;
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_allocate_rx_buf cb_alloc = driver->i_cb.allocate_rx_buf;
     if (!cb_alloc) {
         /* The function may not be set up (yet), in this case we can't do
          * anything. If lwip is used, this can be either lwip_allocate_rx_buf()
@@ -212,11 +209,12 @@ static void fill_rx_bufs(imx6_eth_driver_t *dev)
     }
 }
 
-static void free_desc_ring(imx6_eth_driver_t *dev)
+static void free_desc_ring(struct eth_driver *driver)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
-    ps_dma_man_t *dma_man = &(dev->eth_drv.io_ops.dma_manager);
+    ps_dma_man_t *dma_man = &(driver->io_ops.dma_manager);
     assert(dma_man);
 
     if (dev->rx.descr) {
@@ -235,7 +233,7 @@ static void free_desc_ring(imx6_eth_driver_t *dev)
         dev->tx.descr = NULL;
     }
 
-    ps_malloc_ops_t *malloc_ops = &(dev->eth_drv.io_ops.malloc_ops);
+    ps_malloc_ops_t *malloc_ops = &(driver->io_ops.malloc_ops);
     assert(malloc_ops);
 
     if (dev->rx.cookies) {
@@ -263,8 +261,9 @@ static void free_desc_ring(imx6_eth_driver_t *dev)
     }
 }
 
-static int setup_desc_ring(imx6_eth_driver_t *dev, ring_ctx_t *ring)
+static int setup_desc_ring(struct eth_driver *driver, ring_ctx_t *ring)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
     assert(ring);
 
@@ -277,19 +276,19 @@ static int setup_desc_ring(imx6_eth_driver_t *dev, ring_ctx_t *ring)
     /* allocate uncached memory, function will also clean an invalidate cache
      * to for the area internally to save us from surprises
      */
-    ps_dma_man_t *dma_man = &(dev->eth_drv.io_ops.dma_manager);
+    ps_dma_man_t *dma_man = &(driver->io_ops.dma_manager);
     assert(dma_man);
     dma_addr_t dma = dma_alloc_pin(
                          dma_man,
                          size,
                          0, // uncached
-                         dev->eth_drv.dma_alignment);
+                         driver->dma_alignment);
     if (!dma.phys || !dma.virt) {
         ZF_LOGE("Faild to allocate %d bytes of DMA memory", size);
         return -1;
     }
 
-    ZF_LOGE("dma_alloc_pin: %x -> %p, %d descriptors, %d bytes",
+    ZF_LOGI("dma_alloc_pin: %x -> %p, %d descriptors, %d bytes",
             dma.phys, dma.virt, ring->cnt, size);
 
     /* zero ring */
@@ -310,7 +309,7 @@ static int setup_desc_ring(imx6_eth_driver_t *dev, ring_ctx_t *ring)
     ring->head = 0;
 
     /* allocate and zero memory for cookies */
-    ps_malloc_ops_t *malloc_ops = &(dev->eth_drv.io_ops.malloc_ops);
+    ps_malloc_ops_t *malloc_ops = &(driver->io_ops.malloc_ops);
     assert(malloc_ops);
     int ret = ps_calloc(
                   malloc_ops,
@@ -328,12 +327,13 @@ static int setup_desc_ring(imx6_eth_driver_t *dev, ring_ctx_t *ring)
     return 0;
 }
 
-static void complete_rx(imx6_eth_driver_t *dev)
+static void complete_rx(struct eth_driver *driver)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
-    void *cb_cookie = dev->eth_drv.cb_cookie;
-    ethif_raw_rx_complete cb_complete = dev->eth_drv.i_cb.rx_complete;
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_rx_complete cb_complete = driver->i_cb.rx_complete;
     assert(cb_complete);
 
     ring_ctx_t *ring = &(dev->rx);
@@ -373,12 +373,13 @@ static void complete_rx(imx6_eth_driver_t *dev)
     }
 }
 
-static void complete_tx(imx6_eth_driver_t *dev)
+static void complete_tx(struct eth_driver *driver)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
-    void *cb_cookie = dev->eth_drv.cb_cookie;
-    ethif_raw_tx_complete cb_complete = dev->eth_drv.i_cb.tx_complete;
+    void *cb_cookie = driver->cb_cookie;
+    ethif_raw_tx_complete cb_complete = driver->i_cb.tx_complete;
     assert(cb_complete);
 
     unsigned int cnt_org;
@@ -444,7 +445,7 @@ static void print_state(struct eth_driver *driver)
 {
     assert(driver);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     struct enet *enet = dev->enet;
     assert(enet);
 
@@ -455,18 +456,18 @@ static void handle_irq(struct eth_driver *driver, int irq)
 {
     assert(driver);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
     struct enet *enet = dev->enet;
     assert(enet);
 
     uint32_t e = enet_clr_events(enet, IRQ_MASK);
     if (e & NETIRQ_TXF) {
-        complete_tx(dev);
+        complete_tx(driver);
     }
     if (e & NETIRQ_RXF) {
-        complete_rx(dev);
-        fill_rx_bufs(dev);
+        complete_rx(driver);
+        fill_rx_bufs(driver);
     }
     if (e & NETIRQ_EBERR) {
         ZF_LOGE("Error: System bus/uDMA");
@@ -501,14 +502,14 @@ static void raw_poll(struct eth_driver *driver)
 {
     assert(driver);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
     // TODO: If the interrupts are still enabled, there could be race here. The
     //       caller must ensure this can't happen.
-    complete_rx(dev);
-    complete_tx(dev);
-    fill_rx_bufs(dev);
+    complete_rx(driver);
+    complete_tx(driver);
+    fill_rx_bufs(driver);
 }
 
 static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
@@ -521,7 +522,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
 
     assert(driver);
 
-    imx6_eth_driver_t *dev = imx6_eth_driver(driver);
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
     ring_ctx_t *ring = &(dev->tx);
@@ -529,7 +530,7 @@ static int raw_tx(struct eth_driver *driver, unsigned int num, uintptr_t *phys,
     /* Ensure we have room */
     if (ring->remain < num) {
         /* not enough room, try to complete some and check again */
-        complete_tx(dev);
+        complete_tx(driver);
         unsigned int rem = ring->remain;
         if (rem < num) {
             ZF_LOGE("TX queue lacks space, has %d, need %d", rem, num);
@@ -630,13 +631,26 @@ static uint64_t obtain_mac(const nic_config_t *nic_config,
     return 0;
 }
 
-static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
+static struct raw_iface_funcs iface_fns = {
+    .raw_handleIRQ = handle_irq,
+    .print_state = print_state,
+    .low_level_init = low_level_init,
+    .raw_tx = raw_tx,
+    .raw_poll = raw_poll,
+    .get_mac = get_mac
+};
+
+
+
+static int init_device(struct eth_driver *driver, const nic_config_t *nic_config, void *mapped_peripheral)
 {
+    struct imx6_eth_data *dev = imx6_eth_driver(driver);
     assert(dev);
 
     int ret;
 
-    uint64_t mac = obtain_mac(nic_config, &(dev->eth_drv.io_ops.io_mapper));
+
+    uint64_t mac = obtain_mac(nic_config, &(driver->io_ops.io_mapper));
     if (0 == mac) {
         ZF_LOGE("Failed to obtain a MAC");
         return -1;
@@ -650,19 +664,19 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
             (uint8_t)(mac >> 8),
             (uint8_t)(mac));
 
-    ret = setup_desc_ring(dev, &(dev->rx));
+    ret = setup_desc_ring(driver, &(dev->rx));
     if (ret) {
         ZF_LOGE("Failed to allocate rx_ring, code %d", ret);
         goto error;
     }
 
-    ret = setup_desc_ring(dev, &(dev->tx));
+    ret = setup_desc_ring(driver, &(dev->tx));
     if (ret) {
         ZF_LOGE("Failed to allocate tx_ring, code %d", ret);
         goto error;
     }
 
-    ps_malloc_ops_t *malloc_ops = &(dev->eth_drv.io_ops.malloc_ops);
+    ps_malloc_ops_t *malloc_ops = &(driver->io_ops.malloc_ops);
     assert(malloc_ops);
     ret = ps_calloc(
               malloc_ops,
@@ -681,7 +695,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     if (0 != enet_id) {
         ZF_LOGI("skipping IOMUX setup for ENET id=%d", enet_id);
     } else {
-        ret = setup_iomux_enet(&(dev->eth_drv.io_ops));
+        ret = setup_iomux_enet(&(driver->io_ops));
         if (ret) {
             ZF_LOGE("Failed to setup IOMUX for ENET id=%d, code %d",
                     enet_id, ret);
@@ -691,12 +705,13 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 
     /* Initialise the RGMII interface, clears and masks all interrupts */
     dev->enet = enet_init(
-                    dev->mapped_peripheral,
+                    nic_config,
+                    mapped_peripheral,
                     dev->tx.phys,
                     dev->rx.phys,
                     BUF_SIZE,
                     mac,
-                    &(dev->eth_drv.io_ops));
+                    &(driver->io_ops));
     if (!dev->enet) {
         ZF_LOGE("Failed to initialize RGMII");
         /* currently no way to properly clean up enet */
@@ -773,7 +788,7 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
     enet_enable(dev->enet);
 
     /* This could also enable receiving, so the controller must be enabled. */
-    fill_rx_bufs(dev);
+    fill_rx_bufs(driver);
 
     /* Ensure no unused interrupts are pending. */
     enet_clr_events(dev->enet, ~((uint32_t)IRQ_MASK));
@@ -788,9 +803,74 @@ static int init_device(imx6_eth_driver_t *dev, const nic_config_t *nic_config)
 
 error:
     /* ToDo: free dev->phydev if set */
-    free_desc_ring(dev);
+    free_desc_ring(driver);
     return -1;
 }
+
+
+int ethif_imx6_init(struct eth_driver *eth_driver, ps_io_ops_t io_ops, void *config) {
+
+    if (config == NULL) {
+        LOG_ERROR("Cannot get platform info; Passed in Config Pointer NULL");
+        return -1;
+    }
+
+    struct arm_eth_plat_config *plat_config = (struct arm_eth_plat_config *)config;
+
+    struct imx6_eth_data *eth_data = (struct imx6_eth_data *)calloc(1, sizeof(struct imx6_eth_data));
+    if (eth_data == NULL) {
+        LOG_ERROR("Failed to allocate eth data struct");
+        return -1;
+    }
+
+    eth_data->tx.cnt = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    eth_data->rx.cnt = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
+    eth_driver->eth_data = eth_data;
+    eth_driver->dma_alignment = DMA_ALIGN;
+    eth_driver->i_fn = iface_fns;
+    eth_driver->io_ops = io_ops;
+
+    /* get a configuration if function is implemented */
+    const nic_config_t *nic_config = NULL;
+    if (get_nic_configuration) {
+        ZF_LOGI("calling get_nic_configuration()");
+        /* we can get NULL here, if somebody implements this function but does
+         * not give us a config. It's a bit odd, but valid.
+         */
+        nic_config = get_nic_configuration();
+        if (nic_config && nic_config->funcs.sync) {
+            ZF_LOGI("Waiting for primary NIC to finish initialization");
+            int ret = nic_config->funcs.sync();
+            if (ret) {
+                ZF_LOGE("pirmary NIC sync failed,  code %d", ret);
+                return -ENODEV;
+            }
+            ZF_LOGI("primary NIC init done, run secondary NIC init");
+        }
+    } else {
+        // Create a nic_config in order to passthrough prom_mode option
+        nic_config_t *_nic_config = calloc(1, sizeof(*nic_config));
+        _nic_config->flags = plat_config->prom_mode ? NIC_CONFIG_PROMISCUOUS_MODE : 0;
+        nic_config = _nic_config;
+    }
+
+
+    int ret = init_device(eth_driver, nic_config, plat_config->buffer_addr);
+    if (ret) {
+        ZF_LOGE("Failed to initialise the Ethernet driver, code %d", ret);
+        ret = -ENODEV;
+        return -1;
+    }
+
+}
+
+
+typedef struct {
+    struct eth_driver eth_drv;
+    struct imx6_eth_data eth_data;
+    irq_id_t irq_id;
+    void *mapped_peripheral;
+} imx6_eth_driver_t;
 
 static int allocate_register_callback(pmem_region_t pmem, unsigned curr_num,
                                       size_t num_regs, void *token)
@@ -878,20 +958,14 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
         goto error;
     }
 
-    driver->eth_drv.i_fn = (struct raw_iface_funcs) {
-        .raw_handleIRQ   = handle_irq,
-        .print_state     = print_state,
-        .low_level_init  = low_level_init,
-        .raw_tx          = raw_tx,
-        .raw_poll        = raw_poll,
-        .get_mac         = get_mac
-    };
 
-    driver->eth_drv.eth_data = driver; /* use simply extend the structure */
+    driver->eth_drv.eth_data = &driver->eth_data; /* use simply extend the structure */
     driver->eth_drv.io_ops = *io_ops;
+    driver->eth_drv.i_fn = iface_fns;
+
     driver->eth_drv.dma_alignment = DMA_ALIGN;
-    driver->tx.cnt = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
-    driver->rx.cnt = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
+    driver->eth_data.tx.cnt = CONFIG_LIB_ETHDRIVER_TX_DESC_COUNT;
+    driver->eth_data.rx.cnt = CONFIG_LIB_ETHDRIVER_RX_DESC_COUNT;
 
     ps_fdt_cookie_t *cookie = NULL;
     ret = ps_fdt_read_path(
@@ -934,7 +1008,7 @@ int ethif_imx_init_module(ps_io_ops_t *io_ops, const char *device_path)
         goto error;
     }
 
-    ret = init_device(driver, nic_config);
+    ret = init_device(&driver->eth_drv, nic_config, driver->mapped_peripheral);
     if (ret) {
         ZF_LOGE("Failed to initialise the Ethernet driver, code %d", ret);
         ret = -ENODEV;

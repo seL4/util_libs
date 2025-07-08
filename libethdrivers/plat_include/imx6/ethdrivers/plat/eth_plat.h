@@ -10,7 +10,6 @@
 #include <ethdrivers/imx6.h>
 #include <utils/attribute.h>
 #include <ethdrivers/raw.h>
-#include "../src/plat/imx6/enet.h"
 
 struct enet *get_enet_from_driver(struct eth_driver *driver);
 
@@ -18,6 +17,7 @@ typedef enum {
     NIC_CONFIG_FORCE_MAC        = 1u << 0, /**< Use MAC from config (if not 0) */
     NIC_CONFIG_PROMISCUOUS_MODE = 1u << 1, /**< Enable promiscuous mode */
     NIC_CONFIG_DROP_FRAME_CRC   = 1u << 2, /**< Drop ethernet frame CRC */
+    NIC_CONFIG_NO_CLOCK_SYS     = 1u << 3, /**< Don't use clock_sys interface */
 } nic_config_flags_t;
 
 typedef int (*sync_func_t)(void);
