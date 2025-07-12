@@ -152,7 +152,7 @@ static void set_and_wait_for_ready(int hart_id, int core_id)
 
     /* Wait untill all cores are go */
     for (int i = 0; i < CONFIG_MAX_NUM_NODES; i++) {
-        while (__atomic_load_n(&core_ready[i], __ATOMIC_RELAXED) == 0) ;
+        while (__atomic_load_n(&core_ready[i], __ATOMIC_ACQUIRE) == 0) ;
     }
 }
 #endif
