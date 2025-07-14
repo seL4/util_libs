@@ -135,13 +135,13 @@ elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos
     list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_common_clock.c)
 endif()
 
-if(KernelPlatImx6 OR KernelPlatformImx7Sabre)
+if(KernelPlatImx6)
     list(APPEND deps src/mach/${LibPlatSupportMach}/epit/epit.c)
 endif()
 
 if(
     KernelPlatImx6
-    OR KernelPlatformImx7Sabre
+    OR KernelPlatImx7
     OR KernelPlatformImx8mq-evk
     OR KernelPlatformImx8mm-evk
     OR KernelPlatformImx8mp-evk
