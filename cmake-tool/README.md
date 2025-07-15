@@ -29,7 +29,7 @@ It is assumed that
  * CMake of an appropriate version is installed
  * You are using the Ninja CMake generator
  * You understand how to checkout projects using the repo tool as described on the
-   [seL4 docsite](https://docs.sel4.systems/Resources#running-sel4)
+   [seL4 docsite](https://docs.sel4.systems/projects/buildsystem/host-dependencies.html)
 
 #### Basic build initialisation
 
