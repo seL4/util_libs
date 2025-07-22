@@ -48,17 +48,35 @@ config_choice(
 mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
 
 # Some platforms don't have a platform timer.
-if(KernelPlatformCheshire)
-    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER ON)
+if(
+    (KernelPlatformQEMUArmVirt AND NOT (KernelArmExportPCNTUser AND KernelArmExportPTMRUser))
+    OR KernelPlatformRocketchip
+    OR KernelPlatformRocketchipZCU102
+    OR KernelPlatformCheshire
+    OR (SIMULATION AND (KernelArchRiscV OR KernelArchARM))
+)
+    set(LibPlatSupportHaveTimer OFF)
 else()
-    config_set(LibPlatSupportNoPlatformLtimer LIB_PLAT_SUPPORT_NO_PLATFORM_LTIMER OFF)
+    set(LibPlatSupportHaveTimer ON)
 endif()
+
+config_option(
+    LibPlatSupportHaveTimer
+    LIB_PLAT_SUPPORT_HAVE_TIMER
+    "Indicates that this platform has support for platform ltimers"
+    DEFAULT
+    ON
+)
+
+mark_as_advanced(LibPlatSupportHaveTimer)
 
 set(LibPlatSupportMach "")
 if(KernelPlatformRpi3 OR KernelPlatformRpi4)
     set(LibPlatSupportMach "bcm")
 elseif(KernelPlatformCheshire OR KernelPlatformAriane)
     set(LibPlatSupportMach "cva6")
+elseif(KernelPlatformHifiveP550)
+    set(LibPlatSupportMach "eswin")
 elseif(NOT ${KernelArmMach} STREQUAL "")
     # falling back to kernel settings is done to keep legacy compatibility
     set(LibPlatSupportMach "${KernelArmMach}")
