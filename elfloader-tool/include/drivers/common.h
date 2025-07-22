@@ -43,7 +43,7 @@ struct elfloader_driver {
 extern struct elfloader_driver *__start__driver_list[];
 extern struct elfloader_driver *__stop__driver_list[];
 
-#if defined(__has_attribute) && __has_attribute(retain)
+#if defined(__has_attribute) && __has_attribute(retain) && defined(__clang__)
 #define ELFLOADER_DRIVER(_name) \
     const struct elfloader_driver *_driver_list_##_name \
         __attribute__((unused,retain,section("_driver_list"))) = &_name;
