@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.16.0)
 
 function(get_device_list var device_type platform)
     get_filename_component(platsupport_tools ${PLATSUPPORT_HELPERS} DIRECTORY)
