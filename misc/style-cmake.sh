@@ -40,4 +40,6 @@ case "$CF_VERSION" in
         ;;
 esac
 
-cmake-format -i $CMAKE_FMT "$@"
+for f in "$@"; do
+  cmake-format -i $CMAKE_FMT "$f"
+done
