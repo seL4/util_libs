@@ -42,6 +42,8 @@ def parse_args():
     parser.add_argument('--extra-cpu-opts', dest='qemu_sim_extra_cpu_opts', type=str,
                         help="Additional cpu options to append onto the existing CPU options",
                         default="")
+    parser.add_argument("-r", "--reset-terminal", dest="reset_terminal", action="store_true",
+                        help="Reset the terminal after QEMU exists")
     args = parser.parse_args()
     return args
 
@@ -102,6 +104,7 @@ if __name__ == "__main__":
     else:
         delay = 2  # in seconds
 
-    time.sleep(delay)
+    if args.reset_terminal:
+        time.sleep(delay)
 
-    subprocess.call("tput reset", shell=True)
+        subprocess.call("tput reset", shell=True)
