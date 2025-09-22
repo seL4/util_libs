@@ -11,7 +11,7 @@ include_guard(GLOBAL)
 
 function(ApplyData61ElfLoaderSettings kernel_platform kernel_sel4_arch)
     set(binary_list
-        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;imx8mp-evk;hifive;bcm2837;tqma8xqp1gb;imx93;bcm2711;rocketchip;star64"
+        "tx1;hikey;odroidc2;odroidc4;imx8mq-evk;imx8mm-evk;imx8mp-evk;hifive;bcm2837;tqma8xqp1gb;imx93;bcm2711;bcm2712;rocketchip;star64"
     )
     set(efi_list "tk1;rockpro64;quartz64")
     set(uimage_list "hifive-p550;tx2;am335x")
