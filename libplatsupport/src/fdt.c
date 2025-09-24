@@ -116,6 +116,20 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
     }
     int total_cells = prop_len / sizeof(uint32_t);
 
+    int parent_ranges_prop_len = 0;
+    const uint32_t *parent_ranges_prop = fdt_getprop(dtb_blob, parent_offset, "ranges", &parent_ranges_prop_len);
+    bool parent_has_ranges = parent_ranges_prop != NULL;
+
+    int num_parent_bus_address_cells = 0;
+    if (parent_has_ranges) {
+        int parent_bus_node_offset = fdt_parent_offset(dtb_blob, parent_offset);
+        /* If the parent has the ranges field, it should have its own parent node. */
+        if (parent_bus_node_offset < 0) {
+            return parent_bus_node_offset;
+        }
+        num_parent_bus_address_cells = fdt_address_cells(dtb_blob, parent_bus_node_offset);
+    }
+
     /* sanity check */
     assert(total_cells % (num_address_cells + num_size_cells) == 0);
 
@@ -128,6 +142,23 @@ int ps_fdt_walk_registers(ps_io_fdt_t *io_fdt, ps_fdt_cookie_t *cookie, reg_walk
         curr_pmem.type = PMEM_TYPE_DEVICE;
         curr_pmem.base_addr = READ_CELL(num_address_cells, curr, 0);
         curr_pmem.length = READ_CELL(num_size_cells, curr, num_address_cells);
+
+        if (parent_has_ranges) {
+            assert(num_parent_bus_address_cells != 0);
+            int parent_ranges_cells = parent_ranges_prop_len / sizeof(uint32_t);
+            int num_ranges = parent_ranges_cells / (num_parent_bus_address_cells + num_address_cells + num_size_cells);
+            for (int j = 0; j < num_ranges; j++) {
+                const void *curr_range = (const void *)(&parent_ranges_prop[j]);
+                uint64_t child_bus_addr = READ_CELL(num_address_cells, curr_range, 0);
+                uint64_t parent_bus_addr = READ_CELL(num_parent_bus_address_cells, curr_range, num_address_cells);
+                uint64_t range_length = READ_CELL(num_size_cells, curr_range, num_address_cells + num_parent_bus_address_cells);
+                if (child_bus_addr <= curr_pmem.base_addr && child_bus_addr + range_length > curr_pmem.base_addr) {
+                    uint64_t offset = curr_pmem.base_addr - child_bus_addr;
+                    curr_pmem.base_addr = parent_bus_addr + offset;
+                }
+            }
+        }
+
         int error = callback(curr_pmem, i, num_regs, token);
         if (error) {
             return error;
