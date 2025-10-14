@@ -121,9 +121,16 @@ int bcm_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_charde
     uint32_t addr_offset = 0;
 
     switch (defn->id) {
+#if defined(CONFIG_PLAT_BCM2711) || defined(CONFIG_PLAT_BCM2837)
     case 1:
         addr_offset = UART1_OFFSET;
         break;
+#elif defined (CONFIG_PLAT_BCM2712)
+        /* BCM UART is not supported on BCM2712 as it is on the PCIe bus rather
+         * than the SoC itself. */
+#else
+#error "bcm_uart_init: unknown platform"
+#endif
     default:
         ZF_LOGE("Mini-UART with ID %d does not exist!", defn->id);
         return -1;

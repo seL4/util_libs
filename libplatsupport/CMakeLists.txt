@@ -71,7 +71,7 @@ config_option(
 mark_as_advanced(LibPlatSupportHaveTimer)
 
 set(LibPlatSupportMach "")
-if(KernelPlatformRpi3 OR KernelPlatformRpi4)
+if(KernelPlatformRpi3 OR KernelPlatformRpi4 OR KernelPlatformRpi5)
     set(LibPlatSupportMach "bcm")
 elseif(KernelPlatformCheshire OR KernelPlatformAriane)
     set(LibPlatSupportMach "cva6")
