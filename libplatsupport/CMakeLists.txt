@@ -48,12 +48,11 @@ config_choice(
 mark_as_advanced(CLEAR LibPlatSupportX86ConsoleDevice LibPlatSupportLPTMRclock)
 
 # Some platforms don't have a platform timer.
-if(
-    (KernelPlatformQEMUArmVirt AND NOT (KernelArmExportPCNTUser AND KernelArmExportPTMRUser))
-    OR KernelPlatformRocketchip
-    OR KernelPlatformRocketchipZCU102
-    OR KernelPlatformCheshire
-    OR (SIMULATION AND (KernelArchRiscV OR KernelArchARM))
+if((KernelPlatformQEMUArmVirt AND NOT (KernelArmExportPCNTUser AND KernelArmExportPTMRUser))
+   OR KernelPlatformRocketchip
+   OR KernelPlatformRocketchipZCU102
+   OR KernelPlatformCheshire
+   OR (SIMULATION AND (KernelArchRiscV OR KernelArchARM))
 )
     set(LibPlatSupportHaveTimer OFF)
 else()
@@ -61,11 +60,8 @@ else()
 endif()
 
 config_option(
-    LibPlatSupportHaveTimer
-    LIB_PLAT_SUPPORT_HAVE_TIMER
-    "Indicates that this platform has support for platform ltimers"
-    DEFAULT
-    ON
+    LibPlatSupportHaveTimer LIB_PLAT_SUPPORT_HAVE_TIMER
+    "Indicates that this platform has support for platform ltimers" DEFAULT ON
 )
 
 mark_as_advanced(LibPlatSupportHaveTimer)
@@ -77,18 +73,14 @@ elseif(KernelPlatformCheshire OR KernelPlatformAriane)
     set(LibPlatSupportMach "cva6")
 elseif(KernelPlatformHifiveP550)
     set(LibPlatSupportMach "eswin")
+elseif(KernelPlatformBananapiF3)
+    set(LibPlatSupportMach "spacemit")
 elseif(NOT ${KernelArmMach} STREQUAL "")
     # falling back to kernel settings is done to keep legacy compatibility
     set(LibPlatSupportMach "${KernelArmMach}")
 endif()
 
-file(
-    GLOB
-        deps
-        src/plat/${KernelPlatform}/*.c
-        src/*.c
-        src/plat/${KernelPlatform}/acpi/*.c
-)
+file(GLOB deps src/plat/${KernelPlatform}/*.c src/*.c src/plat/${KernelPlatform}/acpi/*.c)
 
 if(NOT ${LibPlatSupportMach} STREQUAL "")
     file(GLOB lib_deps "src/mach/${LibPlatSupportMach}/*.c")
@@ -107,10 +99,8 @@ if(KernelArchARM)
     list(APPEND deps src/arch/arm/irqchip/gicv3.c)
     list(APPEND deps src/arch/arm/irqchip/omap3.c)
     # Link the IRQ chip parser modules
-    list(
-        APPEND
-            irqchip_modules
-            "-Wl,--undefined=arm_gic_ptr,--undefined=tegra_ictlr_ptr,--undefined=arm_gicv3_ptr,\
+    list(APPEND irqchip_modules
+         "-Wl,--undefined=arm_gic_ptr,--undefined=tegra_ictlr_ptr,--undefined=arm_gicv3_ptr,\
 --undefined=fsl_avic_ptr,--undefined=ti_omap3_ptr"
     )
 elseif(KernelArchX86)
@@ -123,7 +113,10 @@ else()
     message(FATAL_ERROR "Unsupported KernelArch '${KernelArch}'")
 endif()
 
-if(KernelPlatformQEMUArmVirt OR KernelPlatformQuartz64 OR KernelPlatformIMX93)
+if(KernelPlatformQEMUArmVirt
+   OR KernelPlatformQuartz64
+   OR KernelPlatformIMX93
+)
     if(KernelArmExportPCNTUser AND KernelArmExportPTMRUser)
         list(APPEND deps src/arch/arm/generic_ltimer.c)
     endif()
@@ -131,7 +124,11 @@ endif()
 
 if(KernelPlatformExynos5422)
     list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_5422_clock.c)
-elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos5250)
+elseif(
+    KernelPlatformExynos4
+    OR KernelPlatformExynos5410
+    OR KernelPlatformExynos5250
+)
     list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_common_clock.c)
 endif()
 
@@ -139,18 +136,20 @@ if(KernelPlatImx6 OR KernelPlatformImx7Sabre)
     list(APPEND deps src/mach/${LibPlatSupportMach}/epit/epit.c)
 endif()
 
-if(
-    KernelPlatImx6
-    OR KernelPlatformImx7Sabre
-    OR KernelPlatformImx8mq-evk
-    OR KernelPlatformImx8mm-evk
-    OR KernelPlatformImx8mp-evk
-    OR KernelPlatformMaaxboard
+if(KernelPlatImx6
+   OR KernelPlatformImx7Sabre
+   OR KernelPlatformImx8mq-evk
+   OR KernelPlatformImx8mm-evk
+   OR KernelPlatformImx8mp-evk
+   OR KernelPlatformMaaxboard
 )
     list(APPEND deps src/mach/${LibPlatSupportMach}/serial/serial.c)
 endif()
 
-if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk OR KernelPlatformImx8mp-evk)
+if(KernelPlatImx8mq
+   OR KernelPlatformImx8mm-evk
+   OR KernelPlatformImx8mp-evk
+)
     list(APPEND deps src/plat/imx8m/chardev.c)
     # There's no clock driver at the moment, but this is to allow the
     # libethdrivers to build for imx8mq
@@ -159,10 +158,7 @@ endif()
 
 if(KernelPlatPC99)
     set_source_files_properties(
-        src/plat/pc99/keyboard_vkey.c
-        PROPERTIES
-        COMPILE_FLAGS
-        -Wno-initializer-overrides
+        src/plat/pc99/keyboard_vkey.c PROPERTIES COMPILE_FLAGS -Wno-initializer-overrides
     )
 endif()
 
@@ -172,7 +168,10 @@ add_config_library(platsupport "${configure_string}")
 
 add_library(platsupport EXCLUDE_FROM_ALL ${deps})
 
-if(KernelPlatImx8mq OR KernelPlatformImx8mm-evk OR KernelPlatformImx8mp-evk)
+if(KernelPlatImx8mq
+   OR KernelPlatformImx8mm-evk
+   OR KernelPlatformImx8mp-evk
+)
     if(KernelPlatformImx8mp-evk)
         # For the imx8mp, the DTS is in a different format compared to those of
         # the imx8mm and imx8mq, there are some constants in the headers that
@@ -200,12 +199,8 @@ if("${KernelSel4Arch}" STREQUAL "arm_hyp")
 endif()
 
 target_include_directories(
-    platsupport
-    PUBLIC
-        include
-        plat_include/${KernelPlatform}
-        sel4_arch_include/${_inc_folder_KernelSel4Arch}
-        arch_include/${KernelArch}
+    platsupport PUBLIC include plat_include/${KernelPlatform}
+                       sel4_arch_include/${_inc_folder_KernelSel4Arch} arch_include/${KernelArch}
 )
 
 target_link_libraries(
