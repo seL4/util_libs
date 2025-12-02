@@ -1,0 +1,1 @@
+../../../rockpro64/platsupport/plat/serial.h
