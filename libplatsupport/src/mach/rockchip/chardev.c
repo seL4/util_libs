@@ -18,7 +18,6 @@ static const int uart2_irqs[] = {UART2_IRQ, -1};
 static const int uart3_irqs[] = {UART3_IRQ, -1};
 static const int uart4_irqs[] = {UART4_IRQ, -1};
 
-
 #define UART_DEFN(devid) {          \
     .id      = RP_UART##devid,    \
     .paddr   = UART##devid##_PADDR, \
@@ -26,7 +25,6 @@ static const int uart4_irqs[] = {UART4_IRQ, -1};
     .irqs    = uart##devid##_irqs,  \
     .init_fn = &uart_init           \
 }
-
 
 static const struct dev_defn dev_defn[] = {
     UART_DEFN(1),

@@ -75,6 +75,8 @@ elseif(KernelPlatformHifiveP550)
     set(LibPlatSupportMach "eswin")
 elseif(KernelPlatformBananapiF3)
     set(LibPlatSupportMach "spacemit")
+elseif(KernelPlatformRockpro64 OR KernelPlatformRock3b)
+    set(LibPlatSupportMach "rockchip")
 elseif(NOT ${KernelArmMach} STREQUAL "")
     # falling back to kernel settings is done to keep legacy compatibility
     set(LibPlatSupportMach "${KernelArmMach}")

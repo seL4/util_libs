@@ -1,0 +1,1 @@
+../../../rockpro64/platsupport/plat/i2c.h
