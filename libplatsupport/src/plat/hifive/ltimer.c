@@ -248,7 +248,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         timers->callback_datas[i].ltimer = ltimer;
         timers->callback_datas[i].irq = &irqs[i];
         timers->callback_datas[i].irq_handler = ltimer_handle_irq;
-        timers->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irqs[i], handle_irq_wrapper,
+        timers->timer_irq_ids[i] = ps_irq_register(&ops.irq_ops, irqs[i], ltimer_handle_irq_wrapper,
                                                    &timers->callback_datas[i]);
         if (timers->timer_irq_ids[i] < 0) {
             destroy(ltimer->data);
