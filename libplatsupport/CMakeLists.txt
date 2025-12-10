@@ -124,6 +124,10 @@ if(KernelPlatformQEMUArmVirt
     endif()
 endif()
 
+if(KernelPlatformHikey OR KernelPlatformFVP)
+    list(APPEND deps "src/driver/sp804/sp804_ltimer.c")
+endif()
+
 if(KernelPlatformExynos5422)
     list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_5422_clock.c)
 elseif(
