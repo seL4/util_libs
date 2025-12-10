@@ -8,9 +8,23 @@ cmake_minimum_required(VERSION 3.16.0)
 
 project(libfdt C)
 
-file(GLOB deps *.c)
-list(SORT deps)
+add_library(
+    fdt
+    STATIC
+    EXCLUDE_FROM_ALL
+    "fdt.c"
+    "fdt_addresses.c"
+    "fdt_check.c"
+    "fdt_empty_tree.c"
+    "fdt_overlay.c"
+    "fdt_ro.c"
+    "fdt_rw.c"
+    "fdt_strerror.c"
+    "fdt_sw.c"
+    "fdt_wip.c"
+    "fdtget.c"
+)
 
-add_library(fdt STATIC EXCLUDE_FROM_ALL ${deps})
-target_include_directories(fdt PUBLIC include ".")
+target_include_directories(fdt PUBLIC ".")
+
 target_link_libraries(fdt muslc)
