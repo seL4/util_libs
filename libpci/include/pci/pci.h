@@ -15,7 +15,7 @@
 #define PCI_CONF_PORT_DATA     0x0CFC
 #define PCI_CONF_PORT_ADDR_END (PCI_CONF_PORT_ADDR + 4)
 #define PCI_CONF_PORT_DATA_END (PCI_CONF_PORT_DATA + 4)
-#define PCI_MAX_DEVICES 128
+#define PCI_MAX_DEVICES 256
 
 /* Structure containing information about a device. When a device is found during scanning,
  * one of these structs is populated from the information read off the device. */
