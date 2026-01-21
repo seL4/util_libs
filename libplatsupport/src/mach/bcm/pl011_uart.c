@@ -277,6 +277,17 @@ int pl011_uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_char
         return -1;
     }
 
+#elif defined(CONFIG_PLAT_BCM2712)
+
+    switch (defn->id) {
+    case BCM2xxx_UART0:
+        addr_offset = UART0_OFFSET;
+        break;
+    default:
+        ZF_LOGE("PL011 UART with ID %d does not exist!", defn->id);
+        return -1;
+    }
+
 #elif defined(CONFIG_PLAT_BCM2837)
 
     switch (defn->id) {
