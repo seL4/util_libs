@@ -9,6 +9,8 @@
 #include <platsupport/io.h>
 #include <platsupport/pmem.h>
 #include <platsupport/irq.h>
+#include <platsupport/gen_config.h>
+
 /**
  * This file provides the interface for an OS independant consisent timer interface.
  *
@@ -162,13 +164,13 @@ static inline int ltimer_set_timeout(ltimer_t *timer, uint64_t nanoseconds, time
     }
 
     switch (type) {
-        case TIMEOUT_ABSOLUTE:
-        case TIMEOUT_PERIODIC:
-        case TIMEOUT_RELATIVE:
-            break;
-        default:
-            ZF_LOGE("Invalid timer type");
-            return EINVAL;
+    case TIMEOUT_ABSOLUTE:
+    case TIMEOUT_PERIODIC:
+    case TIMEOUT_RELATIVE:
+        break;
+    default:
+        ZF_LOGE("Invalid timer type");
+        return EINVAL;
     }
 
     return timer->set_timeout(timer->data, nanoseconds, type);
@@ -208,7 +210,7 @@ static inline int ltimer_get_nth_irq(ltimer_t *timer, size_t n, ps_irq_t *irq)
 static inline size_t ltimer_get_num_pmems(ltimer_t *timer)
 {
     if (timer->get_num_pmems == NULL) {
-         /* assume no physical memory required for this ltimer */
+        /* assume no physical memory required for this ltimer */
         return 0;
     }
 
@@ -282,7 +284,8 @@ static inline void ltimer_destroy(ltimer_t *timer)
 }
 
 /* Spinning delay functions */
-static inline void ltimer_ns_delay(ltimer_t *timer, uint64_t nanoseconds) {
+static inline void ltimer_ns_delay(ltimer_t *timer, uint64_t nanoseconds)
+{
     uint64_t start, end;
 
     int error = ltimer_get_time(timer, &start);
@@ -297,17 +300,21 @@ static inline void ltimer_ns_delay(ltimer_t *timer, uint64_t nanoseconds) {
     }
 }
 
-static inline void ltimer_s_delay(ltimer_t *timer, uint64_t seconds) {
+static inline void ltimer_s_delay(ltimer_t *timer, uint64_t seconds)
+{
     ltimer_ns_delay(timer, seconds * NS_IN_S);
 }
 
-static inline void ltimer_ms_delay(ltimer_t *timer, uint64_t milliseconds) {
+static inline void ltimer_ms_delay(ltimer_t *timer, uint64_t milliseconds)
+{
     ltimer_ns_delay(timer, milliseconds * NS_IN_MS);
 }
 
-static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds) {
+static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds)
+{
     ltimer_ns_delay(timer, microseconds * NS_IN_US);
 }
+
 
 /*
  * default init function -> platforms may provide multiple ltimers, but each
@@ -318,8 +325,15 @@ static inline void ltimer_us_delay(ltimer_t *timer, uint64_t microseconds) {
  * with calling the ltimer functions inside the callback, the ltimer interface
  * functions are not reentrant.
  */
+#if !defined(CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER) && __has_attribute(error)
+__attribute__((error("no ltimer support for this platform")))
+#endif
 int ltimer_default_init(ltimer_t *timer, ps_io_ops_t ops, ltimer_callback_fn_t callback, void *callback_token);
+
 /* initialise the subset of functions required to get
  * the resources this ltimer needs without initialising the actual timer
  * drivers*/
+#if !defined(CONFIG_LIB_PLAT_SUPPORT_HAVE_TIMER) && __has_attribute(error)
+__attribute__((error("no ltimer support for this platform")))
+#endif
 int ltimer_default_describe(ltimer_t *timer, ps_io_ops_t ops);

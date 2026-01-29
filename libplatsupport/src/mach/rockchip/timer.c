@@ -2,99 +2,112 @@
  * Copyright 2019, Data61, CSIRO (ABN 41 687 119 230)
  *
  * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * The timer driver is compatible with rockchip,rk3568-timer and rk3399-timer.
+ * rk3568 SoC contains 6 timers and 2 secure timers, timers 0-4 count down from a programmed value and timer 5 and 2 secure timers count up to a programmed value.
+ * rk3399 SoC contains 12 timers and 12 secure timers and they all count up to a programmed value.
+ * Timer0 is used as a timestamp timer and Timer1 is used as a timeout timer.
  */
-
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
 #include <utils/util.h>
 #include <platsupport/timer.h>
 #include <platsupport/fdt.h>
-#include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 #include <utils/frequency.h>
 
 #include "../../ltimer.h"
 
-#define USER_MODE BIT(1)
-#define UNMASKED_INT BIT(2)
-#define TCLR_STARTTIMER BIT(0)
-#define TISR_IRQ_CLEAR BIT(0)
+#define RK_REG_CHOICE 0
+#define RK_IRQ_CHOICE 0
+#define RK_CLOCK_FREQUENCY 24000000ull
 
-//debug method
-static void print_regs(rk_t *rk)
-{
-    printf("load_count0          >> 0x%08x\n", rk->hw->load_count0);
-    printf("load_count1          >> 0x%08x\n", rk->hw->load_count1);
-    printf("current_cnt_lowbits  >> 0x%08x\n", rk->hw->current_value0);
-    printf("current_cnt_highbits >> 0x%08x\n", rk->hw->current_value1);
-    printf("load_count2          >> 0x%08x\n", rk->hw->load_count2);
-    printf("load_count3          >> 0x%08x\n", rk->hw->load_count3);
-    printf("interrupt_status     >> 0x%08x\n", rk->hw->interrupt_status);
-    printf("control_register     >> 0x%08x\n", rk->hw->control_register);
-}
+#define TIMER_CONTROL_TIMER_ENABLE BIT(0)
+#define TIMER_CONTROL_MODE_USER BIT(1)
+#define TIMER_CONTROL_INTERRUPT_ENABLE BIT(2)
+#define TIMER_IRQ_ACK BIT(0)
+
+#if defined CONFIG_PLAT_RK3568
+struct rk_map {
+    uint32_t load_count0; /* lower bits of value to load */
+    uint32_t load_count1; /* higher bits of value to load */
+    uint32_t current_value0; /* lower bits of current value of the timer in ticks */
+    uint32_t current_value1; /* higher bits of current value of the timer in ticks */
+    uint32_t control_reg; /* control register */
+    uint32_t reserved0; /* reserved */
+    uint32_t int_status; /* status of the interrupt, can be cleared */
+    uint32_t reserved1; /* reserved */
+};
+#elif defined CONFIG_PLAT_ROCKPRO64
+struct rk_map {
+    uint32_t load_count0; /* lower bits of value to load */
+    uint32_t load_count1; /* lower bits of value to load */
+    uint32_t current_value0; /* lower bits of current value of the timer in ticks */
+    uint32_t current_value1; /* higher bits of current value of the timer in ticks */
+    uint32_t load_count2; /* unused */
+    uint32_t load_count3; /* unused */
+    uint32_t int_status; /* status of the interrupt, can be cleared */
+    uint32_t control_reg; /* control register */
+};
+#else
+#error "Unsupported platform. Supported platforms are only rk3399 and rk3568!"
+#endif
 
 int rk_stop(rk_t *rk)
 {
-    if (rk == NULL) {
-        return EINVAL;
-    }
-
-    rk->hw->control_register = 0;
+    rk->hw->control_reg = 0;
     return 0;
 }
 
 uint64_t rk_get_time(rk_t *rk)
 {
-    if (rk == NULL) {
-        return EINVAL;
-    }
     uint32_t val1 = rk->hw->current_value1;
-    uint32_t val2 = rk->hw->current_value0;
+    uint32_t val0 = rk->hw->current_value0;
     if (val1 != rk->hw->current_value1) {
         val1 = rk->hw->current_value1;
-        val2 = rk->hw->current_value0;
+        val0 = rk->hw->current_value0;
     }
 
-    uint64_t time = 0;
-    time = val1;
-    time <<= 32;
-    time |= val2;
-    return ((uint64_t)((time) * NS_IN_S) / 24000000ull);
+    uint64_t ticks = val0;
+    ticks |= (uint64_t)val1 << 32;
+
+#if defined CONFIG_PLAT_RK3568
+    ticks = UINT64_MAX - ticks;
+#endif
+    return freq_cycles_and_hz_to_ns(ticks, RK_CLOCK_FREQUENCY);
 }
 
 int rk_start_timestamp_timer(rk_t *rk)
 {
-    assert(rk != NULL);
-    assert(rk->user_cb_event == LTIMER_OVERFLOW_EVENT);
+    rk->hw->control_reg = 0;
 
-    rk->hw->control_register = 0;
-
-    //set timer to count up monotonically
+    /* set timer to count monotonically down for rk3568, up for rk3399 */
     rk->hw->load_count0  = 0xffffffff;
     rk->hw->load_count1  = 0xffffffff;
 
-    rk->hw->control_register |= UNMASKED_INT | TCLR_STARTTIMER;
+    rk->hw->control_reg |= TIMER_CONTROL_INTERRUPT_ENABLE | TIMER_CONTROL_TIMER_ENABLE;
     return 0;
 }
 
 int rk_set_timeout(rk_t *rk, uint64_t ns, bool periodic)
 {
-    if (rk == NULL) {
-        return EINVAL;
-    }
-    /* disable timer */
-    rk->hw->control_register = 0;
+    uint64_t ticks = freq_ns_and_hz_to_cycles(ns, RK_CLOCK_FREQUENCY);
+    uint32_t ticks_l = (uint32_t)ticks;
+    uint32_t ticks_h = (uint32_t)(ticks >> 32);
 
-    /* timer mode */
-    uint32_t tclrFlags = periodic ? 0 : USER_MODE;
+    /* disable timer */
+    rk->hw->control_reg = 0;
+
+    /* reload automatically */
+    uint32_t user_mode = periodic ? 0 : TIMER_CONTROL_MODE_USER;
 
     /* load timer count */
-    uint64_t ticks = freq_ns_and_hz_to_cycles(ns, 24000000ull);
-    rk->hw->load_count0  = (uint32_t)(ticks & 0xffffffff);
-    rk->hw->load_count1  = (ticks >> 32);
+    rk->hw->load_count0  = ticks_l;
+    rk->hw->load_count1  = ticks_h;
 
     /* enable timer with configs */
-    rk->hw->control_register |= TCLR_STARTTIMER | UNMASKED_INT | tclrFlags;
+    rk->hw->control_reg = TIMER_CONTROL_TIMER_ENABLE | TIMER_CONTROL_INTERRUPT_ENABLE | user_mode;
     return 0;
 }
 
@@ -104,17 +117,12 @@ static void rk_handle_irq(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, vo
     rk_t *rk = data;
 
     /* ack any pending irqs */
-    rk->hw->interrupt_status = 1;
+    rk->hw->int_status = TIMER_IRQ_ACK;
 
     ZF_LOGF_IF(acknowledge_fn(ack_data), "Failed to acknowledge the timer's interrupts");
     if (rk->user_cb_fn) {
         rk->user_cb_fn(rk->user_cb_token, rk->user_cb_event);
     }
-}
-
-bool rk_pending_match(rk_t *rk)
-{
-    return rk->hw->interrupt_status & TISR_IRQ_CLEAR;
 }
 
 void rk_destroy(rk_t *rk)
@@ -168,25 +176,25 @@ int rk_init(rk_t *rk, ps_io_ops_t ops, rk_config_t config)
     ps_fdt_cookie_t *cookie = NULL;
     error = ps_fdt_read_path(&ops.io_fdt, &ops.malloc_ops, config.fdt_path, &cookie);
     if (error) {
-        ZF_LOGE("rockpro64 timer failed to read path (%d, %s)", error, config.fdt_path);
+        ZF_LOGE("rk3xxx timer failed to read path (%d, %s)", error, config.fdt_path);
         return error;
     }
 
     rk->rk_map_base = ps_fdt_index_map_register(&ops, cookie, RK_REG_CHOICE, &rk->pmem);
     if (rk->rk_map_base == NULL) {
-        ZF_LOGE("rockpro64 timer failed to map registers");
+        ZF_LOGE("rk3xxx timer failed to map registers");
         return ENODEV;
     }
 
     error = ps_fdt_walk_irqs(&ops.io_fdt, cookie, irq_index_walker, rk);
     if (error) {
-        ZF_LOGE("rockpro64 timer failed to register irqs (%d)", error);
+        ZF_LOGE("rk3xxx timer failed to register irqs (%d)", error);
         return error;
     }
 
     rk->irq_id = ps_fdt_cleanup_cookie(&ops.malloc_ops, cookie);
     if (rk->irq_id) {
-        ZF_LOGE("rockpro64 timer to clean up cookie (%d)", error);
+        ZF_LOGE("rk3xxx timer to clean up cookie (%d)", error);
         return rk->irq_id;
     }
 
@@ -213,7 +221,7 @@ int rk_init_secondary(rk_t *rk, rk_t *rkp, ps_io_ops_t ops, rk_config_t config)
 
     /* so that destroy does not try to unmap twice */
     rk->rk_map_base = NULL;
-    /* just like dmt, rockpro64 has another timer in the same page at 0x20 offset */
+    /* just like dmt, rk3xxx has another timer in the same page at 0x20 offset */
     rk->hw = (void *)((uintptr_t) rkp->rk_map_base) + 0x20;
     /* similarly, the IRQ for this secondary timer is offset by 1 */
     rk->irq_id = PS_INVALID_IRQ_ID;

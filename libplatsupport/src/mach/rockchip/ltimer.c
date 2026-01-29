@@ -4,15 +4,14 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-/* Implementation of a logical timer for rockpro64
- *
- * We use the 1 rk for timeouts and 1 for a millisecond tick.
+/* Implementation of a logical timer for rk3399 and rk3568 by using 2 physical timer devices, 1 timestamp and 1 timeout.
  *
  * The configuration of timers that we use allows us to map only one page in.
  */
 #include <platsupport/timer.h>
 #include <platsupport/ltimer.h>
 #include <platsupport/plat/timer.h>
+#include <platsupport/mach/timer.h>
 #include <utils/util.h>
 
 #include "../../ltimer.h"
@@ -129,12 +128,4 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     }
 
     return 0;
-}
-
-/* This function is intended to be deleted,
- * this is just left here for now so that stuff can compile */
-int ltimer_default_describe(ltimer_t *ltimer, ps_io_ops_t ops)
-{
-    ZF_LOGE("get_(nth/num)_(irqs/pmems) are not valid");
-    return EINVAL;
 }
