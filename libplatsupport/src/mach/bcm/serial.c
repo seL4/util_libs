@@ -45,6 +45,10 @@ static const uart_gpio_defn_t gpio_defs[NUM_CHARDEV] = {
     UART_GPIO_DEFN(BCM2xxx_UART5, 12, 13, BCM2711_GPIO_FSEL_ALT4)  // UART 5 uses GPIO pins 12-13
 };
 
+#elif defined(CONFIG_PLAT_BCM2712)
+
+/* GPIO is not supported on BCM2712. */
+
 #elif defined(CONFIG_PLAT_BCM2837)
 
 static const uart_gpio_defn_t gpio_defs[NUM_CHARDEV] = {
@@ -96,6 +100,7 @@ int uart_gpio_configure(enum chardev_id id, const ps_io_ops_t *o)
     // control (CTS/RTS pins) for now.
     uart_gpio_defn_t pindef = { -1, -1, -1, -1 };
 
+#ifndef CONFIG_PLAT_BCM2712
     for (int i = 0; i < NUM_CHARDEV; i++) {
         if (id == gpio_defs[i].uart_id) {
             pindef = gpio_defs[i];
@@ -139,6 +144,8 @@ int uart_gpio_configure(enum chardev_id id, const ps_io_ops_t *o)
 #error "Unknown BCM2xxx platform!"
 #endif
 
+#endif
+
     return 0;
 }
 
@@ -158,6 +165,13 @@ int uart_init(const struct dev_defn *defn, const ps_io_ops_t *ops, ps_chardevice
     case 3:
     case 4:
     case 5:
+        uart_funcs.uart_init    = &pl011_uart_init;
+        uart_funcs.uart_getchar = &pl011_uart_getchar;
+        uart_funcs.uart_putchar = &pl011_uart_putchar;
+        break;
+
+#elif defined(CONFIG_PLAT_BCM2712)
+    case BCM2xxx_UART0:
         uart_funcs.uart_init    = &pl011_uart_init;
         uart_funcs.uart_getchar = &pl011_uart_getchar;
         uart_funcs.uart_putchar = &pl011_uart_putchar;

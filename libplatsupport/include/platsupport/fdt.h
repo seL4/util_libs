@@ -15,8 +15,8 @@
  * RISCV does have 128 bits but there are no platforms that use that bit length (yet) */
 #define READ_CELL32(addr) fdt32_ld(addr)
 #define READ_CELL64(addr) fdt64_ld(addr)
-#define READ_CELL(size, addr, offset) (size == 2 ? READ_CELL64(addr + (offset * sizeof(uint32_t))) : \
-                                                   READ_CELL32(addr + (offset * sizeof(uint32_t))))
+#define READ_CELL(size, addr, offset) (size == 2 ? READ_CELL64((addr) + ((offset) * sizeof(uint32_t))) : \
+                                                   READ_CELL32((addr) + ((offset) * sizeof(uint32_t))))
 
 /*
  * Type of the callback function that is called for each device register instance

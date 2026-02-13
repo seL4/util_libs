@@ -44,6 +44,14 @@ static const struct dev_defn dev_defn[] = {
     UART_DEFN(5)
 };
 
+#elif defined(CONFIG_PLAT_BCM2712)
+
+static const int uart_irqs_0[] = { UART0_IRQ, -1 };
+
+static const struct dev_defn dev_defn[] = {
+    UART_DEFN(0),
+};
+
 #elif defined(CONFIG_PLAT_BCM2837)
 
 static const int uart_irqs_0[] = { UART0_IRQ, -1 };
