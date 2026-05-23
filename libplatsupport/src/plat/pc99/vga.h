@@ -7,5 +7,5 @@
 
 #include "../../chardev.h"
 
-int text_ega_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
+int text_vga_init(const struct dev_defn* defn, const ps_io_ops_t* ops, ps_chardevice_t* dev);
 
