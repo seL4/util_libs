@@ -89,26 +89,36 @@ void enable_rcc(void *rcc)
     while (!(*rcc_cfgr & (BIT(2) | BIT(1))));
 }
 
-int stm32mp2_timer_init(stm32_t *stm32, ps_io_ops_t ops)
+void stm32mp2_timer_destroy(stm32_t *stm32_timer,  ps_io_ops_t ops)
 {
-    void *rcc = NULL;
+    if (stm32_timer->rcc == NULL) {
+        return;
+    }
+
+    stm32_stop_timer(stm32_timer);
+    ps_io_unmap(&ops.io_mapper, stm32_timer->rcc, RCC_TIM2_SIZE);
+}
+
+int stm32mp2_timer_init(stm32_t *stm32_timer, ps_io_ops_t ops)
+{
     ps_io_ops_t *io_ops = &ops;
 
     /* TIM2 RCC */
-    MAP_IF_NULL(io_ops, RCC_TIM2, rcc);
-    if (rcc == NULL) {
+    MAP_IF_NULL(io_ops, RCC_TIM2, stm32_timer->rcc);
+    if (stm32_timer->rcc == NULL) {
+        ZF_LOGE("Failed map TIM2 RCC");
         return EINVAL;
     }
 
-    enable_rcc(rcc);
+    enable_rcc(stm32_timer->rcc);
 
-    stm32->hw->psc = (uint16_t)((TICK_NS * TIM2_HZ) / NS_IN_S) - 1;
-    stm32->hw->arr = UINT32_MAX;
-    stm32->hw->egr  = STM32_TIM_EGR_UG;    /* force update event */
-    stm32->hw->dier = STM32_TIM_DIER_UIE;  /* enable interrupt for overflow */
-    stm32->hw->ccer = STM32_TIM_CCER_CC1E; /* enable channel1 output */
+    stm32_timer->hw->psc = (uint16_t)((TICK_NS * TIM2_HZ) / NS_IN_S) - 1;
+    stm32_timer->hw->arr = UINT32_MAX;
+    stm32_timer->hw->egr  = STM32_TIM_EGR_UG;    /* force update event */
+    stm32_timer->hw->dier = STM32_TIM_DIER_UIE;  /* enable interrupt for overflow */
+    stm32_timer->hw->ccer = STM32_TIM_CCER_CC1E; /* enable channel1 output */
 
-    stm32_start_timer(stm32);
+    stm32_start_timer(stm32_timer);
 
     return 0;
 }

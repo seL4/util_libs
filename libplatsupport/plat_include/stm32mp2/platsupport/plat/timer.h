@@ -60,9 +60,11 @@ typedef struct {
     volatile stm32_regs_t *hw;
     uint32_t periodic_t;
     uint32_t cnt_h; /* keep overflow for get_time */
+    void *rcc;
 } stm32_t;
 
 int stm32mp2_timer_init(stm32_t *stm32, ps_io_ops_t ops);
+void stm32mp2_timer_destroy(stm32_t *stm32, ps_io_ops_t ops);
 void stm32_timer_reset(stm32_t *stm32);
 uint64_t stm32_get_time(stm32_t *stm32);
 int stm32_set_timeout(stm32_t *dmt, uint64_t ns, bool periodic);
