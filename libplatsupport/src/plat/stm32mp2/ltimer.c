@@ -83,15 +83,15 @@ static void destroy(void *data)
 {
     stm32_ltimer_t *stm32_ltimer = data;
 
-    stm32_stop_timer(&stm32_ltimer->stm32_timer);
-
-    if (stm32_ltimer->stm32_timer.hw) {
-        ps_pmem_unmap(&stm32_ltimer->ops, pmems, (void *) stm32_ltimer->stm32_timer.hw);
-    }
+    stm32mp2_timer_destroy(&stm32_ltimer->stm32_timer, stm32_ltimer->ops);
 
     if (stm32_ltimer->irq_id != PS_INVALID_IRQ_ID) {
         int error = ps_irq_unregister(&stm32_ltimer->ops.irq_ops, stm32_ltimer->irq_id);
         ZF_LOGF_IF(error, "Failed to unregister IRQ");
+    }
+
+    if (stm32_ltimer->stm32_timer.hw) {
+        ps_pmem_unmap(&stm32_ltimer->ops, pmems, (void *) stm32_ltimer->stm32_timer.hw);
     }
 
     ps_free(&stm32_ltimer->ops.malloc_ops, sizeof(stm32_ltimer_t), stm32_ltimer);
@@ -159,8 +159,8 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
 
     stm32_map_base = ps_pmem_map(&ops, pmems, false, PS_MEM_NORMAL);
     if (stm32_map_base == NULL) {
-        destroy(ltimer->data);
-        return EINVAL;
+        rc = EINVAL;
+        goto err_pmem_map;
     }
     stm32_ltimer->stm32_timer.hw = stm32_map_base;
 
@@ -171,16 +171,26 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     stm32_ltimer->irq_id = ps_irq_register(&ops.irq_ops, irqs, handle_irq_wrapper,
                                            &stm32_ltimer->callback_data);
     if (stm32_ltimer->irq_id < 0) {
-        destroy(ltimer->data);
-        return EIO;
+        rc = EIO;
+        goto err_irq_register;
     }
 
     rc = stm32mp2_timer_init(&stm32_ltimer->stm32_timer, ops);
     if (rc) {
         ZF_LOGE("Failed to init stm32 timeout timer");
-        destroy(&stm32_ltimer);
-        return rc;
+        goto err_timer_init;
     }
 
     return 0;
+
+err_timer_init:
+    ps_irq_unregister(&ops.irq_ops, stm32_ltimer->irq_id);
+
+err_irq_register:
+    ps_pmem_unmap(&ops, pmems, (void *) stm32_ltimer->stm32_timer.hw);
+
+err_pmem_map:
+    ps_free(&ops.malloc_ops, sizeof(stm32_ltimer_t), stm32_ltimer);
+
+    return rc;
 }
