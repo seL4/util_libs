@@ -24,7 +24,7 @@ typedef struct {
  *
  * Note that this wrapper assumes that the interrupts are level triggered.
  */
-static inline void handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
+static inline void ltimer_handle_irq_wrapper(void *data, ps_irq_acknowledge_fn_t acknowledge_fn, void *ack_data)
 {
     assert(data);
 
@@ -92,7 +92,7 @@ static int helper_fdt_alloc_simple(
     return 0;
 }
 
-static int get_resolution_dummy(void *data, uint64_t *resolution)
+static int ltimer_get_resolution_dummy(void *data, uint64_t *resolution)
 {
     return ENOSYS;
 }
@@ -108,7 +108,7 @@ static int create_ltimer_simple(
     assert(ltimer != NULL);
 
     ltimer->get_time = get_time;
-    ltimer->get_resolution = get_resolution_dummy;
+    ltimer->get_resolution = ltimer_get_resolution_dummy;
     ltimer->set_timeout = set_timeout;
     ltimer->reset = reset;
     ltimer->destroy = destroy;

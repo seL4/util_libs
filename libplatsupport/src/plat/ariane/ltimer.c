@@ -232,7 +232,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
         destroy(ltimer->data);
         return error;
     }
-    timer->irq_id = ps_irq_register(&ops.irq_ops, *timer->callback_data.irq, handle_irq_wrapper,
+    timer->irq_id = ps_irq_register(&ops.irq_ops, *timer->callback_data.irq, ltimer_handle_irq_wrapper,
                                     &timer->callback_data);
     if (timer->irq_id < 0) {
         destroy(ltimer->data);
