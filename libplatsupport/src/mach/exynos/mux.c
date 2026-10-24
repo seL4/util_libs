@@ -270,11 +270,9 @@ static int gpio_get_extint_idx(gpio_t *gpio)
         return port - 1;
     } else if (portid == GPV4) {
         return port - 2;
-#ifdef CONFIG_PLAT_EXYNOS5
         /* GPC4 on EXYNOS5 is very special indeed. */
     } else if (portid == GPC4) {
         return 13;
-#endif
         /* General case */
     } else if (port >= 0 && port <= PORTS_PER_BANK) {
         return port;

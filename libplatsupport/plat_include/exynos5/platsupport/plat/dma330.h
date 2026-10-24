@@ -29,9 +29,6 @@
 
 enum dma330_id {
     PL330_MDMA0,
-#if defined CONFIG_PLAT_EXYNOS5250
-    PL330_MDMA1,
-#endif
     PL330_PDMA0,
     PL330_PDMA1,
     NPL330
@@ -39,36 +36,24 @@ enum dma330_id {
 
 static const uint32_t dma330_paddr[] = {
     [PL330_MDMA0] = PL330_MDMA0_PADDR,
-#if defined CONFIG_PLAT_EXYNOS5250
-    [PL330_MDMA1] = PL330_MDMA1_PADDR,
-#endif
     [PL330_PDMA0] = PL330_PDMA0_PADDR,
     [PL330_PDMA1] = PL330_PDMA1_PADDR
 };
 
 static const uint32_t dma330_size[] = {
     [PL330_MDMA0] = PL330_MDMA0_SIZE,
-#if defined CONFIG_PLAT_EXYNOS5250
-    [PL330_MDMA1] = PL330_MDMA1_SIZE,
-#endif
     [PL330_PDMA0] = PL330_PDMA0_SIZE,
     [PL330_PDMA1] = PL330_PDMA1_SIZE
 };
 
 static const int dma330_irq[] = {
     [PL330_MDMA0] = PL330_MDMA0_IRQ,
-#if defined CONFIG_PLAT_EXYNOS5250
-    [PL330_MDMA1] = PL330_MDMA1_IRQ,
-#endif
     [PL330_PDMA0] = PL330_PDMA0_IRQ,
     [PL330_PDMA1] = PL330_PDMA1_IRQ
 };
 
 static const int dma330_abort_irq[] = {
     [PL330_MDMA0] = PL330_MDMA0_ABORT_IRQ,
-#if defined CONFIG_PLAT_EXYNOS5250
-    [PL330_MDMA1] = PL330_MDMA1_ABORT_IRQ,
-#endif
     [PL330_PDMA0] = -1,
     [PL330_PDMA1] = -1
 };

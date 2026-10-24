@@ -138,10 +138,8 @@ static spi_bus_t _spi[NSPI] = {
     { .regs = NULL, .mux = MUX_SPI0, .clkid = CLK_SPI0 },
     { .regs = NULL, .mux = MUX_SPI1, .clkid = CLK_SPI1 },
     { .regs = NULL, .mux = MUX_SPI2, .clkid = CLK_SPI2 },
-#if defined(CONFIG_PLAT_EXYNOS5)
     { .regs = NULL, .mux = MUX_SPI0_ISP, .clkid = CLK_SPI0_ISP },
     { .regs = NULL, .mux = MUX_SPI1_ISP, .clkid = CLK_SPI1_ISP },
-#endif /* EXYNOSX */
 };
 
 static void
@@ -423,14 +421,12 @@ spi_init(enum spi_id id, ps_io_ops_t* io_ops, spi_bus_t** ret_spi_bus)
     case SPI2:
         MAP_IF_NULL(io_ops, EXYNOS_SPI2,      spi_bus->regs);
         break;
-#ifdef CONFIG_PLAT_EXYNOS5
     case SPI0_ISP:
         MAP_IF_NULL(io_ops, EXYNOS_SPI0_ISP,  spi_bus->regs);
         break;
     case SPI1_ISP:
         MAP_IF_NULL(io_ops, EXYNOS_SPI1_ISP,  spi_bus->regs);
         break;
-#endif
     default:
         return -1;
     }

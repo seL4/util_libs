@@ -14,10 +14,7 @@
 
 #include "../../ltimer.h"
 
-/* This file is mostly the same as the dmt.c file for the hikey.
- * Consider to merge the two files as a single driver file for
- * SP804.
- */
+/* Driver for the SP804 dual timer. */
 
 #define TCLR_ONESHOT    BIT(0)
 #define TCLR_VALUE_32   BIT(1)
