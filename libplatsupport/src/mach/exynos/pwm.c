@@ -16,11 +16,7 @@
 #include <platsupport/ltimer.h>
 #include <platsupport/fdt.h>
 
-#if defined CONFIG_PLAT_EXYNOS5
 #define CLK_FREQ 66ull /* MHz */
-#else
-#define CLK_FREQ 100ull /* MHz */
-#endif
 
 #define T4_ENABLE          BIT(20)
 #define T4_MANUALRELOAD    BIT(21)

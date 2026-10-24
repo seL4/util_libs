@@ -115,7 +115,7 @@ endif()
 
 if(KernelPlatformExynos5422)
   list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_5422_clock.c)
-elseif(KernelPlatformExynos4 OR KernelPlatformExynos5410 OR KernelPlatformExynos5250)
+elseif(KernelPlatformExynos5410)
   list(APPEND deps src/mach/${LibPlatSupportMach}/clock/exynos_common_clock.c)
 endif()
 

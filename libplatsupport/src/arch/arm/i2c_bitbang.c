@@ -8,7 +8,7 @@
 #include <platsupport/gen_config.h>
 
 /* To extend support, provide platform specific i2c.h and gpio.h and delay.c */
-#if defined(CONFIG_PLAT_EXYNOS5) || defined(CONFIG_PLAT_EXYNOS4) || defined(CONFIG_PLAT_IMX6)
+#if defined(CONFIG_PLAT_EXYNOS5) || defined(CONFIG_PLAT_IMX6)
 
 #include <platsupport/i2c.h>
 #include <platsupport/delay.h>

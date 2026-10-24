@@ -16,35 +16,6 @@
  *** SoC specifics ***
  *********************/
 
-#if defined(CONFIG_PLAT_EXYNOS4)
-/* IRQS */
-#define EXYNOS_I2C0_IRQ  90
-#define EXYNOS_I2C1_IRQ  91
-#define EXYNOS_I2C2_IRQ  92
-#define EXYNOS_I2C3_IRQ  93
-#define EXYNOS_I2C4_IRQ  94
-#define EXYNOS_I2C5_IRQ  95
-#define EXYNOS_I2C6_IRQ  96
-#define EXYNOS_I2C7_IRQ  97
-#define EXYNOS_I2C8_IRQ   0
-#define EXYNOS_I2C9_IRQ   0
-#define EXYNOS_I2C10_IRQ  0
-#define EXYNOS_I2C11_IRQ  0
-/* Physical addresses */
-#define EXYNOS_I2C0_PADDR  0x13860000
-#define EXYNOS_I2C1_PADDR  0x13870000
-#define EXYNOS_I2C2_PADDR  0x13880000
-#define EXYNOS_I2C3_PADDR  0x13890000
-#define EXYNOS_I2C4_PADDR  0x138A0000
-#define EXYNOS_I2C5_PADDR  0x138B0000
-#define EXYNOS_I2C6_PADDR  0x138C0000
-#define EXYNOS_I2C7_PADDR  0x138D0000
-#define EXYNOS_I2C8_PADDR  0x138E0000
-#define EXYNOS_I2C9_PADDR  0xDEADBEEF
-#define EXYNOS_I2C10_PADDR 0xDEADBEEF
-#define EXYNOS_I2C11_PADDR 0xDEADBEEF
-
-#elif defined(CONFIG_PLAT_EXYNOS5)
 /* IRQS */
 #define EXYNOS_I2C0_IRQ  88
 #define EXYNOS_I2C1_IRQ  89
@@ -71,10 +42,6 @@
 #define EXYNOS_I2C9_PADDR  0x13130000
 #define EXYNOS_I2C10_PADDR 0x13140000
 #define EXYNOS_I2C11_PADDR 0x121D0000
-
-#else  /* EXYNOS? */
-#error Unknown Exynos based platform
-#endif /* EXYNOSX */
 
 /* Sizes */
 #define EXYNOS_I2CX_SIZE  0x1000
@@ -159,15 +126,10 @@ static struct i2c_bus_priv _i2c[NI2C] = {
     { .regs = NULL, .mux = MUX_I2C5  },
     { .regs = NULL, .mux = MUX_I2C6  },
     { .regs = NULL, .mux = MUX_I2C7  },
-#if defined(CONFIG_PLAT_EXYNOS4)
-#elif defined(CONFIG_PLAT_EXYNOS5)
     { .regs = NULL, .mux = MUX_I2C8  },
     { .regs = NULL, .mux = MUX_I2C9  },
     { .regs = NULL, .mux = MUX_I2C10 },
     { .regs = NULL, .mux = MUX_I2C11 }
-#else  /* EXYNOS? */
-#error Unknown Exynos based platform
-#endif /* EXYNOSX */
 };
 
 static inline struct i2c_bus_priv*
@@ -673,8 +635,6 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     case I2C7:
         MAP_IF_NULL(io_ops, EXYNOS_I2C7,  dev->regs);
         break;
-#if defined(CONFIG_PLAT_EXYNOS4)
-#elif defined(CONFIG_PLAT_EXYNOS5)
     case I2C8:
         MAP_IF_NULL(io_ops, EXYNOS_I2C8,  dev->regs);
         break;
@@ -687,9 +647,6 @@ i2c_init(enum i2c_id id, ps_io_ops_t* io_ops, i2c_bus_t* i2c)
     case I2C11:
         MAP_IF_NULL(io_ops, EXYNOS_I2C11, dev->regs);
         break;
-#else  /* EXYNOS? */
-#error Unknown Exynos based platform
-#endif /* EXYNOSX */
     default :
         return -1;
     }

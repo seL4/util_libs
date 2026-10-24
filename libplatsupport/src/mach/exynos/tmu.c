@@ -142,12 +142,6 @@ do_exynos_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
 }
 
 int
-exynos4_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
-{
-    return do_exynos_tmu_init(id, vaddr, tmu);
-}
-
-int
 exynos5_tmu_init(enum tmu_id id, void* vaddr, tmu_t* tmu)
 {
     return do_exynos_tmu_init(id, vaddr, tmu);

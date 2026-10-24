@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-/* Mostly copy/paste from the HiKey plat.
+/* Mostly copy/paste from the (removed) HiKey plat.
  * Should be moved to a common driver file for PL011 */
 
 #include <string.h>
