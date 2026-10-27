@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <platsupport/io.h>
+#include <ethdrivers/plat/eth_plat.h>
 
 #define NETIRQ_BABR     (1UL << 30) /* Babbling Receive Error          */
 #define NETIRQ_BABT     (1UL << 29) /* Babbling Transmit Error         */
@@ -30,6 +31,7 @@
 struct enet;
 
 struct enet *enet_init(
+    const nic_config_t *nic_config,
     void *mapped_peripheral,
     uintptr_t tx_phys,
     uintptr_t rx_phys,

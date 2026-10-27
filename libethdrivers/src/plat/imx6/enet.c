@@ -529,7 +529,7 @@ void enet_crc_strip_disable(struct enet *enet)
     regs->rcr &= ~RCR_CRCSTRIP;
 }
 
-struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
+struct enet *enet_init(const nic_config_t *nic_config, void *mapped_peripheral, uintptr_t tx_phys,
                        uintptr_t rx_phys, size_t rx_bufsize, uint64_t mac,
                        ps_io_ops_t *io_ops)
 {
@@ -552,11 +552,13 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
 
 #if defined(CONFIG_PLAT_IMX6)
 
-    /* Set the ethernet clock frequency */
-    clock_sys_t *clk_sys = malloc(sizeof(clock_sys_t));
-    clock_sys_init(io_ops, clk_sys);
-    enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
-    clk_set_freq(enet_clk_ptr, ENET_FREQ);
+    if (!(nic_config && (nic_config->flags & NIC_CONFIG_NO_CLOCK_SYS))) {
+        /* Set the ethernet clock frequency */
+        clock_sys_t *clk_sys = malloc(sizeof(clock_sys_t));
+        clock_sys_init(io_ops, clk_sys);
+        enet_clk_ptr = clk_get_clock(clk_sys, CLK_ENET);
+        clk_set_freq(enet_clk_ptr, ENET_FREQ);
+    }
 
 #elif defined(CONFIG_PLAT_IMX8MQ_EVK)
 
@@ -592,10 +594,12 @@ struct enet *enet_init(void *mapped_peripheral, uintptr_t tx_phys,
 
 #endif
 
-    /* Set the MDIO clock frequency */
-    mdc_clk.priv = (void *)regs;
-    clk_register_child(enet_clk_ptr, &mdc_clk);
-    clk_set_freq(&mdc_clk, MDC_FREQ);
+    if (!(nic_config && (nic_config->flags & NIC_CONFIG_NO_CLOCK_SYS))) {
+        /* Set the MDIO clock frequency */
+        mdc_clk.priv = (void *)regs;
+        clk_register_child(enet_clk_ptr, &mdc_clk);
+        clk_set_freq(&mdc_clk, MDC_FREQ);
+    }
 
     /* Clear out MIB */
     enet_clear_mib(enet);
