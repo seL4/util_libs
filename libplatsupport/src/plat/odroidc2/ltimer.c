@@ -210,7 +210,7 @@ int ltimer_default_init(ltimer_t *ltimer, ps_io_ops_t ops, ltimer_callback_fn_t 
     odroidc2_timer->callback_data.irq_handler = handle_irq;
     odroidc2_timer->callback_data.irq = &irqs[0];
 
-    odroidc2_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, irqs[0], handle_irq_wrapper,
+    odroidc2_timer->timer_irq_id = ps_irq_register(&ops.irq_ops, irqs[0], ltimer_handle_irq_wrapper,
                                                    &odroidc2_timer->callback_data);
     if (odroidc2_timer->timer_irq_id < 0) {
         destroy(ltimer->data);
